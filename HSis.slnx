@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="HSis.Data/HSis.Data.csproj" />
+  <Project Path="HSis.Logic/HSis.Logic.csproj" />
+  <Project Path="HSis.UI/HSis.UI.csproj" />
+</Solution>
