@@ -37,14 +37,9 @@ namespace HSis.UI
             ucReabiertos = new ucIndicador();
             tabMain = new TabControl();
             tabTickets = new TabPage();
-            tabUsuarios = new TabPage();
-            dgvUsuarios = new DataGridView();
-            btnCrearUsuario = new Button();
             ((System.ComponentModel.ISupportInitialize)dgvTickets).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)dgvUsuarios).BeginInit();
             tabMain.SuspendLayout();
             tabTickets.SuspendLayout();
-            tabUsuarios.SuspendLayout();
             SuspendLayout();
             // 
             // ucNuevos
@@ -115,7 +110,6 @@ namespace HSis.UI
             // tabMain
             // 
             tabMain.Controls.Add(tabTickets);
-            tabMain.Controls.Add(tabUsuarios);
             tabMain.Dock = DockStyle.Fill;
             tabMain.Location = new Point(0, 0);
             tabMain.Name = "tabMain";
@@ -140,43 +134,6 @@ namespace HSis.UI
             tabTickets.Text = "Tickets";
             tabTickets.UseVisualStyleBackColor = true;
             // 
-            // tabUsuarios
-            // 
-            tabUsuarios.Controls.Add(btnCrearUsuario);
-            tabUsuarios.Controls.Add(dgvUsuarios);
-            tabUsuarios.Location = new Point(4, 24);
-            tabUsuarios.Name = "tabUsuarios";
-            tabUsuarios.Padding = new Padding(3);
-            tabUsuarios.Size = new Size(1041, 589);
-            tabUsuarios.TabIndex = 1;
-            tabUsuarios.Text = "Usuarios";
-            tabUsuarios.UseVisualStyleBackColor = true;
-            // 
-            // dgvUsuarios
-            // 
-            dgvUsuarios.AllowUserToAddRows = false;
-            dgvUsuarios.AllowUserToDeleteRows = false;
-            dgvUsuarios.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dgvUsuarios.EditMode = DataGridViewEditMode.EditProgrammatically;
-            dgvUsuarios.Location = new Point(12, 45);
-            dgvUsuarios.MultiSelect = false;
-            dgvUsuarios.Name = "dgvUsuarios";
-            dgvUsuarios.ReadOnly = true;
-            dgvUsuarios.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvUsuarios.Size = new Size(1024, 530);
-            dgvUsuarios.TabIndex = 0;
-            dgvUsuarios.CellDoubleClick += dgvUsuarios_CellDoubleClick;
-            // 
-            // btnCrearUsuario
-            // 
-            btnCrearUsuario.Location = new Point(932, 16);
-            btnCrearUsuario.Name = "btnCrearUsuario";
-            btnCrearUsuario.Size = new Size(104, 23);
-            btnCrearUsuario.TabIndex = 1;
-            btnCrearUsuario.Text = "Crear Usuario";
-            btnCrearUsuario.UseVisualStyleBackColor = true;
-            btnCrearUsuario.Click += btnCrearUsuario_Click;
-            // 
             // frmDashboardAdmin
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -188,10 +145,8 @@ namespace HSis.UI
             Text = "DashboardAdmin";
             Load += DashboardAdmin_Load;
             ((System.ComponentModel.ISupportInitialize)dgvTickets).EndInit();
-            ((System.ComponentModel.ISupportInitialize)dgvUsuarios).EndInit();
             tabMain.ResumeLayout(false);
             tabTickets.ResumeLayout(false);
-            tabUsuarios.ResumeLayout(false);
             ResumeLayout(false);
         }
 
@@ -206,8 +161,5 @@ namespace HSis.UI
         private ucIndicador ucReabiertos;
         private TabControl tabMain;
         private TabPage tabTickets;
-        private TabPage tabUsuarios;
-        private DataGridView dgvUsuarios;
-        private Button btnCrearUsuario;
     }
 }

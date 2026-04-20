@@ -31,8 +31,8 @@ namespace HSis.UI
         private async void DashboardAdmin_Load(object sender, EventArgs e)
         {
             SesionSistema.ConfigurarMenuSesion(this);
-            // Cargamos KPIs, Grid de tickets y Grid de usuarios en paralelo
-            await Task.WhenAll(CargarKPIsAsync(), CargarGridCompletoAsync(), CargarUsuariosAsync());
+            // Cargamos KPIs y Grid de tickets en paralelo
+            await Task.WhenAll(CargarKPIsAsync(), CargarGridCompletoAsync());
             
             ConfigurarTabsCatalogos();
         }
@@ -152,49 +152,12 @@ namespace HSis.UI
             }
         }
 
-        private async Task CargarUsuariosAsync()
-        {
-            var usuarios = await _usuarioService.ObtenerUsuariosAsync();
-            var listaMapeada = usuarios.Select(u => new
-            {
-                IdUsuario = u.IdUsuario,
-                Nombre = u.Nombre,
-                Departamento = u.IdDepartamentoNavigation?.Nombre ?? "N/A",
-                Puesto = u.IdPuestoNavigation?.Nombre ?? "N/A",
-                Sucursal = u.IdSucursalNavigation?.Nombre ?? "N/A",
-                Rol = u.IdRolNavigation?.Descripción ?? "N/A"
-            }).ToList();
 
-            dgvUsuarios.DataSource = listaMapeada;
-        }
-
-        private async void btnCrearUsuario_Click(object sender, EventArgs e)
-        {
-            var frm = new frmCrearUsuario(this);
-            if (frm.ShowDialog() == DialogResult.OK)
-            {
-                await CargarUsuariosAsync();
-            }
-        }
-
-        private async void dgvUsuarios_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
-        {
-            if (e.RowIndex >= 0)
-            {
-                if (int.TryParse(dgvUsuarios.Rows[e.RowIndex].Cells["IdUsuario"].Value?.ToString(), out int idSeleccionado))
-                {
-                    var frm = new frmCrearUsuario(this, idSeleccionado);
-                    if (frm.ShowDialog() == DialogResult.OK)
-                    {
-                        await CargarUsuariosAsync();
-                    }
-                }
-            }
-        }
 
         private async void ConfigurarTabsCatalogos()
         {
             var catalogos = new (string Nombre, Type Tipo)[] { 
+                ("Usuarios", typeof(Usuario)),
                 ("Departamentos", typeof(Departamento)),
                 ("Empresas", typeof(Empresa)),
                 ("Materiales", typeof(Material)),
@@ -228,6 +191,38 @@ namespace HSis.UI
                 tab.Controls.Add(panelTop);
                 tabMain.TabPages.Add(tab);
 
+                // Formateo de celdas para reemplazar el ID por el Nombre/Descripción de la clase navegada
+                dgv.CellFormatting += (s, e) => {
+                    if (e.RowIndex >= 0 && e.ColumnIndex >= 0)
+                    {
+                        var columnName = dgv.Columns[e.ColumnIndex].Name;
+                        string idPk = "Id" + (cat.Tipo.Name == "RolUsuario" ? "Rol" : cat.Tipo.Name);
+                        
+                        if (columnName.StartsWith("Id") && columnName != idPk) // Es un foreign key
+                        {
+                            var navPropName = columnName + "Navigation";
+                            var entidad = dgv.Rows[e.RowIndex].DataBoundItem;
+                            if (entidad != null)
+                            {
+                                var navProp = entidad.GetType().GetProperty(navPropName);
+                                if (navProp != null)
+                                {
+                                    var navObj = navProp.GetValue(entidad);
+                                    if (navObj != null)
+                                    {
+                                        var nombreProp = navObj.GetType().GetProperty("Nombre") ?? navObj.GetType().GetProperty("Descripción");
+                                        if (nombreProp != null)
+                                        {
+                                            e.Value = nombreProp.GetValue(navObj);
+                                            e.FormattingApplied = true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                };
+
                 // Cargar datos inicialmente
                 await CargarDatosCatalogo(cat.Tipo, dgv);
 
@@ -237,6 +232,14 @@ namespace HSis.UI
                     var frm = new frmEditorDinamico(nuevaEntidad, $"Crear {cat.Nombre}");
                     if (frm.ShowDialog() == DialogResult.OK)
                     {
+                        if (cat.Tipo == typeof(Usuario))
+                        {
+                            var u = (Usuario)nuevaEntidad;
+                            if (!string.IsNullOrEmpty(u.Contraseña))
+                            {
+                                u.Contraseña = UsuarioService.HashPassword(u.Contraseña);
+                            }
+                        }
                         var miMetodo = typeof(CatalogoService).GetMethod("CrearAsync")!.MakeGenericMethod(cat.Tipo);
                         Task task = (Task)miMetodo.Invoke(_catalogoService, new object[] { nuevaEntidad })!;
                         await task;
@@ -271,13 +274,41 @@ namespace HSis.UI
                     if (e.RowIndex >= 0)
                     {
                         object entidadExistente = dgv.Rows[e.RowIndex].DataBoundItem;
+                        string passwordHashOriginal = null;
+                        if (cat.Tipo == typeof(Usuario))
+                        {
+                            var u = (Usuario)entidadExistente;
+                            passwordHashOriginal = u.Contraseña;
+                            u.Contraseña = "";
+                        }
+
                         var frm = new frmEditorDinamico(entidadExistente, $"Editar {cat.Nombre}");
                         if (frm.ShowDialog() == DialogResult.OK)
                         {
+                            if (cat.Tipo == typeof(Usuario))
+                            {
+                                var u = (Usuario)entidadExistente;
+                                if (string.IsNullOrWhiteSpace(u.Contraseña))
+                                {
+                                    u.Contraseña = passwordHashOriginal;
+                                }
+                                else
+                                {
+                                    u.Contraseña = UsuarioService.HashPassword(u.Contraseña);
+                                }
+                            }
                             var miMetodo = typeof(CatalogoService).GetMethod("ActualizarAsync")!.MakeGenericMethod(cat.Tipo);
                             Task task = (Task)miMetodo.Invoke(_catalogoService, new object[] { entidadExistente })!;
                             await task;
                             await CargarDatosCatalogo(cat.Tipo, dgv);
+                        }
+                        else
+                        {
+                            if (cat.Tipo == typeof(Usuario))
+                            {
+                                var u = (Usuario)entidadExistente;
+                                u.Contraseña = passwordHashOriginal;
+                            }
                         }
                     }
                 };
@@ -294,12 +325,17 @@ namespace HSis.UI
             var resultList = resultProp?.GetValue(task);
             dgv.DataSource = resultList;
             
-            // Ocultar columnas de navegación si se generaron
+            // Ocultar columnas no deseadas y renombrar cabeceras
+            string idPk = "Id" + (tipoEntidad.Name == "RolUsuario" ? "Rol" : tipoEntidad.Name);
             foreach(DataGridViewColumn col in dgv.Columns)
             {
-                if (col.Name.EndsWith("Navigation") || col.Name == "Usuarios" || col.Name == "Sucursals" || col.Name == "DetTickets")
+                if (col.Name.EndsWith("Navigation") || col.ValueType?.IsGenericType == true)
                 {
-                    col.Visible = false;
+                    col.Visible = false; // Ocultar objetos virtuales de navegación y colecciones
+                }
+                else if (col.Name.StartsWith("Id") && col.Name != idPk)
+                {
+                    col.HeaderText = col.Name.Substring(2); // Ejemplo: "IdDepartamento" se lee como "Departamento"
                 }
             }
         }
