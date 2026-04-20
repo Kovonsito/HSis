@@ -1,12 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Text;
-using System.Windows.Forms;
-using HSis.Logic.DTOs;
 using HSis.Data.Models;
+using HSis.Logic.DTOs;
 using HSis.Logic.Services;
 
 namespace HSis.UI
@@ -24,25 +17,41 @@ namespace HSis.UI
 
         private async void frmDashboardTecnico_Load(object sender, EventArgs e)
         {
-            await CargarIndicadoresAsync();
-            await CargarTicketsMisAsignadosAsync();
+            SesionSistema.ConfigurarMenuSesion(this);
+            // Cargamos indicadores y grid en paralelo
+            await CargarDatosInicialesAsync();
+        }
+
+        private async Task CargarDatosInicialesAsync()
+        {
+            // Ejecutamos las dos cargas principales en paralelo
+            await Task.WhenAll(CargarIndicadoresAsync(), CargarTicketsMisAsignadosAsync());
         }
 
         private async Task CargarIndicadoresAsync()
         {
             try
             {
-                var misAsignados = await _ticketService.ObtenerTicketsAsignadosATecnicoAsync(SesionSistema.IdUsuario);
-                var disponibles = await _ticketService.ObtenerTicketsDisponiblesAsync();
+                // Consultas en paralelo para los indicadores
+                var taskMisAsignados = _ticketService.ObtenerTicketsAsignadosATecnicoAsync(SesionSistema.IdUsuario);
+                var taskDisponibles = _ticketService.ObtenerTicketsDisponiblesAsync();
+
+                await Task.WhenAll(taskMisAsignados, taskDisponibles);
+
+                var misAsignados = taskMisAsignados.Result;
+                var disponibles = taskDisponibles.Result;
 
                 ucMisAsignados.Cantidad = misAsignados.Count.ToString();
                 ucMisAsignados.Titulo = "Mis Asignados";
                 ucMisAsignados.ColorFondo = Color.FromArgb(41, 128, 185);
+                // Suscribir solo una vez
+                ucMisAsignados.ucIndicadorEvent -= UcMisAsignados_Click;
                 ucMisAsignados.ucIndicadorEvent += UcMisAsignados_Click;
 
                 ucDisponibles.Cantidad = disponibles.Count.ToString();
                 ucDisponibles.Titulo = "Disponibles";
                 ucDisponibles.ColorFondo = Color.FromArgb(241, 196, 15);
+                ucDisponibles.ucIndicadorEvent -= UcDisponibles_Click;
                 ucDisponibles.ucIndicadorEvent += UcDisponibles_Click;
             }
             catch (Exception ex)
@@ -97,7 +106,7 @@ namespace HSis.UI
                 FechaAlta = t.Alta,
                 Status = t.Status,
                 Usuario = t.IdUsuarioNavigation?.Nombre ?? "Desconocido",
-                Descripcion = t.Descripción?.Length > 50 ? t.Descripción.Substring(0, 50) + "..." : t.Descripción
+                Descripcion = !string.IsNullOrEmpty(t.Descripción) && t.Descripción.Length > 50 ? t.Descripción.Substring(0, 50) + "..." : (t.Descripción ?? "")
             });
 
             dgvTicketsOperativos.DataSource = ticketsDto;
@@ -127,19 +136,19 @@ namespace HSis.UI
                 var row = dgvTicketsOperativos.Rows[e.RowIndex];
                 if (int.TryParse(row.Cells["IdTicket"].Value?.ToString(), out int idTicket))
                 {
-                    using (var frmTicket = new frmTicket(idTicket))
+                    using var frmTicket = new frmTicketDetalle(idTicket);
+
+                    frmTicket.ShowDialog();
+                    await CargarIndicadoresAsync();
+                    if (_mostrandoMisAsignados)
                     {
-                        frmTicket.ShowDialog();
-                        await CargarIndicadoresAsync();
-                        if (_mostrandoMisAsignados)
-                        {
-                            await CargarTicketsMisAsignadosAsync();
-                        }
-                        else
-                        {
-                            await CargarTicketsDisponiblesAsync();
-                        }
+                        await CargarTicketsMisAsignadosAsync();
                     }
+                    else
+                    {
+                        await CargarTicketsDisponiblesAsync();
+                    }
+
                 }
             }
         }

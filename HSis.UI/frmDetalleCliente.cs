@@ -43,7 +43,7 @@ namespace HSis.UI
                 }
 
                 // Mostrar datos del ticket (solo lectura)
-                lblFolioValor.Text = _ticketActual.IdTicket.ToString();
+                lblFolioValor.Text = $"TK{_ticketActual.IdTicket:D6}";
                 lblFechaAltaValor.Text = _ticketActual.Alta?.ToString("dd/MM/yyyy HH:mm") ?? "N/A";
                 lblEstatusValor.Text = _ticketActual.Status ?? "Desconocido";
                 lblTecnicoValor.Text = _ticketActual.IdTecnicoNavigation?.Nombre ?? "Sin asignar";
@@ -70,8 +70,8 @@ namespace HSis.UI
 
             if (estatus == ConstantesEstatus.ABIERTO)
             {
-                lblEstatusValor.BackColor = Color.LightCoral;
-                lblEstatusValor.ForeColor = Color.DarkRed;
+                lblEstatusValor.BackColor = Color.LightBlue;
+                lblEstatusValor.ForeColor = Color.DarkBlue;
             }
             else if (estatus == ConstantesEstatus.EN_PROCESO)
             {
@@ -85,8 +85,8 @@ namespace HSis.UI
             }
             else if (estatus == ConstantesEstatus.REABIERTO)
             {
-                lblEstatusValor.BackColor = Color.LightBlue;
-                lblEstatusValor.ForeColor = Color.DarkBlue;
+                lblEstatusValor.BackColor = Color.FromArgb(153, 102, 204);
+                lblEstatusValor.ForeColor = Color.LightPink;
             }
         }
 

@@ -1,4 +1,4 @@
-﻿namespace HSis.UI
+namespace HSis.UI
 {
     partial class frmDashboardAdmin
     {
@@ -34,12 +34,22 @@
             ucCerrados = new ucIndicador();
             dgvTickets = new DataGridView();
             btnRecargar = new Button();
+            ucReabiertos = new ucIndicador();
+            tabMain = new TabControl();
+            tabTickets = new TabPage();
+            tabUsuarios = new TabPage();
+            dgvUsuarios = new DataGridView();
+            btnCrearUsuario = new Button();
             ((System.ComponentModel.ISupportInitialize)dgvTickets).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)dgvUsuarios).BeginInit();
+            tabMain.SuspendLayout();
+            tabTickets.SuspendLayout();
+            tabUsuarios.SuspendLayout();
             SuspendLayout();
             // 
             // ucNuevos
             // 
-            ucNuevos.Location = new Point(12, 12);
+            ucNuevos.Location = new Point(12, 32);
             ucNuevos.Name = "ucNuevos";
             ucNuevos.Size = new Size(200, 100);
             ucNuevos.TabIndex = 0;
@@ -47,7 +57,7 @@
             // 
             // ucUrgentes
             // 
-            ucUrgentes.Location = new Point(218, 12);
+            ucUrgentes.Location = new Point(218, 32);
             ucUrgentes.Name = "ucUrgentes";
             ucUrgentes.Size = new Size(200, 100);
             ucUrgentes.TabIndex = 1;
@@ -55,7 +65,7 @@
             // 
             // ucEnProceso
             // 
-            ucEnProceso.Location = new Point(424, 12);
+            ucEnProceso.Location = new Point(424, 32);
             ucEnProceso.Name = "ucEnProceso";
             ucEnProceso.Size = new Size(200, 100);
             ucEnProceso.TabIndex = 2;
@@ -63,7 +73,7 @@
             // 
             // ucCerrados
             // 
-            ucCerrados.Location = new Point(630, 12);
+            ucCerrados.Location = new Point(630, 32);
             ucCerrados.Name = "ucCerrados";
             ucCerrados.Size = new Size(200, 100);
             ucCerrados.TabIndex = 3;
@@ -80,36 +90,108 @@
             dgvTickets.Name = "dgvTickets";
             dgvTickets.ReadOnly = true;
             dgvTickets.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvTickets.Size = new Size(821, 308);
+            dgvTickets.Size = new Size(1024, 308);
             dgvTickets.TabIndex = 4;
             dgvTickets.CellDoubleClick += dgvTickets_CellDoubleClick;
             // 
             // btnRecargar
             // 
-            btnRecargar.Location = new Point(755, 136);
+            btnRecargar.Location = new Point(932, 268);
             btnRecargar.Name = "btnRecargar";
-            btnRecargar.Size = new Size(75, 23);
+            btnRecargar.Size = new Size(104, 23);
             btnRecargar.TabIndex = 5;
             btnRecargar.Text = "Recargar tabla";
             btnRecargar.UseVisualStyleBackColor = true;
             btnRecargar.Click += btnRecargar_Click;
             // 
+            // ucReabiertos
+            // 
+            ucReabiertos.Location = new Point(836, 32);
+            ucReabiertos.Name = "ucReabiertos";
+            ucReabiertos.Size = new Size(200, 100);
+            ucReabiertos.TabIndex = 6;
+            ucReabiertos.ucIndicadorEvent += ucReabiertos_ucIndicadorEvent;
+            // 
+            // tabMain
+            // 
+            tabMain.Controls.Add(tabTickets);
+            tabMain.Controls.Add(tabUsuarios);
+            tabMain.Dock = DockStyle.Fill;
+            tabMain.Location = new Point(0, 0);
+            tabMain.Name = "tabMain";
+            tabMain.SelectedIndex = 0;
+            tabMain.Size = new Size(1049, 617);
+            tabMain.TabIndex = 7;
+            // 
+            // tabTickets
+            // 
+            tabTickets.Controls.Add(ucReabiertos);
+            tabTickets.Controls.Add(btnRecargar);
+            tabTickets.Controls.Add(dgvTickets);
+            tabTickets.Controls.Add(ucCerrados);
+            tabTickets.Controls.Add(ucEnProceso);
+            tabTickets.Controls.Add(ucUrgentes);
+            tabTickets.Controls.Add(ucNuevos);
+            tabTickets.Location = new Point(4, 24);
+            tabTickets.Name = "tabTickets";
+            tabTickets.Padding = new Padding(3);
+            tabTickets.Size = new Size(1041, 589);
+            tabTickets.TabIndex = 0;
+            tabTickets.Text = "Tickets";
+            tabTickets.UseVisualStyleBackColor = true;
+            // 
+            // tabUsuarios
+            // 
+            tabUsuarios.Controls.Add(btnCrearUsuario);
+            tabUsuarios.Controls.Add(dgvUsuarios);
+            tabUsuarios.Location = new Point(4, 24);
+            tabUsuarios.Name = "tabUsuarios";
+            tabUsuarios.Padding = new Padding(3);
+            tabUsuarios.Size = new Size(1041, 589);
+            tabUsuarios.TabIndex = 1;
+            tabUsuarios.Text = "Usuarios";
+            tabUsuarios.UseVisualStyleBackColor = true;
+            // 
+            // dgvUsuarios
+            // 
+            dgvUsuarios.AllowUserToAddRows = false;
+            dgvUsuarios.AllowUserToDeleteRows = false;
+            dgvUsuarios.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dgvUsuarios.EditMode = DataGridViewEditMode.EditProgrammatically;
+            dgvUsuarios.Location = new Point(12, 45);
+            dgvUsuarios.MultiSelect = false;
+            dgvUsuarios.Name = "dgvUsuarios";
+            dgvUsuarios.ReadOnly = true;
+            dgvUsuarios.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvUsuarios.Size = new Size(1024, 530);
+            dgvUsuarios.TabIndex = 0;
+            dgvUsuarios.CellDoubleClick += dgvUsuarios_CellDoubleClick;
+            // 
+            // btnCrearUsuario
+            // 
+            btnCrearUsuario.Location = new Point(932, 16);
+            btnCrearUsuario.Name = "btnCrearUsuario";
+            btnCrearUsuario.Size = new Size(104, 23);
+            btnCrearUsuario.TabIndex = 1;
+            btnCrearUsuario.Text = "Crear Usuario";
+            btnCrearUsuario.UseVisualStyleBackColor = true;
+            btnCrearUsuario.Click += btnCrearUsuario_Click;
+            // 
             // frmDashboardAdmin
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(845, 617);
-            Controls.Add(btnRecargar);
-            Controls.Add(dgvTickets);
-            Controls.Add(ucCerrados);
-            Controls.Add(ucEnProceso);
-            Controls.Add(ucUrgentes);
-            Controls.Add(ucNuevos);
+            ClientSize = new Size(1049, 617);
+            Controls.Add(tabMain);
             Name = "frmDashboardAdmin";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "DashboardAdmin";
             Load += DashboardAdmin_Load;
             ((System.ComponentModel.ISupportInitialize)dgvTickets).EndInit();
+            ((System.ComponentModel.ISupportInitialize)dgvUsuarios).EndInit();
+            tabMain.ResumeLayout(false);
+            tabTickets.ResumeLayout(false);
+            tabUsuarios.ResumeLayout(false);
             ResumeLayout(false);
         }
 
@@ -121,5 +203,11 @@
         private ucIndicador ucCerrados;
         private DataGridView dgvTickets;
         private Button btnRecargar;
+        private ucIndicador ucReabiertos;
+        private TabControl tabMain;
+        private TabPage tabTickets;
+        private TabPage tabUsuarios;
+        private DataGridView dgvUsuarios;
+        private Button btnCrearUsuario;
     }
 }

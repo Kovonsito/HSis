@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -12,13 +12,11 @@ namespace HSis.UI
     public partial class frmIniciarSesion : Form
     {
         private readonly UsuarioService _usuarioService;
-        private frmCrearUsuario _frmCrearUsuario;
 
         public frmIniciarSesion()
         {
             InitializeComponent();
             _usuarioService = new UsuarioService();
-            _frmCrearUsuario = new frmCrearUsuario(this);
         }
 
         private async void btnIniciarSesion_Click(object sender, EventArgs e)
@@ -26,11 +24,7 @@ namespace HSis.UI
             var usuario = await _usuarioService.AutenticarAsync(txtUsuario.Text, txtContraseña.Text);
             if (usuario != null)
             {
-                SesionSistema.NombreUsuario = usuario.Nombre ?? string.Empty;
-                SesionSistema.IdUsuario = usuario.IdUsuario;
-                SesionSistema.IdRolUsuario = usuario.IdRol;
-
-                MessageBox.Show("Inicio de sesión exitoso", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                SesionSistema.UsuarioActual = usuario;
 
                 Form dashboardForm = SesionSistema.IdRolUsuario switch
                 {
@@ -43,8 +37,8 @@ namespace HSis.UI
                 // Suscribirse al evento FormClosed para cerrar la aplicación correctamente
                 dashboardForm.FormClosed += (s, closedArgs) => Application.Exit();
 
-                dashboardForm.Show();
                 this.Hide();
+                dashboardForm.Show();
             }
             else
             {
@@ -52,12 +46,6 @@ namespace HSis.UI
                 txtUsuario.Clear();
                 txtContraseña.Clear();
             }
-        }
-
-        private void btnCrearUsuario_Click(object sender, EventArgs e)
-        {
-            this.Hide();
-            _frmCrearUsuario.ShowDialog();
         }
 
         private async void frmIniciarSesion_Load(object sender, EventArgs e)

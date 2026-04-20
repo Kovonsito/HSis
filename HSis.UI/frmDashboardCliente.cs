@@ -7,6 +7,7 @@ using System.Text;
 using System.Windows.Forms;
 using HSis.Logic.DTOs;
 using HSis.Logic.Services;
+using HSis.Data.Models;
 
 namespace HSis.UI
 {
@@ -22,31 +23,42 @@ namespace HSis.UI
 
         private async void frmDashboardCliente_Load(object sender, EventArgs e)
         {
-            await CargarTicketsAsync();
-            await ActualizarIndicadorAsync();
+            SesionSistema.ConfigurarMenuSesion(this);
+            // Cargamos la información una sola vez para evitar múltiples llamadas a la BD
+            await CargarDatosDashboardAsync();
         }
 
-        private async Task CargarTicketsAsync()
+        private async Task CargarDatosDashboardAsync()
         {
             try
             {
                 var tickets = await _ticketService.ObtenerTicketsPorUsuarioAsync(SesionSistema.IdUsuario);
-                var ticketsDto = tickets.ConvertAll(t => new TicketClienteDto
-                {
-                    IdTicket = t.IdTicket,
-                    FechaAlta = t.Alta,
-                    Status = t.Status,
-                    TecnicoAsignado = t.IdTecnicoNavigation?.Nombre ?? "Sin asignar",
-                    Descripcion = t.Descripción?.Length > 50 ? t.Descripción.Substring(0, 50) + "..." : t.Descripción
-                });
-
-                dgvMisTickets.DataSource = ticketsDto;
-                PersonalizarColumnas();
+                
+                // Actualizar Grid
+                ActualizarGridTickets(tickets);
+                
+                // Actualizar Indicador
+                ActualizarIndicador(tickets);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al cargar tickets: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Error al cargar el dashboard: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void ActualizarGridTickets(List<Ticket> tickets)
+        {
+            var ticketsDto = tickets.ConvertAll(t => new TicketClienteDto
+            {
+                IdTicket = t.IdTicket,
+                FechaAlta = t.Alta,
+                Status = t.Status,
+                TecnicoAsignado = t.IdTecnicoNavigation?.Nombre ?? "Sin asignar",
+                Descripcion = !string.IsNullOrEmpty(t.Descripción) && t.Descripción.Length > 50 ? t.Descripción.Substring(0, 50) + "..." : (t.Descripción ?? "")
+            });
+
+            dgvMisTickets.DataSource = ticketsDto;
+            PersonalizarColumnas();
         }
 
         private void PersonalizarColumnas()
@@ -66,30 +78,22 @@ namespace HSis.UI
             }
         }
 
-        private async Task ActualizarIndicadorAsync()
+        private void ActualizarIndicador(List<Ticket> tickets)
         {
-            try
-            {
-                var tickets = await _ticketService.ObtenerTicketsPorUsuarioAsync(SesionSistema.IdUsuario);
-                var activos = tickets.FindAll(t => t.Status != ConstantesEstatus.CERRADO);
+            var activos = tickets.FindAll(t => t.Status != ConstantesEstatus.CERRADO);
 
-                ucMisActivos.Cantidad = activos.Count.ToString();
-                ucMisActivos.Titulo = "Mis Tickets Activos";
-                ucMisActivos.ColorFondo = Color.FromArgb(41, 128, 185);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error al actualizar indicador: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            ucMisActivos.Cantidad = activos.Count.ToString();
+            ucMisActivos.Titulo = "Mis Tickets Activos";
+            ucMisActivos.ColorFondo = Color.FromArgb(41, 128, 185);
         }
 
         private void btnNuevoReporte_Click(object sender, EventArgs e)
         {
-            using (var frmNuevo = new frmNuevoReporte())
+            using (var frmNuevo = new frmNuevoTicket())
             {
                 if (frmNuevo.ShowDialog() == DialogResult.OK)
                 {
-                    CargarTicketsAsync().ConfigureAwait(false);
+                    _ = CargarDatosDashboardAsync();
                 }
             }
         }
@@ -101,10 +105,10 @@ namespace HSis.UI
                 var row = dgvMisTickets.Rows[e.RowIndex];
                 if (int.TryParse(row.Cells["IdTicket"].Value?.ToString(), out int idTicket))
                 {
-                    using (var frmTicket = new frmTicket(idTicket))
+                    using (var frmDetalle = new frmDetalleCliente(idTicket))
                     {
-                        frmTicket.ShowDialog();
-                        CargarTicketsAsync().ConfigureAwait(false);
+                        frmDetalle.ShowDialog();
+                        _ = CargarDatosDashboardAsync();
                     }
                 }
             }

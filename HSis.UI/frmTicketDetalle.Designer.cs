@@ -1,6 +1,6 @@
 ﻿namespace HSis.UI
 {
-    partial class frmTicket
+    partial class frmTicketDetalle
     {
         /// <summary>
         /// Required designer variable.
@@ -124,10 +124,11 @@
             // 
             // dtpAlta
             // 
-            dtpAlta.Enabled = false;
+            dtpAlta.CustomFormat = "dddd, dd 'de' MMMM 'de' yyyy 'a las' HH:mm:ss";
+            dtpAlta.Format = DateTimePickerFormat.Custom;
             dtpAlta.Location = new Point(134, 93);
             dtpAlta.Name = "dtpAlta";
-            dtpAlta.Size = new Size(228, 23);
+            dtpAlta.Size = new Size(343, 23);
             dtpAlta.TabIndex = 10;
             // 
             // lblSolucion
@@ -150,11 +151,10 @@
             // 
             // lblAtendido
             // 
-            lblAtendido.AutoSize = true;
-            lblAtendido.Location = new Point(12, 184);
+            lblAtendido.Location = new Point(12, 186);
             lblAtendido.Name = "lblAtendido";
-            lblAtendido.Size = new Size(80, 15);
-            lblAtendido.TabIndex = 13;
+            lblAtendido.Size = new Size(100, 23);
+            lblAtendido.TabIndex = 24;
             lblAtendido.Text = "Atendido por:";
             // 
             // lblAtencion
@@ -168,10 +168,11 @@
             // 
             // dtpAtencion
             // 
-            dtpAtencion.Enabled = false;
+            dtpAtencion.CustomFormat = "dddd, dd 'de' MMMM 'de' yyyy 'a las' HH:mm:ss";
+            dtpAtencion.Format = DateTimePickerFormat.Custom;
             dtpAtencion.Location = new Point(134, 121);
             dtpAtencion.Name = "dtpAtencion";
-            dtpAtencion.Size = new Size(228, 23);
+            dtpAtencion.Size = new Size(343, 23);
             dtpAtencion.TabIndex = 15;
             // 
             // lblCierre
@@ -185,19 +186,19 @@
             // 
             // dtpCierre
             // 
-            dtpCierre.Enabled = false;
+            dtpCierre.CustomFormat = "dddd, dd 'de' MMMM 'de' yyyy 'a las' HH:mm:ss";
+            dtpCierre.Format = DateTimePickerFormat.Custom;
             dtpCierre.Location = new Point(134, 150);
             dtpCierre.Name = "dtpCierre";
-            dtpCierre.Size = new Size(228, 23);
+            dtpCierre.Size = new Size(343, 23);
             dtpCierre.TabIndex = 17;
             // 
             // cmbAtendido
             // 
-            cmbAtendido.FormattingEnabled = true;
-            cmbAtendido.Location = new Point(134, 179);
+            cmbAtendido.Location = new Point(134, 183);
             cmbAtendido.Name = "cmbAtendido";
-            cmbAtendido.Size = new Size(228, 23);
-            cmbAtendido.TabIndex = 18;
+            cmbAtendido.Size = new Size(121, 23);
+            cmbAtendido.TabIndex = 23;
             // 
             // btnGuardar
             // 
