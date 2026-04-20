@@ -13,7 +13,7 @@ namespace HSis.Logic.Services
     public class UsuarioService
     {
         // Hash de contraseña con SHA256
-        private static string HashPassword(string password)
+        public static string HashPassword(string password)
         {
             return BCrypt.Net.BCrypt.HashPassword(password, workFactor: 12);
         }
@@ -38,11 +38,15 @@ namespace HSis.Logic.Services
             await db.SaveChangesAsync();
         }
 
-        // Autenticación - Async
         public async Task<Usuario?> AutenticarAsync(string nombreUsuario, string contraseña)
         {
             using var db = new HSisDbContext();
-            var usuario = await db.Usuarios.FirstOrDefaultAsync(u => u.Nombre == nombreUsuario);
+            var usuario = await db.Usuarios
+                .Include(u => u.IdDepartamentoNavigation)
+                .Include(u => u.IdPuestoNavigation)
+                .Include(u => u.IdSucursalNavigation)
+                .Include(u => u.IdRolNavigation)
+                .FirstOrDefaultAsync(u => u.Nombre == nombreUsuario);
             return usuario !=null && VerifyPassword(contraseña, usuario.Contraseña) ? usuario : null;
         }
 

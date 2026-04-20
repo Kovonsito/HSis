@@ -1,4 +1,4 @@
-﻿namespace HSis.UI
+namespace HSis.UI
 {
     partial class frmIniciarSesion
     {
@@ -33,7 +33,6 @@
             txtUsuario = new TextBox();
             txtContraseña = new TextBox();
             btnIniciarSesion = new Button();
-            btnCrearUsuario = new Button();
             SuspendLayout();
             // 
             // lblUsuario
@@ -78,23 +77,13 @@
             btnIniciarSesion.Text = "Iniciar Sesión";
             btnIniciarSesion.UseVisualStyleBackColor = true;
             btnIniciarSesion.Click += btnIniciarSesion_Click;
-            // 
-            // btnCrearUsuario
-            // 
-            btnCrearUsuario.Location = new Point(144, 196);
-            btnCrearUsuario.Name = "btnCrearUsuario";
-            btnCrearUsuario.Size = new Size(102, 23);
-            btnCrearUsuario.TabIndex = 6;
-            btnCrearUsuario.Text = "Crear usuario";
-            btnCrearUsuario.UseVisualStyleBackColor = true;
-            btnCrearUsuario.Click += btnCrearUsuario_Click;
+
             // 
             // frmIniciarSesion
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(298, 245);
-            Controls.Add(btnCrearUsuario);
             Controls.Add(btnIniciarSesion);
             Controls.Add(txtContraseña);
             Controls.Add(txtUsuario);
@@ -115,6 +104,5 @@
         private TextBox txtUsuario;
         private TextBox txtContraseña;
         private Button btnIniciarSesion;
-        private Button btnCrearUsuario;
     }
 }
