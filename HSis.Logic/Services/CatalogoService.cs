@@ -10,7 +10,20 @@ namespace HSis.Logic.Services
         public async Task<List<T>> ObtenerTodosAsync<T>() where T : class
         {
             using var db = new HSisDbContext();
-            return await db.Set<T>().ToListAsync();
+            IQueryable<T> query = db.Set<T>();
+            var navigations = db.Model.FindEntityType(typeof(T))?.GetNavigations();
+            if (navigations != null)
+            {
+                foreach (var nav in navigations)
+                {
+                    // No incluimos colecciones (relaciones uno a muchos inversas)
+                    if (!nav.IsCollection)
+                    {
+                        query = query.Include(nav.Name);
+                    }
+                }
+            }
+            return await query.ToListAsync();
         }
 
         public async Task CrearAsync<T>(T entidad) where T : class

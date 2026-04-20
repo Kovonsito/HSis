@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
@@ -49,7 +49,9 @@ public partial class HSisDbContext : DbContext
 
             entity.ToTable("Departamento");
 
-            entity.Property(e => e.IdDepartamento).HasColumnName("id_Departamento");
+            entity.Property(e => e.IdDepartamento)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("id_Departamento");
             entity.Property(e => e.Descripción)
                 .HasMaxLength(250)
                 .IsUnicode(false);
@@ -88,7 +90,9 @@ public partial class HSisDbContext : DbContext
 
             entity.ToTable("Empresa");
 
-            entity.Property(e => e.IdEmpresa).HasColumnName("id_Empresa");
+            entity.Property(e => e.IdEmpresa)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("id_Empresa");
             entity.Property(e => e.Calle)
                 .HasMaxLength(50)
                 .IsUnicode(false);
@@ -112,7 +116,9 @@ public partial class HSisDbContext : DbContext
 
             entity.ToTable("Historial_Cambios_Ticket");
 
-            entity.Property(e => e.IdHistorial).HasColumnName("id_Historial");
+            entity.Property(e => e.IdHistorial)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("id_Historial");
             entity.Property(e => e.CampoModificado)
                 .HasMaxLength(50)
                 .IsUnicode(false)
@@ -168,7 +174,9 @@ public partial class HSisDbContext : DbContext
 
             entity.ToTable("Material");
 
-            entity.Property(e => e.IdMaterial).HasColumnName("id_Material");
+            entity.Property(e => e.IdMaterial)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("id_Material");
             entity.Property(e => e.Costo).HasColumnType("smallmoney");
             entity.Property(e => e.CostoAnterior)
                 .HasDefaultValue(0m, "DF_Material_Costo_Anterior")
@@ -185,7 +193,9 @@ public partial class HSisDbContext : DbContext
 
             entity.ToTable("Puesto");
 
-            entity.Property(e => e.IdPuesto).HasColumnName("id_Puesto");
+            entity.Property(e => e.IdPuesto)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("id_Puesto");
             entity.Property(e => e.Descripción)
                 .HasMaxLength(250)
                 .IsUnicode(false);
@@ -200,7 +210,9 @@ public partial class HSisDbContext : DbContext
 
             entity.ToTable("Rol_Usuario");
 
-            entity.Property(e => e.IdRol).HasColumnName("id_Rol");
+            entity.Property(e => e.IdRol)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("id_Rol");
             entity.Property(e => e.Descripción)
                 .HasMaxLength(50)
                 .IsUnicode(false);
@@ -212,7 +224,9 @@ public partial class HSisDbContext : DbContext
 
             entity.ToTable("Sucursal");
 
-            entity.Property(e => e.IdSucursal).HasColumnName("id_Sucursal");
+            entity.Property(e => e.IdSucursal)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("id_Sucursal");
             entity.Property(e => e.Calle)
                 .HasMaxLength(30)
                 .IsUnicode(false);
@@ -241,7 +255,9 @@ public partial class HSisDbContext : DbContext
 
             entity.ToTable("Ticket");
 
-            entity.Property(e => e.IdTicket).HasColumnName("id_Ticket");
+            entity.Property(e => e.IdTicket)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("id_Ticket");
             entity.Property(e => e.Alta)
                 .HasDefaultValueSql("(getdate())", "DF__Ticket__Alta__6FE99F9F")
                 .HasColumnType("datetime");
@@ -274,7 +290,9 @@ public partial class HSisDbContext : DbContext
 
             entity.ToTable("Usuario");
 
-            entity.Property(e => e.IdUsuario).HasColumnName("id_Usuario");
+            entity.Property(e => e.IdUsuario)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("id_Usuario");
             entity.Property(e => e.Contraseña)
                 .HasMaxLength(255)
                 .IsUnicode(false);
