@@ -11,9 +11,11 @@ public partial class Material
 
     public decimal Costo { get; set; }
 
-    public short Inventario { get; set; }
+    public int Inventario { get; set; }
 
-    public decimal? CostoAnterior { get; set; }
+    public string UnidadMedida { get; set; } = null!;
 
     public virtual ICollection<DetTicket> DetTickets { get; set; } = new List<DetTicket>();
+
+    public virtual ICollection<IngresosMaterial> IngresosMaterials { get; set; } = new List<IngresosMaterial>();
 }

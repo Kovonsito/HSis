@@ -15,7 +15,7 @@ public partial class Usuario
 
     public int? IdSucursal { get; set; }
 
-    public int IdRol { get; set; }
+    public int? IdRol { get; set; }
 
     public string? Contraseña { get; set; }
 
@@ -28,6 +28,8 @@ public partial class Usuario
     public virtual RolUsuario? IdRolNavigation { get; set; }
 
     public virtual Sucursal? IdSucursalNavigation { get; set; }
+
+    public virtual ICollection<IngresosMaterial> IngresosMaterials { get; set; } = new List<IngresosMaterial>();
 
     public virtual ICollection<Ticket> TicketIdTecnicoNavigations { get; set; } = new List<Ticket>();
 
