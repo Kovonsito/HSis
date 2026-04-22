@@ -18,12 +18,12 @@ namespace HSis.UI
         private readonly UsuarioService _usuarioService;
         private Ticket? _ticketActual;
 
-        public frmTicketDetalle(int idTicket)
+        public frmTicketDetalle(int idTicket, TicketService ticketService, UsuarioService usuarioService)
         {
             InitializeComponent();
             _idTicket = idTicket;
-            _ticketService = new TicketService();
-            _usuarioService = new UsuarioService();
+            _ticketService = ticketService;
+            _usuarioService = usuarioService;
             
             CargarDialogoTicket();
         }
@@ -97,35 +97,11 @@ namespace HSis.UI
 
                 // Lógica del diccionario de opciones de estatus
                 cmbEstatus.Items.Clear();
-                if (!esAdmin)
+                
+                var estatusPermitidos = _ticketService.ObtenerEstatusPermitidos(SesionSistema.IdRolUsuario, estatusActual);
+                foreach (var estatus in estatusPermitidos)
                 {
-                    if (estatusActual == ConstantesEstatus.ABIERTO)
-                    {
-                        cmbEstatus.Items.Add(ConstantesEstatus.ABIERTO);
-                        cmbEstatus.Items.Add(ConstantesEstatus.EN_PROCESO);
-                    }
-                    else if (estatusActual == ConstantesEstatus.EN_PROCESO)
-                    {
-                        cmbEstatus.Items.Add(ConstantesEstatus.EN_PROCESO);
-                        cmbEstatus.Items.Add(ConstantesEstatus.CERRADO);
-                    }
-                    else if (estatusActual == ConstantesEstatus.CERRADO)
-                    {
-                        cmbEstatus.Items.Add(ConstantesEstatus.CERRADO);
-                    }
-                    else if (estatusActual == ConstantesEstatus.REABIERTO)
-                    {
-                        cmbEstatus.Items.Add(ConstantesEstatus.REABIERTO);
-                        cmbEstatus.Items.Add(ConstantesEstatus.EN_PROCESO);
-                    }
-                }
-                else
-                {
-                    // Admin tiene todas las opciones
-                    cmbEstatus.Items.Add(ConstantesEstatus.ABIERTO);
-                    cmbEstatus.Items.Add(ConstantesEstatus.EN_PROCESO);
-                    cmbEstatus.Items.Add(ConstantesEstatus.CERRADO);
-                    cmbEstatus.Items.Add(ConstantesEstatus.REABIERTO);
+                    cmbEstatus.Items.Add(estatus);
                 }
 
                 cmbEstatus.SelectedItem = estatusActual;
@@ -270,8 +246,8 @@ namespace HSis.UI
                     _ticketActual.Cierre = null;
                 }
 
-                // Llamar al método de auditoría que registra los cambios en el historial
-                await _ticketService.ActualizarTicketConHistorialAsync(_ticketActual, SesionSistema.IdUsuario);
+                // Llamar al método de actualización (el interceptor auditará los cambios automáticamente)
+                await _ticketService.ActualizarTicketAsync(_ticketActual);
 
                 MessageBox.Show("Ticket actualizado correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
 

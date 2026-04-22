@@ -18,10 +18,10 @@ namespace HSis.UI
     {
         private readonly TicketService _ticketService;
 
-        public frmNuevoTicket()
+        public frmNuevoTicket(TicketService ticketService)
         {
             InitializeComponent();
-            _ticketService = new TicketService();
+            _ticketService = ticketService;
         }
 
         private void frmNuevoTicket_Load(object sender, EventArgs e)

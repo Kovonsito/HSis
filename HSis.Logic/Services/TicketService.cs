@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using HSis.Data.Models;
 using HSis.Logic.DTOs;
 
@@ -6,10 +6,17 @@ namespace HSis.Logic.Services
 {
     public class TicketService
     {
+        private readonly IDbContextFactory<HSisDbContext> _dbContextFactory;
+
+        public TicketService(IDbContextFactory<HSisDbContext> dbContextFactory)
+        {
+            _dbContextFactory = dbContextFactory;
+        }
+
         // Obtener todos los tickets - Async
         public async Task<List<Ticket>> ObtenerTicketsAsync()
         {
-            using var db = new HSisDbContext();
+            using var db = _dbContextFactory.CreateDbContext();
             return await db.Tickets
                 .Include(t => t.IdUsuarioNavigation)
                 .Include(t => t.IdTecnicoNavigation)
@@ -19,18 +26,24 @@ namespace HSis.Logic.Services
         // Obtener un ticket por su id - Async
         public async Task<Ticket?> ObtenerTicketPorIdAsync(int id)
         {
-            using var db = new HSisDbContext();
+            using var db = _dbContextFactory.CreateDbContext();
             return await db.Tickets
                 .Include(t => t.IdUsuarioNavigation)
                 .Include(t => t.IdTecnicoNavigation)
                 .FirstOrDefaultAsync(t => t.IdTicket == id);
         }
 
+        // Helper method para centralizar la configuración del SLA (DRY)
+        private DateTime ObtenerLimiteSLA()
+        {
+            return DateTime.Now.AddHours(-48);
+        }
+
         // Obtener tickets filtrados por SLA (urgentes/no urgentes) - Async
         public async Task<List<Ticket>> ObtenerTicketsPorSLAAsync(bool esUrgente)
         {
-            using var db = new HSisDbContext();
-            DateTime limite = DateTime.Now.AddHours(-48);
+            using var db = _dbContextFactory.CreateDbContext();
+            DateTime limite = ObtenerLimiteSLA();
 
             var query = esUrgente 
                 ? db.Tickets.Where(t => t.Status == ConstantesEstatus.ABIERTO && t.Alta < limite)
@@ -45,7 +58,7 @@ namespace HSis.Logic.Services
         // Obtener tickets por estatus - Async
         public async Task<List<Ticket>> ObtenerTicketsPorEstatusAsync(string estatus)
         {
-            using var db = new HSisDbContext();
+            using var db = _dbContextFactory.CreateDbContext();
             return await db.Tickets
                 .Where(t => t.Status == estatus)
                 .Include(t => t.IdUsuarioNavigation)
@@ -56,8 +69,8 @@ namespace HSis.Logic.Services
         // Contar tickets por SLA - Async
         public async Task<int> ObtenerCountTicketsPorSLAAsync(bool esUrgente)
         {
-            using var db = new HSisDbContext();
-            DateTime limite = DateTime.Now.AddHours(-48);
+            using var db = _dbContextFactory.CreateDbContext();
+            DateTime limite = ObtenerLimiteSLA();
 
             var query = esUrgente
                 ? db.Tickets.Where(t => t.Status == ConstantesEstatus.ABIERTO && t.Alta < limite)
@@ -69,13 +82,13 @@ namespace HSis.Logic.Services
         // Contar tickets por estatus - Async
         public async Task<int> ObtenerCountTicketsPorEstatusAsync(string estatus)
         {
-            using var db = new HSisDbContext();
+            using var db = _dbContextFactory.CreateDbContext();
             return await db.Tickets.CountAsync(t => t.Status == estatus);
         }
 
         public async Task<List<object>> ObtenerHistorialPorTicketAsync(int idTicket)
         {
-            using var db = new HSisDbContext();
+            using var db = _dbContextFactory.CreateDbContext();
 
             // Filtramos por el ticket actual y ordenamos del más reciente al más antiguo
             var historial = await db.HistorialCambiosTickets
@@ -95,60 +108,29 @@ namespace HSis.Logic.Services
             return historial;
         }
 
-        // Actualizar ticket con registro en historial - Transaccional
-        public async Task ActualizarTicketConHistorialAsync(Ticket ticketEditado, int idUsuarioModifica)
+        // Actualizar ticket (el historial se genera automáticamente mediante el SaveChangesInterceptor)
+        public async Task ActualizarTicketAsync(Ticket ticketEditado)
         {
-            using var db = new HSisDbContext();
-            using var transaction = db.Database.BeginTransaction();
+            using var db = _dbContextFactory.CreateDbContext();
 
-            try
+            var ticketTracked = await db.Tickets.FindAsync(ticketEditado.IdTicket);
+            if (ticketTracked != null)
             {
-                // Obtener el ticket original sin tracking para comparación
-                var ticketOriginal = await db.Tickets
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(t => t.IdTicket == ticketEditado.IdTicket);
-
-                if (ticketOriginal == null)
-                    throw new Exception("El ticket no existe.");
-
-                // Comparar campos y registrar cambios en el historial
-                if (ticketOriginal.Status != ticketEditado.Status)
-                {
-                    await RegistrarCambioHistorialAsync(db, ticketEditado.IdTicket, 
-                        "Status", ticketOriginal.Status, ticketEditado.Status, idUsuarioModifica);
-                }
-
-                if (ticketOriginal.IdTecnico != ticketEditado.IdTecnico)
-                {
-                    await RegistrarCambioHistorialAsync(db, ticketEditado.IdTicket,
-                        "IdTecnico", ticketOriginal.IdTecnico?.ToString() ?? "null", 
-                        ticketEditado.IdTecnico?.ToString() ?? "null", idUsuarioModifica);
-                }
-
-                if (ticketOriginal.Solución != ticketEditado.Solución)
-                {
-                    await RegistrarCambioHistorialAsync(db, ticketEditado.IdTicket,
-                        "Solución", ticketOriginal.Solución ?? "", ticketEditado.Solución ?? "", idUsuarioModifica);
-                }
-
-                // Actualizar el ticket
-                db.Tickets.Update(ticketEditado);
+                // SetValues solo marca como "Modificadas" las propiedades que son diferentes al valor actual en BD.
+                // Esto permite que el Interceptor solo registre los verdaderos cambios.
+                db.Entry(ticketTracked).CurrentValues.SetValues(ticketEditado);
                 await db.SaveChangesAsync();
-
-                // Confirmar la transacción
-                await transaction.CommitAsync();
             }
-            catch (Exception)
+            else
             {
-                await transaction.RollbackAsync();
-                throw;
+                throw new Exception("El ticket no existe o ya fue eliminado.");
             }
         }
 
         // Obtener tickets por usuario - Async
         public async Task<List<Ticket>> ObtenerTicketsPorUsuarioAsync(int idUsuario)
         {
-            using var db = new HSisDbContext();
+            using var db = _dbContextFactory.CreateDbContext();
             return await db.Tickets
                 .Where(t => t.IdUsuario == idUsuario)
                 .Include(t => t.IdTecnicoNavigation)
@@ -159,7 +141,7 @@ namespace HSis.Logic.Services
         // Obtener tickets asignados a un técnico (no cerrados) - Async
         public async Task<List<Ticket>> ObtenerTicketsAsignadosATecnicoAsync(int idTecnico)
         {
-            using var db = new HSisDbContext();
+            using var db = _dbContextFactory.CreateDbContext();
             return await db.Tickets
                 .Where(t => t.IdTecnico == idTecnico && t.Status != ConstantesEstatus.CERRADO)
                 .Include(t => t.IdUsuarioNavigation)
@@ -170,7 +152,7 @@ namespace HSis.Logic.Services
         // Obtener tickets disponibles (abiertos sin técnico asignado) - Async
         public async Task<List<Ticket>> ObtenerTicketsDisponiblesAsync()
         {
-            using var db = new HSisDbContext();
+            using var db = _dbContextFactory.CreateDbContext();
             return await db.Tickets
                 .Where(t => t.Status == ConstantesEstatus.ABIERTO && t.IdTecnico == null)
                 .Include(t => t.IdUsuarioNavigation)
@@ -181,28 +163,55 @@ namespace HSis.Logic.Services
         // Crear un nuevo ticket - Async
         public async Task<Ticket> CrearTicketAsync(Ticket ticket)
         {
-            using var db = new HSisDbContext();
+            using var db = _dbContextFactory.CreateDbContext();
             db.Tickets.Add(ticket);
             await db.SaveChangesAsync();
             return ticket;
         }
 
-        // Método auxiliar para registrar cambios en el historial
-        private async Task RegistrarCambioHistorialAsync(HSisDbContext db, int idTicket, 
-            string campoModificado, string valorAnterior, string valorNuevo, int idUsuarioCambio)
-        {
-            var historial = new HistorialCambiosTicket
-            {
-                IdTicket = idTicket,
-                CampoModificado = campoModificado,
-                ValorAnterior = valorAnterior,
-                ValorNuevo = valorNuevo,
-                IdUsuarioCambio = idUsuarioCambio,
-                FechaMovimiento = DateTime.Now
-            };
 
-            db.HistorialCambiosTickets.Add(historial);
-            await db.SaveChangesAsync();
+
+        // Lógica de dominio: Transiciones de estatus permitidas (SRP)
+        public List<string> ObtenerEstatusPermitidos(int idRolUsuario, string estatusActual)
+        {
+            var estatusPermitidos = new List<string>();
+            bool esAdmin = idRolUsuario == 1;
+
+            if (esAdmin)
+            {
+                estatusPermitidos.Add(ConstantesEstatus.ABIERTO);
+                estatusPermitidos.Add(ConstantesEstatus.EN_PROCESO);
+                estatusPermitidos.Add(ConstantesEstatus.CERRADO);
+                estatusPermitidos.Add(ConstantesEstatus.REABIERTO);
+                return estatusPermitidos;
+            }
+
+            if (estatusActual == ConstantesEstatus.ABIERTO)
+            {
+                estatusPermitidos.Add(ConstantesEstatus.ABIERTO);
+                estatusPermitidos.Add(ConstantesEstatus.EN_PROCESO);
+            }
+            else if (estatusActual == ConstantesEstatus.EN_PROCESO)
+            {
+                estatusPermitidos.Add(ConstantesEstatus.EN_PROCESO);
+                estatusPermitidos.Add(ConstantesEstatus.CERRADO);
+            }
+            else if (estatusActual == ConstantesEstatus.CERRADO)
+            {
+                estatusPermitidos.Add(ConstantesEstatus.CERRADO);
+            }
+            else if (estatusActual == ConstantesEstatus.REABIERTO)
+            {
+                estatusPermitidos.Add(ConstantesEstatus.REABIERTO);
+                estatusPermitidos.Add(ConstantesEstatus.EN_PROCESO);
+            }
+            else 
+            {
+                // Fallback por si el estatus no existe en la regla
+                estatusPermitidos.Add(estatusActual);
+            }
+
+            return estatusPermitidos;
         }
     }
 }

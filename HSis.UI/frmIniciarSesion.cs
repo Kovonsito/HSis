@@ -13,10 +13,10 @@ namespace HSis.UI
     {
         private readonly UsuarioService _usuarioService;
 
-        public frmIniciarSesion()
+        public frmIniciarSesion(UsuarioService usuarioService)
         {
             InitializeComponent();
-            _usuarioService = new UsuarioService();
+            _usuarioService = usuarioService;
         }
 
         private async void btnIniciarSesion_Click(object sender, EventArgs e)
@@ -28,10 +28,10 @@ namespace HSis.UI
 
                 Form dashboardForm = SesionSistema.IdRolUsuario switch
                 {
-                    1 => new frmDashboardAdmin(),
-                    2 => new frmDashboardTecnico(),
-                    3 => new frmDashboardCliente(),
-                    _ => new frmDashboardAdmin()
+                    1 => (Form)Program.ServiceProvider.GetService(typeof(frmDashboardAdmin))!,
+                    2 => (Form)Program.ServiceProvider.GetService(typeof(frmDashboardTecnico))!,
+                    3 => (Form)Program.ServiceProvider.GetService(typeof(frmDashboardCliente))!,
+                    _ => (Form)Program.ServiceProvider.GetService(typeof(frmDashboardAdmin))!
                 };
 
                 // Suscribirse al evento FormClosed para cerrar la aplicación correctamente

@@ -15,10 +15,10 @@ namespace HSis.UI
     {
         private readonly TicketService _ticketService;
 
-        public frmDashboardCliente()
+        public frmDashboardCliente(TicketService ticketService)
         {
             InitializeComponent();
-            _ticketService = new TicketService();
+            _ticketService = ticketService;
         }
 
         private async void frmDashboardCliente_Load(object sender, EventArgs e)
@@ -89,7 +89,7 @@ namespace HSis.UI
 
         private void btnNuevoReporte_Click(object sender, EventArgs e)
         {
-            using (var frmNuevo = new frmNuevoTicket())
+            using (var frmNuevo = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateInstance<frmNuevoTicket>(Program.ServiceProvider))
             {
                 if (frmNuevo.ShowDialog() == DialogResult.OK)
                 {
@@ -105,7 +105,7 @@ namespace HSis.UI
                 var row = dgvMisTickets.Rows[e.RowIndex];
                 if (int.TryParse(row.Cells["IdTicket"].Value?.ToString(), out int idTicket))
                 {
-                    using (var frmDetalle = new frmDetalleCliente(idTicket))
+                    using (var frmDetalle = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateInstance<frmDetalleCliente>(Program.ServiceProvider, idTicket))
                     {
                         frmDetalle.ShowDialog();
                         _ = CargarDatosDashboardAsync();
