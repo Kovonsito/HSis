@@ -39,15 +39,15 @@ namespace HSis.UI
             }
         }
 
-        private void ActualizarGridTickets(List<Ticket> tickets)
+        private void ActualizarGridTickets(List<TicketDto> tickets)
         {
             var ticketsDto = tickets.ConvertAll(t => new TicketClienteDto
             {
                 IdTicket = t.IdTicket,
                 FechaAlta = t.Alta,
                 Status = t.Status,
-                TecnicoAsignado = t.IdTecnicoNavigation?.Nombre ?? "Sin asignar",
-                Descripcion = !string.IsNullOrEmpty(t.Descripción) && t.Descripción.Length > 50 ? t.Descripción.Substring(0, 50) + "..." : (t.Descripción ?? "")
+                TecnicoAsignado = t.NombreTecnico ?? "Sin asignar",
+                Descripcion = !string.IsNullOrEmpty(t.Descripcion) && t.Descripcion.Length > 50 ? t.Descripcion.Substring(0, 50) + "..." : (t.Descripcion ?? "")
             });
 
             dgvMisTickets.DataSource = ticketsDto;
@@ -71,7 +71,7 @@ namespace HSis.UI
             }
         }
 
-        private void ActualizarIndicador(List<Ticket> tickets)
+        private void ActualizarIndicador(List<TicketDto> tickets)
         {
             var activos = tickets.FindAll(t => t.Status != ConstantesEstatus.CERRADO);
 

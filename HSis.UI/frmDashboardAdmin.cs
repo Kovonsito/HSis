@@ -71,19 +71,19 @@ namespace HSis.UI
             ActualizarGrid(todos);
         }
 
-        private void ActualizarGrid(List<Ticket> listaTickets)
+        private void ActualizarGrid(List<TicketDto> listaTickets)
         {
             var listaMapeada = listaTickets.Select(t => new TicketGridDto
             {
                 Folio = t.IdTicket,
-                NombreUsuario = t.IdUsuarioNavigation?.Nombre ?? "N/A",
+                NombreUsuario = t.NombreUsuario,
                 Status = t.Status ?? "N/A",
                 Alta = t.Alta,
-                Atención = t.Atención,
+                Atención = t.Atencion,
                 Cierre = t.Cierre ?? DateTime.Now,
-                AtendidoPor = t.IdTecnicoNavigation != null ? t.IdTecnicoNavigation.Nombre : "N/A",
-                Descripción = t.Descripción ?? "N/A",
-                Solución = t.Solución ?? "N/A"
+                AtendidoPor = t.NombreTecnico,
+                Descripción = t.Descripcion ?? "N/A",
+                Solución = t.Solucion ?? "N/A"
             }).ToList();
 
             dgvTickets.DataSource = listaMapeada;
@@ -258,18 +258,34 @@ namespace HSis.UI
                     var frm = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateInstance<frmEditorDinamico>(Program.ServiceProvider, nuevaEntidad, $"Crear {cat.Nombre}");
                     if (frm.ShowDialog() == DialogResult.OK)
                     {
-                        if (cat.Tipo == typeof(Usuario))
+                        try
                         {
-                            var u = (Usuario)nuevaEntidad;
-                            if (!string.IsNullOrEmpty(u.Contraseña))
+                            if (cat.Tipo == typeof(Usuario))
                             {
-                                u.Contraseña = UsuarioService.HashPassword(u.Contraseña);
+                                var u = (Usuario)nuevaEntidad;
+                                if (!string.IsNullOrEmpty(u.Contraseña))
+                                {
+                                    u.Contraseña = UsuarioService.HashPassword(u.Contraseña);
+                                }
+                            }
+                            var miMetodo = typeof(CatalogoService).GetMethod("CrearAsync")!.MakeGenericMethod(cat.Tipo);
+                            Task task = (Task)miMetodo.Invoke(_catalogoService, new object[] { nuevaEntidad })!;
+                            await task;
+                            await CargarDatosCatalogo(cat.Tipo, dgv);
+                        }
+                        catch (Exception ex)
+                        {
+                            var realEx = ex is System.Reflection.TargetInvocationException ? ex.InnerException : ex;
+                            if (realEx is FluentValidation.ValidationException vex)
+                            {
+                                string msg = string.Join("\n", vex.Errors.Select(e => "- " + e.ErrorMessage));
+                                MessageBox.Show($"Datos inválidos:\n{msg}", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            }
+                            else
+                            {
+                                MessageBox.Show($"Error al crear el registro: {realEx?.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             }
                         }
-                        var miMetodo = typeof(CatalogoService).GetMethod("CrearAsync")!.MakeGenericMethod(cat.Tipo);
-                        Task task = (Task)miMetodo.Invoke(_catalogoService, new object[] { nuevaEntidad })!;
-                        await task;
-                        await CargarDatosCatalogo(cat.Tipo, dgv);
                     }
                 };
 
@@ -313,22 +329,40 @@ namespace HSis.UI
                         var frm = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateInstance<frmEditorDinamico>(Program.ServiceProvider, entidadExistente, $"Editar {cat.Nombre}");
                         if (frm.ShowDialog() == DialogResult.OK)
                         {
-                            if (cat.Tipo == typeof(Usuario))
+                            try
                             {
-                                var u = (Usuario)entidadExistente;
-                                if (string.IsNullOrWhiteSpace(u.Contraseña))
+                                if (cat.Tipo == typeof(Usuario))
                                 {
-                                    u.Contraseña = passwordHashOriginal;
+                                    var u = (Usuario)entidadExistente;
+                                    if (string.IsNullOrWhiteSpace(u.Contraseña))
+                                    {
+                                        u.Contraseña = passwordHashOriginal;
+                                    }
+                                    else
+                                    {
+                                        u.Contraseña = UsuarioService.HashPassword(u.Contraseña);
+                                    }
+                                }
+                                var miMetodo = typeof(CatalogoService).GetMethod("ActualizarAsync")!.MakeGenericMethod(cat.Tipo);
+                                Task task = (Task)miMetodo.Invoke(_catalogoService, new object[] { entidadExistente })!;
+                                await task;
+                                await CargarDatosCatalogo(cat.Tipo, dgv);
+                            }
+                            catch (Exception ex)
+                            {
+                                var realEx = ex is System.Reflection.TargetInvocationException ? ex.InnerException : ex;
+                                if (realEx is FluentValidation.ValidationException vex)
+                                {
+                                    string msg = string.Join("\n", vex.Errors.Select(e => "- " + e.ErrorMessage));
+                                    MessageBox.Show($"Datos inválidos:\n{msg}", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                                 }
                                 else
                                 {
-                                    u.Contraseña = UsuarioService.HashPassword(u.Contraseña);
+                                    MessageBox.Show($"Error al actualizar el registro: {realEx?.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                                 }
+                                // Restaurar contraseña original si falló la actualización
+                                if (cat.Tipo == typeof(Usuario)) ((Usuario)entidadExistente).Contraseña = passwordHashOriginal;
                             }
-                            var miMetodo = typeof(CatalogoService).GetMethod("ActualizarAsync")!.MakeGenericMethod(cat.Tipo);
-                            Task task = (Task)miMetodo.Invoke(_catalogoService, new object[] { entidadExistente })!;
-                            await task;
-                            await CargarDatosCatalogo(cat.Tipo, dgv);
                         }
                         else
                         {

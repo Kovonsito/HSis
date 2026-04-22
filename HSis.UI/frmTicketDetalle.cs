@@ -8,7 +8,7 @@ namespace HSis.UI
         private int _idTicket;
         private readonly TicketService _ticketService;
         private readonly UsuarioService _usuarioService;
-        private Ticket? _ticketActual;
+        private HSis.Logic.DTOs.TicketDto? _ticketActual;
 
         public frmTicketDetalle(int idTicket, TicketService ticketService, UsuarioService usuarioService)
         {
@@ -49,14 +49,14 @@ namespace HSis.UI
 
                 // Mostrar datos del ticket
                 lblFolio.Text = $"Folio: TK-{_ticketActual.IdTicket:d6}";
-                txtUsuario.Text = _ticketActual.IdUsuarioNavigation?.Nombre ?? "Desconocido";
+                txtUsuario.Text = _ticketActual.NombreUsuario;
                 dtpAlta.Value = _ticketActual.Alta ?? DateTime.Now;
-                rtbDescripcion.Text = _ticketActual.Descripción;
-                rtbSolucion.Text = _ticketActual.Solución ?? string.Empty;
+                rtbDescripcion.Text = _ticketActual.Descripcion;
+                rtbSolucion.Text = _ticketActual.Solucion ?? string.Empty;
 
-                if (_ticketActual.Atención.HasValue)
+                if (_ticketActual.Atencion.HasValue)
                 {
-                    dtpAtencion.Value = _ticketActual.Atención.Value;
+                    dtpAtencion.Value = _ticketActual.Atencion.Value;
                     dtpAtencion.Format = DateTimePickerFormat.Custom;
                     dtpAtencion.CustomFormat = " dd/MM/yyyy HH:mm";
                 }
@@ -205,7 +205,7 @@ namespace HSis.UI
                 bool huboCambios = false;
                 if (_ticketActual.Status != estatusSeleccionado) huboCambios = true;
                 if (_ticketActual.IdTecnico != idTecnico) huboCambios = true;
-                if ((_ticketActual.Solución ?? string.Empty) != solucionIngresada) huboCambios = true;
+                if ((_ticketActual.Solucion ?? string.Empty) != solucionIngresada) huboCambios = true;
 
                 if (!huboCambios)
                 {
@@ -213,40 +213,48 @@ namespace HSis.UI
                     return;
                 }
 
-                // Actualizar los campos editables del ticket
-                _ticketActual.Status = estatusSeleccionado;
-                _ticketActual.IdTecnico = idTecnico;
-                _ticketActual.Solución = solucionIngresada;
+                // Crear DTO de actualización
+                var updateDto = new HSis.Logic.DTOs.TicketUpdateDto
+                {
+                    IdTicket = _ticketActual.IdTicket,
+                    Status = estatusSeleccionado,
+                    IdTecnico = idTecnico,
+                    Solucion = solucionIngresada,
+                    Atencion = _ticketActual.Atencion,
+                    Cierre = _ticketActual.Cierre
+                };
 
                 // Lógica automática de fechas para KPIs
-                if (_ticketActual.Status == ConstantesEstatus.REABIERTO)
+                if (updateDto.Status == ConstantesEstatus.REABIERTO)
                 {
-                    // Si se reabre, eliminamos la fecha de cierre previa para que se registre una nueva al volver a cerrar
-                    _ticketActual.Cierre = null;
+                    updateDto.Cierre = null;
                 }
-                else if (_ticketActual.Status == ConstantesEstatus.EN_PROCESO && _ticketActual.Atención == null)
+                else if (updateDto.Status == ConstantesEstatus.EN_PROCESO && updateDto.Atencion == null)
                 {
-                    _ticketActual.Atención = DateTime.Now;
+                    updateDto.Atencion = DateTime.Now;
                 }
-                else if (_ticketActual.Status == ConstantesEstatus.CERRADO && _ticketActual.Cierre == null)
+                else if (updateDto.Status == ConstantesEstatus.CERRADO && updateDto.Cierre == null)
                 {
-                    _ticketActual.Cierre = DateTime.Now;
+                    updateDto.Cierre = DateTime.Now;
                 }
-                else if (_ticketActual.Status == ConstantesEstatus.ABIERTO)
+                else if (updateDto.Status == ConstantesEstatus.ABIERTO)
                 {
-                    // Si un admin lo regresa a Abierto (reset), reiniciamos fechas de atención y cierre
-                    _ticketActual.Atención = null;
-                    _ticketActual.Cierre = null;
+                    updateDto.Atencion = null;
+                    updateDto.Cierre = null;
                 }
 
-                // Llamar al método de actualización (el interceptor auditará los cambios automáticamente)
-                await _ticketService.ActualizarTicketAsync(_ticketActual);
+                // Llamar al método de actualización
+                await _ticketService.ActualizarTicketAsync(updateDto);
 
                 MessageBox.Show("Ticket actualizado correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                // Retornar DialogResult.OK para que el Dashboard recargue los datos
                 this.DialogResult = DialogResult.OK;
                 this.Close();
+            }
+            catch (FluentValidation.ValidationException ex)
+            {
+                string errores = string.Join("\n", ex.Errors.Select(e => "- " + e.ErrorMessage));
+                MessageBox.Show($"Datos inválidos:\n{errores}", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             catch (Exception ex)
             {

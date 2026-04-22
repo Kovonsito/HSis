@@ -7,10 +7,25 @@ namespace HSis.Logic.Services
     public class CatalogoService
     {
         private readonly IDbContextFactory<HSisDbContext> _dbContextFactory;
+        private readonly IServiceProvider _serviceProvider;
 
-        public CatalogoService(IDbContextFactory<HSisDbContext> dbContextFactory)
+        public CatalogoService(IDbContextFactory<HSisDbContext> dbContextFactory, IServiceProvider serviceProvider)
         {
             _dbContextFactory = dbContextFactory;
+            _serviceProvider = serviceProvider;
+        }
+
+        private async Task ValidarEntidadAsync<T>(T entidad) where T : class
+        {
+            var validator = (FluentValidation.IValidator<T>?)_serviceProvider.GetService(typeof(FluentValidation.IValidator<T>));
+            if (validator != null)
+            {
+                var result = await validator.ValidateAsync(entidad);
+                if (!result.IsValid)
+                {
+                    throw new FluentValidation.ValidationException(result.Errors);
+                }
+            }
         }
 
         public async Task<List<T>> ObtenerTodosAsync<T>() where T : class
@@ -52,6 +67,7 @@ namespace HSis.Logic.Services
 
         public async Task CrearAsync<T>(T entidad) where T : class
         {
+            await ValidarEntidadAsync(entidad);
             using var db = _dbContextFactory.CreateDbContext();
             db.Set<T>().Add(entidad);
             await db.SaveChangesAsync();
@@ -59,6 +75,7 @@ namespace HSis.Logic.Services
 
         public async Task ActualizarAsync<T>(T entidad) where T : class
         {
+            await ValidarEntidadAsync(entidad);
             using var db = _dbContextFactory.CreateDbContext();
             db.Set<T>().Update(entidad);
             await db.SaveChangesAsync();
