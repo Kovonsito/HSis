@@ -98,15 +98,15 @@ namespace HSis.UI
             }
         }
 
-        private void CargarGridTickets(List<Ticket> tickets)
+        private void CargarGridTickets(List<TicketDto> tickets)
         {
             var ticketsDto = tickets.ConvertAll(t => new TicketOperativoDto
             {
                 IdTicket = t.IdTicket,
                 FechaAlta = t.Alta,
                 Status = t.Status,
-                Usuario = t.IdUsuarioNavigation?.Nombre ?? "Desconocido",
-                Descripcion = !string.IsNullOrEmpty(t.Descripción) && t.Descripción.Length > 50 ? t.Descripción.Substring(0, 50) + "..." : (t.Descripción ?? "")
+                Usuario = t.NombreUsuario,
+                Descripcion = !string.IsNullOrEmpty(t.Descripcion) && t.Descripcion.Length > 50 ? t.Descripcion.Substring(0, 50) + "..." : (t.Descripcion ?? "")
             });
 
             dgvTicketsOperativos.DataSource = ticketsDto;

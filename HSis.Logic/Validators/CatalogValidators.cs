@@ -1,0 +1,48 @@
+using FluentValidation;
+using HSis.Data.Models;
+
+namespace HSis.Logic.Validators
+{
+    public class UsuarioValidator : AbstractValidator<Usuario>
+    {
+        public UsuarioValidator()
+        {
+            RuleFor(x => x.Nombre)
+                .NotEmpty().WithMessage("El nombre es obligatorio.")
+                .MaximumLength(100).WithMessage("El nombre no puede exceder los 100 caracteres.");
+
+            RuleFor(x => x.Email)
+                .NotEmpty().WithMessage("El email es obligatorio.")
+                .EmailAddress().WithMessage("El formato del email es inválido.");
+
+            RuleFor(x => x.Contraseña)
+                .NotEmpty().WithMessage("La contraseña es obligatoria.")
+                .MinimumLength(6).WithMessage("La contraseña debe tener al menos 6 caracteres.");
+
+            RuleFor(x => x.IdRolUsuario)
+                .GreaterThan(0).WithMessage("Debe seleccionar un rol.");
+        }
+    }
+
+    public class MaterialValidator : AbstractValidator<Material>
+    {
+        public MaterialValidator()
+        {
+            RuleFor(x => x.Nombre)
+                .NotEmpty().WithMessage("El nombre del material es obligatorio.")
+                .MaximumLength(100).WithMessage("El nombre no puede exceder los 100 caracteres.");
+
+            RuleFor(x => x.IdUnidadMedida)
+                .GreaterThan(0).WithMessage("Debe seleccionar una unidad de medida.");
+        }
+    }
+    
+    public class DepartamentoValidator : AbstractValidator<Departamento>
+    {
+        public DepartamentoValidator()
+        {
+            RuleFor(x => x.Nombre)
+                .NotEmpty().WithMessage("El nombre del departamento es obligatorio.");
+        }
+    }
+}

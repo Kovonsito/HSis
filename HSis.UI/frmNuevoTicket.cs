@@ -36,17 +36,15 @@ namespace HSis.UI
                     return;
                 }
 
-                // Crear instancia de Ticket con valores automáticos
-                var nuevoTicket = new Ticket
+                // Crear instancia de DTO para la creación del ticket
+                var nuevoTicketDto = new HSis.Logic.DTOs.TicketCreateDto
                 {
                     IdUsuario = SesionSistema.IdUsuario,
-                    Status = ConstantesEstatus.ABIERTO,
-                    Alta = DateTime.Now,
-                    Descripción = rtbDescripcion.Text.Trim()
+                    Descripcion = rtbDescripcion.Text.Trim()
                 };
 
                 // Guardar el ticket en la base de datos
-                var ticketGuardado = await _ticketService.CrearTicketAsync(nuevoTicket);
+                var ticketGuardado = await _ticketService.CrearTicketAsync(nuevoTicketDto);
 
                 MessageBox.Show($"Ticket creado exitosamente con Folio: {ticketGuardado.IdTicket}",
                     "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -54,6 +52,11 @@ namespace HSis.UI
                 // Retornar resultado positivo
                 this.DialogResult = DialogResult.OK;
                 this.Close();
+            }
+            catch (FluentValidation.ValidationException ex)
+            {
+                string errores = string.Join("\n", ex.Errors.Select(e => "- " + e.ErrorMessage));
+                MessageBox.Show($"Datos inválidos:\n{errores}", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             catch (Exception ex)
             {
