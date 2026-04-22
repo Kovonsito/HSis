@@ -1,11 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Text;
-using System.Windows.Forms;
-using System.Linq;
 using HSis.Data.Models;
 using HSis.Logic.Services;
 
@@ -24,7 +16,7 @@ namespace HSis.UI
             _idTicket = idTicket;
             _ticketService = ticketService;
             _usuarioService = usuarioService;
-            
+
             CargarDialogoTicket();
         }
 
@@ -70,7 +62,7 @@ namespace HSis.UI
                 }
                 else
                 {
-                    dtpAtencion.    Format = DateTimePickerFormat.Custom;
+                    dtpAtencion.Format = DateTimePickerFormat.Custom;
                     dtpAtencion.CustomFormat = " ";
                 }
 
@@ -97,7 +89,7 @@ namespace HSis.UI
 
                 // Lógica del diccionario de opciones de estatus
                 cmbEstatus.Items.Clear();
-                
+
                 var estatusPermitidos = _ticketService.ObtenerEstatusPermitidos(SesionSistema.IdRolUsuario, estatusActual);
                 foreach (var estatus in estatusPermitidos)
                 {
@@ -124,7 +116,7 @@ namespace HSis.UI
                 // 2. Control de permisos: Solo el administrador (Rol 1) puede cambiar el técnico asignado a otros.
                 // Sin embargo, si es Técnico y el ticket está abierto y no tiene técnico, puede tomarlo.
                 // Dejaremos el combobox de Atendido bloqueado para Técnicos porque la asignación será automática al cambiar estatus.
-                if (!esAdmin) 
+                if (!esAdmin)
                 {
                     cmbAtendido.Enabled = false;
                 }
@@ -136,7 +128,7 @@ namespace HSis.UI
                     cmbEstatus.Enabled = false;
                     rtbSolucion.ReadOnly = true;
                     rtbDescripcion.ReadOnly = true;
-                    btnGuardar.Enabled = false; 
+                    btnGuardar.Enabled = false;
                 }
 
                 if (estatusActual == ConstantesEstatus.CERRADO)
@@ -150,14 +142,15 @@ namespace HSis.UI
                 }
 
                 // Suscribir el evento de cambio de estatus al final para evitar auto-asignaciones accidentales al cargar
-                cmbEstatus.SelectedIndexChanged += CmbEstatus_SelectedIndexChanged;            }
+                cmbEstatus.SelectedIndexChanged += CmbEstatus_SelectedIndexChanged;
+            }
             catch (Exception ex)
             {
                 MessageBox.Show($"Error al cargar el ticket: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 this.Close();
             }
         }
-        
+
 
         private async Task CargarTecnicosAsync()
         {
@@ -197,7 +190,7 @@ namespace HSis.UI
                     MessageBox.Show("Debes ingresar una solución antes de poder cerrar el ticket.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
-                
+
                 int? idTecnico = cmbAtendido.SelectedValue != null ? (int?)cmbAtendido.SelectedValue : null;
 
                 // Lógica de respaldo: Si el estatus es En Proceso y aún no hay técnico, asignamos al usuario actual

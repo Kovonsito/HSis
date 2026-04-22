@@ -1,5 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using HSis.Data.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace HSis.Logic.Services
 {

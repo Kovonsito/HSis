@@ -1,13 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.ComponentModel;
 using System.Data;
-using System.Drawing;
-using System.Text;
-using System.Windows.Forms;
-using System.Reflection;
-using System.Xml.Serialization;
 using HSis.Data.Models;
 using HSis.Logic.DTOs;
 using HSis.Logic.Services;
@@ -33,7 +24,7 @@ namespace HSis.UI
             SesionSistema.ConfigurarMenuSesion(this);
             // Cargamos KPIs y Grid de tickets en paralelo
             await Task.WhenAll(CargarKPIsAsync(), CargarGridCompletoAsync());
-            
+
             ConfigurarTabsCatalogos();
         }
 
@@ -156,7 +147,7 @@ namespace HSis.UI
 
         private async void ConfigurarTabsCatalogos()
         {
-            var catalogos = new (string Nombre, Type Tipo)[] { 
+            var catalogos = new (string Nombre, Type Tipo)[] {
                 ("Usuarios", typeof(Usuario)),
                 ("Departamentos", typeof(Departamento)),
                 ("Empresas", typeof(Empresa)),
@@ -169,9 +160,10 @@ namespace HSis.UI
             foreach (var cat in catalogos)
             {
                 TabPage tab = new TabPage(cat.Nombre);
-                
-                DataGridView dgv = new DataGridView { 
-                    Dock = DockStyle.Fill, 
+
+                DataGridView dgv = new DataGridView
+                {
+                    Dock = DockStyle.Fill,
                     Name = "dgv" + cat.Nombre,
                     ReadOnly = true,
                     SelectionMode = DataGridViewSelectionMode.FullRowSelect,
@@ -183,7 +175,7 @@ namespace HSis.UI
                 Panel panelTop = new Panel { Dock = DockStyle.Top, Height = 40 };
                 Button btnCrear = new Button { Text = "Crear", Location = new Point(10, 10), Width = 100 };
                 Button btnEliminar = new Button { Text = "Eliminar", Location = new Point(120, 10), Width = 100 };
-                
+
                 panelTop.Controls.Add(btnCrear);
                 panelTop.Controls.Add(btnEliminar);
 
@@ -191,10 +183,12 @@ namespace HSis.UI
                 {
                     Button btnIngreso = new Button { Text = "Nuevo Ingreso", Location = new Point(230, 10), Width = 120 };
                     Button btnKardex = new Button { Text = "Ver Kardex", Location = new Point(360, 10), Width = 100 };
-                    
-                    btnIngreso.Click += async (s, ev) => {
-                        var nuevoIngreso = new IngresosMaterial { 
-                            IdUsuario = SesionSistema.IdUsuario, 
+
+                    btnIngreso.Click += async (s, ev) =>
+                    {
+                        var nuevoIngreso = new IngresosMaterial
+                        {
+                            IdUsuario = SesionSistema.IdUsuario,
                             FechaIngreso = DateTime.Now,
                             Cantidad = 1 // Valor inicial para evitar división por cero en el editor
                         };
@@ -207,7 +201,8 @@ namespace HSis.UI
                         }
                     };
 
-                    btnKardex.Click += (s, ev) => {
+                    btnKardex.Click += (s, ev) =>
+                    {
                         var frmK = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateInstance<frmKardex>(Program.ServiceProvider);
                         frmK.ShowDialog();
                     };
@@ -215,18 +210,19 @@ namespace HSis.UI
                     panelTop.Controls.Add(btnIngreso);
                     panelTop.Controls.Add(btnKardex);
                 }
-                
+
                 tab.Controls.Add(dgv);
                 tab.Controls.Add(panelTop);
                 tabMain.TabPages.Add(tab);
 
                 // Formateo de celdas para reemplazar el ID por el Nombre/Descripción de la clase navegada
-                dgv.CellFormatting += (s, e) => {
+                dgv.CellFormatting += (s, e) =>
+                {
                     if (e.RowIndex >= 0 && e.ColumnIndex >= 0)
                     {
                         var columnName = dgv.Columns[e.ColumnIndex].Name;
                         string idPk = "Id" + (cat.Tipo.Name == "RolUsuario" ? "Rol" : cat.Tipo.Name);
-                        
+
                         if (columnName.StartsWith("Id") && columnName != idPk) // Es un foreign key
                         {
                             var navPropName = columnName + "Navigation";
@@ -256,7 +252,8 @@ namespace HSis.UI
                 await CargarDatosCatalogo(cat.Tipo, dgv);
 
                 // Eventos
-                btnCrear.Click += async (s, e) => {
+                btnCrear.Click += async (s, e) =>
+                {
                     object nuevaEntidad = Activator.CreateInstance(cat.Tipo)!;
                     var frm = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateInstance<frmEditorDinamico>(Program.ServiceProvider, nuevaEntidad, $"Crear {cat.Nombre}");
                     if (frm.ShowDialog() == DialogResult.OK)
@@ -276,7 +273,8 @@ namespace HSis.UI
                     }
                 };
 
-                btnEliminar.Click += async (s, e) => {
+                btnEliminar.Click += async (s, e) =>
+                {
                     if (dgv.SelectedRows.Count > 0)
                     {
                         var row = dgv.SelectedRows[0];
@@ -291,7 +289,7 @@ namespace HSis.UI
                                 await task;
                                 await CargarDatosCatalogo(cat.Tipo, dgv);
                             }
-                            catch(Exception ex)
+                            catch (Exception ex)
                             {
                                 MessageBox.Show("No se pudo eliminar el registro (probablemente esté en uso). " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             }
@@ -299,7 +297,8 @@ namespace HSis.UI
                     }
                 };
 
-                dgv.CellDoubleClick += async (s, e) => {
+                dgv.CellDoubleClick += async (s, e) =>
+                {
                     if (e.RowIndex >= 0)
                     {
                         object entidadExistente = dgv.Rows[e.RowIndex].DataBoundItem;
@@ -349,14 +348,14 @@ namespace HSis.UI
             var miMetodo = typeof(CatalogoService).GetMethod("ObtenerTodosAsync")!.MakeGenericMethod(tipoEntidad);
             Task task = (Task)miMetodo.Invoke(_catalogoService, null)!;
             await task;
-            
+
             var resultProp = task.GetType().GetProperty("Result");
             var resultList = resultProp?.GetValue(task);
             dgv.DataSource = resultList;
-            
+
             // Ocultar columnas no deseadas y renombrar cabeceras
             string idPk = "Id" + (tipoEntidad.Name == "RolUsuario" ? "Rol" : tipoEntidad.Name);
-            foreach(DataGridViewColumn col in dgv.Columns)
+            foreach (DataGridViewColumn col in dgv.Columns)
             {
                 if (col.Name.EndsWith("Navigation") || col.ValueType?.IsGenericType == true)
                 {

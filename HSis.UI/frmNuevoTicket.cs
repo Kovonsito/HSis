@@ -1,10 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Text;
-using System.Windows.Forms;
 using HSis.Data.Models;
 using HSis.Logic.Services;
 
@@ -37,7 +30,7 @@ namespace HSis.UI
                 // Validar que la descripción no esté vacía
                 if (string.IsNullOrWhiteSpace(rtbDescripcion.Text))
                 {
-                    MessageBox.Show("Por favor, ingrese una descripción del problema.", 
+                    MessageBox.Show("Por favor, ingrese una descripción del problema.",
                         "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     rtbDescripcion.Focus();
                     return;
@@ -55,7 +48,7 @@ namespace HSis.UI
                 // Guardar el ticket en la base de datos
                 var ticketGuardado = await _ticketService.CrearTicketAsync(nuevoTicket);
 
-                MessageBox.Show($"Ticket creado exitosamente con Folio: {ticketGuardado.IdTicket}", 
+                MessageBox.Show($"Ticket creado exitosamente con Folio: {ticketGuardado.IdTicket}",
                     "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                 // Retornar resultado positivo
@@ -64,7 +57,7 @@ namespace HSis.UI
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al crear el ticket: {ex.Message}", 
+                MessageBox.Show($"Error al crear el ticket: {ex.Message}",
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }

@@ -1,13 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Text;
-using System.Windows.Forms;
+using HSis.Data.Models;
 using HSis.Logic.DTOs;
 using HSis.Logic.Services;
-using HSis.Data.Models;
 
 namespace HSis.UI
 {
@@ -33,10 +26,10 @@ namespace HSis.UI
             try
             {
                 var tickets = await _ticketService.ObtenerTicketsPorUsuarioAsync(SesionSistema.IdUsuario);
-                
+
                 // Actualizar Grid
                 ActualizarGridTickets(tickets);
-                
+
                 // Actualizar Indicador
                 ActualizarIndicador(tickets);
             }

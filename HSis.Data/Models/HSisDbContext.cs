@@ -1,6 +1,5 @@
-using System;
-using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace HSis.Data.Models;
 
@@ -43,7 +42,7 @@ public partial class HSisDbContext : DbContext
     {
         if (!optionsBuilder.IsConfigured)
         {
-            var configuration = new Microsoft.Extensions.Configuration.ConfigurationBuilder()
+            var configuration = new ConfigurationBuilder()
                 .SetBasePath(System.AppDomain.CurrentDomain.BaseDirectory)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .Build();

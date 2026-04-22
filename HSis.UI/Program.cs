@@ -1,12 +1,9 @@
-using System;
-using System.Windows.Forms;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
-using Microsoft.EntityFrameworkCore;
 using HSis.Data.Models;
-using HSis.Logic.Services;
-
 using HSis.Logic.Interceptors;
+using HSis.Logic.Services;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HSis.UI
 {
@@ -28,7 +25,7 @@ namespace HSis.UI
                 .Build();
 
             var services = new ServiceCollection();
-            
+
             // Configurar Sesión de Usuario e Interceptor
             services.AddSingleton<ICurrentUserService, CurrentUserService>();
             services.AddSingleton<TicketAuditInterceptor>();

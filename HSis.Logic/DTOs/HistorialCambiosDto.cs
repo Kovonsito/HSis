@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace HSis.Logic.DTOs
+﻿namespace HSis.Logic.DTOs
 {
     public class HistorialCambiosDto
     {
