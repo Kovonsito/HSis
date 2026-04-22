@@ -1,5 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using HSis.Data.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace HSis.Logic.Services
 {
@@ -38,7 +38,7 @@ namespace HSis.Logic.Services
         public async Task AgregarMaterialATicketAsync(DetTicket detTicket)
         {
             using var db = _dbContextFactory.CreateDbContext();
-            
+
             // Consultar el costo actual del material para este egreso
             var material = await db.Materials.FindAsync(detTicket.IdMaterial);
             if (material != null)

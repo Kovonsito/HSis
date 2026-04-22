@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using HSis.Data.Models;
 using HSis.Logic.Services;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace HSis.Logic.Interceptors
 {
@@ -52,7 +47,7 @@ namespace HSis.Logic.Interceptors
                 foreach (var propName in propiedadesA_Auditar)
                 {
                     var property = entrada.Property(propName);
-                    
+
                     if (property.IsModified)
                     {
                         var originalValue = property.OriginalValue?.ToString() ?? "";

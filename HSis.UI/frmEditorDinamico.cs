@@ -1,10 +1,5 @@
-using System;
-using System.Drawing;
-using System.Linq;
 using System.Reflection;
-using System.Windows.Forms;
-using Microsoft.EntityFrameworkCore;
-using Hsis.Logic.Services;
+using HSis.Logic.Services;
 
 namespace HSis.UI
 {
@@ -44,12 +39,12 @@ namespace HSis.UI
 
             Button btnGuardar = new Button { Text = "Guardar", Location = new Point(230, y + 20), Width = 100, Height = 35, DialogResult = DialogResult.OK };
             btnGuardar.Click += BtnGuardar_Click;
-            
+
             Button btnCancelar = new Button { Text = "Cancelar", Location = new Point(340, y + 20), Width = 100, Height = 35, DialogResult = DialogResult.Cancel };
-            
+
             this.Controls.Add(btnGuardar);
             this.Controls.Add(btnCancelar);
-            
+
             this.Height = Math.Min(y + 150, 600); // Máximo 600 de alto, si es más usa scroll
             this.Width = 550;
         }

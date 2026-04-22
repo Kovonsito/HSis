@@ -1,8 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using HSis.Data.Models;
-using System.Security.Cryptography;
-using System.Text;
-using System.Security;
+using Microsoft.EntityFrameworkCore;
 
 namespace HSis.Logic.Services
 {
@@ -54,7 +51,7 @@ namespace HSis.Logic.Services
                 .Include(u => u.IdSucursalNavigation)
                 .Include(u => u.IdRolNavigation)
                 .FirstOrDefaultAsync(u => u.Nombre == nombreUsuario);
-            return usuario !=null && VerifyPassword(contraseña, usuario.Contraseña) ? usuario : null;
+            return usuario != null && VerifyPassword(contraseña, usuario.Contraseña) ? usuario : null;
         }
 
 

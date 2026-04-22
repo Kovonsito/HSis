@@ -1,9 +1,6 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using HSis.Data.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace HSis.Logic.Services
 {
@@ -79,15 +76,15 @@ namespace HSis.Logic.Services
         }
 
         // --- Métodos dinámicos por Tipo (Ocultan la reflexión del DbContext a la capa UI) ---
-        
+
         public async Task<List<object>> ObtenerTodosPorTipoAsync(System.Type tipoEntidad)
         {
             using var db = _dbContextFactory.CreateDbContext();
-            
+
             // Invocamos Set<T>() dinámicamente
             var queryableMethod = typeof(DbContext).GetMethod(nameof(DbContext.Set), System.Type.EmptyTypes)?.MakeGenericMethod(tipoEntidad);
             var dbSet = queryableMethod?.Invoke(db, null);
-            
+
             if (dbSet != null)
             {
                 // Invocamos ToListAsync dinámicamente para IQueryable<T>

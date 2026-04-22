@@ -1,6 +1,6 @@
-using Microsoft.EntityFrameworkCore;
 using HSis.Data.Models;
 using HSis.Logic.DTOs;
+using Microsoft.EntityFrameworkCore;
 
 namespace HSis.Logic.Services
 {
@@ -45,7 +45,7 @@ namespace HSis.Logic.Services
             using var db = _dbContextFactory.CreateDbContext();
             DateTime limite = ObtenerLimiteSLA();
 
-            var query = esUrgente 
+            var query = esUrgente
                 ? db.Tickets.Where(t => t.Status == ConstantesEstatus.ABIERTO && t.Alta < limite)
                 : db.Tickets.Where(t => t.Status == ConstantesEstatus.ABIERTO && t.Alta >= limite);
 
@@ -95,7 +95,8 @@ namespace HSis.Logic.Services
                 .Include(h => h.IdUsuarioCambioNavigation)
                 .Where(h => h.IdTicket == idTicket)
                 .OrderByDescending(h => h.FechaMovimiento)
-                .Select(h => new HistorialCambiosDto {
+                .Select(h => new HistorialCambiosDto
+                {
                     IdTicket = h.IdTicket,
                     UsuarioCambio = h.IdUsuarioCambioNavigation.Nombre ?? "-",
                     FechaMovimiento = h.FechaMovimiento,
@@ -205,7 +206,7 @@ namespace HSis.Logic.Services
                 estatusPermitidos.Add(ConstantesEstatus.REABIERTO);
                 estatusPermitidos.Add(ConstantesEstatus.EN_PROCESO);
             }
-            else 
+            else
             {
                 // Fallback por si el estatus no existe en la regla
                 estatusPermitidos.Add(estatusActual);
