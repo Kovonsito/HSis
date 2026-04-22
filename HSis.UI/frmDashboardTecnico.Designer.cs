@@ -1,8 +1,11 @@
+using System.ComponentModel;
+
+
 namespace HSis.UI
 {
     partial class frmDashboardTecnico
     {
-        private System.ComponentModel.IContainer components = null;
+        private IContainer components = null;
 
         protected override void Dispose(bool disposing)
         {

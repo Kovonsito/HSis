@@ -9,10 +9,10 @@ namespace HSis.UI
         private readonly TicketService _ticketService;
         private bool _mostrandoMisAsignados = true;
 
-        public frmDashboardTecnico()
+        public frmDashboardTecnico(TicketService ticketService)
         {
             InitializeComponent();
-            _ticketService = new TicketService();
+            _ticketService = ticketService;
         }
 
         private async void frmDashboardTecnico_Load(object sender, EventArgs e)
@@ -136,7 +136,7 @@ namespace HSis.UI
                 var row = dgvTicketsOperativos.Rows[e.RowIndex];
                 if (int.TryParse(row.Cells["IdTicket"].Value?.ToString(), out int idTicket))
                 {
-                    using var frmTicket = new frmTicketDetalle(idTicket);
+                    using var frmTicket = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateInstance<frmTicketDetalle>(Program.ServiceProvider, idTicket);
 
                     frmTicket.ShowDialog();
                     await CargarIndicadoresAsync();

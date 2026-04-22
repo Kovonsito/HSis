@@ -20,12 +20,12 @@ namespace HSis.UI
         private readonly UsuarioService _usuarioService;
         private readonly CatalogoService _catalogoService;
 
-        public frmDashboardAdmin()
+        public frmDashboardAdmin(TicketService ticketService, UsuarioService usuarioService, CatalogoService catalogoService)
         {
             InitializeComponent();
-            _ticketService = new TicketService();
-            _usuarioService = new UsuarioService();
-            _catalogoService = new CatalogoService();
+            _ticketService = ticketService;
+            _usuarioService = usuarioService;
+            _catalogoService = catalogoService;
         }
 
         private async void DashboardAdmin_Load(object sender, EventArgs e)
@@ -141,8 +141,8 @@ namespace HSis.UI
                 // Obtenemos el valor de la celda "Folio" de manera segura
                 if (int.TryParse(dgvTickets.Rows[e.RowIndex].Cells["Folio"].Value?.ToString(), out int idSeleccionado))
                 {
-                    // Pasamos el ID al constructor del formulario
-                    frmTicketDetalle formulario = new frmTicketDetalle(idSeleccionado);
+                    // Pasamos el ID al constructor del formulario a través de Inyección de Dependencias
+                    frmTicketDetalle formulario = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateInstance<frmTicketDetalle>(Program.ServiceProvider, idSeleccionado);
                     formulario.ShowDialog();
 
                     // Al cerrar el detalle, recargamos el Dashboard por si hubo cambios
@@ -186,6 +186,35 @@ namespace HSis.UI
                 
                 panelTop.Controls.Add(btnCrear);
                 panelTop.Controls.Add(btnEliminar);
+
+                if (cat.Tipo == typeof(Material))
+                {
+                    Button btnIngreso = new Button { Text = "Nuevo Ingreso", Location = new Point(230, 10), Width = 120 };
+                    Button btnKardex = new Button { Text = "Ver Kardex", Location = new Point(360, 10), Width = 100 };
+                    
+                    btnIngreso.Click += async (s, ev) => {
+                        var nuevoIngreso = new IngresosMaterial { 
+                            IdUsuario = SesionSistema.IdUsuario, 
+                            FechaIngreso = DateTime.Now,
+                            Cantidad = 1 // Valor inicial para evitar división por cero en el editor
+                        };
+                        var frm = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateInstance<frmEditorDinamico>(Program.ServiceProvider, nuevoIngreso, "Nuevo Ingreso de Almacén");
+                        if (frm.ShowDialog() == DialogResult.OK)
+                        {
+                            await _catalogoService.CrearAsync<IngresosMaterial>(nuevoIngreso);
+                            MessageBox.Show("Ingreso registrado con éxito.", "Inventario", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            _ = CargarDatosCatalogo(cat.Tipo, dgv);
+                        }
+                    };
+
+                    btnKardex.Click += (s, ev) => {
+                        var frmK = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateInstance<frmKardex>(Program.ServiceProvider);
+                        frmK.ShowDialog();
+                    };
+
+                    panelTop.Controls.Add(btnIngreso);
+                    panelTop.Controls.Add(btnKardex);
+                }
                 
                 tab.Controls.Add(dgv);
                 tab.Controls.Add(panelTop);
@@ -229,7 +258,7 @@ namespace HSis.UI
                 // Eventos
                 btnCrear.Click += async (s, e) => {
                     object nuevaEntidad = Activator.CreateInstance(cat.Tipo)!;
-                    var frm = new frmEditorDinamico(nuevaEntidad, $"Crear {cat.Nombre}");
+                    var frm = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateInstance<frmEditorDinamico>(Program.ServiceProvider, nuevaEntidad, $"Crear {cat.Nombre}");
                     if (frm.ShowDialog() == DialogResult.OK)
                     {
                         if (cat.Tipo == typeof(Usuario))
@@ -282,7 +311,7 @@ namespace HSis.UI
                             u.Contraseña = "";
                         }
 
-                        var frm = new frmEditorDinamico(entidadExistente, $"Editar {cat.Nombre}");
+                        var frm = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateInstance<frmEditorDinamico>(Program.ServiceProvider, entidadExistente, $"Editar {cat.Nombre}");
                         if (frm.ShowDialog() == DialogResult.OK)
                         {
                             if (cat.Tipo == typeof(Usuario))

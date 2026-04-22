@@ -21,11 +21,11 @@ namespace HSis.UI
         private readonly TicketService _ticketService;
         private Ticket? _ticketActual;
 
-        public frmDetalleCliente(int idTicket)
+        public frmDetalleCliente(int idTicket, TicketService ticketService)
         {
             InitializeComponent();
             _idTicket = idTicket;
-            _ticketService = new TicketService();
+            _ticketService = ticketService;
         }
 
         private async void frmDetalleCliente_Load(object sender, EventArgs e)

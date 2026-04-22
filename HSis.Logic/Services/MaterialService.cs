@@ -11,14 +11,20 @@ namespace HSis.Logic.Services
     {
 
 
+        private readonly IDbContextFactory<HSisDbContext> _dbContextFactory;
+
+        public MaterialService(IDbContextFactory<HSisDbContext> dbContextFactory)
+        {
+            _dbContextFactory = dbContextFactory;
+        }
+
         // Gestión de costos - Async
         public async Task ActualizarCostoMaterialAsync(int idMaterial, decimal nuevoCosto)
         {
-            using var db = new HSisDbContext();
+            using var db = _dbContextFactory.CreateDbContext();
             var material = await db.Materials.FindAsync(idMaterial);
             if (material != null)
             {
-                material.CostoAnterior = material.Costo;
                 material.Costo = nuevoCosto;
                 db.Materials.Update(material);
                 await db.SaveChangesAsync();
