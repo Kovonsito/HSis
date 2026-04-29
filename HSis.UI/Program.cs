@@ -1,9 +1,13 @@
+using Mapster;
+using MapsterMapper;
+using FluentValidation;
 using HSis.Data.Models;
 using HSis.Logic.Interceptors;
 using HSis.Logic.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 
 namespace HSis.UI
 {
@@ -37,13 +41,13 @@ namespace HSis.UI
 
                 // 2. Configurar Manejadores Globales de Excepciones
                 Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
-                Application.ThreadException += (sender, e) => 
+                Application.ThreadException += (sender, e) =>
                 {
                     Serilog.Log.Fatal(e.Exception, "Excepción no manejada en el hilo principal de la UI.");
                     MessageBox.Show("Ha ocurrido un error inesperado. El sistema ha guardado los detalles para su revisión.", "Error Fatal", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 };
-                
-                AppDomain.CurrentDomain.UnhandledException += (sender, e) => 
+
+                AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
                 {
                     if (e.ExceptionObject is Exception ex)
                     {
@@ -63,8 +67,11 @@ namespace HSis.UI
                     loggingBuilder.AddSerilog(dispose: true);
                 });
 
-                // Registrar AutoMapper
-                services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+                // Registrar Mapster
+                var config = TypeAdapterConfig.GlobalSettings;
+                config.Scan(AppDomain.CurrentDomain.GetAssemblies());
+                services.AddSingleton(config);
+                services.AddScoped<IMapper, ServiceMapper>();
 
                 // Registrar FluentValidation
                 services.AddValidatorsFromAssemblyContaining<HSis.Logic.Validators.TicketCreateValidator>();
@@ -104,5 +111,6 @@ namespace HSis.UI
                 Serilog.Log.Information("Cerrando la aplicación HSis...");
                 Serilog.Log.CloseAndFlush();
             }
+        }
     }
 }

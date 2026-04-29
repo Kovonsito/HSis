@@ -1,3 +1,5 @@
+using Mapster;
+using MapsterMapper;
 using HSis.Data.Models;
 using HSis.Logic.DTOs;
 using Microsoft.EntityFrameworkCore;
@@ -7,13 +9,13 @@ namespace HSis.Logic.Services
     public class TicketService
     {
         private readonly IDbContextFactory<HSisDbContext> _dbContextFactory;
-        private readonly AutoMapper.IMapper _mapper;
+        private readonly IMapper _mapper;
         private readonly FluentValidation.IValidator<HSis.Logic.DTOs.TicketCreateDto> _createValidator;
         private readonly FluentValidation.IValidator<HSis.Logic.DTOs.TicketUpdateDto> _updateValidator;
 
         public TicketService(
             IDbContextFactory<HSisDbContext> dbContextFactory, 
-            AutoMapper.IMapper mapper,
+            IMapper mapper,
             FluentValidation.IValidator<HSis.Logic.DTOs.TicketCreateDto> createValidator,
             FluentValidation.IValidator<HSis.Logic.DTOs.TicketUpdateDto> updateValidator)
         {

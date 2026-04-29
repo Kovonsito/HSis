@@ -4,7 +4,8 @@ using HSis.Logic.Services;
 using HSis.Logic.DTOs;
 using HSis.Data.Models;
 using Microsoft.EntityFrameworkCore;
-using AutoMapper;
+using Mapster;
+using MapsterMapper;
 using FluentValidation;
 using HSis.Logic.Validators;
 using FluentAssertions;
@@ -19,17 +20,18 @@ namespace HSis.Tests.Services
 
         public TicketServiceTests()
         {
-            // Configuración real de AutoMapper para las pruebas
-            var config = new MapperConfiguration(cfg => cfg.AddProfile<HSis.Logic.Profiles.TicketProfile>());
-            _mapper = config.CreateMapper();
+            // Configuración real de Mapster para las pruebas
+            var config = new TypeAdapterConfig();
+            new HSis.Logic.Profiles.TicketProfile().Register(config);
+            _mapper = new Mapper(config);
             _createValidator = new TicketCreateValidator();
             _updateValidator = new TicketUpdateValidator();
         }
 
-        private IDbContextFactory<HSisDbContext> CreateFactory(HSisDbContext context)
+        private IDbContextFactory<HSisDbContext> CreateFactory(DbContextOptions<HSisDbContext> options)
         {
             var mockFactory = new Mock<IDbContextFactory<HSisDbContext>>();
-            mockFactory.Setup(f => f.CreateDbContext()).Returns(context);
+            mockFactory.Setup(f => f.CreateDbContext()).Returns(() => new HSisDbContext(options));
             return mockFactory.Object;
         }
 
@@ -41,8 +43,7 @@ namespace HSis.Tests.Services
                 .UseInMemoryDatabase(databaseName: "HSis_Test_Crear")
                 .Options;
 
-            using var context = new HSisDbContext(options);
-            var service = new TicketService(CreateFactory(context), _mapper, _createValidator, _updateValidator);
+            var service = new TicketService(CreateFactory(options), _mapper, _createValidator, _updateValidator);
 
             var nuevoTicketDto = new TicketCreateDto
             {
@@ -58,7 +59,8 @@ namespace HSis.Tests.Services
             resultado.IdTicket.Should().BeGreaterThan(0);
             resultado.Status.Should().Be("Abierto");
             
-            var ticketEnBd = await context.Tickets.FindAsync(resultado.IdTicket);
+            using var contextVerification = new HSisDbContext(options);
+            var ticketEnBd = await contextVerification.Tickets.FindAsync(resultado.IdTicket);
             ticketEnBd.Should().NotBeNull();
             ticketEnBd!.Descripción.Should().Be(nuevoTicketDto.Descripcion);
         }
@@ -71,8 +73,7 @@ namespace HSis.Tests.Services
                 .UseInMemoryDatabase(databaseName: "HSis_Test_Validacion")
                 .Options;
 
-            using var context = new HSisDbContext(options);
-            var service = new TicketService(CreateFactory(context), _mapper, _createValidator, _updateValidator);
+            var service = new TicketService(CreateFactory(options), _mapper, _createValidator, _updateValidator);
 
             var ticketInvalido = new TicketCreateDto
             {
