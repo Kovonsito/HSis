@@ -1,5 +1,6 @@
 using HSis.Data.Models;
 using HSis.Logic.Services;
+using HSis.Logic.DTOs;
 
 namespace HSis.UI
 {
@@ -12,7 +13,7 @@ namespace HSis.UI
     {
         private int _idTicket;
         private readonly TicketService _ticketService;
-        private Ticket? _ticketActual;
+        private TicketDto? _ticketActual;
 
         public frmDetalleCliente(int idTicket, TicketService ticketService)
         {
@@ -39,9 +40,9 @@ namespace HSis.UI
                 lblFolioValor.Text = $"TK{_ticketActual.IdTicket:D6}";
                 lblFechaAltaValor.Text = _ticketActual.Alta?.ToString("dd/MM/yyyy HH:mm") ?? "N/A";
                 lblEstatusValor.Text = _ticketActual.Status ?? "Desconocido";
-                lblTecnicoValor.Text = _ticketActual.IdTecnicoNavigation?.Nombre ?? "Sin asignar";
-                txtDescripcion.Text = _ticketActual.Descripción ?? string.Empty;
-                txtSolucion.Text = _ticketActual.Solución ?? string.Empty;
+                lblTecnicoValor.Text = _ticketActual.NombreTecnico ?? "Sin asignar";
+                txtDescripcion.Text = _ticketActual.Descripcion ?? string.Empty;
+                txtSolucion.Text = _ticketActual.Solucion ?? string.Empty;
 
                 // Aplicar estilo de color según el estatus
                 AplicarEstiloEstatus(_ticketActual.Status);
