@@ -5,14 +5,8 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace HSis.Logic.Interceptors
 {
-    public class TicketAuditInterceptor : SaveChangesInterceptor
+    public class TicketAuditInterceptor(ICurrentUserService currentUserService) : SaveChangesInterceptor
     {
-        private readonly ICurrentUserService _currentUserService;
-
-        public TicketAuditInterceptor(ICurrentUserService currentUserService)
-        {
-            _currentUserService = currentUserService;
-        }
 
         public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
         {
@@ -37,12 +31,12 @@ namespace HSis.Logic.Interceptors
 
             if (!entradasModificadas.Any()) return;
 
-            int currentUserId = _currentUserService.GetCurrentUserId();
+            int currentUserId = currentUserService.GetCurrentUserId();
             var auditorias = new List<HistorialCambiosTicket>();
 
             foreach (var entrada in entradasModificadas)
             {
-                var propiedadesA_Auditar = new[] { "Status", "IdTecnico", "Solución" };
+                var propiedadesA_Auditar = new[] { "Status", "IdTecnico", "Solución", "Prioridad" };
 
                 foreach (var propName in propiedadesA_Auditar)
                 {

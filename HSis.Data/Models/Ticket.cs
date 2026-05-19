@@ -1,4 +1,4 @@
-﻿namespace HSis.Data.Models;
+namespace HSis.Data.Models;
 
 public partial class Ticket
 {
@@ -19,6 +19,8 @@ public partial class Ticket
     public string? Solución { get; set; }
 
     public int? IdTecnico { get; set; }
+
+    public string? Prioridad { get; set; }
 
     public virtual ICollection<DetTicket> DetTickets { get; set; } = new List<DetTicket>();
 

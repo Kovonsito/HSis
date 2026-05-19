@@ -4,20 +4,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HSis.Logic.Services
 {
-    public class CatalogoService
+    public class CatalogoService(IDbContextFactory<HSisDbContext> dbContextFactory, IServiceProvider serviceProvider)
     {
-        private readonly IDbContextFactory<HSisDbContext> _dbContextFactory;
-        private readonly IServiceProvider _serviceProvider;
-
-        public CatalogoService(IDbContextFactory<HSisDbContext> dbContextFactory, IServiceProvider serviceProvider)
-        {
-            _dbContextFactory = dbContextFactory;
-            _serviceProvider = serviceProvider;
-        }
 
         private async Task ValidarEntidadAsync<T>(T entidad) where T : class
         {
-            var validator = (FluentValidation.IValidator<T>?)_serviceProvider.GetService(typeof(FluentValidation.IValidator<T>));
+            var validator = (FluentValidation.IValidator<T>?)serviceProvider.GetService(typeof(FluentValidation.IValidator<T>));
             if (validator != null)
             {
                 var result = await validator.ValidateAsync(entidad);
@@ -30,7 +22,7 @@ namespace HSis.Logic.Services
 
         public async Task<List<T>> ObtenerTodosAsync<T>() where T : class
         {
-            using var db = _dbContextFactory.CreateDbContext();
+            using var db = dbContextFactory.CreateDbContext();
             IQueryable<T> query = db.Set<T>();
             var navigations = db.Model.FindEntityType(typeof(T))?.GetNavigations();
             if (navigations != null)
@@ -49,7 +41,7 @@ namespace HSis.Logic.Services
 
         public async Task<List<T>> ObtenerFiltradoAsync<T>(Expression<System.Func<T, bool>> predicado) where T : class
         {
-            using var db = _dbContextFactory.CreateDbContext();
+            using var db = dbContextFactory.CreateDbContext();
             IQueryable<T> query = db.Set<T>();
             var navigations = db.Model.FindEntityType(typeof(T))?.GetNavigations();
             if (navigations != null)
@@ -68,7 +60,7 @@ namespace HSis.Logic.Services
         public async Task CrearAsync<T>(T entidad) where T : class
         {
             await ValidarEntidadAsync(entidad);
-            using var db = _dbContextFactory.CreateDbContext();
+            using var db = dbContextFactory.CreateDbContext();
             db.Set<T>().Add(entidad);
             await db.SaveChangesAsync();
         }
@@ -76,14 +68,14 @@ namespace HSis.Logic.Services
         public async Task ActualizarAsync<T>(T entidad) where T : class
         {
             await ValidarEntidadAsync(entidad);
-            using var db = _dbContextFactory.CreateDbContext();
+            using var db = dbContextFactory.CreateDbContext();
             db.Set<T>().Update(entidad);
             await db.SaveChangesAsync();
         }
 
         public async Task EliminarAsync<T>(object id) where T : class
         {
-            using var db = _dbContextFactory.CreateDbContext();
+            using var db = dbContextFactory.CreateDbContext();
             var entity = await db.Set<T>().FindAsync(id);
             if (entity != null)
             {
@@ -96,7 +88,7 @@ namespace HSis.Logic.Services
 
         public async Task<List<object>> ObtenerTodosPorTipoAsync(System.Type tipoEntidad)
         {
-            using var db = _dbContextFactory.CreateDbContext();
+            using var db = dbContextFactory.CreateDbContext();
 
             // Invocamos Set<T>() dinámicamente
             var queryableMethod = typeof(DbContext).GetMethod(nameof(DbContext.Set), System.Type.EmptyTypes)?.MakeGenericMethod(tipoEntidad);

@@ -7,7 +7,13 @@ namespace HSis.UI
     public partial class frmDashboardTecnico : Form
     {
         private readonly TicketService _ticketService;
-        private bool _mostrandoMisAsignados = true;
+        private enum VistaDashboard
+        {
+            MisAsignados,
+            Disponibles,
+            Cerrados
+        }
+        private VistaDashboard _vistaActual = VistaDashboard.MisAsignados;
 
         public frmDashboardTecnico(TicketService ticketService)
         {
@@ -25,7 +31,23 @@ namespace HSis.UI
         private async Task CargarDatosInicialesAsync()
         {
             // Ejecutamos las dos cargas principales en paralelo
-            await Task.WhenAll(CargarIndicadoresAsync(), CargarTicketsMisAsignadosAsync());
+            await Task.WhenAll(CargarIndicadoresAsync(), CargarTicketsSegunVistaAsync());
+        }
+
+        private async Task CargarTicketsSegunVistaAsync()
+        {
+            if (_vistaActual == VistaDashboard.MisAsignados)
+            {
+                await CargarTicketsMisAsignadosAsync();
+            }
+            else if (_vistaActual == VistaDashboard.Disponibles)
+            {
+                await CargarTicketsDisponiblesAsync();
+            }
+            else if (_vistaActual == VistaDashboard.Cerrados)
+            {
+                await CargarTicketsCerradosAsync();
+            }
         }
 
         private async Task CargarIndicadoresAsync()
@@ -35,11 +57,13 @@ namespace HSis.UI
                 // Consultas en paralelo para los indicadores
                 var taskMisAsignados = _ticketService.ObtenerTicketsAsignadosATecnicoAsync(SesionSistema.IdUsuario);
                 var taskDisponibles = _ticketService.ObtenerTicketsDisponiblesAsync();
+                var taskCerrados = _ticketService.ObtenerTicketsCerradosPorTecnicoAsync(SesionSistema.IdUsuario);
 
-                await Task.WhenAll(taskMisAsignados, taskDisponibles);
+                await Task.WhenAll(taskMisAsignados, taskDisponibles, taskCerrados);
 
                 var misAsignados = taskMisAsignados.Result;
                 var disponibles = taskDisponibles.Result;
+                var cerrados = taskCerrados.Result;
 
                 ucMisAsignados.Cantidad = misAsignados.Count.ToString();
                 ucMisAsignados.Titulo = "Mis Asignados";
@@ -53,6 +77,12 @@ namespace HSis.UI
                 ucDisponibles.ColorFondo = Color.FromArgb(241, 196, 15);
                 ucDisponibles.ucIndicadorEvent -= UcDisponibles_Click;
                 ucDisponibles.ucIndicadorEvent += UcDisponibles_Click;
+
+                ucCerrados.Cantidad = cerrados.Count.ToString();
+                ucCerrados.Titulo = "Mis Cerrados";
+                ucCerrados.ColorFondo = Color.FromArgb(46, 204, 113);
+                ucCerrados.ucIndicadorEvent -= UcCerrados_Click;
+                ucCerrados.ucIndicadorEvent += UcCerrados_Click;
             }
             catch (Exception ex)
             {
@@ -62,14 +92,20 @@ namespace HSis.UI
 
         private async void UcMisAsignados_Click(object sender, EventArgs e)
         {
-            _mostrandoMisAsignados = true;
-            await CargarTicketsMisAsignadosAsync();
+            _vistaActual = VistaDashboard.MisAsignados;
+            await CargarTicketsSegunVistaAsync();
         }
 
         private async void UcDisponibles_Click(object sender, EventArgs e)
         {
-            _mostrandoMisAsignados = false;
-            await CargarTicketsDisponiblesAsync();
+            _vistaActual = VistaDashboard.Disponibles;
+            await CargarTicketsSegunVistaAsync();
+        }
+
+        private async void UcCerrados_Click(object sender, EventArgs e)
+        {
+            _vistaActual = VistaDashboard.Cerrados;
+            await CargarTicketsSegunVistaAsync();
         }
 
         private async Task CargarTicketsMisAsignadosAsync()
@@ -98,6 +134,19 @@ namespace HSis.UI
             }
         }
 
+        private async Task CargarTicketsCerradosAsync()
+        {
+            try
+            {
+                var tickets = await _ticketService.ObtenerTicketsCerradosPorTecnicoAsync(SesionSistema.IdUsuario);
+                CargarGridTickets(tickets);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al cargar tickets cerrados: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
         private void CargarGridTickets(List<TicketDto> tickets)
         {
             var ticketsDto = tickets.ConvertAll(t => new TicketOperativoDto
@@ -106,7 +155,8 @@ namespace HSis.UI
                 FechaAlta = t.Alta,
                 Status = t.Status,
                 Usuario = t.NombreUsuario,
-                Descripcion = !string.IsNullOrEmpty(t.Descripcion) && t.Descripcion.Length > 50 ? t.Descripcion.Substring(0, 50) + "..." : (t.Descripcion ?? "")
+                Descripcion = !string.IsNullOrEmpty(t.Descripcion) && t.Descripcion.Length > 50 ? t.Descripcion.Substring(0, 50) + "..." : (t.Descripcion ?? ""),
+                Prioridad = t.Prioridad
             });
 
             dgvTicketsOperativos.DataSource = ticketsDto;
@@ -122,10 +172,12 @@ namespace HSis.UI
                 dgvTicketsOperativos.Columns["Status"].HeaderText = "Estatus";
                 dgvTicketsOperativos.Columns["Usuario"].HeaderText = "Usuario Reportó";
                 dgvTicketsOperativos.Columns["Descripcion"].HeaderText = "Descripción";
+                dgvTicketsOperativos.Columns["Prioridad"].HeaderText = "Prioridad";
 
                 dgvTicketsOperativos.Columns["FechaAlta"].Width = 100;
                 dgvTicketsOperativos.Columns["Status"].Width = 100;
                 dgvTicketsOperativos.Columns["Usuario"].Width = 120;
+                dgvTicketsOperativos.Columns["Prioridad"].Width = 80;
             }
         }
 
@@ -140,14 +192,7 @@ namespace HSis.UI
 
                     frmTicket.ShowDialog();
                     await CargarIndicadoresAsync();
-                    if (_mostrandoMisAsignados)
-                    {
-                        await CargarTicketsMisAsignadosAsync();
-                    }
-                    else
-                    {
-                        await CargarTicketsDisponiblesAsync();
-                    }
+                    await CargarTicketsSegunVistaAsync();
 
                 }
             }

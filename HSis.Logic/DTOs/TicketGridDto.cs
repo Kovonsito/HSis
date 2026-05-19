@@ -1,4 +1,4 @@
-﻿namespace HSis.Logic.DTOs
+namespace HSis.Logic.DTOs
 {
     public class TicketGridDto
     {
@@ -11,5 +11,6 @@
         public string? AtendidoPor { get; set; }
         public string? Descripción { get; set; }
         public string? Solución { get; set; }
+        public string? Prioridad { get; set; }
     }
 }

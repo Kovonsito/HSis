@@ -98,6 +98,16 @@ namespace HSis.UI
 
                 cmbEstatus.SelectedItem = estatusActual;
 
+                // Seleccionar prioridad si existe
+                if (!string.IsNullOrEmpty(_ticketActual.Prioridad))
+                {
+                    cmbPrioridad.SelectedItem = _ticketActual.Prioridad;
+                }
+                else
+                {
+                    cmbPrioridad.SelectedIndex = -1;
+                }
+
                 // Cargar combo de técnicos (usuarios con rol de Técnico o Administrador)
                 // Roles: 1 = Admin, 2 = Técnico, 3 = Usuario
                 await CargarTecnicosAsync();
@@ -129,6 +139,7 @@ namespace HSis.UI
                     rtbSolucion.ReadOnly = true;
                     rtbDescripcion.ReadOnly = true;
                     btnGuardar.Enabled = false;
+                    cmbPrioridad.Enabled = false;
                 }
 
                 if (estatusActual == ConstantesEstatus.CERRADO)
@@ -138,6 +149,7 @@ namespace HSis.UI
                         cmbEstatus.Enabled = false;
                         rtbSolucion.ReadOnly = true;
                         btnGuardar.Enabled = false;
+                        cmbPrioridad.Enabled = false;
                     }
                 }
 
@@ -190,6 +202,13 @@ namespace HSis.UI
                     MessageBox.Show("Debes ingresar una solución antes de poder cerrar el ticket.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
+                
+                // Validación: No registrar solución en estatus abierto
+                if ((_ticketActual.Status == ConstantesEstatus.ABIERTO || estatusSeleccionado == ConstantesEstatus.ABIERTO) && !string.IsNullOrWhiteSpace(rtbSolucion.Text))
+                {
+                    MessageBox.Show("No se puede registrar una solución para un ticket abierto o que recién inicia su proceso.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
 
                 int? idTecnico = cmbAtendido.SelectedValue != null ? (int?)cmbAtendido.SelectedValue : null;
 
@@ -200,12 +219,14 @@ namespace HSis.UI
                 }
 
                 string solucionIngresada = rtbSolucion.Text;
+                string prioridadSeleccionada = cmbPrioridad.SelectedItem?.ToString() ?? string.Empty;
 
                 // Validación: Evitar viajes a la BD y registros de historial innecesarios si nada cambió
                 bool huboCambios = false;
                 if (_ticketActual.Status != estatusSeleccionado) huboCambios = true;
                 if (_ticketActual.IdTecnico != idTecnico) huboCambios = true;
                 if ((_ticketActual.Solucion ?? string.Empty) != solucionIngresada) huboCambios = true;
+                if ((_ticketActual.Prioridad ?? string.Empty) != prioridadSeleccionada) huboCambios = true;
 
                 if (!huboCambios)
                 {
@@ -221,7 +242,8 @@ namespace HSis.UI
                     IdTecnico = idTecnico,
                     Solucion = solucionIngresada,
                     Atencion = _ticketActual.Atencion,
-                    Cierre = _ticketActual.Cierre
+                    Cierre = _ticketActual.Cierre,
+                    Prioridad = prioridadSeleccionada
                 };
 
                 // Lógica automática de fechas para KPIs

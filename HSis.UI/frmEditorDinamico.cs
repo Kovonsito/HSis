@@ -49,7 +49,7 @@ namespace HSis.UI
             this.Width = 550;
         }
 
-        private void BtnGuardar_Click(object sender, EventArgs e)
+        private void BtnGuardar_Click(object? sender, EventArgs e)
         {
             var props = ObtenerPropiedadesEditables();
 

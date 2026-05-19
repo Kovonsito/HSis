@@ -7,19 +7,13 @@ namespace HSis.Logic.Services
     /// Servicio para gestionar operaciones relacionadas con Detalles de Tickets.
     /// Incluye obtención, creación y gestión de materiales asociados a tickets.
     /// </summary>
-    public class DetTicketService
+    public class DetTicketService(IDbContextFactory<HSisDbContext> dbContextFactory)
     {
-        private readonly IDbContextFactory<HSisDbContext> _dbContextFactory;
-
-        public DetTicketService(IDbContextFactory<HSisDbContext> dbContextFactory)
-        {
-            _dbContextFactory = dbContextFactory;
-        }
 
         // Obtener detalles de ticket - Async
         public async Task<List<DetTicket>> ObtenerDetallesTicketAsync(int idTicket)
         {
-            using var db = _dbContextFactory.CreateDbContext();
+            using var db = dbContextFactory.CreateDbContext();
             return await db.DetTickets
                 .Include(dt => dt.IdMaterialNavigation)
                 .Where(dt => dt.IdTicket == idTicket)
@@ -28,7 +22,7 @@ namespace HSis.Logic.Services
 
         public async Task<DetTicket?> ObtenerDetallePorIdAsync(int idTicket, int idMaterial)
         {
-            using var db = _dbContextFactory.CreateDbContext();
+            using var db = dbContextFactory.CreateDbContext();
             return await db.DetTickets
                 .Include(dt => dt.IdMaterialNavigation)
                 .FirstOrDefaultAsync(dt => dt.IdTicket == idTicket && dt.IdMaterial == idMaterial);
@@ -37,7 +31,7 @@ namespace HSis.Logic.Services
         // CRUD DetTicket - Async
         public async Task AgregarMaterialATicketAsync(DetTicket detTicket)
         {
-            using var db = _dbContextFactory.CreateDbContext();
+            using var db = dbContextFactory.CreateDbContext();
 
             // Consultar el costo actual del material para este egreso
             var material = await db.Materials.FindAsync(detTicket.IdMaterial);
@@ -52,14 +46,14 @@ namespace HSis.Logic.Services
 
         public async Task ActualizarDetalleTicketAsync(DetTicket detTicket)
         {
-            using var db = _dbContextFactory.CreateDbContext();
+            using var db = dbContextFactory.CreateDbContext();
             db.DetTickets.Update(detTicket);
             await db.SaveChangesAsync();
         }
 
         public async Task EliminarMaterialDeTicketAsync(int idTicket, int idMaterial)
         {
-            using var db = _dbContextFactory.CreateDbContext();
+            using var db = dbContextFactory.CreateDbContext();
             var detTicket = await db.DetTickets.FindAsync(idTicket, idMaterial);
             if (detTicket != null)
             {
@@ -71,7 +65,7 @@ namespace HSis.Logic.Services
         // Cálculos - Async
         public async Task<decimal> ObtenerCostoTotalMaterialesTicketAsync(int idTicket)
         {
-            using var db = _dbContextFactory.CreateDbContext();
+            using var db = dbContextFactory.CreateDbContext();
             return await db.DetTickets
                 .Where(dt => dt.IdTicket == idTicket)
                 .SumAsync(dt => dt.CostoUnitarioAplicado * dt.Cantidad);

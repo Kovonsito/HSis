@@ -44,6 +44,18 @@ namespace HSis.UI
                 txtDescripcion.Text = _ticketActual.Descripcion ?? string.Empty;
                 txtSolucion.Text = _ticketActual.Solucion ?? string.Empty;
 
+                if (_ticketActual.Status == ConstantesEstatus.CERRADO)
+                {
+                    lblFechaCierre.Visible = true;
+                    lblFechaCierreValor.Visible = true;
+                    lblFechaCierreValor.Text = _ticketActual.Cierre?.ToString("dd/MM/yyyy HH:mm") ?? "N/A";
+                }
+                else
+                {
+                    lblFechaCierre.Visible = false;
+                    lblFechaCierreValor.Visible = false;
+                }
+
                 // Aplicar estilo de color según el estatus
                 AplicarEstiloEstatus(_ticketActual.Status);
             }
