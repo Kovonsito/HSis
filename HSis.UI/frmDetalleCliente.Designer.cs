@@ -41,6 +41,8 @@ namespace HSis.UI
             this.lblSolucion = new System.Windows.Forms.Label();
             this.txtSolucion = new System.Windows.Forms.TextBox();
             this.btnCerrar = new System.Windows.Forms.Button();
+            this.lblFechaCierre = new System.Windows.Forms.Label();
+            this.lblFechaCierreValor = new System.Windows.Forms.Label();
             this.SuspendLayout();
 
             // lblFolio
@@ -166,10 +168,32 @@ namespace HSis.UI
             this.btnCerrar.UseVisualStyleBackColor = false;
             this.btnCerrar.Click += new System.EventHandler(this.btnCerrar_Click);
 
+            // lblFechaCierre
+            this.lblFechaCierre.AutoSize = true;
+            this.lblFechaCierre.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.lblFechaCierre.Location = new System.Drawing.Point(220, 40);
+            this.lblFechaCierre.Name = "lblFechaCierre";
+            this.lblFechaCierre.Size = new System.Drawing.Size(80, 15);
+            this.lblFechaCierre.TabIndex = 13;
+            this.lblFechaCierre.Text = "Fecha Cierre:";
+            this.lblFechaCierre.Visible = false;
+
+            // lblFechaCierreValor
+            this.lblFechaCierreValor.AutoSize = true;
+            this.lblFechaCierreValor.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.lblFechaCierreValor.Location = new System.Drawing.Point(310, 40);
+            this.lblFechaCierreValor.Name = "lblFechaCierreValor";
+            this.lblFechaCierreValor.Size = new System.Drawing.Size(120, 15);
+            this.lblFechaCierreValor.TabIndex = 14;
+            this.lblFechaCierreValor.Text = "N/A";
+            this.lblFechaCierreValor.Visible = false;
+
             // frmDetalleCliente
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(484, 391);
+            this.Controls.Add(this.lblFechaCierre);
+            this.Controls.Add(this.lblFechaCierreValor);
             this.Controls.Add(this.btnCerrar);
             this.Controls.Add(this.txtSolucion);
             this.Controls.Add(this.lblSolucion);
@@ -210,5 +234,7 @@ namespace HSis.UI
         private System.Windows.Forms.Label lblSolucion;
         private System.Windows.Forms.TextBox txtSolucion;
         private System.Windows.Forms.Button btnCerrar;
+        private System.Windows.Forms.Label lblFechaCierre;
+        private System.Windows.Forms.Label lblFechaCierreValor;
     }
 }

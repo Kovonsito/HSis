@@ -1,4 +1,4 @@
-﻿namespace HSis.UI
+namespace HSis.UI
 {
     partial class frmTicketDetalle
     {
@@ -49,6 +49,8 @@
             btnCancelar = new Button();
             dgvHistorial = new DataGridView();
             lblHistoria = new Label();
+            lblPrioridad = new Label();
+            cmbPrioridad = new ComboBox();
             ((System.ComponentModel.ISupportInitialize)dgvHistorial).BeginInit();
             SuspendLayout();
             // 
@@ -242,11 +244,32 @@
             lblHistoria.TabIndex = 22;
             lblHistoria.Text = "Historial de cambios";
             // 
+            // lblPrioridad
+            // 
+            lblPrioridad.AutoSize = true;
+            lblPrioridad.Location = new Point(280, 68);
+            lblPrioridad.Name = "lblPrioridad";
+            lblPrioridad.Size = new Size(60, 15);
+            lblPrioridad.TabIndex = 25;
+            lblPrioridad.Text = "Prioridad:";
+            // 
+            // cmbPrioridad
+            // 
+            cmbPrioridad.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbPrioridad.FormattingEnabled = true;
+            cmbPrioridad.Items.AddRange(new object[] { "Alta", "Media", "Baja" });
+            cmbPrioridad.Location = new Point(350, 64);
+            cmbPrioridad.Name = "cmbPrioridad";
+            cmbPrioridad.Size = new Size(120, 23);
+            cmbPrioridad.TabIndex = 26;
+            // 
             // frmTicket
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(709, 695);
+            Controls.Add(lblPrioridad);
+            Controls.Add(cmbPrioridad);
             Controls.Add(lblHistoria);
             Controls.Add(dgvHistorial);
             Controls.Add(btnCancelar);
@@ -300,5 +323,7 @@
         private Button btnCancelar;
         private DataGridView dgvHistorial;
         private Label lblHistoria;
+        private Label lblPrioridad;
+        private ComboBox cmbPrioridad;
     }
 }

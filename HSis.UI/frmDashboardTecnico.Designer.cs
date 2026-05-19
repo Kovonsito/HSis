@@ -21,6 +21,7 @@ namespace HSis.UI
             this.lblTitulo = new Label();
             this.ucMisAsignados = new ucIndicador();
             this.ucDisponibles = new ucIndicador();
+            this.ucCerrados = new ucIndicador();
             this.dgvTicketsOperativos = new DataGridView();
             ((System.ComponentModel.ISupportInitialize)(this.dgvTicketsOperativos)).BeginInit();
             this.SuspendLayout();
@@ -46,6 +47,12 @@ namespace HSis.UI
             this.ucDisponibles.Size = new Size(200, 100);
             this.ucDisponibles.TabIndex = 2;
 
+            // ucCerrados
+            this.ucCerrados.Location = new Point(428, 50);
+            this.ucCerrados.Name = "ucCerrados";
+            this.ucCerrados.Size = new Size(200, 100);
+            this.ucCerrados.TabIndex = 4;
+
             // dgvTicketsOperativos
             this.dgvTicketsOperativos.AllowUserToAddRows = false;
             this.dgvTicketsOperativos.AllowUserToDeleteRows = false;
@@ -66,6 +73,7 @@ namespace HSis.UI
             this.Controls.Add(this.dgvTicketsOperativos);
             this.Controls.Add(this.ucDisponibles);
             this.Controls.Add(this.ucMisAsignados);
+            this.Controls.Add(this.ucCerrados);
             this.Controls.Add(this.lblTitulo);
             this.Name = "frmDashboardTecnico";
             this.StartPosition = FormStartPosition.CenterScreen;
@@ -79,6 +87,7 @@ namespace HSis.UI
         private Label lblTitulo;
         private ucIndicador ucMisAsignados;
         private ucIndicador ucDisponibles;
+        private ucIndicador ucCerrados;
         private DataGridView dgvTicketsOperativos;
     }
 }

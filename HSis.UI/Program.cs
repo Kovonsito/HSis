@@ -100,6 +100,30 @@ namespace HSis.UI
 
                 ServiceProvider = services.BuildServiceProvider();
 
+                // === ACTUALIZACIÓN AUTOMÁTICA Y ROBUSTA DE LA BASE DE DATOS ===
+                try
+                {
+                    Serilog.Log.Information("Verificando consistencia del esquema de base de datos...");
+                    using var dbFactory = ServiceProvider.GetRequiredService<IDbContextFactory<HSisDbContext>>();
+                    using var db = dbFactory.CreateDbContext();
+                    
+                    // Verificar e inyectar la columna Prioridad de forma condicional
+                    db.Database.ExecuteSqlRaw(@"
+                        IF NOT EXISTS (
+                            SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
+                            WHERE TABLE_NAME = 'Ticket' AND COLUMN_NAME = 'Prioridad'
+                        )
+                        BEGIN
+                            ALTER TABLE Ticket ADD Prioridad VARCHAR(20) NULL;
+                        END
+                    ");
+                    Serilog.Log.Information("Esquema de base de datos verificado y actualizado con éxito.");
+                }
+                catch (Exception ex)
+                {
+                    Serilog.Log.Error(ex, "Error crítico al actualizar el esquema de la base de datos al iniciar.");
+                }
+
                 Application.Run(ServiceProvider.GetRequiredService<frmIniciarSesion>());
             }
             catch (Exception ex)

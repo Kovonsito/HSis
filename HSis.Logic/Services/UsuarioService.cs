@@ -7,14 +7,8 @@ namespace HSis.Logic.Services
     /// Servicio para gestionar operaciones relacionadas con Usuarios.
     /// Incluye autenticación, creación y obtención de datos de usuario.
     /// </summary>
-    public class UsuarioService
+    public class UsuarioService(IDbContextFactory<HSisDbContext> dbContextFactory)
     {
-        private readonly IDbContextFactory<HSisDbContext> _dbContextFactory;
-
-        public UsuarioService(IDbContextFactory<HSisDbContext> dbContextFactory)
-        {
-            _dbContextFactory = dbContextFactory;
-        }
 
         // Hash de contraseña con SHA256
         public static string HashPassword(string password)
@@ -30,7 +24,7 @@ namespace HSis.Logic.Services
         public async Task RehashearContraseñasAsync()
         {
 
-            using var db = _dbContextFactory.CreateDbContext();
+            using var db = dbContextFactory.CreateDbContext();
             var usuarios = await db.Usuarios.ToListAsync();
 
             foreach (var usuario in usuarios)
@@ -44,7 +38,7 @@ namespace HSis.Logic.Services
 
         public async Task<Usuario?> AutenticarAsync(string nombreUsuario, string contraseña)
         {
-            using var db = _dbContextFactory.CreateDbContext();
+            using var db = dbContextFactory.CreateDbContext();
             var usuario = await db.Usuarios
                 .Include(u => u.IdDepartamentoNavigation)
                 .Include(u => u.IdPuestoNavigation)
@@ -58,7 +52,7 @@ namespace HSis.Logic.Services
 
         public async Task<List<Usuario>> ObtenerUsuariosPorRolAsync(int idRol)
         {
-            using var db = _dbContextFactory.CreateDbContext();
+            using var db = dbContextFactory.CreateDbContext();
             return await db.Usuarios
                 .Where(u => u.IdRol == idRol)
                 .Include(u => u.IdDepartamentoNavigation)

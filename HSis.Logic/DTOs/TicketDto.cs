@@ -15,6 +15,7 @@ namespace HSis.Logic.DTOs
         public string? Solucion { get; set; }
         public int? IdTecnico { get; set; }
         public string NombreTecnico { get; set; } = string.Empty;
+        public string? Prioridad { get; set; }
     }
 
     public class TicketCreateDto
@@ -31,5 +32,6 @@ namespace HSis.Logic.DTOs
         public int? IdTecnico { get; set; }
         public DateTime? Atencion { get; set; }
         public DateTime? Cierre { get; set; }
+        public string? Prioridad { get; set; }
     }
 }

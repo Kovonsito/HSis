@@ -8,5 +8,6 @@ namespace HSis.Logic.DTOs
         public string Status { get; set; }
         public string Usuario { get; set; }
         public string Descripcion { get; set; }
+        public string? Prioridad { get; set; }
     }
 }
