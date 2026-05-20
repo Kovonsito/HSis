@@ -47,7 +47,7 @@ namespace HSis.UI
 
             // lblFolio
             this.lblFolio.AutoSize = true;
-            this.lblFolio.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.lblFolio.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.lblFolio.Location = new System.Drawing.Point(12, 15);
             this.lblFolio.Name = "lblFolio";
             this.lblFolio.Size = new System.Drawing.Size(41, 15);
@@ -56,7 +56,7 @@ namespace HSis.UI
 
             // lblFolioValor
             this.lblFolioValor.AutoSize = true;
-            this.lblFolioValor.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.lblFolioValor.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.lblFolioValor.Location = new System.Drawing.Point(60, 15);
             this.lblFolioValor.Name = "lblFolioValor";
             this.lblFolioValor.Size = new System.Drawing.Size(23, 15);
@@ -65,7 +65,7 @@ namespace HSis.UI
 
             // lblFechaAlta
             this.lblFechaAlta.AutoSize = true;
-            this.lblFechaAlta.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.lblFechaAlta.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.lblFechaAlta.Location = new System.Drawing.Point(12, 40);
             this.lblFechaAlta.Name = "lblFechaAlta";
             this.lblFechaAlta.Size = new System.Drawing.Size(66, 15);
@@ -74,7 +74,7 @@ namespace HSis.UI
 
             // lblFechaAltaValor
             this.lblFechaAltaValor.AutoSize = true;
-            this.lblFechaAltaValor.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.lblFechaAltaValor.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.lblFechaAltaValor.Location = new System.Drawing.Point(85, 40);
             this.lblFechaAltaValor.Name = "lblFechaAltaValor";
             this.lblFechaAltaValor.Size = new System.Drawing.Size(23, 15);
@@ -83,7 +83,7 @@ namespace HSis.UI
 
             // lblEstatus
             this.lblEstatus.AutoSize = true;
-            this.lblEstatus.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.lblEstatus.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.lblEstatus.Location = new System.Drawing.Point(12, 65);
             this.lblEstatus.Name = "lblEstatus";
             this.lblEstatus.Size = new System.Drawing.Size(52, 15);
@@ -92,7 +92,7 @@ namespace HSis.UI
 
             // lblEstatusValor
             this.lblEstatusValor.AutoSize = true;
-            this.lblEstatusValor.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.lblEstatusValor.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.lblEstatusValor.Location = new System.Drawing.Point(71, 65);
             this.lblEstatusValor.Name = "lblEstatusValor";
             this.lblEstatusValor.Padding = new System.Windows.Forms.Padding(5);
@@ -102,7 +102,7 @@ namespace HSis.UI
 
             // lblTecnico
             this.lblTecnico.AutoSize = true;
-            this.lblTecnico.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.lblTecnico.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.lblTecnico.Location = new System.Drawing.Point(12, 100);
             this.lblTecnico.Name = "lblTecnico";
             this.lblTecnico.Size = new System.Drawing.Size(96, 15);
@@ -111,7 +111,7 @@ namespace HSis.UI
 
             // lblTecnicoValor
             this.lblTecnicoValor.AutoSize = true;
-            this.lblTecnicoValor.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.lblTecnicoValor.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.lblTecnicoValor.Location = new System.Drawing.Point(115, 100);
             this.lblTecnicoValor.Name = "lblTecnicoValor";
             this.lblTecnicoValor.Size = new System.Drawing.Size(23, 15);
@@ -120,7 +120,7 @@ namespace HSis.UI
 
             // lblDescripcion
             this.lblDescripcion.AutoSize = true;
-            this.lblDescripcion.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.lblDescripcion.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.lblDescripcion.Location = new System.Drawing.Point(12, 125);
             this.lblDescripcion.Name = "lblDescripcion";
             this.lblDescripcion.Size = new System.Drawing.Size(75, 15);
@@ -129,7 +129,7 @@ namespace HSis.UI
 
             // txtDescripcion
             this.txtDescripcion.BackColor = System.Drawing.SystemColors.ControlLight;
-            this.txtDescripcion.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.txtDescripcion.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.txtDescripcion.Location = new System.Drawing.Point(12, 145);
             this.txtDescripcion.Multiline = true;
             this.txtDescripcion.Name = "txtDescripcion";
@@ -139,7 +139,7 @@ namespace HSis.UI
 
             // lblSolucion
             this.lblSolucion.AutoSize = true;
-            this.lblSolucion.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.lblSolucion.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.lblSolucion.Location = new System.Drawing.Point(12, 235);
             this.lblSolucion.Name = "lblSolucion";
             this.lblSolucion.Size = new System.Drawing.Size(56, 15);
@@ -148,7 +148,7 @@ namespace HSis.UI
 
             // txtSolucion
             this.txtSolucion.BackColor = System.Drawing.SystemColors.ControlLight;
-            this.txtSolucion.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.txtSolucion.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.txtSolucion.Location = new System.Drawing.Point(12, 255);
             this.txtSolucion.Multiline = true;
             this.txtSolucion.Name = "txtSolucion";
@@ -158,7 +158,7 @@ namespace HSis.UI
 
             // btnCerrar
             this.btnCerrar.BackColor = System.Drawing.Color.Gray;
-            this.btnCerrar.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.btnCerrar.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.btnCerrar.ForeColor = System.Drawing.Color.White;
             this.btnCerrar.Location = new System.Drawing.Point(397, 350);
             this.btnCerrar.Name = "btnCerrar";
@@ -170,7 +170,7 @@ namespace HSis.UI
 
             // lblFechaCierre
             this.lblFechaCierre.AutoSize = true;
-            this.lblFechaCierre.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.lblFechaCierre.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.lblFechaCierre.Location = new System.Drawing.Point(220, 40);
             this.lblFechaCierre.Name = "lblFechaCierre";
             this.lblFechaCierre.Size = new System.Drawing.Size(80, 15);
@@ -180,7 +180,7 @@ namespace HSis.UI
 
             // lblFechaCierreValor
             this.lblFechaCierreValor.AutoSize = true;
-            this.lblFechaCierreValor.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.lblFechaCierreValor.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.lblFechaCierreValor.Location = new System.Drawing.Point(310, 40);
             this.lblFechaCierreValor.Name = "lblFechaCierreValor";
             this.lblFechaCierreValor.Size = new System.Drawing.Size(120, 15);
@@ -207,7 +207,7 @@ namespace HSis.UI
             this.Controls.Add(this.lblFechaAlta);
             this.Controls.Add(this.lblFolioValor);
             this.Controls.Add(this.lblFolio);
-            this.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;

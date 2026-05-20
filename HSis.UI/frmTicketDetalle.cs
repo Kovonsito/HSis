@@ -289,10 +289,11 @@ namespace HSis.UI
             try
             {
                 // Llamamos a la lógica asíncrona
-                var historial = await _ticketService.ObtenerHistorialPorTicketAsync(_idTicket);
+                var rawHistorial = await _ticketService.ObtenerHistorialPorTicketAsync(_idTicket);
+                var historial = rawHistorial.Cast<HSis.Logic.DTOs.HistorialCambiosDto>().ToList();
 
                 // Asignamos al Grid
-                dgvHistorial.DataSource = historial;
+                dgvHistorial.DataSource = new SortableBindingList<HSis.Logic.DTOs.HistorialCambiosDto>(historial);
 
                 // Limpieza visual: Asegurarnos de que no se auto-seleccione la primera fila
                 dgvHistorial.ClearSelection();

@@ -36,7 +36,7 @@ namespace HSis.UI
 
             // lblDescripcion
             this.lblDescripcion.AutoSize = true;
-            this.lblDescripcion.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.lblDescripcion.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.lblDescripcion.Location = new System.Drawing.Point(12, 15);
             this.lblDescripcion.Name = "lblDescripcion";
             this.lblDescripcion.Size = new System.Drawing.Size(198, 19);
@@ -44,7 +44,7 @@ namespace HSis.UI
             this.lblDescripcion.Text = "Descripción del Problema:";
 
             // rtbDescripcion
-            this.rtbDescripcion.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.rtbDescripcion.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.rtbDescripcion.Location = new System.Drawing.Point(12, 40);
             this.rtbDescripcion.Name = "rtbDescripcion";
             this.rtbDescripcion.Size = new System.Drawing.Size(460, 150);
@@ -53,7 +53,7 @@ namespace HSis.UI
 
             // btnGuardar
             this.btnGuardar.BackColor = System.Drawing.Color.Green;
-            this.btnGuardar.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.btnGuardar.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.btnGuardar.ForeColor = System.Drawing.Color.White;
             this.btnGuardar.Location = new System.Drawing.Point(330, 205);
             this.btnGuardar.Name = "btnGuardar";
@@ -65,7 +65,7 @@ namespace HSis.UI
 
             // btnCancelar
             this.btnCancelar.BackColor = System.Drawing.Color.Red;
-            this.btnCancelar.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.btnCancelar.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.btnCancelar.ForeColor = System.Drawing.Color.White;
             this.btnCancelar.Location = new System.Drawing.Point(407, 205);
             this.btnCancelar.Name = "btnCancelar";
@@ -83,7 +83,7 @@ namespace HSis.UI
             this.Controls.Add(this.btnGuardar);
             this.Controls.Add(this.rtbDescripcion);
             this.Controls.Add(this.lblDescripcion);
-            this.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;

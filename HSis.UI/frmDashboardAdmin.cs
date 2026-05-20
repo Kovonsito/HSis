@@ -86,7 +86,7 @@ namespace HSis.UI
                 Solución = t.Solucion ?? "N/A"
             }).ToList();
 
-            dgvTickets.DataSource = listaMapeada;
+            dgvTickets.DataSource = new SortableBindingList<TicketGridDto>(listaMapeada);
         }
 
         public async void ucNuevos_ucIndicadorEvent(object sender, EventArgs e)
@@ -385,7 +385,17 @@ namespace HSis.UI
 
             var resultProp = task.GetType().GetProperty("Result");
             var resultList = resultProp?.GetValue(task);
-            dgv.DataSource = resultList;
+            
+            if (resultList != null)
+            {
+                var bindingListType = typeof(SortableBindingList<>).MakeGenericType(tipoEntidad);
+                var sortableList = Activator.CreateInstance(bindingListType, resultList);
+                dgv.DataSource = sortableList;
+            }
+            else
+            {
+                dgv.DataSource = null;
+            }
 
             // Ocultar columnas no deseadas y renombrar cabeceras
             string idPk = "Id" + (tipoEntidad.Name == "RolUsuario" ? "Rol" : tipoEntidad.Name);
