@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": ".NET Core Launch (console)",
+            "name": ".NET Core Launch (HSis.UI)",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
@@ -14,13 +14,13 @@
             "cwd": "${workspaceFolder}/HSis.UI",
             "console": "internalConsole",
             "stopAtEntry": false,
-            "justMyCode": true // <--- AÑADE ESTA LÍNEA AQUÍ
+            "justMyCode": true
         },
         {
             "name": ".NET Core Attach",
             "type": "coreclr",
             "request": "attach",
-            "justMyCode": true // <--- AÑADE ESTA LÍNEA AQUÍ
+            "justMyCode": true
         }
     ]
 }

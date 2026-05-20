@@ -50,7 +50,7 @@ namespace HSis.UI
                 Descripcion = !string.IsNullOrEmpty(t.Descripcion) && t.Descripcion.Length > 50 ? t.Descripcion.Substring(0, 50) + "..." : (t.Descripcion ?? "")
             });
 
-            dgvMisTickets.DataSource = ticketsDto;
+            dgvMisTickets.DataSource = new SortableBindingList<TicketClienteDto>(ticketsDto);
             PersonalizarColumnas();
         }
 

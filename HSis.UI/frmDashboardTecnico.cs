@@ -159,7 +159,7 @@ namespace HSis.UI
                 Prioridad = t.Prioridad
             });
 
-            dgvTicketsOperativos.DataSource = ticketsDto;
+            dgvTicketsOperativos.DataSource = new SortableBindingList<TicketOperativoDto>(ticketsDto);
             PersonalizarColumnas();
         }
 
