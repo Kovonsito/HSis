@@ -1,10 +1,13 @@
-﻿using System.ComponentModel;
+#nullable enable
+using System.ComponentModel;
+using System.Runtime.Versioning;
 
 namespace HSis.UI
 {
+    [SupportedOSPlatform("windows")]
     public partial class ucIndicador : UserControl
     {
-        public event EventHandler ucIndicadorEvent;
+        public event EventHandler? ucIndicadorEvent;
 
         public ucIndicador()
         {
@@ -37,7 +40,7 @@ namespace HSis.UI
         }
 
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public Image ImagenFondo
+        public Image? ImagenFondo
         {
             get => pbxIcono?.Image;
             set

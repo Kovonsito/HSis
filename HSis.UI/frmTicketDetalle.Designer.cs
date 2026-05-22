@@ -71,6 +71,7 @@ namespace HSis.UI
             cmbEstatus.Name = "cmbEstatus";
             cmbEstatus.Size = new Size(136, 23);
             cmbEstatus.TabIndex = 2;
+            cmbEstatus.SelectedIndexChanged += CmbEstatus_SelectedIndexChanged;
             // 
             // lblUsuario
             // 
@@ -147,15 +148,17 @@ namespace HSis.UI
             rtbDescripcion.Enabled = false;
             rtbDescripcion.Location = new Point(12, 231);
             rtbDescripcion.Name = "rtbDescripcion";
+            rtbDescripcion.ReadOnly = true;
             rtbDescripcion.Size = new Size(685, 80);
             rtbDescripcion.TabIndex = 12;
             rtbDescripcion.Text = "";
             // 
             // lblAtendido
             // 
+            lblAtendido.AutoSize = true;
             lblAtendido.Location = new Point(12, 186);
             lblAtendido.Name = "lblAtendido";
-            lblAtendido.Size = new Size(100, 23);
+            lblAtendido.Size = new Size(80, 15);
             lblAtendido.TabIndex = 24;
             lblAtendido.Text = "Atendido por:";
             // 
@@ -204,22 +207,28 @@ namespace HSis.UI
             // 
             // btnGuardar
             // 
-            btnGuardar.Location = new Point(541, 418);
+            btnGuardar.BackColor = Color.FromArgb(39, 174, 96);
+            btnGuardar.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
+            btnGuardar.ForeColor = Color.White;
+            btnGuardar.Location = new Point(497, 418);
             btnGuardar.Name = "btnGuardar";
-            btnGuardar.Size = new Size(75, 23);
+            btnGuardar.Size = new Size(95, 30);
             btnGuardar.TabIndex = 19;
             btnGuardar.Text = "Guardar";
-            btnGuardar.UseVisualStyleBackColor = true;
+            btnGuardar.UseVisualStyleBackColor = false;
             btnGuardar.Click += btnGuardar_Click;
             // 
             // btnCancelar
             // 
-            btnCancelar.Location = new Point(622, 418);
+            btnCancelar.BackColor = Color.FromArgb(231, 76, 60);
+            btnCancelar.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
+            btnCancelar.ForeColor = Color.White;
+            btnCancelar.Location = new Point(602, 418);
             btnCancelar.Name = "btnCancelar";
-            btnCancelar.Size = new Size(75, 23);
+            btnCancelar.Size = new Size(95, 30);
             btnCancelar.TabIndex = 20;
             btnCancelar.Text = "Cancelar";
-            btnCancelar.UseVisualStyleBackColor = true;
+            btnCancelar.UseVisualStyleBackColor = false;
             btnCancelar.Click += btnCancelar_Click;
             // 
             // dgvHistorial
@@ -249,7 +258,7 @@ namespace HSis.UI
             lblPrioridad.AutoSize = true;
             lblPrioridad.Location = new Point(280, 68);
             lblPrioridad.Name = "lblPrioridad";
-            lblPrioridad.Size = new Size(60, 15);
+            lblPrioridad.Size = new Size(58, 15);
             lblPrioridad.TabIndex = 25;
             lblPrioridad.Text = "Prioridad:";
             // 
@@ -263,7 +272,7 @@ namespace HSis.UI
             cmbPrioridad.Size = new Size(120, 23);
             cmbPrioridad.TabIndex = 26;
             // 
-            // frmTicket
+            // frmTicketDetalle
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
@@ -291,7 +300,7 @@ namespace HSis.UI
             Controls.Add(cmbEstatus);
             Controls.Add(lblDescripcion);
             Controls.Add(lblFolio);
-            Name = "frmTicket";
+            Name = "frmTicketDetalle";
             StartPosition = FormStartPosition.CenterParent;
             Text = "FormularioTicket";
             Load += FormularioTicket_Load;

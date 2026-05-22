@@ -1,9 +1,12 @@
+#nullable enable
 using HSis.Data.Models;
 using HSis.Logic.DTOs;
 using HSis.Logic.Services;
+using System.Runtime.Versioning;
 
 namespace HSis.UI
 {
+    [SupportedOSPlatform("windows")]
     public partial class frmDashboardCliente : Form
     {
         private readonly TicketService _ticketService;
@@ -14,7 +17,7 @@ namespace HSis.UI
             _ticketService = ticketService;
         }
 
-        private async void frmDashboardCliente_Load(object sender, EventArgs e)
+        private async void frmDashboardCliente_Load(object? sender, EventArgs e)
         {
             SesionSistema.ConfigurarMenuSesion(this);
             // Cargamos la información una sola vez para evitar múltiples llamadas a la BD
@@ -58,16 +61,35 @@ namespace HSis.UI
         {
             if (dgvMisTickets.Columns.Count > 0)
             {
-                dgvMisTickets.Columns["IdTicket"].Visible = false;
-                dgvMisTickets.Columns["Folio"].HeaderText = "Folio";
-                dgvMisTickets.Columns["FechaAlta"].HeaderText = "Fecha de Alta";
-                dgvMisTickets.Columns["Status"].HeaderText = "Estatus";
-                dgvMisTickets.Columns["TecnicoAsignado"].HeaderText = "Técnico Asignado";
-                dgvMisTickets.Columns["Descripcion"].HeaderText = "Descripción";
+                var colIdTicket = dgvMisTickets.Columns["IdTicket"];
+                if (colIdTicket != null) colIdTicket.Visible = false;
 
-                dgvMisTickets.Columns["FechaAlta"].Width = 100;
-                dgvMisTickets.Columns["Status"].Width = 100;
-                dgvMisTickets.Columns["TecnicoAsignado"].Width = 120;
+                var colFolio = dgvMisTickets.Columns["Folio"];
+                if (colFolio != null) colFolio.HeaderText = "Folio";
+
+                var colFechaAlta = dgvMisTickets.Columns["FechaAlta"];
+                if (colFechaAlta != null)
+                {
+                    colFechaAlta.HeaderText = "Fecha de Alta";
+                    colFechaAlta.Width = 100;
+                }
+
+                var colStatus = dgvMisTickets.Columns["Status"];
+                if (colStatus != null)
+                {
+                    colStatus.HeaderText = "Estatus";
+                    colStatus.Width = 100;
+                }
+
+                var colTecnicoAsignado = dgvMisTickets.Columns["TecnicoAsignado"];
+                if (colTecnicoAsignado != null)
+                {
+                    colTecnicoAsignado.HeaderText = "Técnico Asignado";
+                    colTecnicoAsignado.Width = 120;
+                }
+
+                var colDescripcion = dgvMisTickets.Columns["Descripcion"];
+                if (colDescripcion != null) colDescripcion.HeaderText = "Descripción";
             }
         }
 
@@ -80,7 +102,7 @@ namespace HSis.UI
             ucMisActivos.ColorFondo = Color.FromArgb(41, 128, 185);
         }
 
-        private void btnNuevoReporte_Click(object sender, EventArgs e)
+        private void btnNuevoReporte_Click(object? sender, EventArgs e)
         {
             using (var frmNuevo = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateInstance<frmNuevoTicket>(Program.ServiceProvider))
             {
@@ -91,7 +113,7 @@ namespace HSis.UI
             }
         }
 
-        private void dgvMisTickets_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        private void dgvMisTickets_CellDoubleClick(object? sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex >= 0)
             {

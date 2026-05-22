@@ -91,9 +91,9 @@ namespace HSis.UI
             // 
             // btnRecargar
             // 
-            btnRecargar.Location = new Point(932, 268);
+            btnRecargar.Location = new Point(906, 268);
             btnRecargar.Name = "btnRecargar";
-            btnRecargar.Size = new Size(104, 23);
+            btnRecargar.Size = new Size(130, 25);
             btnRecargar.TabIndex = 5;
             btnRecargar.Text = "Recargar tabla";
             btnRecargar.UseVisualStyleBackColor = true;

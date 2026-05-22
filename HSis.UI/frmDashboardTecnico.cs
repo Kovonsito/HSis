@@ -1,9 +1,12 @@
+#nullable enable
+using System.Runtime.Versioning;
 using HSis.Data.Models;
 using HSis.Logic.DTOs;
 using HSis.Logic.Services;
 
 namespace HSis.UI
 {
+    [SupportedOSPlatform("windows")]
     public partial class frmDashboardTecnico : Form
     {
         private readonly TicketService _ticketService;
@@ -21,7 +24,7 @@ namespace HSis.UI
             _ticketService = ticketService;
         }
 
-        private async void frmDashboardTecnico_Load(object sender, EventArgs e)
+        private async void frmDashboardTecnico_Load(object? sender, EventArgs e)
         {
             SesionSistema.ConfigurarMenuSesion(this);
             // Cargamos indicadores y grid en paralelo
@@ -36,18 +39,14 @@ namespace HSis.UI
 
         private async Task CargarTicketsSegunVistaAsync()
         {
-            if (_vistaActual == VistaDashboard.MisAsignados)
+            var task = _vistaActual switch
             {
-                await CargarTicketsMisAsignadosAsync();
-            }
-            else if (_vistaActual == VistaDashboard.Disponibles)
-            {
-                await CargarTicketsDisponiblesAsync();
-            }
-            else if (_vistaActual == VistaDashboard.Cerrados)
-            {
-                await CargarTicketsCerradosAsync();
-            }
+                VistaDashboard.MisAsignados => CargarTicketsMisAsignadosAsync(),
+                VistaDashboard.Disponibles => CargarTicketsDisponiblesAsync(),
+                VistaDashboard.Cerrados => CargarTicketsCerradosAsync(),
+                _ => Task.CompletedTask
+            };
+            await task;
         }
 
         private async Task CargarIndicadoresAsync()
@@ -90,19 +89,19 @@ namespace HSis.UI
             }
         }
 
-        private async void UcMisAsignados_Click(object sender, EventArgs e)
+        private async void UcMisAsignados_Click(object? sender, EventArgs e)
         {
             _vistaActual = VistaDashboard.MisAsignados;
             await CargarTicketsSegunVistaAsync();
         }
 
-        private async void UcDisponibles_Click(object sender, EventArgs e)
+        private async void UcDisponibles_Click(object? sender, EventArgs e)
         {
             _vistaActual = VistaDashboard.Disponibles;
             await CargarTicketsSegunVistaAsync();
         }
 
-        private async void UcCerrados_Click(object sender, EventArgs e)
+        private async void UcCerrados_Click(object? sender, EventArgs e)
         {
             _vistaActual = VistaDashboard.Cerrados;
             await CargarTicketsSegunVistaAsync();
@@ -149,15 +148,15 @@ namespace HSis.UI
 
         private void CargarGridTickets(List<TicketDto> tickets)
         {
-            var ticketsDto = tickets.ConvertAll(t => new TicketOperativoDto
+            var ticketsDto = tickets.Select(t => new TicketOperativoDto
             {
                 IdTicket = t.IdTicket,
                 FechaAlta = t.Alta,
-                Status = t.Status,
-                Usuario = t.NombreUsuario,
+                Status = t.Status ?? "N/A",
+                Usuario = t.NombreUsuario ?? "N/A",
                 Descripcion = !string.IsNullOrEmpty(t.Descripcion) && t.Descripcion.Length > 50 ? t.Descripcion.Substring(0, 50) + "..." : (t.Descripcion ?? ""),
                 Prioridad = t.Prioridad
-            });
+            }).ToList();
 
             dgvTicketsOperativos.DataSource = new SortableBindingList<TicketOperativoDto>(ticketsDto);
             PersonalizarColumnas();
@@ -167,33 +166,47 @@ namespace HSis.UI
         {
             if (dgvTicketsOperativos.Columns.Count > 0)
             {
-                dgvTicketsOperativos.Columns["IdTicket"].Visible = false;
-                dgvTicketsOperativos.Columns["FechaAlta"].HeaderText = "Fecha de Alta";
-                dgvTicketsOperativos.Columns["Status"].HeaderText = "Estatus";
-                dgvTicketsOperativos.Columns["Usuario"].HeaderText = "Usuario Reportó";
-                dgvTicketsOperativos.Columns["Descripcion"].HeaderText = "Descripción";
-                dgvTicketsOperativos.Columns["Prioridad"].HeaderText = "Prioridad";
-
-                dgvTicketsOperativos.Columns["FechaAlta"].Width = 100;
-                dgvTicketsOperativos.Columns["Status"].Width = 100;
-                dgvTicketsOperativos.Columns["Usuario"].Width = 120;
-                dgvTicketsOperativos.Columns["Prioridad"].Width = 80;
+                if (dgvTicketsOperativos.Columns["IdTicket"] is DataGridViewColumn colId) colId.Visible = false;
+                if (dgvTicketsOperativos.Columns["FechaAlta"] is DataGridViewColumn colFechaAlta)
+                {
+                    colFechaAlta.HeaderText = "Fecha de Alta";
+                    colFechaAlta.Width = 100;
+                }
+                if (dgvTicketsOperativos.Columns["Status"] is DataGridViewColumn colStatus)
+                {
+                    colStatus.HeaderText = "Estatus";
+                    colStatus.Width = 100;
+                }
+                if (dgvTicketsOperativos.Columns["Usuario"] is DataGridViewColumn colUsuario)
+                {
+                    colUsuario.HeaderText = "Usuario Reportó";
+                    colUsuario.Width = 120;
+                }
+                if (dgvTicketsOperativos.Columns["Descripcion"] is DataGridViewColumn colDesc)
+                {
+                    colDesc.HeaderText = "Descripción";
+                }
+                if (dgvTicketsOperativos.Columns["Prioridad"] is DataGridViewColumn colPrioridad)
+                {
+                    colPrioridad.HeaderText = "Prioridad";
+                    colPrioridad.Width = 80;
+                }
             }
         }
 
-        private async void dgvTicketsOperativos_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        private async void dgvTicketsOperativos_CellDoubleClick(object? sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex >= 0)
             {
                 var row = dgvTicketsOperativos.Rows[e.RowIndex];
                 if (int.TryParse(row.Cells["IdTicket"].Value?.ToString(), out int idTicket))
                 {
+                    if (Program.ServiceProvider is null) return;
                     using var frmTicket = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateInstance<frmTicketDetalle>(Program.ServiceProvider, idTicket);
 
                     frmTicket.ShowDialog();
                     await CargarIndicadoresAsync();
                     await CargarTicketsSegunVistaAsync();
-
                 }
             }
         }

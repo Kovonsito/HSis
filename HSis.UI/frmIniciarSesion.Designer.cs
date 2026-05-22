@@ -70,12 +70,15 @@ namespace HSis.UI
             // 
             // btnIniciarSesion
             // 
-            btnIniciarSesion.Location = new Point(62, 196);
+            btnIniciarSesion.BackColor = System.Drawing.Color.FromArgb(39, 174, 96);
+            btnIniciarSesion.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            btnIniciarSesion.ForeColor = System.Drawing.Color.White;
+            btnIniciarSesion.Location = new Point(62, 190);
             btnIniciarSesion.Name = "btnIniciarSesion";
-            btnIniciarSesion.Size = new Size(75, 23);
+            btnIniciarSesion.Size = new Size(184, 30);
             btnIniciarSesion.TabIndex = 5;
             btnIniciarSesion.Text = "Iniciar Sesión";
-            btnIniciarSesion.UseVisualStyleBackColor = true;
+            btnIniciarSesion.UseVisualStyleBackColor = false;
             btnIniciarSesion.Click += btnIniciarSesion_Click;
 
             // 

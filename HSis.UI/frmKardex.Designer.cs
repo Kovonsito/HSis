@@ -37,6 +37,7 @@ namespace HSis.UI
             // 
             // lblMaterial
             // 
+            lblMaterial.AutoSize = true;
             lblMaterial.Text = "Filtrar por Material:";
             lblMaterial.Top = 15;
             lblMaterial.Left = 20;

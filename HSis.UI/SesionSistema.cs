@@ -1,9 +1,13 @@
+#nullable enable
+using System.Runtime.Versioning;
 using HSis.Data.Models;
+
 namespace HSis.UI
 {
+    [SupportedOSPlatform("windows")]
     public static class SesionSistema
     {
-        public static Usuario UsuarioActual { get; set; }
+        public static Usuario? UsuarioActual { get; set; }
         public static int IdUsuario => UsuarioActual?.IdUsuario ?? 0;
         public static string NombreUsuario => UsuarioActual?.Nombre ?? string.Empty;
         public static int IdRolUsuario => UsuarioActual?.IdRol ?? 0;

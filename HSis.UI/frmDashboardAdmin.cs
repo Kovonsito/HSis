@@ -1,10 +1,13 @@
+#nullable enable
 using System.Data;
+using System.Runtime.Versioning;
 using HSis.Data.Models;
 using HSis.Logic.DTOs;
 using HSis.Logic.Services;
 
 namespace HSis.UI
 {
+    [SupportedOSPlatform("windows")]
     public partial class frmDashboardAdmin : Form
     {
         private readonly TicketService _ticketService;
@@ -159,221 +162,236 @@ namespace HSis.UI
 
             foreach (var cat in catalogos)
             {
-                TabPage tab = new TabPage(cat.Nombre);
+                await ConfigurarTabParaCatalogo(cat.Nombre, cat.Tipo);
+            }
+        }
 
-                DataGridView dgv = new DataGridView
+        private async Task ConfigurarTabParaCatalogo(string nombre, Type tipo)
+        {
+            TabPage tab = new TabPage(nombre);
+
+            DataGridView dgv = new DataGridView
+            {
+                Dock = DockStyle.Fill,
+                Name = "dgv" + nombre,
+                ReadOnly = true,
+                SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+                AllowUserToAddRows = false,
+                AllowUserToDeleteRows = false,
+                MultiSelect = false
+            };
+
+            Panel panelTop = new Panel { Dock = DockStyle.Top, Height = 40 };
+            Button btnCrear = new Button { Text = "Crear", Location = new Point(10, 10), Width = 100 };
+            Button btnEliminar = new Button { Text = "Eliminar", Location = new Point(120, 10), Width = 100 };
+
+            panelTop.Controls.Add(btnCrear);
+            panelTop.Controls.Add(btnEliminar);
+
+            if (tipo == typeof(Material))
+            {
+                AgregarControlesInventario(panelTop, dgv);
+            }
+
+            tab.Controls.Add(dgv);
+            tab.Controls.Add(panelTop);
+            tabMain.TabPages.Add(tab);
+
+            ConfigurarFormateoDeCeldas(dgv, tipo);
+            await CargarDatosCatalogo(tipo, dgv);
+
+            btnCrear.Click += async (s, e) => await ManejarCreacionRegistro(tipo, dgv);
+            btnEliminar.Click += async (s, e) => await ManejarEliminacionRegistro(tipo, dgv);
+            dgv.CellDoubleClick += async (s, e) => await ManejarEdicionRegistro(e, tipo, dgv);
+        }
+
+        private void AgregarControlesInventario(Panel panelTop, DataGridView dgv)
+        {
+            Button btnIngreso = new Button { Text = "Nuevo Ingreso", Location = new Point(230, 10), Width = 120 };
+            Button btnKardex = new Button { Text = "Ver Kardex", Location = new Point(360, 10), Width = 100 };
+
+            btnIngreso.Click += async (s, ev) =>
+            {
+                var nuevoIngreso = new IngresosMaterial
                 {
-                    Dock = DockStyle.Fill,
-                    Name = "dgv" + cat.Nombre,
-                    ReadOnly = true,
-                    SelectionMode = DataGridViewSelectionMode.FullRowSelect,
-                    AllowUserToAddRows = false,
-                    AllowUserToDeleteRows = false,
-                    MultiSelect = false
+                    IdUsuario = SesionSistema.IdUsuario,
+                    FechaIngreso = DateTime.Now,
+                    Cantidad = 1
                 };
-
-                Panel panelTop = new Panel { Dock = DockStyle.Top, Height = 40 };
-                Button btnCrear = new Button { Text = "Crear", Location = new Point(10, 10), Width = 100 };
-                Button btnEliminar = new Button { Text = "Eliminar", Location = new Point(120, 10), Width = 100 };
-
-                panelTop.Controls.Add(btnCrear);
-                panelTop.Controls.Add(btnEliminar);
-
-                if (cat.Tipo == typeof(Material))
+                var frm = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateInstance<frmEditorDinamico>(Program.ServiceProvider, nuevoIngreso, "Nuevo Ingreso de Almacén");
+                if (frm.ShowDialog() == DialogResult.OK)
                 {
-                    Button btnIngreso = new Button { Text = "Nuevo Ingreso", Location = new Point(230, 10), Width = 120 };
-                    Button btnKardex = new Button { Text = "Ver Kardex", Location = new Point(360, 10), Width = 100 };
-
-                    btnIngreso.Click += async (s, ev) =>
-                    {
-                        var nuevoIngreso = new IngresosMaterial
-                        {
-                            IdUsuario = SesionSistema.IdUsuario,
-                            FechaIngreso = DateTime.Now,
-                            Cantidad = 1 // Valor inicial para evitar división por cero en el editor
-                        };
-                        var frm = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateInstance<frmEditorDinamico>(Program.ServiceProvider, nuevoIngreso, "Nuevo Ingreso de Almacén");
-                        if (frm.ShowDialog() == DialogResult.OK)
-                        {
-                            await _catalogoService.CrearAsync<IngresosMaterial>(nuevoIngreso);
-                            MessageBox.Show("Ingreso registrado con éxito.", "Inventario", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                            _ = CargarDatosCatalogo(cat.Tipo, dgv);
-                        }
-                    };
-
-                    btnKardex.Click += (s, ev) =>
-                    {
-                        var frmK = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateInstance<frmKardex>(Program.ServiceProvider);
-                        frmK.ShowDialog();
-                    };
-
-                    panelTop.Controls.Add(btnIngreso);
-                    panelTop.Controls.Add(btnKardex);
+                    await _catalogoService.CrearAsync<IngresosMaterial>(nuevoIngreso);
+                    MessageBox.Show("Ingreso registrado con éxito.", "Inventario", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    _ = CargarDatosCatalogo(typeof(Material), dgv);
                 }
+            };
 
-                tab.Controls.Add(dgv);
-                tab.Controls.Add(panelTop);
-                tabMain.TabPages.Add(tab);
+            btnKardex.Click += (s, ev) =>
+            {
+                var frmK = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateInstance<frmKardex>(Program.ServiceProvider);
+                frmK.ShowDialog();
+            };
 
-                // Formateo de celdas para reemplazar el ID por el Nombre/Descripción de la clase navegada
-                dgv.CellFormatting += (s, e) =>
+            panelTop.Controls.Add(btnIngreso);
+            panelTop.Controls.Add(btnKardex);
+        }
+
+        private void ConfigurarFormateoDeCeldas(DataGridView dgv, Type tipo)
+        {
+            dgv.CellFormatting += (s, e) =>
+            {
+                if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
+
+                var columnName = dgv.Columns[e.ColumnIndex].Name;
+                string idPk = "Id" + (tipo.Name == "RolUsuario" ? "Rol" : tipo.Name);
+
+                if (columnName.StartsWith("Id") && columnName != idPk)
                 {
-                    if (e.RowIndex >= 0 && e.ColumnIndex >= 0)
+                    var navPropName = columnName + "Navigation";
+                    var entidad = dgv.Rows[e.RowIndex].DataBoundItem;
+                    if (entidad != null)
                     {
-                        var columnName = dgv.Columns[e.ColumnIndex].Name;
-                        string idPk = "Id" + (cat.Tipo.Name == "RolUsuario" ? "Rol" : cat.Tipo.Name);
-
-                        if (columnName.StartsWith("Id") && columnName != idPk) // Es un foreign key
+                        var navProp = entidad.GetType().GetProperty(navPropName);
+                        var navObj = navProp?.GetValue(entidad);
+                        if (navObj != null)
                         {
-                            var navPropName = columnName + "Navigation";
-                            var entidad = dgv.Rows[e.RowIndex].DataBoundItem;
-                            if (entidad != null)
+                            var nombreProp = navObj.GetType().GetProperty("Nombre") ?? navObj.GetType().GetProperty("Descripción");
+                            if (nombreProp != null)
                             {
-                                var navProp = entidad.GetType().GetProperty(navPropName);
-                                if (navProp != null)
-                                {
-                                    var navObj = navProp.GetValue(entidad);
-                                    if (navObj != null)
-                                    {
-                                        var nombreProp = navObj.GetType().GetProperty("Nombre") ?? navObj.GetType().GetProperty("Descripción");
-                                        if (nombreProp != null)
-                                        {
-                                            e.Value = nombreProp.GetValue(navObj);
-                                            e.FormattingApplied = true;
-                                        }
-                                    }
-                                }
+                                e.Value = nombreProp.GetValue(navObj);
+                                e.FormattingApplied = true;
                             }
                         }
                     }
-                };
+                }
+            };
+        }
 
-                // Cargar datos inicialmente
-                await CargarDatosCatalogo(cat.Tipo, dgv);
-
-                // Eventos
-                btnCrear.Click += async (s, e) =>
+        private async Task ManejarCreacionRegistro(Type tipo, DataGridView dgv)
+        {
+            object nuevaEntidad = Activator.CreateInstance(tipo)!;
+            var frm = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateInstance<frmEditorDinamico>(Program.ServiceProvider, nuevaEntidad, $"Crear {tipo.Name}");
+            if (frm.ShowDialog() == DialogResult.OK)
+            {
+                try
                 {
-                    object nuevaEntidad = Activator.CreateInstance(cat.Tipo)!;
-                    var frm = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateInstance<frmEditorDinamico>(Program.ServiceProvider, nuevaEntidad, $"Crear {cat.Nombre}");
-                    if (frm.ShowDialog() == DialogResult.OK)
+                    if (tipo == typeof(Usuario))
                     {
-                        try
+                        var u = (Usuario)nuevaEntidad;
+                        if (!string.IsNullOrEmpty(u.Contraseña))
                         {
-                            if (cat.Tipo == typeof(Usuario))
-                            {
-                                var u = (Usuario)nuevaEntidad;
-                                if (!string.IsNullOrEmpty(u.Contraseña))
-                                {
-                                    u.Contraseña = UsuarioService.HashPassword(u.Contraseña);
-                                }
-                            }
-                            var miMetodo = typeof(CatalogoService).GetMethod("CrearAsync")!.MakeGenericMethod(cat.Tipo);
-                            Task task = (Task)miMetodo.Invoke(_catalogoService, new object[] { nuevaEntidad })!;
-                            await task;
-                            await CargarDatosCatalogo(cat.Tipo, dgv);
+                            u.Contraseña = UsuarioService.HashPassword(u.Contraseña);
                         }
-                        catch (Exception ex)
+                    }
+                    var miMetodo = typeof(CatalogoService).GetMethod("CrearAsync")!.MakeGenericMethod(tipo);
+                    Task task = (Task)miMetodo.Invoke(_catalogoService, new object[] { nuevaEntidad })!;
+                    await task;
+                    await CargarDatosCatalogo(tipo, dgv);
+                }
+                catch (Exception ex)
+                {
+                    var realEx = ex is System.Reflection.TargetInvocationException ? ex.InnerException : ex;
+                    if (realEx is FluentValidation.ValidationException vex)
+                    {
+                        string msg = string.Join("\n", vex.Errors.Select(e => "- " + e.ErrorMessage));
+                        MessageBox.Show($"Datos inválidos:\n{msg}", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
+                    else
+                    {
+                        MessageBox.Show($"Error al crear el registro: {realEx?.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+        }
+
+        private async Task ManejarEliminacionRegistro(Type tipo, DataGridView dgv)
+        {
+            if (dgv.SelectedRows.Count > 0)
+            {
+                var row = dgv.SelectedRows[0];
+                string idName = "Id" + (tipo.Name == "RolUsuario" ? "Rol" : tipo.Name);
+                var idObj = row.Cells[idName]?.Value;
+                if (idObj != null && MessageBox.Show("¿Seguro que deseas eliminar el registro?", "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                {
+                    try
+                    {
+                        var miMetodo = typeof(CatalogoService).GetMethod("EliminarAsync")!.MakeGenericMethod(tipo);
+                        Task task = (Task)miMetodo.Invoke(_catalogoService, new object[] { idObj })!;
+                        await task;
+                        await CargarDatosCatalogo(tipo, dgv);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("No se pudo eliminar el registro (probablemente esté en uso). " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+        }
+
+        private async Task ManejarEdicionRegistro(DataGridViewCellEventArgs e, Type tipo, DataGridView dgv)
+        {
+            if (e.RowIndex >= 0)
+            {
+                object? entidadExistente = dgv.Rows[e.RowIndex].DataBoundItem;
+                if (entidadExistente is null) return;
+
+                string? passwordHashOriginal = null;
+                if (tipo == typeof(Usuario))
+                {
+                    var u = (Usuario)entidadExistente;
+                    passwordHashOriginal = u.Contraseña;
+                    u.Contraseña = "";
+                }
+
+                if (Program.ServiceProvider is null) return;
+
+                var frm = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateInstance<frmEditorDinamico>(Program.ServiceProvider, entidadExistente, $"Editar {tipo.Name}");
+                if (frm.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        if (tipo == typeof(Usuario))
                         {
-                            var realEx = ex is System.Reflection.TargetInvocationException ? ex.InnerException : ex;
-                            if (realEx is FluentValidation.ValidationException vex)
+                            var u = (Usuario)entidadExistente;
+                            if (string.IsNullOrWhiteSpace(u.Contraseña))
                             {
-                                string msg = string.Join("\n", vex.Errors.Select(e => "- " + e.ErrorMessage));
-                                MessageBox.Show($"Datos inválidos:\n{msg}", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                u.Contraseña = passwordHashOriginal;
                             }
                             else
                             {
-                                MessageBox.Show($"Error al crear el registro: {realEx?.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                u.Contraseña = UsuarioService.HashPassword(u.Contraseña);
                             }
                         }
+                        var miMetodo = typeof(CatalogoService).GetMethod("ActualizarAsync")!.MakeGenericMethod(tipo);
+                        Task task = (Task)miMetodo.Invoke(_catalogoService, [entidadExistente])!;
+                        await task;
+                        await CargarDatosCatalogo(tipo, dgv);
                     }
-                };
-
-                btnEliminar.Click += async (s, e) =>
-                {
-                    if (dgv.SelectedRows.Count > 0)
+                    catch (Exception ex)
                     {
-                        var row = dgv.SelectedRows[0];
-                        string idName = "Id" + (cat.Tipo.Name == "RolUsuario" ? "Rol" : cat.Tipo.Name);
-                        var idObj = row.Cells[idName]?.Value;
-                        if (idObj != null && MessageBox.Show("¿Seguro que deseas eliminar el registro?", "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                        var realEx = ex is System.Reflection.TargetInvocationException ? ex.InnerException : ex;
+                        if (realEx is FluentValidation.ValidationException vex)
                         {
-                            try
-                            {
-                                var miMetodo = typeof(CatalogoService).GetMethod("EliminarAsync")!.MakeGenericMethod(cat.Tipo);
-                                Task task = (Task)miMetodo.Invoke(_catalogoService, new object[] { idObj })!;
-                                await task;
-                                await CargarDatosCatalogo(cat.Tipo, dgv);
-                            }
-                            catch (Exception ex)
-                            {
-                                MessageBox.Show("No se pudo eliminar el registro (probablemente esté en uso). " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            }
-                        }
-                    }
-                };
-
-                dgv.CellDoubleClick += async (s, e) =>
-                {
-                    if (e.RowIndex >= 0)
-                    {
-                        object entidadExistente = dgv.Rows[e.RowIndex].DataBoundItem;
-                        string passwordHashOriginal = null;
-                        if (cat.Tipo == typeof(Usuario))
-                        {
-                            var u = (Usuario)entidadExistente;
-                            passwordHashOriginal = u.Contraseña;
-                            u.Contraseña = "";
-                        }
-
-                        var frm = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateInstance<frmEditorDinamico>(Program.ServiceProvider, entidadExistente, $"Editar {cat.Nombre}");
-                        if (frm.ShowDialog() == DialogResult.OK)
-                        {
-                            try
-                            {
-                                if (cat.Tipo == typeof(Usuario))
-                                {
-                                    var u = (Usuario)entidadExistente;
-                                    if (string.IsNullOrWhiteSpace(u.Contraseña))
-                                    {
-                                        u.Contraseña = passwordHashOriginal;
-                                    }
-                                    else
-                                    {
-                                        u.Contraseña = UsuarioService.HashPassword(u.Contraseña);
-                                    }
-                                }
-                                var miMetodo = typeof(CatalogoService).GetMethod("ActualizarAsync")!.MakeGenericMethod(cat.Tipo);
-                                Task task = (Task)miMetodo.Invoke(_catalogoService, new object[] { entidadExistente })!;
-                                await task;
-                                await CargarDatosCatalogo(cat.Tipo, dgv);
-                            }
-                            catch (Exception ex)
-                            {
-                                var realEx = ex is System.Reflection.TargetInvocationException ? ex.InnerException : ex;
-                                if (realEx is FluentValidation.ValidationException vex)
-                                {
-                                    string msg = string.Join("\n", vex.Errors.Select(e => "- " + e.ErrorMessage));
-                                    MessageBox.Show($"Datos inválidos:\n{msg}", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                                }
-                                else
-                                {
-                                    MessageBox.Show($"Error al actualizar el registro: {realEx?.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                }
-                                // Restaurar contraseña original si falló la actualización
-                                if (cat.Tipo == typeof(Usuario)) ((Usuario)entidadExistente).Contraseña = passwordHashOriginal;
-                            }
+                            string msg = string.Join("\n", vex.Errors.Select(e => "- " + e.ErrorMessage));
+                            MessageBox.Show($"Datos inválidos:\n{msg}", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         }
                         else
                         {
-                            if (cat.Tipo == typeof(Usuario))
-                            {
-                                var u = (Usuario)entidadExistente;
-                                u.Contraseña = passwordHashOriginal;
-                            }
+                            MessageBox.Show($"Error al actualizar el registro: {realEx?.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         }
+                        // Restaurar contraseña original si falló la actualización
+                        if (tipo == typeof(Usuario)) ((Usuario)entidadExistente).Contraseña = passwordHashOriginal;
                     }
-                };
+                }
+                else
+                {
+                    if (tipo == typeof(Usuario))
+                    {
+                        var u = (Usuario)entidadExistente;
+                        u.Contraseña = passwordHashOriginal;
+                    }
+                }
             }
         }
 

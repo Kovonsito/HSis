@@ -19,8 +19,8 @@ namespace HSis.Logic.Profiles
             // Create DTO a Entidad
             config.NewConfig<TicketCreateDto, Ticket>()
                 .Map(dest => dest.Descripción, src => src.Descripcion)
-                .Ignore(dest => dest.Alta)
-                .Ignore(dest => dest.Status);
+                .Ignore(dest => dest.Alta!)
+                .Ignore(dest => dest.Status!);
 
             // Update DTO a Entidad
             config.NewConfig<TicketUpdateDto, Ticket>()
