@@ -6,7 +6,8 @@ namespace HSis.Logic.DTOs
     {
         public int IdTicket { get; set; }
         public int IdUsuario { get; set; }
-        public string NombreUsuario { get; set; } = string.Empty;
+        public string NombreUsuario { get; set; } = null!;
+        public string Departamento { get; set; } = null!;
         public DateTime? Alta { get; set; }
         public DateTime? Cierre { get; set; }
         public DateTime? Atencion { get; set; }
@@ -14,7 +15,7 @@ namespace HSis.Logic.DTOs
         public string? Descripcion { get; set; }
         public string? Solucion { get; set; }
         public int? IdTecnico { get; set; }
-        public string NombreTecnico { get; set; } = string.Empty;
+        public string NombreTecnico { get; set; } = null!;
         public string? Prioridad { get; set; }
     }
 

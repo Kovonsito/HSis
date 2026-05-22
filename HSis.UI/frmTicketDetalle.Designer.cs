@@ -51,6 +51,8 @@ namespace HSis.UI
             lblHistoria = new Label();
             lblPrioridad = new Label();
             cmbPrioridad = new ComboBox();
+            this.lblDepartamento = new Label();
+            txtDepartamento = new TextBox();
             ((System.ComponentModel.ISupportInitialize)dgvHistorial).BeginInit();
             SuspendLayout();
             // 
@@ -272,11 +274,30 @@ namespace HSis.UI
             cmbPrioridad.Size = new Size(120, 23);
             cmbPrioridad.TabIndex = 26;
             // 
+            // lblDepartamento
+            // 
+            this.lblDepartamento.AutoSize = true;
+            this.lblDepartamento.Location = new Point(368, 43);
+            this.lblDepartamento.Name = "lblDepartamento";
+            this.lblDepartamento.Size = new Size(83, 15);
+            this.lblDepartamento.TabIndex = 27;
+            this.lblDepartamento.Text = "Departamento";
+            // 
+            // txtDepartamento
+            // 
+            txtDepartamento.Enabled = false;
+            txtDepartamento.Location = new Point(457, 40);
+            txtDepartamento.Name = "txtDepartamento";
+            txtDepartamento.Size = new Size(200, 23);
+            txtDepartamento.TabIndex = 28;
+            // 
             // frmTicketDetalle
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(709, 695);
+            Controls.Add(txtDepartamento);
+            Controls.Add(lblDepartamento);
             Controls.Add(lblPrioridad);
             Controls.Add(cmbPrioridad);
             Controls.Add(lblHistoria);
@@ -334,5 +355,7 @@ namespace HSis.UI
         private Label lblHistoria;
         private Label lblPrioridad;
         private ComboBox cmbPrioridad;
+        private Label lblDepartamento;
+        private TextBox txtDepartamento;
     }
 }

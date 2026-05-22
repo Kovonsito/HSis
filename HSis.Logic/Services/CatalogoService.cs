@@ -91,7 +91,7 @@ namespace HSis.Logic.Services
             using var db = dbContextFactory.CreateDbContext();
 
             // Invocamos Set<T>() dinámicamente
-            var queryableMethod = typeof(DbContext).GetMethod(nameof(DbContext.Set), System.Type.EmptyTypes)?.MakeGenericMethod(tipoEntidad);
+            var queryableMethod = typeof(DbContext).GetMethod(nameof(DbContext.Set), Type.EmptyTypes)?.MakeGenericMethod(tipoEntidad);
             var dbSet = queryableMethod?.Invoke(db, null);
 
             if (dbSet != null)
@@ -129,7 +129,7 @@ namespace HSis.Logic.Services
                 var propiedadId = tipoEntidad.GetProperty(nombrePropiedadId);
                 if (propiedadId != null)
                 {
-                    int lastId = registros.Max(o => System.Convert.ToInt32(propiedadId.GetValue(o)));
+                    int lastId = registros.Max(o => Convert.ToInt32(propiedadId.GetValue(o)));
                     return lastId + 1;
                 }
             }
