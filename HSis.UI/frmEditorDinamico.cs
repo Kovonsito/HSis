@@ -1,8 +1,11 @@
+#nullable enable
 using System.Reflection;
 using HSis.Logic.Services;
+using System.Runtime.Versioning;
 
 namespace HSis.UI
 {
+    [SupportedOSPlatform("windows")]
     public partial class frmEditorDinamico : Form
     {
         private object _entidad;
@@ -37,10 +40,32 @@ namespace HSis.UI
 
 
 
-            Button btnGuardar = new Button { Text = "Guardar", Location = new Point(230, y + 20), Width = 100, Height = 35, DialogResult = DialogResult.OK };
+            Button btnGuardar = new Button
+            {
+                Text = "Guardar",
+                Location = new Point(230, y + 20),
+                Width = 100,
+                Height = 35,
+                DialogResult = DialogResult.OK,
+                BackColor = Color.FromArgb(39, 174, 96),
+                Font = new Font("Segoe UI", 11F, FontStyle.Bold, GraphicsUnit.Point),
+                ForeColor = Color.White,
+                UseVisualStyleBackColor = false
+            };
             btnGuardar.Click += BtnGuardar_Click;
 
-            Button btnCancelar = new Button { Text = "Cancelar", Location = new Point(340, y + 20), Width = 100, Height = 35, DialogResult = DialogResult.Cancel };
+            Button btnCancelar = new Button
+            {
+                Text = "Cancelar",
+                Location = new Point(340, y + 20),
+                Width = 100,
+                Height = 35,
+                DialogResult = DialogResult.Cancel,
+                BackColor = Color.FromArgb(231, 76, 60),
+                Font = new Font("Segoe UI", 11F, FontStyle.Bold, GraphicsUnit.Point),
+                ForeColor = Color.White,
+                UseVisualStyleBackColor = false
+            };
 
             this.Controls.Add(btnGuardar);
             this.Controls.Add(btnCancelar);

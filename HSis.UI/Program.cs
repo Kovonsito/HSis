@@ -1,3 +1,4 @@
+#nullable enable
 using Mapster;
 using MapsterMapper;
 using FluentValidation;
@@ -8,9 +9,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
+using System.Runtime.Versioning;
 
 namespace HSis.UI
 {
+    [SupportedOSPlatform("windows")]
     internal static class Program
     {
         public static IServiceProvider ServiceProvider { get; private set; } = null!;

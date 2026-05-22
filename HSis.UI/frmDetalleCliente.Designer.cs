@@ -128,7 +128,7 @@ namespace HSis.UI
             this.lblDescripcion.Text = "Descripción:";
 
             // txtDescripcion
-            this.txtDescripcion.BackColor = System.Drawing.SystemColors.ControlLight;
+            this.txtDescripcion.BackColor = System.Drawing.SystemColors.Control;
             this.txtDescripcion.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.txtDescripcion.Location = new System.Drawing.Point(12, 145);
             this.txtDescripcion.Multiline = true;
@@ -147,7 +147,7 @@ namespace HSis.UI
             this.lblSolucion.Text = "Solución:";
 
             // txtSolucion
-            this.txtSolucion.BackColor = System.Drawing.SystemColors.ControlLight;
+            this.txtSolucion.BackColor = System.Drawing.SystemColors.Control;
             this.txtSolucion.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.txtSolucion.Location = new System.Drawing.Point(12, 255);
             this.txtSolucion.Multiline = true;
@@ -157,12 +157,12 @@ namespace HSis.UI
             this.txtSolucion.TabIndex = 11;
 
             // btnCerrar
-            this.btnCerrar.BackColor = System.Drawing.Color.Gray;
+            this.btnCerrar.BackColor = System.Drawing.Color.FromArgb(231, 76, 60);
             this.btnCerrar.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.btnCerrar.ForeColor = System.Drawing.Color.White;
-            this.btnCerrar.Location = new System.Drawing.Point(397, 350);
+            this.btnCerrar.Location = new System.Drawing.Point(377, 350);
             this.btnCerrar.Name = "btnCerrar";
-            this.btnCerrar.Size = new System.Drawing.Size(75, 30);
+            this.btnCerrar.Size = new System.Drawing.Size(95, 33);
             this.btnCerrar.TabIndex = 12;
             this.btnCerrar.Text = "Cerrar";
             this.btnCerrar.UseVisualStyleBackColor = false;

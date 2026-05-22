@@ -11,13 +11,15 @@ namespace HSis.Logic.Services
     {
 
         // Hash de contraseña con SHA256
-        public static string HashPassword(string password)
+        public static string HashPassword(string? password)
         {
+            if (string.IsNullOrEmpty(password)) return string.Empty;
             return BCrypt.Net.BCrypt.HashPassword(password, workFactor: 12);
         }
 
-        private static bool VerifyPassword(string password, string hash)
+        private static bool VerifyPassword(string? password, string? hash)
         {
+            if (string.IsNullOrEmpty(password) || string.IsNullOrEmpty(hash)) return false;
             return BCrypt.Net.BCrypt.Verify(password, hash);
         }
 

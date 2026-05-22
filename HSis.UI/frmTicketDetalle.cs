@@ -1,8 +1,11 @@
+#nullable enable
+using System.Runtime.Versioning;
 using HSis.Data.Models;
 using HSis.Logic.Services;
 
 namespace HSis.UI
 {
+    [SupportedOSPlatform("windows")]
     public partial class frmTicketDetalle : Form
     {
         private int _idTicket;
@@ -23,13 +26,18 @@ namespace HSis.UI
         private void CmbEstatus_SelectedIndexChanged(object? sender, EventArgs e)
         {
             // Si cambia a "En Proceso" y no hay nadie asignado, asignarlo al usuario de la sesión actual
-            if (cmbEstatus.SelectedItem?.ToString() == ConstantesEstatus.EN_PROCESO && cmbAtendido.SelectedIndex == -1)
+            string? estatusSeleccionado = cmbEstatus.SelectedItem?.ToString();
+            if (estatusSeleccionado == ConstantesEstatus.EN_PROCESO && cmbAtendido.SelectedIndex == -1)
             {
                 cmbAtendido.SelectedValue = SesionSistema.IdUsuario;
             }
+            else if (estatusSeleccionado == ConstantesEstatus.ABIERTO)
+            {
+                cmbAtendido.SelectedValue = -1;
+            }
         }
 
-        private async void FormularioTicket_Load(object sender, EventArgs e)
+        private void FormularioTicket_Load(object? sender, EventArgs e)
         {
         }
 
@@ -39,8 +47,9 @@ namespace HSis.UI
             {
                 // Cargar el ticket
                 _ticketActual = await _ticketService.ObtenerTicketPorIdAsync(_idTicket);
+                var ticket = _ticketActual;
 
-                if (_ticketActual == null)
+                if (ticket == null)
                 {
                     MessageBox.Show("Ticket no encontrado.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     this.Close();
@@ -48,35 +57,14 @@ namespace HSis.UI
                 }
 
                 // Mostrar datos del ticket
-                lblFolio.Text = $"Folio: TK-{_ticketActual.IdTicket:d6}";
-                txtUsuario.Text = _ticketActual.NombreUsuario;
-                dtpAlta.Value = _ticketActual.Alta ?? DateTime.Now;
-                rtbDescripcion.Text = _ticketActual.Descripcion;
-                rtbSolucion.Text = _ticketActual.Solucion ?? string.Empty;
+                lblFolio.Text = $"Folio: TK-{ticket.IdTicket:d6}";
+                txtUsuario.Text = ticket.NombreUsuario;
+                dtpAlta.Value = ticket.Alta ?? DateTime.Now;
+                rtbDescripcion.Text = ticket.Descripcion;
+                rtbSolucion.Text = ticket.Solucion ?? string.Empty;
 
-                if (_ticketActual.Atencion.HasValue)
-                {
-                    dtpAtencion.Value = _ticketActual.Atencion.Value;
-                    dtpAtencion.Format = DateTimePickerFormat.Custom;
-                    dtpAtencion.CustomFormat = " dd/MM/yyyy HH:mm";
-                }
-                else
-                {
-                    dtpAtencion.Format = DateTimePickerFormat.Custom;
-                    dtpAtencion.CustomFormat = " ";
-                }
-
-                if (_ticketActual.Cierre.HasValue)
-                {
-                    dtpCierre.Value = _ticketActual.Cierre.Value;
-                    dtpCierre.Format = DateTimePickerFormat.Custom;
-                    dtpCierre.CustomFormat = " dd/MM/yyyy HH:mm";
-                }
-                else
-                {
-                    dtpCierre.Format = DateTimePickerFormat.Custom;
-                    dtpCierre.CustomFormat = " ";
-                }
+                ConfigurarFecha(dtpAtencion, ticket.Atencion);
+                ConfigurarFecha(dtpCierre, ticket.Cierre);
 
                 // Bloquear siempre los datetimepickers para que las fechas sean 100% automáticas
                 dtpAlta.Enabled = false;
@@ -84,8 +72,8 @@ namespace HSis.UI
                 dtpCierre.Enabled = false;
 
                 bool esAdmin = SesionSistema.IdRolUsuario == 1;
-                bool esPropietario = _ticketActual.IdTecnico == SesionSistema.IdUsuario;
-                string estatusActual = _ticketActual.Status ?? ConstantesEstatus.ABIERTO;
+                bool esPropietario = ticket.IdTecnico == SesionSistema.IdUsuario;
+                string estatusActual = ticket.Status ?? ConstantesEstatus.ABIERTO;
 
                 // Lógica del diccionario de opciones de estatus
                 cmbEstatus.Items.Clear();
@@ -99,14 +87,7 @@ namespace HSis.UI
                 cmbEstatus.SelectedItem = estatusActual;
 
                 // Seleccionar prioridad si existe
-                if (!string.IsNullOrEmpty(_ticketActual.Prioridad))
-                {
-                    cmbPrioridad.SelectedItem = _ticketActual.Prioridad;
-                }
-                else
-                {
-                    cmbPrioridad.SelectedIndex = -1;
-                }
+                cmbPrioridad.SelectedItem = ticket.Prioridad;
 
                 // Cargar combo de técnicos (usuarios con rol de Técnico o Administrador)
                 // Roles: 1 = Admin, 2 = Técnico, 3 = Usuario
@@ -114,14 +95,7 @@ namespace HSis.UI
                 await CargarHistorialAsync();
 
                 // 1. Asignar el técnico: Si el ticket ya tiene uno, se usa ese. Si no, se deja en blanco (libre).
-                if (_ticketActual.IdTecnico != null)
-                {
-                    cmbAtendido.SelectedValue = _ticketActual.IdTecnico;
-                }
-                else
-                {
-                    cmbAtendido.SelectedIndex = -1; // Sin asignar
-                }
+                cmbAtendido.SelectedValue = (object?)ticket.IdTecnico!;
 
                 // 2. Control de permisos: Solo el administrador (Rol 1) puede cambiar el técnico asignado a otros.
                 // Sin embargo, si es Técnico y el ticket está abierto y no tiene técnico, puede tomarlo.
@@ -131,26 +105,17 @@ namespace HSis.UI
                     cmbAtendido.Enabled = false;
                 }
 
-                // 3. Edición de tickets ajenos o cerrados
-                if (!esAdmin && !esPropietario && _ticketActual.IdTecnico != null)
+                // 3. Edición de tickets ajenos o cerrados (Modo Lectura)
+                bool esSoloLectura = (!esAdmin && estatusActual == ConstantesEstatus.CERRADO) || 
+                                     (!esAdmin && !esPropietario && ticket.IdTecnico != null);
+
+                if (esSoloLectura)
                 {
-                    // Es un técnico viendo el ticket de otro técnico
                     cmbEstatus.Enabled = false;
                     rtbSolucion.ReadOnly = true;
                     rtbDescripcion.ReadOnly = true;
                     btnGuardar.Enabled = false;
                     cmbPrioridad.Enabled = false;
-                }
-
-                if (estatusActual == ConstantesEstatus.CERRADO)
-                {
-                    if (!esAdmin)
-                    {
-                        cmbEstatus.Enabled = false;
-                        rtbSolucion.ReadOnly = true;
-                        btnGuardar.Enabled = false;
-                        cmbPrioridad.Enabled = false;
-                    }
                 }
 
                 // Suscribir el evento de cambio de estatus al final para evitar auto-asignaciones accidentales al cargar
@@ -184,32 +149,18 @@ namespace HSis.UI
             }
         }
 
-        private async void btnGuardar_Click(object sender, EventArgs e)
+        private async void btnGuardar_Click(object? sender, EventArgs e)
         {
             try
             {
-                if (_ticketActual == null)
+                var ticket = _ticketActual;
+                if (ticket == null)
                 {
                     MessageBox.Show("Error: El ticket no está disponible.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
 
                 string estatusSeleccionado = cmbEstatus.SelectedItem?.ToString() ?? ConstantesEstatus.ABIERTO;
-
-                // Validación de cierre de ticket
-                if (estatusSeleccionado == ConstantesEstatus.CERRADO && string.IsNullOrWhiteSpace(rtbSolucion.Text))
-                {
-                    MessageBox.Show("Debes ingresar una solución antes de poder cerrar el ticket.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-                
-                // Validación: No registrar solución en estatus abierto
-                if ((_ticketActual.Status == ConstantesEstatus.ABIERTO || estatusSeleccionado == ConstantesEstatus.ABIERTO) && !string.IsNullOrWhiteSpace(rtbSolucion.Text))
-                {
-                    MessageBox.Show("No se puede registrar una solución para un ticket abierto o que recién inicia su proceso.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-
                 int? idTecnico = cmbAtendido.SelectedValue != null ? (int?)cmbAtendido.SelectedValue : null;
 
                 // Lógica de respaldo: Si el estatus es En Proceso y aún no hay técnico, asignamos al usuario actual
@@ -221,12 +172,11 @@ namespace HSis.UI
                 string solucionIngresada = rtbSolucion.Text;
                 string prioridadSeleccionada = cmbPrioridad.SelectedItem?.ToString() ?? string.Empty;
 
-                // Validación: Evitar viajes a la BD y registros de historial innecesarios si nada cambió
-                bool huboCambios = false;
-                if (_ticketActual.Status != estatusSeleccionado) huboCambios = true;
-                if (_ticketActual.IdTecnico != idTecnico) huboCambios = true;
-                if ((_ticketActual.Solucion ?? string.Empty) != solucionIngresada) huboCambios = true;
-                if ((_ticketActual.Prioridad ?? string.Empty) != prioridadSeleccionada) huboCambios = true;
+                // Validación de cambios: Evitar viajes a la BD e historial innecesario si nada cambió
+                bool huboCambios = ticket.Status != estatusSeleccionado ||
+                                   ticket.IdTecnico != idTecnico ||
+                                   (ticket.Solucion ?? string.Empty) != solucionIngresada ||
+                                   (ticket.Prioridad ?? string.Empty) != prioridadSeleccionada;
 
                 if (!huboCambios)
                 {
@@ -234,15 +184,15 @@ namespace HSis.UI
                     return;
                 }
 
-                // Crear DTO de actualización
+                // Crear DTO de actualización (las validaciones de solución residen en la capa de negocio mediante TicketUpdateValidator)
                 var updateDto = new HSis.Logic.DTOs.TicketUpdateDto
                 {
-                    IdTicket = _ticketActual.IdTicket,
+                    IdTicket = ticket.IdTicket,
                     Status = estatusSeleccionado,
                     IdTecnico = idTecnico,
                     Solucion = solucionIngresada,
-                    Atencion = _ticketActual.Atencion,
-                    Cierre = _ticketActual.Cierre,
+                    Atencion = ticket.Atencion,
+                    Cierre = ticket.Cierre,
                     Prioridad = prioridadSeleccionada
                 };
 
@@ -305,12 +255,25 @@ namespace HSis.UI
             }
         }
 
-        private void btnCancelar_Click(object sender, EventArgs e)
+        private void btnCancelar_Click(object? sender, EventArgs e)
         {
             this.DialogResult = DialogResult.Cancel;
             this.Close();
         }
 
-
+        private void ConfigurarFecha(DateTimePicker dtp, DateTime? fecha)
+        {
+            if (fecha.HasValue)
+            {
+                dtp.Value = fecha.Value;
+                dtp.Format = DateTimePickerFormat.Custom;
+                dtp.CustomFormat = " dd/MM/yyyy HH:mm";
+            }
+            else
+            {
+                dtp.Format = DateTimePickerFormat.Custom;
+                dtp.CustomFormat = " ";
+            }
+        }
     }
 }

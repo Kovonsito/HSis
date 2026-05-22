@@ -12,16 +12,16 @@ namespace HSis.Logic.Services
         FluentValidation.IValidator<TicketCreateDto> createValidator,
         FluentValidation.IValidator<TicketUpdateDto> updateValidator)
     {
+        private DateTime ObtenerLimiteSLA() => DateTime.Now.AddHours(-48);
 
         // Obtener todos los tickets - Async
         public async Task<List<TicketDto>> ObtenerTicketsAsync()
         {
             using var db = dbContextFactory.CreateDbContext();
-            var tickets = await db.Tickets
+            return mapper.Map<List<TicketDto>>(await db.Tickets
                 .Include(t => t.IdUsuarioNavigation)
                 .Include(t => t.IdTecnicoNavigation)
-                .ToListAsync();
-            return mapper.Map<List<TicketDto>>(tickets);
+                .ToListAsync());
         }
 
         // Obtener un ticket por su id - Async
@@ -32,55 +32,47 @@ namespace HSis.Logic.Services
                 .Include(t => t.IdUsuarioNavigation)
                 .Include(t => t.IdTecnicoNavigation)
                 .FirstOrDefaultAsync(t => t.IdTicket == id);
-            return mapper.Map<TicketDto>(ticket);
-        }
-
-        // Helper method para centralizar la configuración del SLA (DRY)
-        private DateTime ObtenerLimiteSLA()
-        {
-            return DateTime.Now.AddHours(-48);
+            return ticket is null ? null : mapper.Map<TicketDto>(ticket);
         }
 
         // Obtener tickets filtrados por SLA (urgentes/no urgentes) - Async
         public async Task<List<TicketDto>> ObtenerTicketsPorSLAAsync(bool esUrgente)
         {
             using var db = dbContextFactory.CreateDbContext();
-            DateTime limite = ObtenerLimiteSLA();
+            DateTime fechaLimite = ObtenerLimiteSLA();
 
-            var query = esUrgente
-                ? db.Tickets.Where(t => t.Status == ConstantesEstatus.ABIERTO && t.Alta < limite)
-                : db.Tickets.Where(t => t.Status == ConstantesEstatus.ABIERTO && t.Alta >= limite);
+            var slaFilterQuery = esUrgente
+                ? db.Tickets.Where(t => t.Status == ConstantesEstatus.ABIERTO && t.Alta < fechaLimite)
+                : db.Tickets.Where(t => t.Status == ConstantesEstatus.ABIERTO && t.Alta >= fechaLimite);
 
-            var tickets = await query
+            return mapper.Map<List<TicketDto>>(await slaFilterQuery
                 .Include(t => t.IdUsuarioNavigation)
                 .Include(t => t.IdTecnicoNavigation)
-                .ToListAsync();
-            return mapper.Map<List<TicketDto>>(tickets);
+                .ToListAsync());
         }
 
         // Obtener tickets por estatus - Async
         public async Task<List<TicketDto>> ObtenerTicketsPorEstatusAsync(string estatus)
         {
             using var db = dbContextFactory.CreateDbContext();
-            var tickets = await db.Tickets
+            return mapper.Map<List<TicketDto>>(await db.Tickets
                 .Where(t => t.Status == estatus)
                 .Include(t => t.IdUsuarioNavigation)
                 .Include(t => t.IdTecnicoNavigation)
-                .ToListAsync();
-            return mapper.Map<List<TicketDto>>(tickets);
+                .ToListAsync());
         }
 
         // Contar tickets por SLA - Async
         public async Task<int> ObtenerCountTicketsPorSLAAsync(bool esUrgente)
         {
             using var db = dbContextFactory.CreateDbContext();
-            DateTime limite = ObtenerLimiteSLA();
+            DateTime fechaLimite = ObtenerLimiteSLA();
 
-            var query = esUrgente
-                ? db.Tickets.Where(t => t.Status == ConstantesEstatus.ABIERTO && t.Alta < limite)
-                : db.Tickets.Where(t => t.Status == ConstantesEstatus.ABIERTO && t.Alta >= limite);
+            var slaFilterQuery = esUrgente
+                ? db.Tickets.Where(t => t.Status == ConstantesEstatus.ABIERTO && t.Alta < fechaLimite)
+                : db.Tickets.Where(t => t.Status == ConstantesEstatus.ABIERTO && t.Alta >= fechaLimite);
 
-            return await query.CountAsync();
+            return await slaFilterQuery.CountAsync();
         }
 
         // Contar tickets por estatus - Async
@@ -90,12 +82,11 @@ namespace HSis.Logic.Services
             return await db.Tickets.CountAsync(t => t.Status == estatus);
         }
 
+        // Obtener historial de cambios de un ticket - Async
         public async Task<List<object>> ObtenerHistorialPorTicketAsync(int idTicket)
         {
             using var db = dbContextFactory.CreateDbContext();
-
-            // Filtramos por el ticket actual y ordenamos del más reciente al más antiguo
-            var historial = await db.HistorialCambiosTickets
+            return await db.HistorialCambiosTickets
                 .Include(h => h.IdUsuarioCambioNavigation)
                 .Where(h => h.IdTicket == idTicket)
                 .OrderByDescending(h => h.FechaMovimiento)
@@ -109,140 +100,101 @@ namespace HSis.Logic.Services
                     ValorNuevo = h.ValorNuevo ?? "-"
                 })
                 .ToListAsync<object>();
-
-            return historial;
         }
 
         // Actualizar ticket
         public async Task ActualizarTicketAsync(TicketUpdateDto ticketDto)
         {
-            var result = await updateValidator.ValidateAsync(ticketDto);
-            if (!result.IsValid) throw new FluentValidation.ValidationException(result.Errors);
+            var validacionResult = await updateValidator.ValidateAsync(ticketDto);
+            if (!validacionResult.IsValid) throw new FluentValidation.ValidationException(validacionResult.Errors);
 
             using var db = dbContextFactory.CreateDbContext();
 
-            var ticketTracked = await db.Tickets.FindAsync(ticketDto.IdTicket);
-            if (ticketTracked != null)
-            {
-                // Mapeamos los cambios del DTO a la entidad trackeada
-                mapper.Map(ticketDto, ticketTracked);
-                await db.SaveChangesAsync();
-            }
-            else
-            {
-                throw new Exception("El ticket no existe o ya fue eliminado.");
-            }
+            var ticketTracked = await db.Tickets.FindAsync(ticketDto.IdTicket)
+                ?? throw new KeyNotFoundException("El ticket no existe o ya fue eliminado.");
+
+            mapper.Map(ticketDto, ticketTracked);
+            await db.SaveChangesAsync();
         }
 
         // Obtener tickets por usuario - Async
         public async Task<List<TicketDto>> ObtenerTicketsPorUsuarioAsync(int idUsuario)
         {
             using var db = dbContextFactory.CreateDbContext();
-            var tickets = await db.Tickets
+            return mapper.Map<List<TicketDto>>(await db.Tickets
                 .Where(t => t.IdUsuario == idUsuario)
                 .Include(t => t.IdTecnicoNavigation)
                 .OrderByDescending(t => t.Alta)
-                .ToListAsync();
-            return mapper.Map<List<TicketDto>>(tickets);
+                .ToListAsync());
         }
 
         // Obtener tickets asignados a un técnico (no cerrados) - Async
         public async Task<List<TicketDto>> ObtenerTicketsAsignadosATecnicoAsync(int idTecnico)
         {
             using var db = dbContextFactory.CreateDbContext();
-            var tickets = await db.Tickets
+            return mapper.Map<List<TicketDto>>(await db.Tickets
                 .Where(t => t.IdTecnico == idTecnico && t.Status != ConstantesEstatus.CERRADO)
                 .Include(t => t.IdUsuarioNavigation)
                 .OrderByDescending(t => t.Alta)
-                .ToListAsync();
-            return mapper.Map<List<TicketDto>>(tickets);
+                .ToListAsync());
         }
 
         // Obtener tickets cerrados por un técnico - Async
         public async Task<List<TicketDto>> ObtenerTicketsCerradosPorTecnicoAsync(int idTecnico)
         {
             using var db = dbContextFactory.CreateDbContext();
-            var tickets = await db.Tickets
+            return mapper.Map<List<TicketDto>>(await db.Tickets
                 .Where(t => t.IdTecnico == idTecnico && t.Status == ConstantesEstatus.CERRADO)
                 .Include(t => t.IdUsuarioNavigation)
                 .OrderByDescending(t => t.Cierre)
-                .ToListAsync();
-            return mapper.Map<List<TicketDto>>(tickets);
+                .ToListAsync());
         }
 
         // Obtener tickets disponibles (abiertos sin técnico asignado) - Async
         public async Task<List<TicketDto>> ObtenerTicketsDisponiblesAsync()
         {
             using var db = dbContextFactory.CreateDbContext();
-            var tickets = await db.Tickets
+            return mapper.Map<List<TicketDto>>(await db.Tickets
                 .Where(t => t.Status == ConstantesEstatus.ABIERTO && t.IdTecnico == null)
                 .Include(t => t.IdUsuarioNavigation)
                 .OrderByDescending(t => t.Alta)
-                .ToListAsync();
-            return mapper.Map<List<TicketDto>>(tickets);
+                .ToListAsync());
         }
 
         // Crear un nuevo ticket - Async
         public async Task<TicketDto> CrearTicketAsync(TicketCreateDto ticketDto)
         {
-            var result = await createValidator.ValidateAsync(ticketDto);
-            if (!result.IsValid) throw new FluentValidation.ValidationException(result.Errors);
+            var validacionResult = await createValidator.ValidateAsync(ticketDto);
+            if (!validacionResult.IsValid) throw new FluentValidation.ValidationException(validacionResult.Errors);
 
             using var db = dbContextFactory.CreateDbContext();
             
-            var ticket = mapper.Map<Ticket>(ticketDto);
-            ticket.Alta = DateTime.Now;
-            ticket.Status = ConstantesEstatus.ABIERTO;
+            var nuevoTicket = mapper.Map<Ticket>(ticketDto);
+            nuevoTicket.Alta = DateTime.Now;
+            nuevoTicket.Status = ConstantesEstatus.ABIERTO;
 
-            db.Tickets.Add(ticket);
+            db.Tickets.Add(nuevoTicket);
             await db.SaveChangesAsync();
             
-            return mapper.Map<TicketDto>(ticket);
+            return mapper.Map<TicketDto>(nuevoTicket);
         }
-
-
 
         // Lógica de dominio: Transiciones de estatus permitidas (SRP)
         public List<string> ObtenerEstatusPermitidos(int idRolUsuario, string estatusActual)
         {
-            var estatusPermitidos = new List<string>();
-            bool esAdmin = idRolUsuario == 1;
-
-            if (esAdmin)
+            if (idRolUsuario == 1) // Admin
             {
-                estatusPermitidos.Add(ConstantesEstatus.ABIERTO);
-                estatusPermitidos.Add(ConstantesEstatus.EN_PROCESO);
-                estatusPermitidos.Add(ConstantesEstatus.CERRADO);
-                estatusPermitidos.Add(ConstantesEstatus.REABIERTO);
-                return estatusPermitidos;
+                return [ConstantesEstatus.ABIERTO, ConstantesEstatus.EN_PROCESO, ConstantesEstatus.CERRADO, ConstantesEstatus.REABIERTO];
             }
 
-            if (estatusActual == ConstantesEstatus.ABIERTO)
+            return estatusActual switch
             {
-                estatusPermitidos.Add(ConstantesEstatus.ABIERTO);
-                estatusPermitidos.Add(ConstantesEstatus.EN_PROCESO);
-            }
-            else if (estatusActual == ConstantesEstatus.EN_PROCESO)
-            {
-                estatusPermitidos.Add(ConstantesEstatus.EN_PROCESO);
-                estatusPermitidos.Add(ConstantesEstatus.CERRADO);
-            }
-            else if (estatusActual == ConstantesEstatus.CERRADO)
-            {
-                estatusPermitidos.Add(ConstantesEstatus.CERRADO);
-            }
-            else if (estatusActual == ConstantesEstatus.REABIERTO)
-            {
-                estatusPermitidos.Add(ConstantesEstatus.REABIERTO);
-                estatusPermitidos.Add(ConstantesEstatus.EN_PROCESO);
-            }
-            else
-            {
-                // Fallback por si el estatus no existe en la regla
-                estatusPermitidos.Add(estatusActual);
-            }
-
-            return estatusPermitidos;
+                ConstantesEstatus.ABIERTO => [ConstantesEstatus.ABIERTO, ConstantesEstatus.EN_PROCESO],
+                ConstantesEstatus.EN_PROCESO => [ConstantesEstatus.EN_PROCESO, ConstantesEstatus.CERRADO],
+                ConstantesEstatus.CERRADO => [ConstantesEstatus.CERRADO],
+                ConstantesEstatus.REABIERTO => [ConstantesEstatus.REABIERTO, ConstantesEstatus.EN_PROCESO],
+                _ => [estatusActual]
+            };
         }
     }
 }

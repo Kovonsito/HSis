@@ -1,7 +1,10 @@
+#nullable enable
 using HSis.Logic.Services;
+using System.Runtime.Versioning;
 
 namespace HSis.UI
 {
+    [SupportedOSPlatform("windows")]
     public partial class frmIniciarSesion : Form
     {
         private readonly UsuarioService _usuarioService;
@@ -12,7 +15,7 @@ namespace HSis.UI
             _usuarioService = usuarioService;
         }
 
-        private async void btnIniciarSesion_Click(object sender, EventArgs e)
+        private async void btnIniciarSesion_Click(object? sender, EventArgs e)
         {
             var usuario = await _usuarioService.AutenticarAsync(txtUsuario.Text, txtContraseña.Text);
             if (usuario != null)
@@ -41,7 +44,7 @@ namespace HSis.UI
             }
         }
 
-        private async void frmIniciarSesion_Load(object sender, EventArgs e)
+        private async void frmIniciarSesion_Load(object? sender, EventArgs e)
         {
             //await _usuarioService.RehashearContraseñasAsync();
         }

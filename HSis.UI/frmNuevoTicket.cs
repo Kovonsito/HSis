@@ -1,3 +1,5 @@
+#nullable enable
+using System.Runtime.Versioning;
 using HSis.Data.Models;
 using HSis.Logic.Services;
 
@@ -7,6 +9,7 @@ namespace HSis.UI
     /// Formulario para crear nuevos tickets por parte de usuarios regulares.
     /// Responsabilidad única: Capturar descripción del problema y guardarlo.
     /// </summary>
+    [SupportedOSPlatform("windows")]
     public partial class frmNuevoTicket : Form
     {
         private readonly TicketService _ticketService;
@@ -17,13 +20,13 @@ namespace HSis.UI
             _ticketService = ticketService;
         }
 
-        private void frmNuevoTicket_Load(object sender, EventArgs e)
+        private void frmNuevoTicket_Load(object? sender, EventArgs e)
         {
             // Inicialización básica del formulario
             rtbDescripcion.Clear();
         }
 
-        private async void btnGuardar_Click(object sender, EventArgs e)
+        private async void btnGuardar_Click(object? sender, EventArgs e)
         {
             try
             {
@@ -65,7 +68,7 @@ namespace HSis.UI
             }
         }
 
-        private void btnCancelar_Click(object sender, EventArgs e)
+        private void btnCancelar_Click(object? sender, EventArgs e)
         {
             this.DialogResult = DialogResult.Cancel;
             this.Close();

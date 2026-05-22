@@ -1,6 +1,8 @@
+#nullable enable
 using HSis.Data.Models;
 using HSis.Logic.Services;
 using HSis.Logic.DTOs;
+using System.Runtime.Versioning;
 
 namespace HSis.UI
 {
@@ -9,6 +11,7 @@ namespace HSis.UI
     /// Responsabilidad única: Mostrar información de ticket en modo consulta.
     /// Cumple SRP: No permite ediciones, solo visualización.
     /// </summary>
+    [SupportedOSPlatform("windows")]
     public partial class frmDetalleCliente : Form
     {
         private int _idTicket;
@@ -22,7 +25,7 @@ namespace HSis.UI
             _ticketService = ticketService;
         }
 
-        private async void frmDetalleCliente_Load(object sender, EventArgs e)
+        private async void frmDetalleCliente_Load(object? sender, EventArgs e)
         {
             try
             {
@@ -71,32 +74,22 @@ namespace HSis.UI
         /// </summary>
         private void AplicarEstiloEstatus(string? estatus)
         {
-            if (string.IsNullOrEmpty(estatus))
-                return;
+            if (string.IsNullOrEmpty(estatus)) return;
 
-            if (estatus == ConstantesEstatus.ABIERTO)
+            (Color back, Color fore) = estatus switch
             {
-                lblEstatusValor.BackColor = Color.LightBlue;
-                lblEstatusValor.ForeColor = Color.DarkBlue;
-            }
-            else if (estatus == ConstantesEstatus.EN_PROCESO)
-            {
-                lblEstatusValor.BackColor = Color.LightYellow;
-                lblEstatusValor.ForeColor = Color.DarkGoldenrod;
-            }
-            else if (estatus == ConstantesEstatus.CERRADO)
-            {
-                lblEstatusValor.BackColor = Color.LightGreen;
-                lblEstatusValor.ForeColor = Color.DarkGreen;
-            }
-            else if (estatus == ConstantesEstatus.REABIERTO)
-            {
-                lblEstatusValor.BackColor = Color.FromArgb(153, 102, 204);
-                lblEstatusValor.ForeColor = Color.LightPink;
-            }
+                ConstantesEstatus.ABIERTO => (Color.LightBlue, Color.DarkBlue),
+                ConstantesEstatus.EN_PROCESO => (Color.LightYellow, Color.DarkGoldenrod),
+                ConstantesEstatus.CERRADO => (Color.LightGreen, Color.DarkGreen),
+                ConstantesEstatus.REABIERTO => (Color.FromArgb(153, 102, 204), Color.LightPink),
+                _ => (Color.Gray, Color.White)
+            };
+
+            lblEstatusValor.BackColor = back;
+            lblEstatusValor.ForeColor = fore;
         }
 
-        private void btnCerrar_Click(object sender, EventArgs e)
+        private void btnCerrar_Click(object? sender, EventArgs e)
         {
             this.Close();
         }

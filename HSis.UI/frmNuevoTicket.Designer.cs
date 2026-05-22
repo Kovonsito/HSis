@@ -52,24 +52,24 @@ namespace HSis.UI
             this.rtbDescripcion.Text = "";
 
             // btnGuardar
-            this.btnGuardar.BackColor = System.Drawing.Color.Green;
+            this.btnGuardar.BackColor = System.Drawing.Color.FromArgb(39, 174, 96);
             this.btnGuardar.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.btnGuardar.ForeColor = System.Drawing.Color.White;
-            this.btnGuardar.Location = new System.Drawing.Point(330, 205);
+            this.btnGuardar.Location = new System.Drawing.Point(267, 205);
             this.btnGuardar.Name = "btnGuardar";
-            this.btnGuardar.Size = new System.Drawing.Size(65, 30);
+            this.btnGuardar.Size = new System.Drawing.Size(95, 33);
             this.btnGuardar.TabIndex = 2;
             this.btnGuardar.Text = "Guardar";
             this.btnGuardar.UseVisualStyleBackColor = false;
             this.btnGuardar.Click += new System.EventHandler(this.btnGuardar_Click);
 
             // btnCancelar
-            this.btnCancelar.BackColor = System.Drawing.Color.Red;
+            this.btnCancelar.BackColor = System.Drawing.Color.FromArgb(231, 76, 60);
             this.btnCancelar.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.btnCancelar.ForeColor = System.Drawing.Color.White;
-            this.btnCancelar.Location = new System.Drawing.Point(407, 205);
+            this.btnCancelar.Location = new System.Drawing.Point(377, 205);
             this.btnCancelar.Name = "btnCancelar";
-            this.btnCancelar.Size = new System.Drawing.Size(65, 30);
+            this.btnCancelar.Size = new System.Drawing.Size(95, 33);
             this.btnCancelar.TabIndex = 3;
             this.btnCancelar.Text = "Cancelar";
             this.btnCancelar.UseVisualStyleBackColor = false;

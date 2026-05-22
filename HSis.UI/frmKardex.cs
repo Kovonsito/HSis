@@ -1,8 +1,11 @@
+#nullable enable
 using HSis.Data.Models;
 using HSis.Logic.Services;
+using System.Runtime.Versioning;
 
 namespace HSis.UI
 {
+    [SupportedOSPlatform("windows")]
     public partial class frmKardex : Form
     {
         private readonly CatalogoService _catalogoService;
@@ -13,7 +16,7 @@ namespace HSis.UI
             InitializeComponent();
         }
 
-        private async void FrmKardex_Load(object sender, EventArgs e)
+        private async void FrmKardex_Load(object? sender, EventArgs e)
         {
             var materiales = await _catalogoService.ObtenerTodosAsync<Material>();
 
@@ -28,7 +31,7 @@ namespace HSis.UI
             cbMaterial.SelectedIndexChanged += CbMaterial_SelectedIndexChanged;
         }
 
-        private async void CbMaterial_SelectedIndexChanged(object sender, EventArgs e)
+        private async void CbMaterial_SelectedIndexChanged(object? sender, EventArgs e)
         {
             if (cbMaterial.SelectedValue != null && cbMaterial.SelectedValue is int idMaterial)
             {
@@ -40,17 +43,17 @@ namespace HSis.UI
                     dgvKardex.DataSource = new SortableBindingList<VHistorialInventario>(historialFiltradoYOrdenado);
 
                     // Formatear columnas
-                    if (dgvKardex.Columns["IdMovimientoUnico"] != null)
-                        dgvKardex.Columns["IdMovimientoUnico"].Visible = false;
+                    var col1 = dgvKardex.Columns["IdMovimientoUnico"];
+                    if (col1 != null) col1.Visible = false;
 
-                    if (dgvKardex.Columns["IdMaterial"] != null)
-                        dgvKardex.Columns["IdMaterial"].Visible = false;
+                    var col2 = dgvKardex.Columns["IdMaterial"];
+                    if (col2 != null) col2.Visible = false;
 
-                    if (dgvKardex.Columns["CostoUnitario"] != null)
-                        dgvKardex.Columns["CostoUnitario"].DefaultCellStyle.Format = "C2";
+                    var col3 = dgvKardex.Columns["CostoUnitario"];
+                    if (col3 != null) col3.DefaultCellStyle.Format = "C2";
 
-                    if (dgvKardex.Columns["ValorTotalMovimiento"] != null)
-                        dgvKardex.Columns["ValorTotalMovimiento"].DefaultCellStyle.Format = "C2";
+                    var col4 = dgvKardex.Columns["ValorTotalMovimiento"];
+                    if (col4 != null) col4.DefaultCellStyle.Format = "C2";
                 }
                 catch (Exception ex)
                 {
