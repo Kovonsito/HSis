@@ -35,21 +35,21 @@ namespace HSis.UI
                 .Build();
 
             // 1. Configurar Serilog
-            Serilog.Log.Logger = new Serilog.LoggerConfiguration()
+            Log.Logger = new Serilog.LoggerConfiguration()
                 .ReadFrom.Configuration(configuration)
                 .Enrich.FromLogContext()
-                .WriteTo.File("Logs/hsis_log_.txt", rollingInterval: Serilog.RollingInterval.Day)
+                .WriteTo.File("Logs/hsis_log_.txt", rollingInterval: RollingInterval.Day)
                 .CreateLogger();
 
             try
             {
-                Serilog.Log.Information("Iniciando la aplicación HSis...");
+                Log.Information("Iniciando la aplicación HSis...");
 
                 // 2. Configurar Manejadores Globales de Excepciones
                 Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
                 Application.ThreadException += (sender, e) =>
                 {
-                    Serilog.Log.Fatal(e.Exception, "Excepción no manejada en el hilo principal de la UI.");
+                    Log.Fatal(e.Exception, "Excepción no manejada en el hilo principal de la UI.");
                     MessageBox.Show("Ha ocurrido un error inesperado. El sistema ha guardado los detalles para su revisión.", "Error Fatal", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 };
 
@@ -57,11 +57,11 @@ namespace HSis.UI
                 {
                     if (e.ExceptionObject is Exception ex)
                     {
-                        Serilog.Log.Fatal(ex, "Excepción no manejada en AppDomain.");
+                        Log.Fatal(ex, "Excepción no manejada en AppDomain.");
                     }
                     else
                     {
-                        Serilog.Log.Fatal("Excepción no manejada desconocida en AppDomain: {0}", e.ExceptionObject);
+                        Log.Fatal("Excepción no manejada desconocida en AppDomain: {0}", e.ExceptionObject);
                     }
                 };
 
@@ -106,18 +106,16 @@ namespace HSis.UI
 
                 ServiceProvider = services.BuildServiceProvider();
 
-
-
                 Application.Run(ServiceProvider.GetRequiredService<frmIniciarSesion>());
             }
             catch (Exception ex)
             {
-                Serilog.Log.Fatal(ex, "La aplicación terminó inesperadamente debido a una excepción fatal.");
+                Log.Fatal(ex, "La aplicación terminó inesperadamente debido a una excepción fatal.");
             }
             finally
             {
-                Serilog.Log.Information("Cerrando la aplicación HSis...");
-                Serilog.Log.CloseAndFlush();
+                Log.Information("Cerrando la aplicación HSis...");
+                Log.CloseAndFlush();
             }
         }
     }

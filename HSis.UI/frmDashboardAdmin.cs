@@ -11,14 +11,12 @@ namespace HSis.UI
     public partial class frmDashboardAdmin : Form
     {
         private readonly TicketService _ticketService;
-        private readonly UsuarioService _usuarioService;
         private readonly CatalogoService _catalogoService;
 
-        public frmDashboardAdmin(TicketService ticketService, UsuarioService usuarioService, CatalogoService catalogoService)
+        public frmDashboardAdmin(TicketService ticketService, CatalogoService catalogoService)
         {
             InitializeComponent();
             _ticketService = ticketService;
-            _usuarioService = usuarioService;
             _catalogoService = catalogoService;
         }
 
@@ -81,6 +79,7 @@ namespace HSis.UI
                 Folio = t.IdTicket,
                 NombreUsuario = t.NombreUsuario,
                 Status = t.Status ?? "N/A",
+                Prioridad = t.Prioridad ?? "N/A",
                 Alta = t.Alta,
                 Atención = t.Atencion,
                 Cierre = t.Cierre ?? DateTime.Now,

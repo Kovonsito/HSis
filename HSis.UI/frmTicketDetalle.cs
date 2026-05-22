@@ -1,7 +1,7 @@
 #nullable enable
 using System.Runtime.Versioning;
-using HSis.Data.Models;
 using HSis.Logic.Services;
+using HSis.Logic.DTOs;
 
 namespace HSis.UI
 {
@@ -95,7 +95,7 @@ namespace HSis.UI
                 await CargarHistorialAsync();
 
                 // 1. Asignar el técnico: Si el ticket ya tiene uno, se usa ese. Si no, se deja en blanco (libre).
-                cmbAtendido.SelectedValue = (object?)ticket.IdTecnico!;
+                cmbAtendido.SelectedValue = (object?)ticket.IdTecnico ?? -1;
 
                 // 2. Control de permisos: Solo el administrador (Rol 1) puede cambiar el técnico asignado a otros.
                 // Sin embargo, si es Técnico y el ticket está abierto y no tiene técnico, puede tomarlo.
@@ -106,7 +106,7 @@ namespace HSis.UI
                 }
 
                 // 3. Edición de tickets ajenos o cerrados (Modo Lectura)
-                bool esSoloLectura = (!esAdmin && estatusActual == ConstantesEstatus.CERRADO) || 
+                bool esSoloLectura = (!esAdmin && estatusActual == ConstantesEstatus.CERRADO) ||
                                      (!esAdmin && !esPropietario && ticket.IdTecnico != null);
 
                 if (esSoloLectura)
@@ -127,7 +127,6 @@ namespace HSis.UI
                 this.Close();
             }
         }
-
 
         private async Task CargarTecnicosAsync()
         {
@@ -240,10 +239,10 @@ namespace HSis.UI
             {
                 // Llamamos a la lógica asíncrona
                 var rawHistorial = await _ticketService.ObtenerHistorialPorTicketAsync(_idTicket);
-                var historial = rawHistorial.Cast<HSis.Logic.DTOs.HistorialCambiosDto>().ToList();
+                var historial = rawHistorial.Cast<HistorialCambiosDto>().ToList();
 
                 // Asignamos al Grid
-                dgvHistorial.DataSource = new SortableBindingList<HSis.Logic.DTOs.HistorialCambiosDto>(historial);
+                dgvHistorial.DataSource = new SortableBindingList<HistorialCambiosDto>(historial);
 
                 // Limpieza visual: Asegurarnos de que no se auto-seleccione la primera fila
                 dgvHistorial.ClearSelection();

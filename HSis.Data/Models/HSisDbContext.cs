@@ -43,7 +43,7 @@ public partial class HSisDbContext : DbContext
         if (!optionsBuilder.IsConfigured)
         {
             var configuration = new ConfigurationBuilder()
-                .SetBasePath(System.AppDomain.CurrentDomain.BaseDirectory)
+                .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .Build();
 

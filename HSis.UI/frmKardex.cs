@@ -39,7 +39,7 @@ namespace HSis.UI
                 {
                     // Obtenemos los registros filtrados asíncronamente y los ordenamos en memoria
                     var historialCompleto = await _catalogoService.ObtenerFiltradoAsync<VHistorialInventario>(h => h.IdMaterial == idMaterial);
-                    var historialFiltradoYOrdenado = System.Linq.Enumerable.ToList(System.Linq.Enumerable.OrderByDescending(historialCompleto, h => h.Fecha));
+                    var historialFiltradoYOrdenado = Enumerable.ToList(Enumerable.OrderByDescending(historialCompleto, h => h.Fecha));
                     dgvKardex.DataSource = new SortableBindingList<VHistorialInventario>(historialFiltradoYOrdenado);
 
                     // Formatear columnas
