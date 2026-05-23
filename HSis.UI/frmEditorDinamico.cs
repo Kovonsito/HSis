@@ -8,7 +8,7 @@ namespace HSis.UI
     [SupportedOSPlatform("windows")]
     public partial class frmEditorDinamico : Form
     {
-        private object _entidad;
+        private readonly object _entidad;
 
         private readonly CatalogoService _catalogoService;
 
@@ -26,7 +26,7 @@ namespace HSis.UI
             await GenerarControlesAsync();
         }
 
-        private async System.Threading.Tasks.Task GenerarControlesAsync()
+        private async Task GenerarControlesAsync()
         {
             int y = 30;
             this.AutoScroll = true;
@@ -40,7 +40,7 @@ namespace HSis.UI
 
 
 
-            Button btnGuardar = new Button
+            Button btnGuardar = new()
             {
                 Text = "Guardar",
                 Location = new Point(230, y + 20),
@@ -54,7 +54,7 @@ namespace HSis.UI
             };
             btnGuardar.Click += BtnGuardar_Click;
 
-            Button btnCancelar = new Button
+            Button btnCancelar = new()
             {
                 Text = "Cancelar",
                 Location = new Point(340, y + 20),

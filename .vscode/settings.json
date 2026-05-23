@@ -1,10 +1,8 @@
 {
     "dotnet.server.useOmnisharp": false,
-    "dotnet.server.launchServer": true,
     "dotnet.defaultSolution": "HSis.slnx",
     "csharp.inlayHints.enableInlayHintsForImplicitVariableTypes": true,
     "csharp.inlayHints.enableInlayHintsForLambdaParameterTypes": true,
-    "csharp.inlayHints.enableInlayHintsForParameterNames": true,
     "csharp.inlayHints.enableInlayHintsForTypes": true,
     "editor.codeLens": true,
     "editor.suggest.snippetsPreventQuickSuggestions": false,
