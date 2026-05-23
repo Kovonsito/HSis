@@ -274,5 +274,10 @@ namespace HSis.UI
                 dtp.CustomFormat = " ";
             }
         }
+
+        private void rtbSolucion_TextChanged(object sender, EventArgs e)
+        {
+
+        }
     }
 }
