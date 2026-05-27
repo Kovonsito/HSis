@@ -97,12 +97,14 @@ namespace HSis.UI
                 services.AddTransient<CatalogoService>();
                 services.AddTransient<DetTicketService>();
                 services.AddTransient<MaterialService>();
+                services.AddTransient<ReportExportService>();
 
                 // Registrar Formularios
                 services.AddTransient<frmIniciarSesion>();
                 services.AddTransient<frmDashboardAdmin>();
                 services.AddTransient<frmDashboardCliente>();
                 services.AddTransient<frmDashboardTecnico>();
+                services.AddTransient<frmGeneradorReportes>();
 
                 ServiceProvider = services.BuildServiceProvider();
 

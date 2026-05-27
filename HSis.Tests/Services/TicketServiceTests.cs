@@ -100,5 +100,53 @@ namespace HSis.Tests.Services
             resultado.Should().Contain("Reabierto");
             resultado.Should().HaveCount(4);
         }
+
+        [Fact]
+        public async Task ObtenerTicketsFiltradosAsync_ConFiltrosVarios_DebeFiltrarCorrectamente()
+        {
+            // Arrange
+            var options = new DbContextOptionsBuilder<HSisDbContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString()) // Nombre único para evitar conflictos de BD en memoria
+                .Options;
+
+            var factory = CreateFactory(options);
+            var service = new TicketService(factory, _mapper, _createValidator, _updateValidator);
+
+            // Poblar base de datos de prueba
+            using (var db = new HSisDbContext(options))
+            {
+                db.Usuarios.Add(new Usuario { IdUsuario = 10, Nombre = "Juan Perez" });
+                db.Usuarios.Add(new Usuario { IdUsuario = 11, Nombre = "Pedro Gomez" });
+                
+                db.Tickets.Add(new Ticket { IdTicket = 101, IdUsuario = 10, Status = "Abierto", Prioridad = "Alta", Alta = DateTime.Today });
+                db.Tickets.Add(new Ticket { IdTicket = 102, IdUsuario = 10, Status = "En Proceso", Prioridad = "Media", Alta = DateTime.Today });
+                db.Tickets.Add(new Ticket { IdTicket = 103, IdUsuario = 11, Status = "Cerrado", Prioridad = "Baja", Alta = DateTime.Today.AddDays(-5) });
+                
+                await db.SaveChangesAsync();
+            }
+
+            // Act 1: Filtrar por Estatus
+            var filtroEstatus = new TicketFilterDto { Estatus = "Abierto" };
+            var resultadoEstatus = await service.ObtenerTicketsFiltradosAsync(filtroEstatus);
+
+            // Assert 1
+            resultadoEstatus.Should().HaveCount(1);
+            resultadoEstatus.First().IdTicket.Should().Be(101);
+
+            // Act 2: Filtrar por Usuario Emisor
+            var filtroUsuario = new TicketFilterDto { UsuarioEmisor = "Juan" };
+            var resultadoUsuario = await service.ObtenerTicketsFiltradosAsync(filtroUsuario);
+
+            // Assert 2
+            resultadoUsuario.Should().HaveCount(2);
+
+            // Act 3: Filtrar por Prioridad y Rango Temporal
+            var filtroComplejo = new TicketFilterDto { Prioridad = "Media", RangoTemporal = VistaTemporal.Semana };
+            var resultadoComplejo = await service.ObtenerTicketsFiltradosAsync(filtroComplejo);
+
+            // Assert 3
+            resultadoComplejo.Should().HaveCount(1);
+            resultadoComplejo.First().IdTicket.Should().Be(102);
+        }
     }
 }

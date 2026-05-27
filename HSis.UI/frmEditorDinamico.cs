@@ -136,7 +136,7 @@ namespace HSis.UI
         {
             return _entidad.GetType().GetProperties().Where(p =>
                 p.CanWrite &&
-                !p.PropertyType.IsGenericType &&
+                !(p.PropertyType.IsGenericType && p.PropertyType.GetGenericTypeDefinition() != typeof(Nullable<>)) &&
                 !p.Name.EndsWith("Navigation") &&
                 !(_entidad.GetType().Name == "Material" && (p.Name == "Costo" || p.Name == "Inventario"))
             ).ToList();
@@ -172,6 +172,9 @@ namespace HSis.UI
         {
             ComboBox cmb = new ComboBox { Name = prop.Name, Location = new Point(230, y), Width = 250, DropDownStyle = ComboBoxStyle.DropDownList };
 
+            this.Controls.Add(lbl);
+            this.Controls.Add(cmb); // Se agrega a los controles primero para inicializar su handle nativo
+
             Type navType = navProp.PropertyType;
             var list = await _catalogoService.ObtenerTodosPorTipoAsync(navType);
 
@@ -184,15 +187,28 @@ namespace HSis.UI
             cmb.DataSource = list;
 
             var val = prop.GetValue(_entidad);
-            if (val != null) cmb.SelectedValue = val;
+            if (val != null)
+            {
+                // Si es un Nullable, obtenemos su tipo subyacente (ej: int) para evitar conflictos de tipo en WinForms
+                Type? underlyingType = Nullable.GetUnderlyingType(prop.PropertyType);
+                if (underlyingType != null)
+                {
+                    cmb.SelectedValue = Convert.ChangeType(val, underlyingType);
+                }
+                else
+                {
+                    cmb.SelectedValue = val;
+                }
+            }
+            else
+            {
+                cmb.SelectedIndex = -1; // Si el valor es null en la base de datos, no seleccionar ninguna opción
+            }
 
             if (_entidad.GetType().Name.StartsWith("Ingreso") && prop.Name == "IdUsuario")
             {
                 cmb.Enabled = false;
             }
-
-            this.Controls.Add(lbl);
-            this.Controls.Add(cmb);
         }
 
         private async Task AgregarTextBoxAsync(PropertyInfo prop, bool isId, Label lbl, int y)

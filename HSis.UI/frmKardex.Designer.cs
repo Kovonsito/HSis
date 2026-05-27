@@ -61,6 +61,7 @@ namespace HSis.UI
             this.dgvKardex.AllowUserToDeleteRows = false;
             this.dgvKardex.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             this.dgvKardex.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            this.dgvKardex.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
 
             // 
             // frmKardex
