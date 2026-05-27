@@ -147,7 +147,6 @@ namespace HSis.UI
         private async void cmbFiltroTecnico_SelectedIndexChanged(object sender, EventArgs e) => await FiltrarTicketsAsync();
         private async void txtFiltroUsuario_TextChanged(object sender, EventArgs e) => await FiltrarTicketsAsync();
         private async void cmbFiltroTemporal_SelectedIndexChanged(object sender, EventArgs e) => await FiltrarTicketsAsync();
-
         private async void btnLimpiarFiltros_Click(object sender, EventArgs e)
         {
             _estaCargando = true;
@@ -292,8 +291,6 @@ namespace HSis.UI
             }
         }
 
-
-
         private async void ConfigurarTabsCatalogos()
         {
             var catalogos = new (string Nombre, Type Tipo)[] {
@@ -370,7 +367,7 @@ namespace HSis.UI
                 var frm = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateInstance<frmEditorDinamico>(Program.ServiceProvider, nuevoMovimiento, "Nuevo Movimiento de Almacén");
                 if (frm.ShowDialog() == DialogResult.OK)
                 {
-                    await _catalogoService.CrearAsync<MovimientoMaterial>(nuevoMovimiento);
+                    await _catalogoService.CrearAsync(nuevoMovimiento);
                     MessageBox.Show("Movimiento registrado con éxito.", "Inventario", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     _ = CargarDatosCatalogo(typeof(Material), dgv);
                 }
@@ -566,6 +563,25 @@ namespace HSis.UI
 
             // Ocultar columnas no deseadas y renombrar cabeceras
             string idPk = "Id" + (tipoEntidad.Name == "RolUsuario" ? "Rol" : tipoEntidad.Name);
+
+            // --- DIAGNÓSTICO TEMPORAL ---
+            if (tipoEntidad.Name == "Usuario")
+            {
+                var debugLines = new List<string>();
+                debugLines.Add($"=== Columnas para Usuario ===");
+                foreach (DataGridViewColumn col in dgv.Columns)
+                {
+                    bool isGeneric = col.ValueType?.IsGenericType == true;
+                    string isNullable = col.ValueType != null && col.ValueType.IsGenericType && col.ValueType.GetGenericTypeDefinition() == typeof(Nullable<>) ? "Sí" : "No";
+                    debugLines.Add($"Columna: {col.Name} | Tipo: {col.ValueType?.Name ?? "null"} | Genérico: {isGeneric} | Nullable: {isNullable} | Visible original: {col.Visible}");
+                }
+                try
+                {
+                    System.IO.File.WriteAllLines(@"c:\HSis\debug_columns.txt", debugLines);
+                }
+                catch { }
+            }
+            // -----------------------------
 
             foreach (DataGridViewColumn col in dgv.Columns)
             {
