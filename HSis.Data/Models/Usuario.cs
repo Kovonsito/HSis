@@ -1,4 +1,4 @@
-﻿namespace HSis.Data.Models;
+namespace HSis.Data.Models;
 
 public partial class Usuario
 {
@@ -26,7 +26,7 @@ public partial class Usuario
 
     public virtual Sucursal? IdSucursalNavigation { get; set; }
 
-    public virtual ICollection<IngresosMaterial> IngresosMaterials { get; set; } = new List<IngresosMaterial>();
+    public virtual ICollection<MovimientoMaterial> MovimientosMaterials { get; set; } = new List<MovimientoMaterial>();
 
     public virtual ICollection<Ticket> TicketIdTecnicoNavigations { get; set; } = new List<Ticket>();
 

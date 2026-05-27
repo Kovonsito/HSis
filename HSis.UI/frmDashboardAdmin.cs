@@ -355,22 +355,23 @@ namespace HSis.UI
 
         private void AgregarControlesInventario(Panel panelTop, DataGridView dgv)
         {
-            Button btnIngreso = new Button { Text = "Nuevo Ingreso", Location = new Point(230, 10), Width = 120, Height = 30 };
-            Button btnKardex = new Button { Text = "Ver Kardex", Location = new Point(360, 10), Width = 100, Height = 30 };
+            Button btnIngreso = new Button { Text = "Nuevo Movimiento", Location = new Point(230, 10), Width = 150, Height = 30 };
+            Button btnKardex = new Button { Text = "Ver Kardex", Location = new Point(390, 10), Width = 100, Height = 30 };
 
             btnIngreso.Click += async (s, ev) =>
             {
-                var nuevoIngreso = new IngresosMaterial
+                var nuevoMovimiento = new MovimientoMaterial
                 {
                     IdUsuario = SesionSistema.IdUsuario,
-                    FechaIngreso = DateTime.Now,
-                    Cantidad = 1
+                    FechaMovimiento = DateTime.Now,
+                    Cantidad = 1,
+                    Motivo = "Ingreso por Compra" // Motivo inicial por defecto
                 };
-                var frm = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateInstance<frmEditorDinamico>(Program.ServiceProvider, nuevoIngreso, "Nuevo Ingreso de Almacén");
+                var frm = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateInstance<frmEditorDinamico>(Program.ServiceProvider, nuevoMovimiento, "Nuevo Movimiento de Almacén");
                 if (frm.ShowDialog() == DialogResult.OK)
                 {
-                    await _catalogoService.CrearAsync<IngresosMaterial>(nuevoIngreso);
-                    MessageBox.Show("Ingreso registrado con éxito.", "Inventario", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    await _catalogoService.CrearAsync<MovimientoMaterial>(nuevoMovimiento);
+                    MessageBox.Show("Movimiento registrado con éxito.", "Inventario", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     _ = CargarDatosCatalogo(typeof(Material), dgv);
                 }
             };
@@ -565,25 +566,6 @@ namespace HSis.UI
 
             // Ocultar columnas no deseadas y renombrar cabeceras
             string idPk = "Id" + (tipoEntidad.Name == "RolUsuario" ? "Rol" : tipoEntidad.Name);
-
-            // --- DIAGNÓSTICO TEMPORAL ---
-            if (tipoEntidad.Name == "Usuario")
-            {
-                var debugLines = new List<string>();
-                debugLines.Add($"=== Columnas para Usuario ===");
-                foreach (DataGridViewColumn col in dgv.Columns)
-                {
-                    bool isGeneric = col.ValueType?.IsGenericType == true;
-                    string isNullable = col.ValueType != null && col.ValueType.IsGenericType && col.ValueType.GetGenericTypeDefinition() == typeof(Nullable<>) ? "Sí" : "No";
-                    debugLines.Add($"Columna: {col.Name} | Tipo: {col.ValueType?.Name ?? "null"} | Genérico: {isGeneric} | Nullable: {isNullable} | Visible original: {col.Visible}");
-                }
-                try
-                {
-                    System.IO.File.WriteAllLines(@"c:\HSis\debug_columns.txt", debugLines);
-                }
-                catch { }
-            }
-            // -----------------------------
 
             foreach (DataGridViewColumn col in dgv.Columns)
             {

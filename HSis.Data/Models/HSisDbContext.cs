@@ -22,7 +22,7 @@ public partial class HSisDbContext : DbContext
 
     public virtual DbSet<HistorialCambiosTicket> HistorialCambiosTickets { get; set; }
 
-    public virtual DbSet<IngresosMaterial> IngresosMaterials { get; set; }
+    public virtual DbSet<MovimientoMaterial> MovimientosMaterials { get; set; }
 
     public virtual DbSet<Material> Materials { get; set; }
 

@@ -1,4 +1,4 @@
-﻿namespace HSis.Data.Models;
+namespace HSis.Data.Models;
 
 public partial class VHistorialInventario
 {
@@ -21,4 +21,6 @@ public partial class VHistorialInventario
     public string? UsuarioResponsable { get; set; }
 
     public int? FolioTicket { get; set; }
+
+    public string? Motivo { get; set; }
 }

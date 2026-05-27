@@ -98,7 +98,11 @@ namespace HSis.UI
 
         private void AsignarValorComboBox(PropertyInfo prop, ComboBox cmb)
         {
-            if (cmb.SelectedValue != null)
+            if (prop.PropertyType == typeof(string))
+            {
+                prop.SetValue(_entidad, cmb.SelectedItem?.ToString() ?? cmb.Text);
+            }
+            else if (cmb.SelectedValue != null)
             {
                 if (prop.PropertyType == typeof(int)) prop.SetValue(_entidad, Convert.ToInt32(cmb.SelectedValue));
                 else if (prop.PropertyType == typeof(int?)) prop.SetValue(_entidad, (int?)Convert.ToInt32(cmb.SelectedValue));
@@ -144,7 +148,7 @@ namespace HSis.UI
 
         private async Task CrearControlParaPropiedadAsync(PropertyInfo prop, int y)
         {
-            string idPk = "Id" + (_entidad.GetType().Name == "RolUsuario" ? "Rol" : _entidad.GetType().Name);
+            string idPk = "Id" + (_entidad.GetType().Name == "RolUsuario" ? "Rol" : (_entidad.GetType().Name == "MovimientoMaterial" ? "Movimiento" : _entidad.GetType().Name));
             bool isId = prop.Name == idPk;
 
             string labelText = prop.Name;
@@ -158,13 +162,46 @@ namespace HSis.UI
 
             Label lbl = new Label { Text = labelText, Location = new Point(30, y + 5), AutoSize = true };
 
-            if (navProp != null && (prop.PropertyType == typeof(int) || prop.PropertyType == typeof(int?)))
+            if (prop.Name == "Motivo")
+            {
+                await AgregarComboBoxDeMotivosAsync(prop, lbl, y);
+            }
+            else if (navProp != null && (prop.PropertyType == typeof(int) || prop.PropertyType == typeof(int?)))
             {
                 await AgregarComboBoxAsync(prop, navProp, lbl, y);
             }
             else
             {
                 await AgregarTextBoxAsync(prop, isId, lbl, y);
+            }
+        }
+
+        private async Task AgregarComboBoxDeMotivosAsync(PropertyInfo prop, Label lbl, int y)
+        {
+            ComboBox cmb = new ComboBox { Name = prop.Name, Location = new Point(230, y), Width = 250, DropDownStyle = ComboBoxStyle.DropDownList };
+
+            this.Controls.Add(lbl);
+            this.Controls.Add(cmb);
+
+            // Lista de motivos preestablecidos
+            string[] motivos = new string[] {
+                "Ingreso por Compra",
+                "Ajuste por Error de Captura",
+                "Ajuste por Pérdida",
+                "Ajuste por Daño de Almacén",
+                "Ajuste por Devolución"
+            };
+
+            cmb.DataSource = motivos;
+
+            var val = prop.GetValue(_entidad) as string;
+            if (!string.IsNullOrEmpty(val) && motivos.Contains(val))
+            {
+                cmb.SelectedItem = val;
+            }
+            else
+            {
+                cmb.SelectedIndex = 0; // "Ingreso por Compra" por defecto
             }
         }
 
@@ -205,7 +242,7 @@ namespace HSis.UI
                 cmb.SelectedIndex = -1; // Si el valor es null en la base de datos, no seleccionar ninguna opción
             }
 
-            if (_entidad.GetType().Name.StartsWith("Ingreso") && prop.Name == "IdUsuario")
+            if ((_entidad.GetType().Name.StartsWith("Ingreso") || _entidad.GetType().Name == "MovimientoMaterial") && prop.Name == "IdUsuario")
             {
                 cmb.Enabled = false;
             }
@@ -215,7 +252,7 @@ namespace HSis.UI
         {
             TextBox txt = new TextBox { Name = prop.Name, Location = new Point(230, y), Width = 250 };
 
-            if (isId)
+            if (isId || prop.Name == "FechaMovimiento")
             {
                 txt.ReadOnly = true;
                 txt.Enabled = false;
