@@ -103,6 +103,7 @@ namespace HSis.UI
             // 
             // rtbSolucion
             // 
+            rtbSolucion.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             rtbSolucion.Location = new Point(12, 332);
             rtbSolucion.Name = "rtbSolucion";
             rtbSolucion.Size = new Size(685, 80);
@@ -147,6 +148,7 @@ namespace HSis.UI
             // 
             // rtbDescripcion
             // 
+            rtbDescripcion.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             rtbDescripcion.Enabled = false;
             rtbDescripcion.Location = new Point(12, 231);
             rtbDescripcion.Name = "rtbDescripcion";
@@ -209,6 +211,7 @@ namespace HSis.UI
             // 
             // btnGuardar
             // 
+            btnGuardar.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnGuardar.BackColor = Color.FromArgb(39, 174, 96);
             btnGuardar.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
             btnGuardar.ForeColor = Color.White;
@@ -222,6 +225,7 @@ namespace HSis.UI
             // 
             // btnCancelar
             // 
+            btnCancelar.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnCancelar.BackColor = Color.FromArgb(231, 76, 60);
             btnCancelar.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
             btnCancelar.ForeColor = Color.White;
@@ -237,6 +241,7 @@ namespace HSis.UI
             // 
             dgvHistorial.AllowUserToAddRows = false;
             dgvHistorial.AllowUserToDeleteRows = false;
+            dgvHistorial.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             dgvHistorial.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvHistorial.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvHistorial.Location = new Point(12, 456);
@@ -296,6 +301,7 @@ namespace HSis.UI
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(709, 695);
+            MinimumSize = new Size(725, 735);
             Controls.Add(txtDepartamento);
             Controls.Add(lblDepartamento);
             Controls.Add(lblPrioridad);

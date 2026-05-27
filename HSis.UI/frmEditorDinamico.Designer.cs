@@ -26,6 +26,9 @@ namespace HSis.UI
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(400, 300);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
             this.Name = "frmEditorDinamico";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Editor";
