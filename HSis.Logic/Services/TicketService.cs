@@ -264,6 +264,82 @@ namespace HSis.Logic.Services
             return mapper.Map<List<TicketDto>>(await query.OrderByDescending(t => t.Alta).ToListAsync());
         }
 
+        // Obtener tickets filtrados y paginados dinámicamente - Async
+        public async Task<PaginatedResultDto<TicketDto>> ObtenerTicketsFiltradosPaginadosAsync(TicketFilterDto filtros, int pageNumber, int pageSize)
+        {
+            using var db = dbContextFactory.CreateDbContext();
+            IQueryable<Ticket> query = db.Tickets
+                .Include(t => t.IdUsuarioNavigation)
+                .Include(t => t.IdTecnicoNavigation);
+
+            // 1. Filtros de Texto / Identificadores
+            if (!string.IsNullOrWhiteSpace(filtros.UsuarioEmisor))
+            {
+                query = query.Where(t => t.IdUsuarioNavigation.Nombre != null && t.IdUsuarioNavigation.Nombre.Contains(filtros.UsuarioEmisor));
+            }
+            if (!string.IsNullOrWhiteSpace(filtros.Estatus))
+            {
+                query = query.Where(t => t.Status == filtros.Estatus);
+            }
+            if (filtros.IdTecnico.HasValue)
+            {
+                query = query.Where(t => t.IdTecnico == filtros.IdTecnico.Value);
+            }
+            if (!string.IsNullOrWhiteSpace(filtros.Prioridad))
+            {
+                query = query.Where(t => t.Prioridad == filtros.Prioridad);
+            }
+
+            // 2. Rangos de Fechas Explícitos
+            if (filtros.FechaAltaInicio.HasValue)
+                query = query.Where(t => t.Alta >= filtros.FechaAltaInicio.Value);
+            if (filtros.FechaAltaFin.HasValue)
+                query = query.Where(t => t.Alta <= filtros.FechaAltaFin.Value);
+
+            // 3. Vistas Temporales Rápidas (Día, Semana, Mes, Año)
+            if (filtros.RangoTemporal.HasValue)
+            {
+                var hoy = DateTime.Today;
+                DateTime inicio = hoy;
+                DateTime fin = hoy.AddDays(1).AddTicks(-1);
+
+                switch (filtros.RangoTemporal.Value)
+                {
+                    case VistaTemporal.Dia:
+                        inicio = hoy;
+                        break;
+                    case VistaTemporal.Semana:
+                        int diasAlLunes = (int)hoy.DayOfWeek - (int)DayOfWeek.Monday;
+                        if (diasAlLunes < 0) diasAlLunes += 7;
+                        inicio = hoy.AddDays(-diasAlLunes);
+                        break;
+                    case VistaTemporal.Mes:
+                        inicio = new DateTime(hoy.Year, hoy.Month, 1);
+                        break;
+                    case VistaTemporal.Ano:
+                        inicio = new DateTime(hoy.Year, 1, 1);
+                        break;
+                }
+
+                if (filtros.RangoTemporal.Value != VistaTemporal.Todos)
+                {
+                    query = query.Where(t => t.Alta >= inicio && t.Alta <= fin);
+                }
+            }
+
+            var totalCount = await query.CountAsync();
+            var items = await query.OrderByDescending(t => t.Alta)
+                                   .Skip((pageNumber - 1) * pageSize)
+                                   .Take(pageSize)
+                                   .ToListAsync();
+
+            return new PaginatedResultDto<TicketDto>
+            {
+                Items = mapper.Map<List<TicketDto>>(items),
+                TotalCount = totalCount
+            };
+        }
+
         // Obtener DTO de KPIs y Analítica de Reportes - Async
         public async Task<ReporteKpisDto> ObtenerReporteKpisAsync(DateTime inicio, DateTime fin)
         {

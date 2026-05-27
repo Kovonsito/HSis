@@ -54,6 +54,7 @@ namespace HSis.UI
             this.dgvMisTickets.AllowUserToDeleteRows = false;
             this.dgvMisTickets.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             this.dgvMisTickets.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dgvMisTickets.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             this.dgvMisTickets.Location = new Point(12, 170);
             this.dgvMisTickets.Name = "dgvMisTickets";
             this.dgvMisTickets.ReadOnly = true;
@@ -66,6 +67,7 @@ namespace HSis.UI
             this.AutoScaleDimensions = new SizeF(7F, 15F);
             this.AutoScaleMode = AutoScaleMode.Font;
             this.ClientSize = new Size(784, 461);
+            this.MinimumSize = new Size(800, 500);
             this.Controls.Add(this.dgvMisTickets);
             this.Controls.Add(this.btnNuevoReporte);
             this.Controls.Add(this.ucMisActivos);

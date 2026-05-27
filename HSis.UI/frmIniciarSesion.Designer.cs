@@ -87,6 +87,9 @@ namespace HSis.UI
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(298, 245);
+            FormBorderStyle = FormBorderStyle.FixedSingle;
+            MaximizeBox = false;
+            MinimizeBox = false;
             Controls.Add(btnIniciarSesion);
             Controls.Add(txtContraseña);
             Controls.Add(txtUsuario);

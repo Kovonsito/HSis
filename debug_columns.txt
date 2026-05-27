@@ -1,0 +1,16 @@
+=== Columnas para Usuario ===
+Columna: IdUsuario | Tipo: Int32 | Genérico: False | Nullable: No | Visible original: True
+Columna: Nombre | Tipo: String | Genérico: False | Nullable: No | Visible original: True
+Columna: IdDepartamento | Tipo: Nullable`1 | Genérico: True | Nullable: Sí | Visible original: True
+Columna: IdPuesto | Tipo: Nullable`1 | Genérico: True | Nullable: Sí | Visible original: True
+Columna: IdSucursal | Tipo: Nullable`1 | Genérico: True | Nullable: Sí | Visible original: True
+Columna: IdRol | Tipo: Nullable`1 | Genérico: True | Nullable: Sí | Visible original: True
+Columna: Contraseña | Tipo: String | Genérico: False | Nullable: No | Visible original: True
+Columna: HistorialCambiosTickets | Tipo: ICollection`1 | Genérico: True | Nullable: No | Visible original: True
+Columna: IdDepartamentoNavigation | Tipo: Departamento | Genérico: False | Nullable: No | Visible original: True
+Columna: IdPuestoNavigation | Tipo: Puesto | Genérico: False | Nullable: No | Visible original: True
+Columna: IdRolNavigation | Tipo: RolUsuario | Genérico: False | Nullable: No | Visible original: True
+Columna: IdSucursalNavigation | Tipo: Sucursal | Genérico: False | Nullable: No | Visible original: True
+Columna: MovimientosMaterials | Tipo: ICollection`1 | Genérico: True | Nullable: No | Visible original: True
+Columna: TicketIdTecnicoNavigations | Tipo: ICollection`1 | Genérico: True | Nullable: No | Visible original: True
+Columna: TicketIdUsuarioNavigations | Tipo: ICollection`1 | Genérico: True | Nullable: No | Visible original: True

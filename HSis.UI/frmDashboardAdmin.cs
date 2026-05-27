@@ -14,6 +14,9 @@ namespace HSis.UI
         private readonly CatalogoService _catalogoService;
         private readonly UsuarioService _usuarioService;
         private bool _estaCargando = true;
+        private int _paginaActual = 1;
+        private int _tamanhoPagina = 10;
+        private int _totalRegistros = 0;
 
         public frmDashboardAdmin(TicketService ticketService, CatalogoService catalogoService, UsuarioService usuarioService)
         {
@@ -27,6 +30,8 @@ namespace HSis.UI
         {
             SesionSistema.ConfigurarMenuSesion(this);
 
+            ConfigurarPaginacionYFechas();
+
             // Cargar los combos de filtros antes del grid
             await InicializarCombosFiltrosAsync();
 
@@ -36,23 +41,76 @@ namespace HSis.UI
             ConfigurarTabsCatalogos();
         }
 
+        private void ConfigurarPaginacionYFechas()
+        {
+            // Inicializar Page Size ComboBox
+            cmbPageSize.Items.Clear();
+            cmbPageSize.Items.AddRange(["10", "20", "50", "100"]);
+            cmbPageSize.SelectedIndex = 0; // Default: 10
+            _tamanhoPagina = 10;
+
+            // Configurar fechas iniciales (desde hace 30 días hasta hoy)
+            dtpFechaInicio.Value = DateTime.Today.AddDays(-30);
+            dtpFechaFin.Value = DateTime.Today.AddDays(1).AddTicks(-1);
+
+            // Suscribir eventos de filtros de fecha
+            dtpFechaInicio.ValueChanged += async (s, e) => { if (!_estaCargando) { _paginaActual = 1; await FiltrarTicketsAsync(); } };
+            dtpFechaFin.ValueChanged += async (s, e) => { if (!_estaCargando) { _paginaActual = 1; await FiltrarTicketsAsync(); } };
+
+            cmbPageSize.SelectedIndexChanged += async (s, e) =>
+            {
+                if (int.TryParse(cmbPageSize.SelectedItem?.ToString(), out int size))
+                {
+                    _tamanhoPagina = size;
+                    _paginaActual = 1;
+                    await FiltrarTicketsAsync();
+                }
+            };
+
+            btnFirstPage.Click += async (s, e) => { _paginaActual = 1; await FiltrarTicketsAsync(); };
+            btnPrevPage.Click += async (s, e) => { if (_paginaActual > 1) { _paginaActual--; await FiltrarTicketsAsync(); } };
+            btnNextPage.Click += async (s, e) => { if (_paginaActual < ObtenerTotalPaginas()) { _paginaActual++; await FiltrarTicketsAsync(); } };
+            btnLastPage.Click += async (s, e) => { _paginaActual = ObtenerTotalPaginas(); await FiltrarTicketsAsync(); };
+        }
+
+        private int ObtenerTotalPaginas()
+        {
+            if (_totalRegistros <= 0) return 1;
+            return (int)Math.Ceiling((double)_totalRegistros / _tamanhoPagina);
+        }
+
+        private void ActualizarControlesPaginacion()
+        {
+            int totalPaginas = ObtenerTotalPaginas();
+            if (_paginaActual > totalPaginas) _paginaActual = totalPaginas;
+            if (_paginaActual < 1) _paginaActual = 1;
+
+            lblPageInfo.Text = $"Página {_paginaActual} de {totalPaginas}";
+            lblTotalTickets.Text = $"Total: {_totalRegistros} tickets";
+
+            btnFirstPage.Enabled = _paginaActual > 1;
+            btnPrevPage.Enabled = _paginaActual > 1;
+            btnNextPage.Enabled = _paginaActual < totalPaginas;
+            btnLastPage.Enabled = _paginaActual < totalPaginas;
+        }
+
         private async Task InicializarCombosFiltrosAsync()
         {
             _estaCargando = true;
 
             // 1. Estatus
             cmbFiltroEstatus.Items.Clear();
-            cmbFiltroEstatus.Items.AddRange(new object[] { "Todos", "Abierto", "En Proceso", "Cerrado", "Reabierto" });
+            cmbFiltroEstatus.Items.AddRange(["Todos", "Abierto", "En Proceso", "Cerrado", "Reabierto"]);
             cmbFiltroEstatus.SelectedIndex = 0;
 
             // 2. Prioridad
             cmbFiltroPrioridad.Items.Clear();
-            cmbFiltroPrioridad.Items.AddRange(new object[] { "Todos", "Alta", "Media", "Baja", "Urgente" });
+            cmbFiltroPrioridad.Items.AddRange(["Todos", "Alta", "Media", "Baja", "Urgente"]);
             cmbFiltroPrioridad.SelectedIndex = 0;
 
             // 3. Vista Temporal
             cmbFiltroTemporal.Items.Clear();
-            cmbFiltroTemporal.Items.AddRange(new object[] { "Todos", "Día", "Semana", "Mes", "Año" });
+            cmbFiltroTemporal.Items.AddRange(["Todos", "Día", "Semana", "Mes", "Año"]);
             cmbFiltroTemporal.SelectedIndex = 0;
 
             // 4. Técnicos y Admins
@@ -138,15 +196,22 @@ namespace HSis.UI
                 filtros.RangoTemporal = VistaTemporal.Todos;
             }
 
-            var filtrados = await _ticketService.ObtenerTicketsFiltradosAsync(filtros);
-            ActualizarGrid(filtrados);
+            // 6. Rango de Fechas
+            filtros.FechaAltaInicio = dtpFechaInicio.Value.Date;
+            filtros.FechaAltaFin = dtpFechaFin.Value.Date.AddDays(1).AddTicks(-1);
+
+            var resultadoPaginado = await _ticketService.ObtenerTicketsFiltradosPaginadosAsync(filtros, _paginaActual, _tamanhoPagina);
+            _totalRegistros = resultadoPaginado.TotalCount;
+
+            ActualizarGrid(resultadoPaginado.Items);
+            ActualizarControlesPaginacion();
         }
 
-        private async void cmbFiltroEstatus_SelectedIndexChanged(object sender, EventArgs e) => await FiltrarTicketsAsync();
-        private async void cmbFiltroPrioridad_SelectedIndexChanged(object sender, EventArgs e) => await FiltrarTicketsAsync();
-        private async void cmbFiltroTecnico_SelectedIndexChanged(object sender, EventArgs e) => await FiltrarTicketsAsync();
-        private async void txtFiltroUsuario_TextChanged(object sender, EventArgs e) => await FiltrarTicketsAsync();
-        private async void cmbFiltroTemporal_SelectedIndexChanged(object sender, EventArgs e) => await FiltrarTicketsAsync();
+        private async void cmbFiltroEstatus_SelectedIndexChanged(object sender, EventArgs e) { if (!_estaCargando) { _paginaActual = 1; await FiltrarTicketsAsync(); } }
+        private async void cmbFiltroPrioridad_SelectedIndexChanged(object sender, EventArgs e) { if (!_estaCargando) { _paginaActual = 1; await FiltrarTicketsAsync(); } }
+        private async void cmbFiltroTecnico_SelectedIndexChanged(object sender, EventArgs e) { if (!_estaCargando) { _paginaActual = 1; await FiltrarTicketsAsync(); } }
+        private async void txtFiltroUsuario_TextChanged(object sender, EventArgs e) { if (!_estaCargando) { _paginaActual = 1; await FiltrarTicketsAsync(); } }
+        private async void cmbFiltroTemporal_SelectedIndexChanged(object sender, EventArgs e) { if (!_estaCargando) { _paginaActual = 1; await FiltrarTicketsAsync(); } }
         private async void btnLimpiarFiltros_Click(object sender, EventArgs e)
         {
             _estaCargando = true;
@@ -155,6 +220,9 @@ namespace HSis.UI
             cmbFiltroTecnico.SelectedIndex = 0;
             txtFiltroUsuario.Clear();
             cmbFiltroTemporal.SelectedIndex = 0;
+            dtpFechaInicio.Value = DateTime.Today.AddDays(-30);
+            dtpFechaFin.Value = DateTime.Today.AddDays(1).AddTicks(-1);
+            _paginaActual = 1;
             _estaCargando = false;
 
             await CargarGridCompletoAsync();
@@ -205,8 +273,8 @@ namespace HSis.UI
 
         private async Task CargarGridCompletoAsync()
         {
-            var todos = await _ticketService.ObtenerTicketsAsync();
-            ActualizarGrid(todos);
+            _paginaActual = 1;
+            await FiltrarTicketsAsync();
         }
 
         private void ActualizarGrid(List<TicketDto> listaTickets)
@@ -311,9 +379,9 @@ namespace HSis.UI
 
         private async Task ConfigurarTabParaCatalogo(string nombre, Type tipo)
         {
-            TabPage tab = new TabPage(nombre);
+            TabPage tab = new(nombre);
 
-            DataGridView dgv = new DataGridView
+            DataGridView dgv = new()
             {
                 Dock = DockStyle.Fill,
                 Name = "dgv" + nombre,
@@ -326,9 +394,9 @@ namespace HSis.UI
                 AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
             };
 
-            Panel panelTop = new Panel { Dock = DockStyle.Top, Height = 50 };
-            Button btnCrear = new Button { Text = "Crear", Location = new Point(10, 10), Width = 100, Height = 30 };
-            Button btnEliminar = new Button { Text = "Eliminar", Location = new Point(120, 10), Width = 100, Height = 30 };
+            Panel panelTop = new() { Dock = DockStyle.Top, Height = 50 };
+            Button btnCrear = new() { Text = "Crear", Location = new Point(10, 10), Width = 100, Height = 30 };
+            Button btnEliminar = new() { Text = "Eliminar", Location = new Point(120, 10), Width = 100, Height = 30 };
 
             panelTop.Controls.Add(btnCrear);
             panelTop.Controls.Add(btnEliminar);
@@ -352,8 +420,8 @@ namespace HSis.UI
 
         private void AgregarControlesInventario(Panel panelTop, DataGridView dgv)
         {
-            Button btnIngreso = new Button { Text = "Nuevo Movimiento", Location = new Point(230, 10), Width = 150, Height = 30 };
-            Button btnKardex = new Button { Text = "Ver Kardex", Location = new Point(390, 10), Width = 100, Height = 30 };
+            Button btnIngreso = new() { Text = "Nuevo Movimiento", Location = new Point(230, 10), Width = 150, Height = 30 };
+            Button btnKardex = new() { Text = "Ver Kardex", Location = new Point(390, 10), Width = 100, Height = 30 };
 
             btnIngreso.Click += async (s, ev) =>
             {
@@ -431,7 +499,7 @@ namespace HSis.UI
                         }
                     }
                     var miMetodo = typeof(CatalogoService).GetMethod("CrearAsync")!.MakeGenericMethod(tipo);
-                    Task task = (Task)miMetodo.Invoke(_catalogoService, new object[] { nuevaEntidad })!;
+                    Task task = (Task)miMetodo.Invoke(_catalogoService, [nuevaEntidad])!;
                     await task;
                     await CargarDatosCatalogo(tipo, dgv);
                 }
@@ -463,7 +531,7 @@ namespace HSis.UI
                     try
                     {
                         var miMetodo = typeof(CatalogoService).GetMethod("EliminarAsync")!.MakeGenericMethod(tipo);
-                        Task task = (Task)miMetodo.Invoke(_catalogoService, new object[] { idObj })!;
+                        Task task = (Task)miMetodo.Invoke(_catalogoService, [idObj])!;
                         await task;
                         await CargarDatosCatalogo(tipo, dgv);
                     }

@@ -51,6 +51,19 @@ namespace HSis.UI
             cmbFiltroTemporal = new ComboBox();
             btnLimpiarFiltros = new Button();
             btnAbrirReportes = new Button();
+            lblFechaInicio = new Label();
+            dtpFechaInicio = new DateTimePicker();
+            lblFechaFin = new Label();
+            dtpFechaFin = new DateTimePicker();
+            pnlPaginacion = new Panel();
+            lblPageSize = new Label();
+            cmbPageSize = new ComboBox();
+            btnFirstPage = new Button();
+            btnPrevPage = new Button();
+            lblPageInfo = new Label();
+            btnNextPage = new Button();
+            btnLastPage = new Button();
+            lblTotalTickets = new Label();
             ((System.ComponentModel.ISupportInitialize)dgvTickets).BeginInit();
             tabMain.SuspendLayout();
             tabTickets.SuspendLayout();
@@ -96,17 +109,19 @@ namespace HSis.UI
             dgvTickets.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvTickets.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvTickets.EditMode = DataGridViewEditMode.EditProgrammatically;
+            dgvTickets.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             dgvTickets.Location = new Point(12, 297);
             dgvTickets.MultiSelect = false;
             dgvTickets.Name = "dgvTickets";
             dgvTickets.ReadOnly = true;
             dgvTickets.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvTickets.Size = new Size(1024, 308);
+            dgvTickets.Size = new Size(1024, 248);
             dgvTickets.TabIndex = 4;
             dgvTickets.CellDoubleClick += dgvTickets_CellDoubleClick;
             // 
             // btnRecargar
             // 
+            btnRecargar.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnRecargar.Location = new Point(906, 268);
             btnRecargar.Name = "btnRecargar";
             btnRecargar.Size = new Size(130, 25);
@@ -139,6 +154,7 @@ namespace HSis.UI
             tabTickets.Controls.Add(ucReabiertos);
             tabTickets.Controls.Add(btnRecargar);
             tabTickets.Controls.Add(dgvTickets);
+            tabTickets.Controls.Add(pnlPaginacion);
             tabTickets.Controls.Add(ucCerrados);
             tabTickets.Controls.Add(ucEnProceso);
             tabTickets.Controls.Add(ucUrgentes);
@@ -153,6 +169,7 @@ namespace HSis.UI
             // 
             // pnlFiltros
             // 
+            pnlFiltros.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             pnlFiltros.BorderStyle = BorderStyle.FixedSingle;
             pnlFiltros.Controls.Add(lblFiltrosTitle);
             pnlFiltros.Controls.Add(lblFiltroEstatus);
@@ -167,11 +184,143 @@ namespace HSis.UI
             pnlFiltros.Controls.Add(cmbFiltroTemporal);
             pnlFiltros.Controls.Add(btnLimpiarFiltros);
             pnlFiltros.Controls.Add(btnAbrirReportes);
+            pnlFiltros.Controls.Add(lblFechaInicio);
+            pnlFiltros.Controls.Add(dtpFechaInicio);
+            pnlFiltros.Controls.Add(lblFechaFin);
+            pnlFiltros.Controls.Add(dtpFechaFin);
             pnlFiltros.Location = new Point(12, 145);
             pnlFiltros.Name = "pnlFiltros";
             pnlFiltros.Size = new Size(1024, 115);
             pnlFiltros.TabIndex = 8;
             pnlFiltros.BackColor = Color.White;
+            // 
+            // lblFechaInicio
+            // 
+            lblFechaInicio.AutoSize = true;
+            lblFechaInicio.Font = new Font("Segoe UI", 9F);
+            lblFechaInicio.Location = new Point(10, 85);
+            lblFechaInicio.Name = "lblFechaInicio";
+            lblFechaInicio.Size = new Size(42, 15);
+            lblFechaInicio.Text = "Desde:";
+            // 
+            // dtpFechaInicio
+            // 
+            dtpFechaInicio.Format = DateTimePickerFormat.Short;
+            dtpFechaInicio.Font = new Font("Segoe UI", 9F);
+            dtpFechaInicio.Location = new Point(58, 81);
+            dtpFechaInicio.Name = "dtpFechaInicio";
+            dtpFechaInicio.Size = new Size(130, 23);
+            dtpFechaInicio.TabIndex = 7;
+            // 
+            // lblFechaFin
+            // 
+            lblFechaFin.AutoSize = true;
+            lblFechaFin.Font = new Font("Segoe UI", 9F);
+            lblFechaFin.Location = new Point(205, 85);
+            lblFechaFin.Name = "lblFechaFin";
+            lblFechaFin.Size = new Size(40, 15);
+            lblFechaFin.Text = "Hasta:";
+            // 
+            // dtpFechaFin
+            // 
+            dtpFechaFin.Format = DateTimePickerFormat.Short;
+            dtpFechaFin.Font = new Font("Segoe UI", 9F);
+            dtpFechaFin.Location = new Point(250, 81);
+            dtpFechaFin.Name = "dtpFechaFin";
+            dtpFechaFin.Size = new Size(130, 23);
+            dtpFechaFin.TabIndex = 8;
+            // 
+            // pnlPaginacion
+            // 
+            pnlPaginacion.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            pnlPaginacion.BorderStyle = BorderStyle.FixedSingle;
+            pnlPaginacion.Controls.Add(lblPageSize);
+            pnlPaginacion.Controls.Add(cmbPageSize);
+            pnlPaginacion.Controls.Add(btnFirstPage);
+            pnlPaginacion.Controls.Add(btnPrevPage);
+            pnlPaginacion.Controls.Add(lblPageInfo);
+            pnlPaginacion.Controls.Add(btnNextPage);
+            pnlPaginacion.Controls.Add(btnLastPage);
+            pnlPaginacion.Controls.Add(lblTotalTickets);
+            pnlPaginacion.Location = new Point(12, 550);
+            pnlPaginacion.Name = "pnlPaginacion";
+            pnlPaginacion.Size = new Size(1024, 32);
+            pnlPaginacion.TabIndex = 9;
+            pnlPaginacion.BackColor = Color.White;
+            // 
+            // lblPageSize
+            // 
+            lblPageSize.AutoSize = true;
+            lblPageSize.Font = new Font("Segoe UI", 9F);
+            lblPageSize.Location = new Point(10, 7);
+            lblPageSize.Name = "lblPageSize";
+            lblPageSize.Size = new Size(111, 15);
+            lblPageSize.Text = "Tickets por página:";
+            // 
+            // cmbPageSize
+            // 
+            cmbPageSize.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbPageSize.Font = new Font("Segoe UI", 8.5F);
+            cmbPageSize.FormattingEnabled = true;
+            cmbPageSize.Location = new Point(125, 4);
+            cmbPageSize.Name = "cmbPageSize";
+            cmbPageSize.Size = new Size(60, 23);
+            cmbPageSize.TabIndex = 0;
+            // 
+            // btnFirstPage
+            // 
+            btnFirstPage.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
+            btnFirstPage.Location = new Point(360, 3);
+            btnFirstPage.Name = "btnFirstPage";
+            btnFirstPage.Size = new Size(40, 24);
+            btnFirstPage.Text = "|<";
+            btnFirstPage.UseVisualStyleBackColor = true;
+            // 
+            // btnPrevPage
+            // 
+            btnPrevPage.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
+            btnPrevPage.Location = new Point(405, 3);
+            btnPrevPage.Name = "btnPrevPage";
+            btnPrevPage.Size = new Size(40, 24);
+            btnPrevPage.Text = "<";
+            btnPrevPage.UseVisualStyleBackColor = true;
+            // 
+            // lblPageInfo
+            // 
+            lblPageInfo.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
+            lblPageInfo.Location = new Point(450, 6);
+            lblPageInfo.Name = "lblPageInfo";
+            lblPageInfo.Size = new Size(130, 20);
+            lblPageInfo.Text = "Página 1 de 1";
+            lblPageInfo.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // btnNextPage
+            // 
+            btnNextPage.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
+            btnNextPage.Location = new Point(585, 3);
+            btnNextPage.Name = "btnNextPage";
+            btnNextPage.Size = new Size(40, 24);
+            btnNextPage.Text = ">";
+            btnNextPage.UseVisualStyleBackColor = true;
+            // 
+            // btnLastPage
+            // 
+            btnLastPage.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
+            btnLastPage.Location = new Point(630, 3);
+            btnLastPage.Name = "btnLastPage";
+            btnLastPage.Size = new Size(40, 24);
+            btnLastPage.Text = ">|";
+            btnLastPage.UseVisualStyleBackColor = true;
+            // 
+            // lblTotalTickets
+            // 
+            lblTotalTickets.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            lblTotalTickets.Font = new Font("Segoe UI", 9F);
+            lblTotalTickets.Location = new Point(810, 7);
+            lblTotalTickets.Name = "lblTotalTickets";
+            lblTotalTickets.Size = new Size(200, 15);
+            lblTotalTickets.Text = "Total: 0 tickets";
+            lblTotalTickets.TextAlign = ContentAlignment.TopRight;
             // 
             // lblFiltrosTitle
             // 
@@ -269,6 +418,7 @@ namespace HSis.UI
             // 
             // btnLimpiarFiltros
             // 
+            btnLimpiarFiltros.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnLimpiarFiltros.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
             btnLimpiarFiltros.Location = new Point(720, 80);
             btnLimpiarFiltros.Name = "btnLimpiarFiltros";
@@ -278,6 +428,7 @@ namespace HSis.UI
             // 
             // btnAbrirReportes
             // 
+            btnAbrirReportes.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnAbrirReportes.BackColor = Color.FromArgb(37, 99, 235);
             btnAbrirReportes.FlatStyle = FlatStyle.Flat;
             btnAbrirReportes.ForeColor = Color.White;
@@ -295,6 +446,7 @@ namespace HSis.UI
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1049, 617);
             Controls.Add(tabMain);
+            MinimumSize = new Size(1065, 656);
             Name = "frmDashboardAdmin";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "DashboardAdmin";
@@ -329,5 +481,18 @@ namespace HSis.UI
         private ComboBox cmbFiltroTemporal;
         private Button btnLimpiarFiltros;
         private Button btnAbrirReportes;
+        private Label lblFechaInicio;
+        private DateTimePicker dtpFechaInicio;
+        private Label lblFechaFin;
+        private DateTimePicker dtpFechaFin;
+        private Panel pnlPaginacion;
+        private Label lblPageSize;
+        private ComboBox cmbPageSize;
+        private Button btnFirstPage;
+        private Button btnPrevPage;
+        private Label lblPageInfo;
+        private Button btnNextPage;
+        private Button btnLastPage;
+        private Label lblTotalTickets;
     }
 }

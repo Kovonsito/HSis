@@ -104,7 +104,7 @@ namespace HSis.Logic.Services
                 if (toListAsyncMethod != null)
                 {
                     // ToListAsync devuelve Task<List<T>>. Esperamos dinámicamente.
-                    var task = (Task)toListAsyncMethod.Invoke(null, new object[] { dbSet, default(System.Threading.CancellationToken) })!;
+                    var task = (Task)toListAsyncMethod.Invoke(null, [dbSet, default(System.Threading.CancellationToken)])!;
                     await task;
 
                     // Extraemos el Result del Task

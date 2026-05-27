@@ -40,9 +40,9 @@ namespace HSis.Logic.Services
             cellSub.Style.Font.FontColor = XLColor.FromHtml("#4B5563");
 
             // KPI Cards Layout (B5:E6)
-            string[] kpiTitles = { "TICKETS CREADOS", "TICKETS RESUELTOS", "TASA DE CIERRE", "TIEMPO PROM. ATENCIÓN" };
-            string[] kpiValues = { kpis.TotalCreados.ToString(), kpis.TotalResueltos.ToString(), $"{kpis.TasaCierre:F1}%", $"{kpis.TiempoPromedioAtencionHoras:F1} Hrs" };
-            string[] kpiColors = { "#3B82F6", "#10B981", "#F59E0B", "#8B5CF6" };
+            string[] kpiTitles = ["TICKETS CREADOS", "TICKETS RESUELTOS", "TASA DE CIERRE", "TIEMPO PROM. ATENCIÓN"];
+            string[] kpiValues = [kpis.TotalCreados.ToString(), kpis.TotalResueltos.ToString(), $"{kpis.TasaCierre:F1}%", $"{kpis.TiempoPromedioAtencionHoras:F1} Hrs"];
+            string[] kpiColors = ["#3B82F6", "#10B981", "#F59E0B", "#8B5CF6"];
 
             for (int i = 0; i < 4; i++)
             {
@@ -140,7 +140,7 @@ namespace HSis.Logic.Services
             wsTickets.ShowGridLines = true;
 
             // Cabeceras
-            string[] headers = { "Folio", "Usuario Emisor", "Departamento", "Estatus", "Prioridad", "Fecha de Alta", "Fecha de Atención", "Fecha de Cierre", "Personal de Seguimiento", "Descripción", "Solución" };
+            string[] headers = ["Folio", "Usuario Emisor", "Departamento", "Estatus", "Prioridad", "Fecha de Alta", "Fecha de Atención", "Fecha de Cierre", "Personal de Seguimiento", "Descripción", "Solución"];
             for (int i = 0; i < headers.Length; i++)
             {
                 var cell = wsTickets.Cell(1, i + 1);

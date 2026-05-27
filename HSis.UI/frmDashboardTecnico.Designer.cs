@@ -58,6 +58,7 @@ namespace HSis.UI
             this.dgvTicketsOperativos.AllowUserToDeleteRows = false;
             this.dgvTicketsOperativos.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             this.dgvTicketsOperativos.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dgvTicketsOperativos.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             this.dgvTicketsOperativos.Location = new Point(12, 170);
             this.dgvTicketsOperativos.Name = "dgvTicketsOperativos";
             this.dgvTicketsOperativos.ReadOnly = true;
@@ -70,6 +71,7 @@ namespace HSis.UI
             this.AutoScaleDimensions = new SizeF(7F, 15F);
             this.AutoScaleMode = AutoScaleMode.Font;
             this.ClientSize = new Size(784, 461);
+            this.MinimumSize = new Size(800, 500);
             this.Controls.Add(this.dgvTicketsOperativos);
             this.Controls.Add(this.ucDisponibles);
             this.Controls.Add(this.ucMisAsignados);

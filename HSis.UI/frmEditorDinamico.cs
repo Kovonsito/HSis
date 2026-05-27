@@ -160,7 +160,7 @@ namespace HSis.UI
                     labelText = labelText.Substring(2);
             }
 
-            Label lbl = new Label { Text = labelText, Location = new Point(30, y + 5), AutoSize = true };
+            Label lbl = new() { Text = labelText, Location = new Point(30, y + 5), AutoSize = true };
 
             if (prop.Name == "Motivo")
             {
@@ -178,19 +178,19 @@ namespace HSis.UI
 
         private async Task AgregarComboBoxDeMotivosAsync(PropertyInfo prop, Label lbl, int y)
         {
-            ComboBox cmb = new ComboBox { Name = prop.Name, Location = new Point(230, y), Width = 250, DropDownStyle = ComboBoxStyle.DropDownList };
+            ComboBox cmb = new() { Name = prop.Name, Location = new Point(230, y), Width = 250, DropDownStyle = ComboBoxStyle.DropDownList };
 
             this.Controls.Add(lbl);
             this.Controls.Add(cmb);
 
             // Lista de motivos preestablecidos
-            string[] motivos = new string[] {
+            string[] motivos = [
                 "Ingreso por Compra",
                 "Ajuste por Error de Captura",
                 "Ajuste por Pérdida",
                 "Ajuste por Daño de Almacén",
                 "Ajuste por Devolución"
-            };
+            ];
 
             cmb.DataSource = motivos;
 
@@ -207,7 +207,7 @@ namespace HSis.UI
 
         private async Task AgregarComboBoxAsync(PropertyInfo prop, PropertyInfo navProp, Label lbl, int y)
         {
-            ComboBox cmb = new ComboBox { Name = prop.Name, Location = new Point(230, y), Width = 250, DropDownStyle = ComboBoxStyle.DropDownList };
+            ComboBox cmb = new() { Name = prop.Name, Location = new Point(230, y), Width = 250, DropDownStyle = ComboBoxStyle.DropDownList };
 
             this.Controls.Add(lbl);
             this.Controls.Add(cmb); // Se agrega a los controles primero para inicializar su handle nativo
@@ -250,7 +250,7 @@ namespace HSis.UI
 
         private async Task AgregarTextBoxAsync(PropertyInfo prop, bool isId, Label lbl, int y)
         {
-            TextBox txt = new TextBox { Name = prop.Name, Location = new Point(230, y), Width = 250 };
+            TextBox txt = new() { Name = prop.Name, Location = new Point(230, y), Width = 250 };
 
             if (isId || prop.Name == "FechaMovimiento")
             {

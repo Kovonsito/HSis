@@ -68,6 +68,7 @@ namespace HSis.UI
             // 
             this.Text = "Kardex / Historial de Inventario";
             this.Size = new Size(800, 500);
+            this.MinimumSize = new Size(800, 500);
             this.StartPosition = FormStartPosition.CenterParent;
             this.Controls.Add(this.dgvKardex);
             this.Controls.Add(panelTop);
