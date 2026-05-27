@@ -17,5 +17,6 @@ public class VHistorialInventarioConfiguration : IEntityTypeConfiguration<VHisto
         entity.Property(e => e.TipoMovimiento).HasMaxLength(7).IsUnicode(false).HasColumnName("Tipo_Movimiento");
         entity.Property(e => e.UsuarioResponsable).HasMaxLength(50).IsUnicode(false).HasColumnName("Usuario_Responsable");
         entity.Property(e => e.ValorTotalMovimiento).HasColumnType("smallmoney").HasColumnName("Valor_Total_Movimiento");
+        entity.Property(e => e.Motivo).HasMaxLength(100).IsUnicode(false).HasColumnName("Motivo");
     }
 }

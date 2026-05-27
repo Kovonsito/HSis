@@ -1,4 +1,4 @@
-﻿namespace HSis.Data.Models;
+namespace HSis.Data.Models;
 
 public partial class Material
 {
@@ -14,5 +14,5 @@ public partial class Material
 
     public virtual ICollection<DetTicket> DetTickets { get; set; } = new List<DetTicket>();
 
-    public virtual ICollection<IngresosMaterial> IngresosMaterials { get; set; } = new List<IngresosMaterial>();
+    public virtual ICollection<MovimientoMaterial> MovimientosMaterials { get; set; } = new List<MovimientoMaterial>();
 }
