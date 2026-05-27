@@ -12,21 +12,159 @@ namespace HSis.UI
     {
         private readonly TicketService _ticketService;
         private readonly CatalogoService _catalogoService;
+        private readonly UsuarioService _usuarioService;
+        private bool _estaCargando = true;
 
-        public frmDashboardAdmin(TicketService ticketService, CatalogoService catalogoService)
+        public frmDashboardAdmin(TicketService ticketService, CatalogoService catalogoService, UsuarioService usuarioService)
         {
             InitializeComponent();
             _ticketService = ticketService;
             _catalogoService = catalogoService;
+            _usuarioService = usuarioService;
         }
 
         private async void DashboardAdmin_Load(object sender, EventArgs e)
         {
             SesionSistema.ConfigurarMenuSesion(this);
+
+            // Cargar los combos de filtros antes del grid
+            await InicializarCombosFiltrosAsync();
+
             // Cargamos KPIs y Grid de tickets en paralelo
             await Task.WhenAll(CargarKPIsAsync(), CargarGridCompletoAsync());
 
             ConfigurarTabsCatalogos();
+        }
+
+        private async Task InicializarCombosFiltrosAsync()
+        {
+            _estaCargando = true;
+
+            // 1. Estatus
+            cmbFiltroEstatus.Items.Clear();
+            cmbFiltroEstatus.Items.AddRange(new object[] { "Todos", "Abierto", "En Proceso", "Cerrado", "Reabierto" });
+            cmbFiltroEstatus.SelectedIndex = 0;
+
+            // 2. Prioridad
+            cmbFiltroPrioridad.Items.Clear();
+            cmbFiltroPrioridad.Items.AddRange(new object[] { "Todos", "Alta", "Media", "Baja", "Urgente" });
+            cmbFiltroPrioridad.SelectedIndex = 0;
+
+            // 3. Vista Temporal
+            cmbFiltroTemporal.Items.Clear();
+            cmbFiltroTemporal.Items.AddRange(new object[] { "Todos", "Día", "Semana", "Mes", "Año" });
+            cmbFiltroTemporal.SelectedIndex = 0;
+
+            // 4. Técnicos y Admins
+            try
+            {
+                var admins = await _usuarioService.ObtenerUsuariosPorRolAsync(1);
+                var tecnicos = await _usuarioService.ObtenerUsuariosPorRolAsync(2);
+
+                var listaTecnicos = new List<object> { new { Id = (int?)0, Nombre = "Todos" } };
+
+                foreach (var a in admins)
+                {
+                    listaTecnicos.Add(new { Id = (int?)a.IdUsuario, Nombre = $"Admin - {a.Nombre}" });
+                }
+                foreach (var t in tecnicos)
+                {
+                    listaTecnicos.Add(new { Id = (int?)t.IdUsuario, Nombre = $"Técnico - {t.Nombre}" });
+                }
+
+                cmbFiltroTecnico.DisplayMember = "Nombre";
+                cmbFiltroTecnico.ValueMember = "Id";
+                cmbFiltroTecnico.DataSource = listaTecnicos;
+                cmbFiltroTecnico.SelectedIndex = 0;
+            }
+            catch (Exception)
+            {
+                cmbFiltroTecnico.Items.Clear();
+                cmbFiltroTecnico.Items.Add("Todos");
+                cmbFiltroTecnico.SelectedIndex = 0;
+            }
+
+            _estaCargando = false;
+        }
+
+        private async Task FiltrarTicketsAsync()
+        {
+            if (_estaCargando) return;
+
+            var filtros = new TicketFilterDto();
+
+            // 1. Estatus
+            var estatusSel = cmbFiltroEstatus.SelectedItem?.ToString();
+            if (estatusSel != "Todos")
+            {
+                filtros.Estatus = estatusSel;
+            }
+
+            // 2. Prioridad
+            var prioridadSel = cmbFiltroPrioridad.SelectedItem?.ToString();
+            if (prioridadSel != "Todos")
+            {
+                filtros.Prioridad = prioridadSel;
+            }
+
+            // 3. Técnico
+            if (cmbFiltroTecnico.SelectedValue is int idTecnico && idTecnico > 0)
+            {
+                filtros.IdTecnico = idTecnico;
+            }
+
+            // 4. Usuario Emisor
+            var emisor = txtFiltroUsuario.Text.Trim();
+            if (!string.IsNullOrWhiteSpace(emisor))
+            {
+                filtros.UsuarioEmisor = emisor;
+            }
+
+            // 5. Vista Temporal
+            var tempSel = cmbFiltroTemporal.SelectedItem?.ToString();
+            if (tempSel != "Todos" && tempSel != null)
+            {
+                filtros.RangoTemporal = tempSel switch
+                {
+                    "Día" => VistaTemporal.Dia,
+                    "Semana" => VistaTemporal.Semana,
+                    "Mes" => VistaTemporal.Mes,
+                    "Año" => VistaTemporal.Ano,
+                    _ => VistaTemporal.Todos
+                };
+            }
+            else
+            {
+                filtros.RangoTemporal = VistaTemporal.Todos;
+            }
+
+            var filtrados = await _ticketService.ObtenerTicketsFiltradosAsync(filtros);
+            ActualizarGrid(filtrados);
+        }
+
+        private async void cmbFiltroEstatus_SelectedIndexChanged(object sender, EventArgs e) => await FiltrarTicketsAsync();
+        private async void cmbFiltroPrioridad_SelectedIndexChanged(object sender, EventArgs e) => await FiltrarTicketsAsync();
+        private async void cmbFiltroTecnico_SelectedIndexChanged(object sender, EventArgs e) => await FiltrarTicketsAsync();
+        private async void txtFiltroUsuario_TextChanged(object sender, EventArgs e) => await FiltrarTicketsAsync();
+        private async void cmbFiltroTemporal_SelectedIndexChanged(object sender, EventArgs e) => await FiltrarTicketsAsync();
+
+        private async void btnLimpiarFiltros_Click(object sender, EventArgs e)
+        {
+            _estaCargando = true;
+            cmbFiltroEstatus.SelectedIndex = 0;
+            cmbFiltroPrioridad.SelectedIndex = 0;
+            cmbFiltroTecnico.SelectedIndex = 0;
+            txtFiltroUsuario.Clear();
+            cmbFiltroTemporal.SelectedIndex = 0;
+            _estaCargando = false;
+
+            await CargarGridCompletoAsync();
+        }
+
+        private void btnAbrirReportes_Click(object sender, EventArgs e)
+        {
+            var modal = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateInstance<frmGeneradorReportes>(Program.ServiceProvider);
+            modal.ShowDialog();
         }
 
         private async Task CargarKPIsAsync()
@@ -89,6 +227,15 @@ namespace HSis.UI
             }).ToList();
 
             dgvTickets.DataSource = new SortableBindingList<TicketGridDto>(listaMapeada);
+
+            // Asegurar que ninguna columna se aplaste a un ancho menor al de su título
+            foreach (DataGridViewColumn col in dgvTickets.Columns)
+            {
+                if (col.Visible)
+                {
+                    col.MinimumWidth = col.GetPreferredWidth(DataGridViewAutoSizeColumnMode.ColumnHeader, true);
+                }
+            }
         }
 
         public async void ucNuevos_ucIndicadorEvent(object sender, EventArgs e)
@@ -177,12 +324,14 @@ namespace HSis.UI
                 SelectionMode = DataGridViewSelectionMode.FullRowSelect,
                 AllowUserToAddRows = false,
                 AllowUserToDeleteRows = false,
-                MultiSelect = false
+                MultiSelect = false,
+                ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize,
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
             };
 
-            Panel panelTop = new Panel { Dock = DockStyle.Top, Height = 40 };
-            Button btnCrear = new Button { Text = "Crear", Location = new Point(10, 10), Width = 100 };
-            Button btnEliminar = new Button { Text = "Eliminar", Location = new Point(120, 10), Width = 100 };
+            Panel panelTop = new Panel { Dock = DockStyle.Top, Height = 50 };
+            Button btnCrear = new Button { Text = "Crear", Location = new Point(10, 10), Width = 100, Height = 30 };
+            Button btnEliminar = new Button { Text = "Eliminar", Location = new Point(120, 10), Width = 100, Height = 30 };
 
             panelTop.Controls.Add(btnCrear);
             panelTop.Controls.Add(btnEliminar);
@@ -206,8 +355,8 @@ namespace HSis.UI
 
         private void AgregarControlesInventario(Panel panelTop, DataGridView dgv)
         {
-            Button btnIngreso = new Button { Text = "Nuevo Ingreso", Location = new Point(230, 10), Width = 120 };
-            Button btnKardex = new Button { Text = "Ver Kardex", Location = new Point(360, 10), Width = 100 };
+            Button btnIngreso = new Button { Text = "Nuevo Ingreso", Location = new Point(230, 10), Width = 120, Height = 30 };
+            Button btnKardex = new Button { Text = "Ver Kardex", Location = new Point(360, 10), Width = 100, Height = 30 };
 
             btnIngreso.Click += async (s, ev) =>
             {
@@ -402,7 +551,7 @@ namespace HSis.UI
 
             var resultProp = task.GetType().GetProperty("Result");
             var resultList = resultProp?.GetValue(task);
-            
+
             if (resultList != null)
             {
                 var bindingListType = typeof(SortableBindingList<>).MakeGenericType(tipoEntidad);
@@ -416,18 +565,43 @@ namespace HSis.UI
 
             // Ocultar columnas no deseadas y renombrar cabeceras
             string idPk = "Id" + (tipoEntidad.Name == "RolUsuario" ? "Rol" : tipoEntidad.Name);
+
+            // --- DIAGNÓSTICO TEMPORAL ---
+            if (tipoEntidad.Name == "Usuario")
+            {
+                var debugLines = new List<string>();
+                debugLines.Add($"=== Columnas para Usuario ===");
+                foreach (DataGridViewColumn col in dgv.Columns)
+                {
+                    bool isGeneric = col.ValueType?.IsGenericType == true;
+                    string isNullable = col.ValueType != null && col.ValueType.IsGenericType && col.ValueType.GetGenericTypeDefinition() == typeof(Nullable<>) ? "Sí" : "No";
+                    debugLines.Add($"Columna: {col.Name} | Tipo: {col.ValueType?.Name ?? "null"} | Genérico: {isGeneric} | Nullable: {isNullable} | Visible original: {col.Visible}");
+                }
+                try
+                {
+                    System.IO.File.WriteAllLines(@"c:\HSis\debug_columns.txt", debugLines);
+                }
+                catch { }
+            }
+            // -----------------------------
+
             foreach (DataGridViewColumn col in dgv.Columns)
             {
-                if (col.Name.EndsWith("Navigation") || col.ValueType?.IsGenericType == true)
+                if (col.Name.EndsWith("Navigation") || (col.ValueType?.IsGenericType == true && col.ValueType.GetGenericTypeDefinition() != typeof(Nullable<>)))
                 {
                     col.Visible = false; // Ocultar objetos virtuales de navegación y colecciones
                 }
-                else if (col.Name.StartsWith("Id") && col.Name != idPk)
+                else
                 {
-                    col.HeaderText = col.Name.Substring(2); // Ejemplo: "IdDepartamento" se lee como "Departamento"
+                    if (col.Name.StartsWith("Id") && col.Name != idPk)
+                    {
+                        col.HeaderText = col.Name.Substring(2); // Ejemplo: "IdDepartamento" se lee como "Departamento"
+                    }
+
+                    // Asegurar que ninguna columna se aplaste a un ancho menor al de su título
+                    col.MinimumWidth = col.GetPreferredWidth(DataGridViewAutoSizeColumnMode.ColumnHeader, true);
                 }
             }
         }
     }
 }
-

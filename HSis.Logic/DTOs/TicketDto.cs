@@ -7,7 +7,7 @@ namespace HSis.Logic.DTOs
         public int IdTicket { get; set; }
         public int IdUsuario { get; set; }
         public string NombreUsuario { get; set; } = null!;
-        public string Departamento { get; set; } = null!;
+        public string DepartamentoUsuario { get; set; } = null!;
         public DateTime? Alta { get; set; }
         public DateTime? Cierre { get; set; }
         public DateTime? Atencion { get; set; }

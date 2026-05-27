@@ -11,7 +11,7 @@ namespace HSis.UI
         private int _idTicket;
         private readonly TicketService _ticketService;
         private readonly UsuarioService _usuarioService;
-        private HSis.Logic.DTOs.TicketDto? _ticketActual;
+        private TicketDto? _ticketActual;
 
         public frmTicketDetalle(int idTicket, TicketService ticketService, UsuarioService usuarioService)
         {
@@ -59,8 +59,9 @@ namespace HSis.UI
                 // Mostrar datos del ticket
                 lblFolio.Text = $"Folio: TK-{ticket.IdTicket:d6}";
                 txtUsuario.Text = ticket.NombreUsuario;
+                txtDepartamento.Text = ticket.DepartamentoUsuario;
                 dtpAlta.Value = ticket.Alta ?? DateTime.Now;
-                rtbDescripcion.Text = ticket.Descripcion;
+                rtbDescripcion.Text = ticket.Descripcion ?? string.Empty;
                 rtbSolucion.Text = ticket.Solucion ?? string.Empty;
 
                 ConfigurarFecha(dtpAtencion, ticket.Atencion);

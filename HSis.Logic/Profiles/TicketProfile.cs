@@ -14,7 +14,8 @@ namespace HSis.Logic.Profiles
                 .Map(dest => dest.NombreTecnico, src => src.IdTecnicoNavigation != null ? src.IdTecnicoNavigation.Nombre : string.Empty)
                 .Map(dest => dest.Descripcion, src => src.Descripción)
                 .Map(dest => dest.Solucion, src => src.Solución)
-                .Map(dest => dest.Atencion, src => src.Atención);
+                .Map(dest => dest.Atencion, src => src.Atención)
+                .Map(dest => dest.DepartamentoUsuario, src => src.IdUsuarioNavigation != null && src.IdUsuarioNavigation.IdDepartamentoNavigation != null ? src.IdUsuarioNavigation.IdDepartamentoNavigation.Nombre : string.Empty);
 
             // Create DTO a Entidad
             config.NewConfig<TicketCreateDto, Ticket>()

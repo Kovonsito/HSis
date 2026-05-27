@@ -37,9 +37,24 @@ namespace HSis.UI
             ucReabiertos = new ucIndicador();
             tabMain = new TabControl();
             tabTickets = new TabPage();
+            pnlFiltros = new Panel();
+            lblFiltrosTitle = new Label();
+            lblFiltroEstatus = new Label();
+            cmbFiltroEstatus = new ComboBox();
+            lblFiltroPrioridad = new Label();
+            cmbFiltroPrioridad = new ComboBox();
+            lblFiltroTecnico = new Label();
+            cmbFiltroTecnico = new ComboBox();
+            lblFiltroUsuario = new Label();
+            txtFiltroUsuario = new TextBox();
+            lblFiltroTemporal = new Label();
+            cmbFiltroTemporal = new ComboBox();
+            btnLimpiarFiltros = new Button();
+            btnAbrirReportes = new Button();
             ((System.ComponentModel.ISupportInitialize)dgvTickets).BeginInit();
             tabMain.SuspendLayout();
             tabTickets.SuspendLayout();
+            pnlFiltros.SuspendLayout();
             SuspendLayout();
             // 
             // ucNuevos
@@ -79,6 +94,7 @@ namespace HSis.UI
             dgvTickets.AllowUserToAddRows = false;
             dgvTickets.AllowUserToDeleteRows = false;
             dgvTickets.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dgvTickets.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvTickets.EditMode = DataGridViewEditMode.EditProgrammatically;
             dgvTickets.Location = new Point(12, 297);
             dgvTickets.MultiSelect = false;
@@ -119,6 +135,7 @@ namespace HSis.UI
             // 
             // tabTickets
             // 
+            tabTickets.Controls.Add(pnlFiltros);
             tabTickets.Controls.Add(ucReabiertos);
             tabTickets.Controls.Add(btnRecargar);
             tabTickets.Controls.Add(dgvTickets);
@@ -133,6 +150,144 @@ namespace HSis.UI
             tabTickets.TabIndex = 0;
             tabTickets.Text = "Tickets";
             tabTickets.UseVisualStyleBackColor = true;
+            // 
+            // pnlFiltros
+            // 
+            pnlFiltros.BorderStyle = BorderStyle.FixedSingle;
+            pnlFiltros.Controls.Add(lblFiltrosTitle);
+            pnlFiltros.Controls.Add(lblFiltroEstatus);
+            pnlFiltros.Controls.Add(cmbFiltroEstatus);
+            pnlFiltros.Controls.Add(lblFiltroPrioridad);
+            pnlFiltros.Controls.Add(cmbFiltroPrioridad);
+            pnlFiltros.Controls.Add(lblFiltroTecnico);
+            pnlFiltros.Controls.Add(cmbFiltroTecnico);
+            pnlFiltros.Controls.Add(lblFiltroUsuario);
+            pnlFiltros.Controls.Add(txtFiltroUsuario);
+            pnlFiltros.Controls.Add(lblFiltroTemporal);
+            pnlFiltros.Controls.Add(cmbFiltroTemporal);
+            pnlFiltros.Controls.Add(btnLimpiarFiltros);
+            pnlFiltros.Controls.Add(btnAbrirReportes);
+            pnlFiltros.Location = new Point(12, 145);
+            pnlFiltros.Name = "pnlFiltros";
+            pnlFiltros.Size = new Size(1024, 115);
+            pnlFiltros.TabIndex = 8;
+            pnlFiltros.BackColor = Color.White;
+            // 
+            // lblFiltrosTitle
+            // 
+            lblFiltrosTitle.AutoSize = true;
+            lblFiltrosTitle.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold);
+            lblFiltrosTitle.ForeColor = Color.FromArgb(31, 41, 55);
+            lblFiltrosTitle.Location = new Point(10, 5);
+            lblFiltrosTitle.Name = "lblFiltrosTitle";
+            lblFiltrosTitle.Size = new Size(180, 19);
+            lblFiltrosTitle.Text = "Filtros de Búsqueda Rápida";
+            // 
+            // lblFiltroEstatus
+            // 
+            lblFiltroEstatus.AutoSize = true;
+            lblFiltroEstatus.Font = new Font("Segoe UI", 9F);
+            lblFiltroEstatus.Location = new Point(10, 30);
+            lblFiltroEstatus.Name = "lblFiltroEstatus";
+            lblFiltroEstatus.Text = "Estatus:";
+            // 
+            // cmbFiltroEstatus
+            // 
+            cmbFiltroEstatus.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbFiltroEstatus.Font = new Font("Segoe UI", 9F);
+            cmbFiltroEstatus.Location = new Point(10, 50);
+            cmbFiltroEstatus.Name = "cmbFiltroEstatus";
+            cmbFiltroEstatus.Size = new Size(150, 23);
+            cmbFiltroEstatus.SelectedIndexChanged += cmbFiltroEstatus_SelectedIndexChanged;
+            // 
+            // lblFiltroPrioridad
+            // 
+            lblFiltroPrioridad.AutoSize = true;
+            lblFiltroPrioridad.Font = new Font("Segoe UI", 9F);
+            lblFiltroPrioridad.Location = new Point(180, 30);
+            lblFiltroPrioridad.Name = "lblFiltroPrioridad";
+            lblFiltroPrioridad.Text = "Prioridad:";
+            // 
+            // cmbFiltroPrioridad
+            // 
+            cmbFiltroPrioridad.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbFiltroPrioridad.Font = new Font("Segoe UI", 9F);
+            cmbFiltroPrioridad.Location = new Point(180, 50);
+            cmbFiltroPrioridad.Name = "cmbFiltroPrioridad";
+            cmbFiltroPrioridad.Size = new Size(150, 23);
+            cmbFiltroPrioridad.SelectedIndexChanged += cmbFiltroPrioridad_SelectedIndexChanged;
+            // 
+            // lblFiltroTecnico
+            // 
+            lblFiltroTecnico.AutoSize = true;
+            lblFiltroTecnico.Font = new Font("Segoe UI", 9F);
+            lblFiltroTecnico.Location = new Point(350, 30);
+            lblFiltroTecnico.Name = "lblFiltroTecnico";
+            lblFiltroTecnico.Text = "Técnico:";
+            // 
+            // cmbFiltroTecnico
+            // 
+            cmbFiltroTecnico.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbFiltroTecnico.Font = new Font("Segoe UI", 9F);
+            cmbFiltroTecnico.Location = new Point(350, 50);
+            cmbFiltroTecnico.Name = "cmbFiltroTecnico";
+            cmbFiltroTecnico.Size = new Size(180, 23);
+            cmbFiltroTecnico.SelectedIndexChanged += cmbFiltroTecnico_SelectedIndexChanged;
+            // 
+            // lblFiltroUsuario
+            // 
+            lblFiltroUsuario.AutoSize = true;
+            lblFiltroUsuario.Font = new Font("Segoe UI", 9F);
+            lblFiltroUsuario.Location = new Point(550, 30);
+            lblFiltroUsuario.Name = "lblFiltroUsuario";
+            lblFiltroUsuario.Text = "Usuario Emisor:";
+            // 
+            // txtFiltroUsuario
+            // 
+            txtFiltroUsuario.Font = new Font("Segoe UI", 9F);
+            txtFiltroUsuario.Location = new Point(550, 50);
+            txtFiltroUsuario.Name = "txtFiltroUsuario";
+            txtFiltroUsuario.Size = new Size(180, 23);
+            txtFiltroUsuario.TextChanged += txtFiltroUsuario_TextChanged;
+            // 
+            // lblFiltroTemporal
+            // 
+            lblFiltroTemporal.AutoSize = true;
+            lblFiltroTemporal.Font = new Font("Segoe UI", 9F);
+            lblFiltroTemporal.Location = new Point(750, 30);
+            lblFiltroTemporal.Name = "lblFiltroTemporal";
+            lblFiltroTemporal.Text = "Vista Temporal:";
+            // 
+            // cmbFiltroTemporal
+            // 
+            cmbFiltroTemporal.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbFiltroTemporal.Font = new Font("Segoe UI", 9F);
+            cmbFiltroTemporal.Location = new Point(750, 50);
+            cmbFiltroTemporal.Name = "cmbFiltroTemporal";
+            cmbFiltroTemporal.Size = new Size(150, 23);
+            cmbFiltroTemporal.SelectedIndexChanged += cmbFiltroTemporal_SelectedIndexChanged;
+            // 
+            // btnLimpiarFiltros
+            // 
+            btnLimpiarFiltros.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
+            btnLimpiarFiltros.Location = new Point(720, 80);
+            btnLimpiarFiltros.Name = "btnLimpiarFiltros";
+            btnLimpiarFiltros.Size = new Size(130, 26);
+            btnLimpiarFiltros.Text = "Limpiar Filtros";
+            btnLimpiarFiltros.Click += btnLimpiarFiltros_Click;
+            // 
+            // btnAbrirReportes
+            // 
+            btnAbrirReportes.BackColor = Color.FromArgb(37, 99, 235);
+            btnAbrirReportes.FlatStyle = FlatStyle.Flat;
+            btnAbrirReportes.ForeColor = Color.White;
+            btnAbrirReportes.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
+            btnAbrirReportes.Location = new Point(860, 80);
+            btnAbrirReportes.Name = "btnAbrirReportes";
+            btnAbrirReportes.Size = new Size(150, 26);
+            btnAbrirReportes.Text = "Generar Reportes";
+            btnAbrirReportes.UseVisualStyleBackColor = false;
+            btnAbrirReportes.Click += btnAbrirReportes_Click;
             // 
             // frmDashboardAdmin
             // 
@@ -151,7 +306,6 @@ namespace HSis.UI
         }
 
         #endregion
-
         private ucIndicador ucNuevos;
         private ucIndicador ucUrgentes;
         private ucIndicador ucEnProceso;
@@ -161,5 +315,19 @@ namespace HSis.UI
         private ucIndicador ucReabiertos;
         private TabControl tabMain;
         private TabPage tabTickets;
+        private Panel pnlFiltros;
+        private Label lblFiltrosTitle;
+        private Label lblFiltroEstatus;
+        private ComboBox cmbFiltroEstatus;
+        private Label lblFiltroPrioridad;
+        private ComboBox cmbFiltroPrioridad;
+        private Label lblFiltroTecnico;
+        private ComboBox cmbFiltroTecnico;
+        private Label lblFiltroUsuario;
+        private TextBox txtFiltroUsuario;
+        private Label lblFiltroTemporal;
+        private ComboBox cmbFiltroTemporal;
+        private Button btnLimpiarFiltros;
+        private Button btnAbrirReportes;
     }
 }
