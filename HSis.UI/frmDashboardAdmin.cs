@@ -451,7 +451,7 @@ namespace HSis.UI
             panelTop.Controls.Add(btnKardex);
         }
 
-        private void ConfigurarFormateoDeCeldas(DataGridView dgv, Type tipo)
+        private static void ConfigurarFormateoDeCeldas(DataGridView dgv, Type tipo)
         {
             dgv.CellFormatting += (s, e) =>
             {

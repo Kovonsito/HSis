@@ -19,6 +19,9 @@ public class TicketConfiguration : IEntityTypeConfiguration<Ticket>
         entity.Property(e => e.Solución).IsUnicode(false);
         entity.Property(e => e.Prioridad).HasMaxLength(20).IsUnicode(false);
         entity.Property(e => e.Status).HasMaxLength(15).IsUnicode(false).HasDefaultValue("Abierto", "DF__Ticket__Status__70DDC3D8");
+        entity.Property(e => e.Calificacion).HasColumnName("Calificacion");
+        entity.Property(e => e.ComentarioFeedback).HasMaxLength(1000).IsUnicode(false).HasColumnName("ComentarioFeedback");
+        entity.Property(e => e.FechaFeedback).HasColumnType("datetime").HasColumnName("FechaFeedback");
 
         entity.HasOne(d => d.IdTecnicoNavigation).WithMany(p => p.TicketIdTecnicoNavigations)
             .HasForeignKey(d => d.IdTecnico)

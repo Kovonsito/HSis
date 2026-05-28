@@ -22,6 +22,7 @@ namespace HSis.UI
             this.ucMisAsignados = new ucIndicador();
             this.ucDisponibles = new ucIndicador();
             this.ucCerrados = new ucIndicador();
+            this.ucCalificacion = new ucIndicador();
             this.dgvTicketsOperativos = new DataGridView();
             ((System.ComponentModel.ISupportInitialize)(this.dgvTicketsOperativos)).BeginInit();
             this.SuspendLayout();
@@ -53,6 +54,12 @@ namespace HSis.UI
             this.ucCerrados.Size = new Size(200, 100);
             this.ucCerrados.TabIndex = 4;
 
+            // ucCalificacion
+            this.ucCalificacion.Location = new Point(636, 50);
+            this.ucCalificacion.Name = "ucCalificacion";
+            this.ucCalificacion.Size = new Size(200, 100);
+            this.ucCalificacion.TabIndex = 5;
+
             // dgvTicketsOperativos
             this.dgvTicketsOperativos.AllowUserToAddRows = false;
             this.dgvTicketsOperativos.AllowUserToDeleteRows = false;
@@ -63,19 +70,20 @@ namespace HSis.UI
             this.dgvTicketsOperativos.Name = "dgvTicketsOperativos";
             this.dgvTicketsOperativos.ReadOnly = true;
             this.dgvTicketsOperativos.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            this.dgvTicketsOperativos.Size = new Size(760, 280);
+            this.dgvTicketsOperativos.Size = new Size(824, 280);
             this.dgvTicketsOperativos.TabIndex = 3;
             this.dgvTicketsOperativos.CellDoubleClick += new DataGridViewCellEventHandler(this.dgvTicketsOperativos_CellDoubleClick);
 
             // frmDashboardTecnico
             this.AutoScaleDimensions = new SizeF(7F, 15F);
             this.AutoScaleMode = AutoScaleMode.Font;
-            this.ClientSize = new Size(784, 461);
-            this.MinimumSize = new Size(800, 500);
+            this.ClientSize = new Size(848, 461);
+            this.MinimumSize = new Size(860, 500);
             this.Controls.Add(this.dgvTicketsOperativos);
             this.Controls.Add(this.ucDisponibles);
             this.Controls.Add(this.ucMisAsignados);
             this.Controls.Add(this.ucCerrados);
+            this.Controls.Add(this.ucCalificacion);
             this.Controls.Add(this.lblTitulo);
             this.Name = "frmDashboardTecnico";
             this.StartPosition = FormStartPosition.CenterScreen;
@@ -90,6 +98,7 @@ namespace HSis.UI
         private ucIndicador ucMisAsignados;
         private ucIndicador ucDisponibles;
         private ucIndicador ucCerrados;
+        private ucIndicador ucCalificacion;
         private DataGridView dgvTicketsOperativos;
     }
 }

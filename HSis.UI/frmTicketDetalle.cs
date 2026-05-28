@@ -121,6 +121,8 @@ namespace HSis.UI
 
                 // Suscribir el evento de cambio de estatus al final para evitar auto-asignaciones accidentales al cargar
                 cmbEstatus.SelectedIndexChanged += CmbEstatus_SelectedIndexChanged;
+
+                MostrarSeccionFeedback(ticket);
             }
             catch (Exception ex)
             {
@@ -261,7 +263,7 @@ namespace HSis.UI
             this.Close();
         }
 
-        private void ConfigurarFecha(DateTimePicker dtp, DateTime? fecha)
+        private static void ConfigurarFecha(DateTimePicker dtp, DateTime? fecha)
         {
             if (fecha.HasValue)
             {
@@ -276,9 +278,104 @@ namespace HSis.UI
             }
         }
 
-        private void rtbSolucion_TextChanged(object sender, EventArgs e)
+        private void MostrarSeccionFeedback(TicketDto ticket)
         {
+            bool mostrarFdb = false;
+            bool esEditable = false;
 
+            if (SesionSistema.IdRolUsuario == 3) // Cliente
+            {
+                if (ticket.Status == ConstantesEstatus.CERRADO)
+                {
+                    mostrarFdb = true;
+                    esEditable = !ticket.Calificacion.HasValue;
+                }
+            }
+            else // Admin o Técnico
+            {
+                if (ticket.Calificacion.HasValue)
+                {
+                    mostrarFdb = true;
+                    esEditable = false;
+                }
+            }
+
+            if (!mostrarFdb)
+            {
+                grpFeedback.Visible = false;
+                // Restaurar tamaño original por si cambia de estado
+                this.Height = 735;
+                lblHistoria.Location = new Point(12, 438);
+                dgvHistorial.Location = new Point(12, 456);
+                dgvHistorial.Height = 231;
+                return;
+            }
+
+            // Mostrar el GroupBox y aumentar tamaño del formulario
+            grpFeedback.Visible = true;
+            this.Height = 850;
+
+            // Desplazar el historial hacia abajo
+            lblHistoria.Location = new Point(12, 570);
+            dgvHistorial.Location = new Point(12, 590);
+            dgvHistorial.Height = 200;
+
+            // Configurar los controles internos según modo edición o lectura
+            if (esEditable)
+            {
+                // Mostrar controles de edición
+                lblEstrellas.Visible = true;
+                cmbEstrellas.Visible = true;
+                lblComentario.Visible = true;
+                txtComentario.Visible = true;
+                btnEnviar.Visible = true;
+
+                // Ocultar controles de lectura
+                lblResumen.Visible = false;
+                lblComentarioLectura.Visible = false;
+
+                cmbEstrellas.SelectedIndex = 4; // 5 estrellas por defecto
+                txtComentario.Text = string.Empty;
+            }
+            else
+            {
+                // Ocultar controles de edición
+                lblEstrellas.Visible = false;
+                cmbEstrellas.Visible = false;
+                lblComentario.Visible = false;
+                txtComentario.Visible = false;
+                btnEnviar.Visible = false;
+
+                // Mostrar controles de lectura
+                lblResumen.Visible = true;
+                lblComentarioLectura.Visible = true;
+
+                string estrellasStr = new string('⭐', ticket.Calificacion ?? 0);
+                lblResumen.Text = $"Calificación recibida: {estrellasStr} ({ticket.Calificacion}/5)";
+                lblComentarioLectura.Text = string.IsNullOrEmpty(ticket.ComentarioFeedback)
+                    ? "El cliente no dejó comentarios."
+                    : $"Comentario: \"{ticket.ComentarioFeedback}\"";
+            }
+        }
+        private async void btnEnviarFeedback_Click(object? sender, EventArgs e)
+        {
+            try
+            {
+                int calificacion = cmbEstrellas.SelectedIndex + 1;
+                string comentario = txtComentario.Text.Trim();
+
+                bool ok = await _ticketService.RegistrarCalificacionAsync(_idTicket, calificacion, comentario);
+                if (ok)
+                {
+                    MessageBox.Show("¡Gracias por tu retroalimentación!", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    // Recargar ticket
+                    CargarDialogoTicket();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al guardar feedback: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
     }
 }

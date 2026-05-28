@@ -67,7 +67,7 @@ namespace HSis.UI
             this.AutoScaleDimensions = new SizeF(7F, 15F);
             this.AutoScaleMode = AutoScaleMode.Font;
             this.ClientSize = new Size(784, 461);
-            this.MinimumSize = new Size(800, 500);
+            this.MinimumSize = new Size(680, 500);
             this.Controls.Add(this.dgvMisTickets);
             this.Controls.Add(this.btnNuevoReporte);
             this.Controls.Add(this.ucMisActivos);

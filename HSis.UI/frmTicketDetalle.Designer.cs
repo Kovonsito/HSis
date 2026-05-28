@@ -53,6 +53,14 @@ namespace HSis.UI
             cmbPrioridad = new ComboBox();
             this.lblDepartamento = new Label();
             txtDepartamento = new TextBox();
+            grpFeedback = new GroupBox();
+            lblEstrellas = new Label();
+            cmbEstrellas = new ComboBox();
+            lblComentario = new Label();
+            txtComentario = new TextBox();
+            btnEnviar = new Button();
+            lblResumen = new Label();
+            lblComentarioLectura = new Label();
             ((System.ComponentModel.ISupportInitialize)dgvHistorial).BeginInit();
             SuspendLayout();
             // 
@@ -296,12 +304,85 @@ namespace HSis.UI
             txtDepartamento.Size = new Size(200, 23);
             txtDepartamento.TabIndex = 28;
             // 
+            // grpFeedback
+            // 
+            this.grpFeedback.Text = "Retroalimentación de la Atención";
+            this.grpFeedback.Location = new Point(12, 450);
+            this.grpFeedback.Size = new Size(685, 110);
+            this.grpFeedback.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            this.grpFeedback.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            this.grpFeedback.Visible = false;
+            this.grpFeedback.Controls.Add(this.lblEstrellas);
+            this.grpFeedback.Controls.Add(this.cmbEstrellas);
+            this.grpFeedback.Controls.Add(this.lblComentario);
+            this.grpFeedback.Controls.Add(this.txtComentario);
+            this.grpFeedback.Controls.Add(this.btnEnviar);
+            this.grpFeedback.Controls.Add(this.lblResumen);
+            this.grpFeedback.Controls.Add(this.lblComentarioLectura);
+            // 
+            // lblEstrellas
+            // 
+            this.lblEstrellas.Text = "Calificación (1 al 5):";
+            this.lblEstrellas.Location = new Point(15, 25);
+            this.lblEstrellas.AutoSize = true;
+            this.lblEstrellas.Font = new Font("Segoe UI", 9F, FontStyle.Regular);
+            // 
+            // cmbEstrellas
+            // 
+            this.cmbEstrellas.Location = new Point(140, 22);
+            this.cmbEstrellas.Width = 80;
+            this.cmbEstrellas.DropDownStyle = ComboBoxStyle.DropDownList;
+            this.cmbEstrellas.Font = new Font("Segoe UI", 9F, FontStyle.Regular);
+            this.cmbEstrellas.Items.AddRange(new object[] { "1 - Muy Malo", "2 - Malo", "3 - Regular", "4 - Bueno", "5 - Excelente" });
+            // 
+            // lblComentario
+            // 
+            this.lblComentario.Text = "Comentario (Opcional):";
+            this.lblComentario.Location = new Point(15, 55);
+            this.lblComentario.AutoSize = true;
+            this.lblComentario.Font = new Font("Segoe UI", 9F, FontStyle.Regular);
+            // 
+            // txtComentario
+            // 
+            this.txtComentario.Location = new Point(15, 75);
+            this.txtComentario.Width = 510;
+            this.txtComentario.Height = 25;
+            this.txtComentario.Font = new Font("Segoe UI", 9F, FontStyle.Regular);
+            // 
+            // btnEnviar
+            // 
+            this.btnEnviar.Text = "Enviar";
+            this.btnEnviar.Location = new Point(540, 72);
+            this.btnEnviar.Width = 130;
+            this.btnEnviar.Height = 30;
+            this.btnEnviar.BackColor = Color.FromArgb(52, 152, 219);
+            this.btnEnviar.ForeColor = Color.White;
+            this.btnEnviar.FlatStyle = FlatStyle.Flat;
+            this.btnEnviar.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            this.btnEnviar.FlatAppearance.BorderSize = 0;
+            this.btnEnviar.Click += new EventHandler(this.btnEnviarFeedback_Click);
+            // 
+            // lblResumen
+            // 
+            this.lblResumen.Location = new Point(15, 25);
+            this.lblResumen.AutoSize = true;
+            this.lblResumen.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            this.lblResumen.ForeColor = Color.FromArgb(41, 128, 185);
+            // 
+            // lblComentarioLectura
+            // 
+            this.lblComentarioLectura.Location = new Point(15, 55);
+            this.lblComentarioLectura.Width = 650;
+            this.lblComentarioLectura.Height = 45;
+            this.lblComentarioLectura.Font = new Font("Segoe UI", 9F, FontStyle.Italic);
+            // 
             // frmTicketDetalle
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(709, 695);
             MinimumSize = new Size(725, 735);
+            Controls.Add(this.grpFeedback);
             Controls.Add(txtDepartamento);
             Controls.Add(lblDepartamento);
             Controls.Add(lblPrioridad);
@@ -363,5 +444,13 @@ namespace HSis.UI
         private ComboBox cmbPrioridad;
         private Label lblDepartamento;
         private TextBox txtDepartamento;
+        private GroupBox grpFeedback;
+        private Label lblEstrellas;
+        private ComboBox cmbEstrellas;
+        private Label lblComentario;
+        private TextBox txtComentario;
+        private Button btnEnviar;
+        private Label lblResumen;
+        private Label lblComentarioLectura;
     }
 }

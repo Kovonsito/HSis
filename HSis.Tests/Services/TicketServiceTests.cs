@@ -28,7 +28,7 @@ namespace HSis.Tests.Services
             _updateValidator = new TicketUpdateValidator();
         }
 
-        private IDbContextFactory<HSisDbContext> CreateFactory(DbContextOptions<HSisDbContext> options)
+        private static IDbContextFactory<HSisDbContext> CreateFactory(DbContextOptions<HSisDbContext> options)
         {
             var mockFactory = new Mock<IDbContextFactory<HSisDbContext>>();
             mockFactory.Setup(f => f.CreateDbContext()).Returns(() => new HSisDbContext(options));
@@ -58,7 +58,7 @@ namespace HSis.Tests.Services
             resultado.Should().NotBeNull();
             resultado.IdTicket.Should().BeGreaterThan(0);
             resultado.Status.Should().Be("Abierto");
-            
+
             using var contextVerification = new HSisDbContext(options);
             var ticketEnBd = await contextVerification.Tickets.FindAsync(resultado.IdTicket);
             ticketEnBd.Should().NotBeNull();
@@ -117,11 +117,11 @@ namespace HSis.Tests.Services
             {
                 db.Usuarios.Add(new Usuario { IdUsuario = 10, Nombre = "Juan Perez" });
                 db.Usuarios.Add(new Usuario { IdUsuario = 11, Nombre = "Pedro Gomez" });
-                
+
                 db.Tickets.Add(new Ticket { IdTicket = 101, IdUsuario = 10, Status = "Abierto", Prioridad = "Alta", Alta = DateTime.Today });
                 db.Tickets.Add(new Ticket { IdTicket = 102, IdUsuario = 10, Status = "En Proceso", Prioridad = "Media", Alta = DateTime.Today });
                 db.Tickets.Add(new Ticket { IdTicket = 103, IdUsuario = 11, Status = "Cerrado", Prioridad = "Baja", Alta = DateTime.Today.AddDays(-5) });
-                
+
                 await db.SaveChangesAsync();
             }
 

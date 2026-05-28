@@ -87,10 +87,10 @@ namespace HSis.UI
             var xValue = _property.GetValue(x);
             var yValue = _property.GetValue(y);
 
-            return CompareValues(xValue, yValue, _direction);
+            return PropertyComparer<T>.CompareValues(xValue, yValue, _direction);
         }
 
-        private int CompareValues(object? xValue, object? yValue, ListSortDirection direction)
+        private static int CompareValues(object? xValue, object? yValue, ListSortDirection direction)
         {
             int result;
 

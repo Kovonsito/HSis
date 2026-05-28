@@ -57,12 +57,14 @@ namespace HSis.UI
                 var taskMisAsignados = _ticketService.ObtenerTicketsAsignadosATecnicoAsync(SesionSistema.IdUsuario);
                 var taskDisponibles = _ticketService.ObtenerTicketsDisponiblesAsync();
                 var taskCerrados = _ticketService.ObtenerTicketsCerradosPorTecnicoAsync(SesionSistema.IdUsuario);
+                var taskCalificacion = _ticketService.ObtenerPromedioCalificacionTecnicoAsync(SesionSistema.IdUsuario);
 
-                await Task.WhenAll(taskMisAsignados, taskDisponibles, taskCerrados);
+                await Task.WhenAll(taskMisAsignados, taskDisponibles, taskCerrados, taskCalificacion);
 
                 var misAsignados = taskMisAsignados.Result;
                 var disponibles = taskDisponibles.Result;
                 var cerrados = taskCerrados.Result;
+                var promedio = taskCalificacion.Result;
 
                 ucMisAsignados.Cantidad = misAsignados.Count.ToString();
                 ucMisAsignados.Titulo = "Mis Asignados";
@@ -82,6 +84,10 @@ namespace HSis.UI
                 ucCerrados.ColorFondo = Color.FromArgb(46, 204, 113);
                 ucCerrados.ucIndicadorEvent -= UcCerrados_Click;
                 ucCerrados.ucIndicadorEvent += UcCerrados_Click;
+
+                ucCalificacion.Cantidad = promedio > 0 ? $"⭐ {promedio:F1}" : "⭐ N/A";
+                ucCalificacion.Titulo = "Mi Calificación";
+                ucCalificacion.ColorFondo = Color.FromArgb(155, 89, 182);
             }
             catch (Exception ex)
             {

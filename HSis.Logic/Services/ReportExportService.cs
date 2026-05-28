@@ -19,7 +19,7 @@ namespace HSis.Logic.Services
         }
 
         // Generar archivo Excel con ClosedXML
-        public byte[] GenerarExcel(ReporteKpisDto kpis, List<TicketDto> tickets, DateTime inicio, DateTime fin)
+        public static byte[] GenerarExcel(ReporteKpisDto kpis, List<TicketDto> tickets, DateTime inicio, DateTime fin)
         {
             using var workbook = new XLWorkbook();
 
@@ -219,7 +219,7 @@ namespace HSis.Logic.Services
         }
 
         // Generar archivo PDF con QuestPDF
-        public byte[] GenerarPdf(ReporteKpisDto kpis, List<TicketDto> tickets, DateTime inicio, DateTime fin)
+        public static byte[] GenerarPdf(ReporteKpisDto kpis, List<TicketDto> tickets, DateTime inicio, DateTime fin)
         {
             var document = Document.Create(container =>
             {
