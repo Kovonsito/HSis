@@ -29,4 +29,10 @@ public partial class Ticket
     public virtual Usuario? IdTecnicoNavigation { get; set; }
 
     public virtual Usuario IdUsuarioNavigation { get; set; } = null!;
+
+    public int? Calificacion { get; set; }
+
+    public string? ComentarioFeedback { get; set; }
+
+    public DateTime? FechaFeedback { get; set; }
 }

@@ -12,7 +12,7 @@ namespace HSis.Logic.Services
         FluentValidation.IValidator<TicketCreateDto> createValidator,
         FluentValidation.IValidator<TicketUpdateDto> updateValidator)
     {
-        private DateTime ObtenerLimiteSLA() => DateTime.Now.AddHours(-48);
+        private static DateTime ObtenerLimiteSLA() => DateTime.Now.AddHours(-48);
 
         // Obtener todos los tickets - Async
         public async Task<List<TicketDto>> ObtenerTicketsAsync()
@@ -449,6 +449,40 @@ namespace HSis.Logic.Services
                 DemandaDepartamentos = demandaDepartamentos,
                 AnalisisTemporal = analisisTemporal
             };
+        }
+
+        // Registrar calificación del cliente para un ticket
+        public async Task<bool> RegistrarCalificacionAsync(int idTicket, int calificacion, string? comentario)
+        {
+            if (calificacion < 1 || calificacion > 5)
+                throw new ArgumentException("La calificación debe estar entre 1 y 5.");
+
+            using var db = dbContextFactory.CreateDbContext();
+            var ticket = await db.Tickets.FindAsync(idTicket);
+            if (ticket == null) return false;
+
+            if (ticket.Status != ConstantesEstatus.CERRADO)
+                throw new InvalidOperationException("Solo se pueden calificar tickets que estén cerrados.");
+
+            ticket.Calificacion = calificacion;
+            ticket.ComentarioFeedback = comentario;
+            ticket.FechaFeedback = DateTime.Now;
+
+            await db.SaveChangesAsync();
+            return true;
+        }
+
+        // Obtener promedio de calificación de un técnico
+        public async Task<double> ObtenerPromedioCalificacionTecnicoAsync(int idTecnico)
+        {
+            using var db = dbContextFactory.CreateDbContext();
+            var calificaciones = await db.Tickets
+                .Where(t => t.IdTecnico == idTecnico && t.Calificacion.HasValue)
+                .Select(t => t.Calificacion!.Value)
+                .ToListAsync();
+
+            if (!calificaciones.Any()) return 0.0;
+            return calificaciones.Average();
         }
     }
 }

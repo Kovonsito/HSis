@@ -72,7 +72,7 @@ namespace HSis.Logic.Services
         }
 
         // Obtener todos los detalles - Async
-        public async Task<List<DetTicket>> ObtenerTodosDetallesAsync()
+        public static async Task<List<DetTicket>> ObtenerTodosDetallesAsync()
         {
             using var db = new HSisDbContext();
             return await db.DetTickets

@@ -166,11 +166,13 @@ namespace HSis.UI
             tabTickets.TabIndex = 0;
             tabTickets.Text = "Tickets";
             tabTickets.UseVisualStyleBackColor = true;
+            tabTickets.AutoScroll = true;
             // 
             // pnlFiltros
             // 
             pnlFiltros.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             pnlFiltros.BorderStyle = BorderStyle.FixedSingle;
+            pnlFiltros.AutoScroll = true;
             pnlFiltros.Controls.Add(lblFiltrosTitle);
             pnlFiltros.Controls.Add(lblFiltroEstatus);
             pnlFiltros.Controls.Add(cmbFiltroEstatus);
@@ -234,6 +236,7 @@ namespace HSis.UI
             // 
             pnlPaginacion.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             pnlPaginacion.BorderStyle = BorderStyle.FixedSingle;
+            pnlPaginacion.AutoScroll = true;
             pnlPaginacion.Controls.Add(lblPageSize);
             pnlPaginacion.Controls.Add(cmbPageSize);
             pnlPaginacion.Controls.Add(btnFirstPage);
@@ -314,7 +317,7 @@ namespace HSis.UI
             // 
             // lblTotalTickets
             // 
-            lblTotalTickets.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            lblTotalTickets.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             lblTotalTickets.Font = new Font("Segoe UI", 9F);
             lblTotalTickets.Location = new Point(810, 7);
             lblTotalTickets.Name = "lblTotalTickets";
@@ -418,7 +421,6 @@ namespace HSis.UI
             // 
             // btnLimpiarFiltros
             // 
-            btnLimpiarFiltros.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnLimpiarFiltros.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
             btnLimpiarFiltros.Location = new Point(720, 80);
             btnLimpiarFiltros.Name = "btnLimpiarFiltros";
@@ -428,7 +430,6 @@ namespace HSis.UI
             // 
             // btnAbrirReportes
             // 
-            btnAbrirReportes.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnAbrirReportes.BackColor = Color.FromArgb(37, 99, 235);
             btnAbrirReportes.FlatStyle = FlatStyle.Flat;
             btnAbrirReportes.ForeColor = Color.White;
@@ -446,7 +447,7 @@ namespace HSis.UI
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1049, 617);
             Controls.Add(tabMain);
-            MinimumSize = new Size(1065, 656);
+            MinimumSize = new Size(680, 600);
             Name = "frmDashboardAdmin";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "DashboardAdmin";

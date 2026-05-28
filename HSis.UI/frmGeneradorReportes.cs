@@ -38,7 +38,7 @@ namespace HSis.UI
 
                 // 1. Obtener datos
                 var kpis = await _ticketService.ObtenerReporteKpisAsync(inicio, fin);
-                
+
                 // Para el detalle, filtramos todos los tickets del periodo
                 var filtro = new TicketFilterDto
                 {
@@ -49,7 +49,7 @@ namespace HSis.UI
                 var tickets = await _ticketService.ObtenerTicketsFiltradosAsync(filtro);
 
                 // 2. Generar Excel
-                var bytes = _reportExportService.GenerarExcel(kpis, tickets, inicio, fin);
+                var bytes = ReportExportService.GenerarExcel(kpis, tickets, inicio, fin);
 
                 // 3. Guardar Archivo
                 using (var sfd = new SaveFileDialog())
@@ -88,7 +88,7 @@ namespace HSis.UI
 
                 // 1. Obtener datos
                 var kpis = await _ticketService.ObtenerReporteKpisAsync(inicio, fin);
-                
+
                 var filtro = new TicketFilterDto
                 {
                     FechaAltaInicio = inicio,
@@ -98,7 +98,7 @@ namespace HSis.UI
                 var tickets = await _ticketService.ObtenerTicketsFiltradosAsync(filtro);
 
                 // 2. Generar PDF
-                var bytes = _reportExportService.GenerarPdf(kpis, tickets, inicio, fin);
+                var bytes = ReportExportService.GenerarPdf(kpis, tickets, inicio, fin);
 
                 // 3. Guardar Archivo
                 using (var sfd = new SaveFileDialog())

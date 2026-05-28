@@ -17,6 +17,9 @@ namespace HSis.Logic.DTOs
         public int? IdTecnico { get; set; }
         public string NombreTecnico { get; set; } = null!;
         public string? Prioridad { get; set; }
+        public int? Calificacion { get; set; }
+        public string? ComentarioFeedback { get; set; }
+        public DateTime? FechaFeedback { get; set; }
     }
 
     public class TicketCreateDto
