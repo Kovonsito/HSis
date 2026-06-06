@@ -8,5 +8,6 @@ namespace HSis.Logic.DTOs
         public string? Status { get; set; }
         public string? TecnicoAsignado { get; set; }
         public string? Descripcion { get; set; }
+        public string? Feedback { get; set; }
     }
 }

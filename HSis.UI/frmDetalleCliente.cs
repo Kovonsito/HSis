@@ -14,9 +14,10 @@ namespace HSis.UI
     [SupportedOSPlatform("windows")]
     public partial class frmDetalleCliente : Form
     {
-        private int _idTicket;
+        private readonly int _idTicket;
         private readonly TicketService _ticketService;
         private TicketDto? _ticketActual;
+        private int _calificacionSeleccionada = 5;
 
         public frmDetalleCliente(int idTicket, TicketService ticketService)
         {
@@ -61,6 +62,8 @@ namespace HSis.UI
 
                 // Aplicar estilo de color según el estatus
                 AplicarEstiloEstatus(_ticketActual.Status);
+
+                MostrarSeccionFeedback(_ticketActual);
             }
             catch (Exception ex)
             {
@@ -92,6 +95,135 @@ namespace HSis.UI
         private void btnCerrar_Click(object? sender, EventArgs e)
         {
             this.Close();
+        }
+
+        private void MostrarSeccionFeedback(TicketDto ticket)
+        {
+            bool mostrarFdb = false;
+            bool esEditable = false;
+
+            if (ticket.Status == ConstantesEstatus.CERRADO)
+            {
+                mostrarFdb = true;
+                esEditable = !ticket.Calificacion.HasValue;
+            }
+
+            if (!mostrarFdb)
+            {
+                grpFeedback.Visible = false;
+                this.ClientSize = new Size(520, 391);
+                btnCerrar.Location = new Point(413, 350);
+                return;
+            }
+
+            grpFeedback.Visible = true;
+            this.ClientSize = new Size(520, 640);
+            btnCerrar.Location = new Point(413, 590);
+
+            if (esEditable)
+            {
+                lblEstrellas.Visible = true;
+                lblStar1.Visible = true;
+                lblStar2.Visible = true;
+                lblStar3.Visible = true;
+                lblStar4.Visible = true;
+                lblStar5.Visible = true;
+                lblComentario.Visible = true;
+                txtComentario.Visible = true;
+                btnEnviar.Visible = true;
+
+                lblResumen.Visible = false;
+                lblComentarioLectura.Visible = false;
+
+                _calificacionSeleccionada = 5;
+                ActualizarEstrellasVisuales(5);
+                txtComentario.Text = string.Empty;
+            }
+            else
+            {
+                lblEstrellas.Visible = false;
+                lblStar1.Visible = false;
+                lblStar2.Visible = false;
+                lblStar3.Visible = false;
+                lblStar4.Visible = false;
+                lblStar5.Visible = false;
+                lblComentario.Visible = false;
+                txtComentario.Visible = false;
+                btnEnviar.Visible = false;
+
+                lblResumen.Visible = true;
+                lblComentarioLectura.Visible = true;
+
+                string estrellasStr = new('⭐', ticket.Calificacion ?? 0);
+                lblResumen.Text = $"Calificación dada: {estrellasStr} ({ticket.Calificacion}/5)";
+                lblComentarioLectura.Text = string.IsNullOrEmpty(ticket.ComentarioFeedback)
+                    ? "No ingresaste comentarios."
+                    : $"Comentario: \"{ticket.ComentarioFeedback}\"";
+            }
+        }
+
+        private void lblStar_Click(object? sender, EventArgs e)
+        {
+            if (sender is Label lbl && int.TryParse(lbl.Tag?.ToString(), out int score))
+            {
+                _calificacionSeleccionada = score;
+                ActualizarEstrellasVisuales(score);
+            }
+        }
+
+        private void lblStar_MouseEnter(object? sender, EventArgs e)
+        {
+            if (sender is Label lbl && int.TryParse(lbl.Tag?.ToString(), out int score))
+            {
+                ActualizarEstrellasVisuales(score);
+            }
+        }
+
+        private void lblStar_MouseLeave(object? sender, EventArgs e)
+        {
+            ActualizarEstrellasVisuales(_calificacionSeleccionada);
+        }
+
+        private void ActualizarEstrellasVisuales(int score)
+        {
+            Label[] stars = [lblStar1, lblStar2, lblStar3, lblStar4, lblStar5];
+            for (int i = 0; i < stars.Length; i++)
+            {
+                if (i < score)
+                {
+                    stars[i].Text = "★";
+                    stars[i].ForeColor = Color.FromArgb(241, 196, 15);
+                }
+                else
+                {
+                    stars[i].Text = "☆";
+                    stars[i].ForeColor = Color.Gray;
+                }
+            }
+        }
+
+        private async void btnEnviarFeedback_Click(object? sender, EventArgs e)
+        {
+            try
+            {
+                int calificacion = _calificacionSeleccionada;
+                string comentario = txtComentario.Text.Trim();
+
+                bool ok = await _ticketService.RegistrarCalificacionAsync(_idTicket, calificacion, comentario);
+                if (ok)
+                {
+                    MessageBox.Show("¡Gracias por tu retroalimentación!", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    _ticketActual = await _ticketService.ObtenerTicketPorIdAsync(_idTicket);
+                    if (_ticketActual != null)
+                    {
+                        MostrarSeccionFeedback(_ticketActual);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al guardar feedback: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
     }
 }

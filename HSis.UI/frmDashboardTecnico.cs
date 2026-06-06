@@ -14,7 +14,8 @@ namespace HSis.UI
         {
             MisAsignados,
             Disponibles,
-            Cerrados
+            Cerrados,
+            Calificaciones
         }
         private VistaDashboard _vistaActual = VistaDashboard.MisAsignados;
 
@@ -44,6 +45,7 @@ namespace HSis.UI
                 VistaDashboard.MisAsignados => CargarTicketsMisAsignadosAsync(),
                 VistaDashboard.Disponibles => CargarTicketsDisponiblesAsync(),
                 VistaDashboard.Cerrados => CargarTicketsCerradosAsync(),
+                VistaDashboard.Calificaciones => CargarCalificacionesAsync(),
                 _ => Task.CompletedTask
             };
             await task;
@@ -88,6 +90,8 @@ namespace HSis.UI
                 ucCalificacion.Cantidad = promedio > 0 ? $"⭐ {promedio:F1}" : "⭐ N/A";
                 ucCalificacion.Titulo = "Mi Calificación";
                 ucCalificacion.ColorFondo = Color.FromArgb(155, 89, 182);
+                ucCalificacion.ucIndicadorEvent -= UcCalificacion_Click;
+                ucCalificacion.ucIndicadorEvent += UcCalificacion_Click;
             }
             catch (Exception ex)
             {
@@ -111,6 +115,34 @@ namespace HSis.UI
         {
             _vistaActual = VistaDashboard.Cerrados;
             await CargarTicketsSegunVistaAsync();
+        }
+
+        private async void UcCalificacion_Click(object? sender, EventArgs e)
+        {
+            _vistaActual = VistaDashboard.Calificaciones;
+            await CargarTicketsSegunVistaAsync();
+        }
+
+        private async Task CargarCalificacionesAsync()
+        {
+            try
+            {
+                var feedback = await _ticketService.ObtenerFeedbackTecnicoAsync(SesionSistema.IdUsuario);
+                var feedbackDto = feedback.Select(t => new FeedbackTecnicoDto
+                {
+                    IdTicket = t.IdTicket,
+                    Calificacion = new string('★', t.Calificacion ?? 0) + new string('☆', 5 - (t.Calificacion ?? 0)),
+                    Comentario = t.ComentarioFeedback ?? "Sin comentarios",
+                    Fecha = t.FechaFeedback
+                }).ToList();
+
+                dgvTicketsOperativos.DataSource = new SortableBindingList<FeedbackTecnicoDto>(feedbackDto);
+                PersonalizarColumnas();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al cargar calificaciones: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private async Task CargarTicketsMisAsignadosAsync()
@@ -172,30 +204,56 @@ namespace HSis.UI
         {
             if (dgvTicketsOperativos.Columns.Count > 0)
             {
-                if (dgvTicketsOperativos.Columns["IdTicket"] is DataGridViewColumn colId) colId.Visible = false;
-                if (dgvTicketsOperativos.Columns["FechaAlta"] is DataGridViewColumn colFechaAlta)
+                if (dgvTicketsOperativos.DataSource is SortableBindingList<FeedbackTecnicoDto>)
                 {
-                    colFechaAlta.HeaderText = "Fecha de Alta";
-                    colFechaAlta.Width = 100;
+                    if (dgvTicketsOperativos.Columns["IdTicket"] is DataGridViewColumn colId) colId.Visible = false;
+                    if (dgvTicketsOperativos.Columns["Folio"] is DataGridViewColumn colFolio)
+                    {
+                        colFolio.HeaderText = "Folio";
+                        colFolio.Width = 80;
+                    }
+                    if (dgvTicketsOperativos.Columns["Calificacion"] is DataGridViewColumn colCal)
+                    {
+                        colCal.HeaderText = "Calificación";
+                        colCal.Width = 100;
+                    }
+                    if (dgvTicketsOperativos.Columns["Comentario"] is DataGridViewColumn colCom)
+                    {
+                        colCom.HeaderText = "Comentario del Cliente";
+                    }
+                    if (dgvTicketsOperativos.Columns["Fecha"] is DataGridViewColumn colFec)
+                    {
+                        colFec.HeaderText = "Fecha de Calificación";
+                        colFec.Width = 130;
+                    }
                 }
-                if (dgvTicketsOperativos.Columns["Status"] is DataGridViewColumn colStatus)
+                else
                 {
-                    colStatus.HeaderText = "Estatus";
-                    colStatus.Width = 100;
-                }
-                if (dgvTicketsOperativos.Columns["Usuario"] is DataGridViewColumn colUsuario)
-                {
-                    colUsuario.HeaderText = "Usuario Reportó";
-                    colUsuario.Width = 120;
-                }
-                if (dgvTicketsOperativos.Columns["Descripcion"] is DataGridViewColumn colDesc)
-                {
-                    colDesc.HeaderText = "Descripción";
-                }
-                if (dgvTicketsOperativos.Columns["Prioridad"] is DataGridViewColumn colPrioridad)
-                {
-                    colPrioridad.HeaderText = "Prioridad";
-                    colPrioridad.Width = 80;
+                    if (dgvTicketsOperativos.Columns["IdTicket"] is DataGridViewColumn colId) colId.Visible = false;
+                    if (dgvTicketsOperativos.Columns["FechaAlta"] is DataGridViewColumn colFechaAlta)
+                    {
+                        colFechaAlta.HeaderText = "Fecha de Alta";
+                        colFechaAlta.Width = 100;
+                    }
+                    if (dgvTicketsOperativos.Columns["Status"] is DataGridViewColumn colStatus)
+                    {
+                        colStatus.HeaderText = "Estatus";
+                        colStatus.Width = 100;
+                    }
+                    if (dgvTicketsOperativos.Columns["Usuario"] is DataGridViewColumn colUsuario)
+                    {
+                        colUsuario.HeaderText = "Usuario Reportó";
+                        colUsuario.Width = 120;
+                    }
+                    if (dgvTicketsOperativos.Columns["Descripcion"] is DataGridViewColumn colDesc)
+                    {
+                        colDesc.HeaderText = "Descripción";
+                    }
+                    if (dgvTicketsOperativos.Columns["Prioridad"] is DataGridViewColumn colPrioridad)
+                    {
+                        colPrioridad.HeaderText = "Prioridad";
+                        colPrioridad.Width = 80;
+                    }
                 }
             }
         }

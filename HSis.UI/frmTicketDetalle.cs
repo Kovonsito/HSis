@@ -171,7 +171,7 @@ namespace HSis.UI
                     idTecnico = SesionSistema.IdUsuario;
                 }
 
-                string solucionIngresada = rtbSolucion.Text;
+                string solucionIngresada = rtbSolucion.Text ?? string.Empty;
                 string prioridadSeleccionada = cmbPrioridad.SelectedItem?.ToString() ?? string.Empty;
 
                 // Validación de cambios: Evitar viajes a la BD e historial innecesario si nada cambió
@@ -300,6 +300,10 @@ namespace HSis.UI
                 }
             }
 
+            // Guardar el anclaje original y quitar temporalmente el Bottom para evitar que la redimensión interfiera
+            var oldAnchor = dgvHistorial.Anchor;
+            dgvHistorial.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+
             if (!mostrarFdb)
             {
                 grpFeedback.Visible = false;
@@ -308,6 +312,8 @@ namespace HSis.UI
                 lblHistoria.Location = new Point(12, 438);
                 dgvHistorial.Location = new Point(12, 456);
                 dgvHistorial.Height = 231;
+                
+                dgvHistorial.Anchor = oldAnchor;
                 return;
             }
 
@@ -319,6 +325,8 @@ namespace HSis.UI
             lblHistoria.Location = new Point(12, 570);
             dgvHistorial.Location = new Point(12, 590);
             dgvHistorial.Height = 200;
+
+            dgvHistorial.Anchor = oldAnchor;
 
             // Configurar los controles internos según modo edición o lectura
             if (esEditable)
