@@ -93,7 +93,7 @@ namespace HSis.Tests.Services
             var service = new TicketService(mockFactory.Object, _mapper, _createValidator, _updateValidator);
 
             // Act
-            var resultado = service.ObtenerEstatusPermitidos(1, "Abierto"); // Rol 1 = Admin
+            var resultado = TicketService.ObtenerEstatusPermitidos(1, "Abierto"); // Rol 1 = Admin
 
             // Assert
             resultado.Should().Contain("Cerrado");

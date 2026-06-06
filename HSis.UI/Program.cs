@@ -98,6 +98,8 @@ namespace HSis.UI
                 services.AddTransient<DetTicketService>();
                 services.AddTransient<MaterialService>();
                 services.AddTransient<ReportExportService>();
+                services.AddSingleton<NotificationClientService>();
+                services.AddSingleton<SessionCacheService>();
 
                 // Registrar Formularios
                 services.AddTransient<frmIniciarSesion>();

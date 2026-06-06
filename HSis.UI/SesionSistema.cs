@@ -43,6 +43,9 @@ namespace HSis.UI
                 var confirmResult = MessageBox.Show("¿Estás seguro de que deseas cerrar sesión?", "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                 if (confirmResult == DialogResult.Yes)
                 {
+                    // Limpiar credenciales guardadas en caché
+                    HSis.Logic.Services.SessionCacheService.ClearCredentials();
+
                     Application.Restart();
                 }
             };

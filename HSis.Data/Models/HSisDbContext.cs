@@ -36,6 +36,8 @@ public partial class HSisDbContext : DbContext
 
     public virtual DbSet<Usuario> Usuarios { get; set; } = null!;
 
+    public virtual DbSet<Notificacion> Notificaciones { get; set; } = null!;
+
     public virtual DbSet<VHistorialInventario> VHistorialInventarios { get; set; } = null!;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

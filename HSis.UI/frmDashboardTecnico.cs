@@ -18,16 +18,40 @@ namespace HSis.UI
             Calificaciones
         }
         private VistaDashboard _vistaActual = VistaDashboard.MisAsignados;
+        private readonly NotificationClientService _notificationClient;
+        private Panel? _pnlResilienceBanner;
+        private Label? _lblResilienceBanner;
 
-        public frmDashboardTecnico(TicketService ticketService)
+        public frmDashboardTecnico(TicketService ticketService, NotificationClientService notificationClient)
         {
             InitializeComponent();
             _ticketService = ticketService;
+            _notificationClient = notificationClient;
         }
 
         private async void frmDashboardTecnico_Load(object? sender, EventArgs e)
         {
+            InicializarBannerResiliencia();
             SesionSistema.ConfigurarMenuSesion(this);
+
+            // Suscribirse a los eventos de SignalR
+            _notificationClient.OnNotificationReceived += OnNotificationReceived;
+            _notificationClient.OnReconnecting += OnReconnecting;
+            _notificationClient.OnConnected += OnConnected;
+            _notificationClient.OnDisconnected += OnDisconnected;
+
+            // Limpieza al cerrar formulario
+            this.FormClosed += (s, args) =>
+            {
+                _notificationClient.OnNotificationReceived -= OnNotificationReceived;
+                _notificationClient.OnReconnecting -= OnReconnecting;
+                _notificationClient.OnConnected -= OnConnected;
+                _notificationClient.OnDisconnected -= OnDisconnected;
+            };
+
+            // Establecer estado inicial según la conexión
+            ActualizarEstadoConexion(_notificationClient.IsConnected, "⚠️ Conectando al servidor de notificaciones...", Color.FromArgb(230, 126, 34));
+
             // Cargamos indicadores y grid en paralelo
             await CargarDatosInicialesAsync();
         }
@@ -273,6 +297,76 @@ namespace HSis.UI
                     await CargarTicketsSegunVistaAsync();
                 }
             }
+        }
+
+        private void InicializarBannerResiliencia()
+        {
+            _pnlResilienceBanner = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 35,
+                BackColor = Color.FromArgb(231, 76, 60), // Rojo
+                Visible = false
+            };
+
+            _lblResilienceBanner = new Label
+            {
+                Dock = DockStyle.Fill,
+                ForeColor = Color.White,
+                Font = new Font("Segoe UI", 10F, FontStyle.Bold),
+                TextAlign = ContentAlignment.MiddleCenter,
+                Text = "⚠️ Sin conexión con el servidor de notificaciones. Intentando reconectar..."
+            };
+
+            _pnlResilienceBanner.Controls.Add(_lblResilienceBanner);
+            this.Controls.Add(_pnlResilienceBanner);
+            _pnlResilienceBanner.BringToFront();
+        }
+
+        private void OnNotificationReceived(string tipo, int ticketId, string mensaje)
+        {
+            if (this.InvokeRequired)
+            {
+                this.BeginInvoke(new Action(() => OnNotificationReceived(tipo, ticketId, mensaje)));
+                return;
+            }
+
+            MessageBox.Show(mensaje, "Notificación de HSis", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            _ = CargarDatosInicialesAsync();
+        }
+
+        private void OnReconnecting()
+        {
+            ActualizarEstadoConexion(false, "⚠️ Intentando reconectar con el servidor de notificaciones...", Color.FromArgb(230, 126, 34)); // Naranja
+        }
+
+        private void OnConnected()
+        {
+            ActualizarEstadoConexion(true, string.Empty, Color.Empty);
+            _ = CargarDatosInicialesAsync(); // Recargar datos al reconectarse
+        }
+
+        private void OnDisconnected()
+        {
+            ActualizarEstadoConexion(false, "⚠️ Sin conexión con el servidor de notificaciones. Intentando reconectar...", Color.FromArgb(231, 76, 60)); // Rojo
+        }
+
+        private void ActualizarEstadoConexion(bool conectado, string mensaje, Color colorFondo)
+        {
+            if (this.InvokeRequired)
+            {
+                this.BeginInvoke(new Action(() => ActualizarEstadoConexion(conectado, mensaje, colorFondo)));
+                return;
+            }
+
+            if (_pnlResilienceBanner != null && _lblResilienceBanner != null)
+            {
+                _pnlResilienceBanner.Visible = !conectado;
+                _lblResilienceBanner.Text = mensaje;
+                _pnlResilienceBanner.BackColor = colorFondo;
+            }
+
+            dgvTicketsOperativos.Enabled = conectado;
         }
     }
 }
