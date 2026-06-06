@@ -44,7 +44,7 @@ namespace HSis.UI
             }
         }
 
-        private async void frmIniciarSesion_Load(object? sender, EventArgs e)
+        private void frmIniciarSesion_Load(object? sender, EventArgs e)
         {
             //await _usuarioService.RehashearContraseñasAsync();
         }

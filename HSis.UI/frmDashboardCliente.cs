@@ -50,7 +50,10 @@ namespace HSis.UI
                 FechaAlta = t.Alta,
                 Status = t.Status,
                 TecnicoAsignado = t.NombreTecnico ?? "Sin asignar",
-                Descripcion = !string.IsNullOrEmpty(t.Descripcion) && t.Descripcion.Length > 50 ? t.Descripcion.Substring(0, 50) + "..." : (t.Descripcion ?? "")
+                Descripcion = !string.IsNullOrEmpty(t.Descripcion) && t.Descripcion.Length > 50 ? t.Descripcion.Substring(0, 50) + "..." : (t.Descripcion ?? ""),
+                Feedback = t.Status == ConstantesEstatus.CERRADO
+                    ? (t.Calificacion.HasValue ? $"Enviada ({new string('★', t.Calificacion.Value)}{new string('☆', 5 - t.Calificacion.Value)})" : "Pendiente")
+                    : "N/A"
             });
 
             dgvMisTickets.DataSource = new SortableBindingList<TicketClienteDto>(ticketsDto);
@@ -90,6 +93,13 @@ namespace HSis.UI
 
                 var colDescripcion = dgvMisTickets.Columns["Descripcion"];
                 if (colDescripcion != null) colDescripcion.HeaderText = "Descripción";
+
+                var colFeedback = dgvMisTickets.Columns["Feedback"];
+                if (colFeedback != null)
+                {
+                    colFeedback.HeaderText = "Retroalimentación";
+                    colFeedback.Width = 140;
+                }
             }
         }
 

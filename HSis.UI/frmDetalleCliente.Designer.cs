@@ -43,6 +43,18 @@ namespace HSis.UI
             this.btnCerrar = new System.Windows.Forms.Button();
             this.lblFechaCierre = new System.Windows.Forms.Label();
             this.lblFechaCierreValor = new System.Windows.Forms.Label();
+            this.grpFeedback = new System.Windows.Forms.GroupBox();
+            this.lblEstrellas = new System.Windows.Forms.Label();
+            this.lblStar1 = new System.Windows.Forms.Label();
+            this.lblStar2 = new System.Windows.Forms.Label();
+            this.lblStar3 = new System.Windows.Forms.Label();
+            this.lblStar4 = new System.Windows.Forms.Label();
+            this.lblStar5 = new System.Windows.Forms.Label();
+            this.lblComentario = new System.Windows.Forms.Label();
+            this.txtComentario = new System.Windows.Forms.TextBox();
+            this.btnEnviar = new System.Windows.Forms.Button();
+            this.lblResumen = new System.Windows.Forms.Label();
+            this.lblComentarioLectura = new System.Windows.Forms.Label();
             this.SuspendLayout();
 
             // lblFolio
@@ -134,7 +146,7 @@ namespace HSis.UI
             this.txtDescripcion.Multiline = true;
             this.txtDescripcion.Name = "txtDescripcion";
             this.txtDescripcion.ReadOnly = true;
-            this.txtDescripcion.Size = new System.Drawing.Size(460, 80);
+            this.txtDescripcion.Size = new System.Drawing.Size(496, 80);
             this.txtDescripcion.TabIndex = 9;
 
             // lblSolucion
@@ -153,14 +165,14 @@ namespace HSis.UI
             this.txtSolucion.Multiline = true;
             this.txtSolucion.Name = "txtSolucion";
             this.txtSolucion.ReadOnly = true;
-            this.txtSolucion.Size = new System.Drawing.Size(460, 80);
+            this.txtSolucion.Size = new System.Drawing.Size(496, 80);
             this.txtSolucion.TabIndex = 11;
 
             // btnCerrar
             this.btnCerrar.BackColor = System.Drawing.Color.FromArgb(231, 76, 60);
             this.btnCerrar.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.btnCerrar.ForeColor = System.Drawing.Color.White;
-            this.btnCerrar.Location = new System.Drawing.Point(377, 350);
+            this.btnCerrar.Location = new System.Drawing.Point(413, 590);
             this.btnCerrar.Name = "btnCerrar";
             this.btnCerrar.Size = new System.Drawing.Size(95, 33);
             this.btnCerrar.TabIndex = 12;
@@ -187,11 +199,143 @@ namespace HSis.UI
             this.lblFechaCierreValor.TabIndex = 14;
             this.lblFechaCierreValor.Text = "N/A";
             this.lblFechaCierreValor.Visible = false;
+            // 
+            // grpFeedback
+            // 
+            this.grpFeedback.Text = "Retroalimentación de la Atención";
+            this.grpFeedback.Location = new System.Drawing.Point(12, 350);
+            this.grpFeedback.Size = new System.Drawing.Size(496, 120);
+            this.grpFeedback.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.grpFeedback.Visible = false;
+            this.grpFeedback.Controls.Add(this.lblEstrellas);
+            this.grpFeedback.Controls.Add(this.lblStar1);
+            this.grpFeedback.Controls.Add(this.lblStar2);
+            this.grpFeedback.Controls.Add(this.lblStar3);
+            this.grpFeedback.Controls.Add(this.lblStar4);
+            this.grpFeedback.Controls.Add(this.lblStar5);
+            this.grpFeedback.Controls.Add(this.lblComentario);
+            this.grpFeedback.Controls.Add(this.txtComentario);
+            this.grpFeedback.Controls.Add(this.btnEnviar);
+            this.grpFeedback.Controls.Add(this.lblResumen);
+            this.grpFeedback.Controls.Add(this.lblComentarioLectura);
+            // 
+            // lblEstrellas
+            // 
+            this.lblEstrellas.Text = "Calificación (1 al 5):";
+            this.lblEstrellas.Location = new System.Drawing.Point(15, 23);
+            this.lblEstrellas.AutoSize = true;
+            this.lblEstrellas.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular);
+            // 
+            // lblStar1
+            // 
+            this.lblStar1.Text = "☆";
+            this.lblStar1.Location = new System.Drawing.Point(140, 18);
+            this.lblStar1.Size = new System.Drawing.Size(30, 30);
+            this.lblStar1.Font = new System.Drawing.Font("Segoe UI", 16F, System.Drawing.FontStyle.Regular);
+            this.lblStar1.ForeColor = System.Drawing.Color.Gray;
+            this.lblStar1.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.lblStar1.Tag = "1";
+            this.lblStar1.Click += new System.EventHandler(this.lblStar_Click);
+            this.lblStar1.MouseEnter += new System.EventHandler(this.lblStar_MouseEnter);
+            this.lblStar1.MouseLeave += new System.EventHandler(this.lblStar_MouseLeave);
+            // 
+            // lblStar2
+            // 
+            this.lblStar2.Text = "☆";
+            this.lblStar2.Location = new System.Drawing.Point(175, 18);
+            this.lblStar2.Size = new System.Drawing.Size(30, 30);
+            this.lblStar2.Font = new System.Drawing.Font("Segoe UI", 16F, System.Drawing.FontStyle.Regular);
+            this.lblStar2.ForeColor = System.Drawing.Color.Gray;
+            this.lblStar2.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.lblStar2.Tag = "2";
+            this.lblStar2.Click += new System.EventHandler(this.lblStar_Click);
+            this.lblStar2.MouseEnter += new System.EventHandler(this.lblStar_MouseEnter);
+            this.lblStar2.MouseLeave += new System.EventHandler(this.lblStar_MouseLeave);
+            // 
+            // lblStar3
+            // 
+            this.lblStar3.Text = "☆";
+            this.lblStar3.Location = new System.Drawing.Point(210, 18);
+            this.lblStar3.Size = new System.Drawing.Size(30, 30);
+            this.lblStar3.Font = new System.Drawing.Font("Segoe UI", 16F, System.Drawing.FontStyle.Regular);
+            this.lblStar3.ForeColor = System.Drawing.Color.Gray;
+            this.lblStar3.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.lblStar3.Tag = "3";
+            this.lblStar3.Click += new System.EventHandler(this.lblStar_Click);
+            this.lblStar3.MouseEnter += new System.EventHandler(this.lblStar_MouseEnter);
+            this.lblStar3.MouseLeave += new System.EventHandler(this.lblStar_MouseLeave);
+            // 
+            // lblStar4
+            // 
+            this.lblStar4.Text = "☆";
+            this.lblStar4.Location = new System.Drawing.Point(245, 18);
+            this.lblStar4.Size = new System.Drawing.Size(30, 30);
+            this.lblStar4.Font = new System.Drawing.Font("Segoe UI", 16F, System.Drawing.FontStyle.Regular);
+            this.lblStar4.ForeColor = System.Drawing.Color.Gray;
+            this.lblStar4.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.lblStar4.Tag = "4";
+            this.lblStar4.Click += new System.EventHandler(this.lblStar_Click);
+            this.lblStar4.MouseEnter += new System.EventHandler(this.lblStar_MouseEnter);
+            this.lblStar4.MouseLeave += new System.EventHandler(this.lblStar_MouseLeave);
+            // 
+            // lblStar5
+            // 
+            this.lblStar5.Text = "☆";
+            this.lblStar5.Location = new System.Drawing.Point(280, 18);
+            this.lblStar5.Size = new System.Drawing.Size(30, 30);
+            this.lblStar5.Font = new System.Drawing.Font("Segoe UI", 16F, System.Drawing.FontStyle.Regular);
+            this.lblStar5.ForeColor = System.Drawing.Color.Gray;
+            this.lblStar5.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.lblStar5.Tag = "5";
+            this.lblStar5.Click += new System.EventHandler(this.lblStar_Click);
+            this.lblStar5.MouseEnter += new System.EventHandler(this.lblStar_MouseEnter);
+            this.lblStar5.MouseLeave += new System.EventHandler(this.lblStar_MouseLeave);
+            // 
+            // lblComentario
+            // 
+            this.lblComentario.Text = "Comentario (Opcional):";
+            this.lblComentario.Location = new System.Drawing.Point(15, 50);
+            this.lblComentario.AutoSize = true;
+            this.lblComentario.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular);
+            // 
+            // txtComentario
+            // 
+            this.txtComentario.Location = new System.Drawing.Point(15, 70);
+            this.txtComentario.Width = 330;
+            this.txtComentario.Height = 25;
+            this.txtComentario.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular);
+            // 
+            // btnEnviar
+            // 
+            this.btnEnviar.Text = "Enviar";
+            this.btnEnviar.Location = new System.Drawing.Point(365, 68);
+            this.btnEnviar.Width = 115;
+            this.btnEnviar.Height = 30;
+            this.btnEnviar.BackColor = System.Drawing.Color.FromArgb(52, 152, 219);
+            this.btnEnviar.ForeColor = System.Drawing.Color.White;
+            this.btnEnviar.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnEnviar.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.btnEnviar.FlatAppearance.BorderSize = 0;
+            this.btnEnviar.Click += new System.EventHandler(this.btnEnviarFeedback_Click);
+            // 
+            // lblResumen
+            // 
+            this.lblResumen.Location = new System.Drawing.Point(15, 25);
+            this.lblResumen.AutoSize = true;
+            this.lblResumen.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.lblResumen.ForeColor = System.Drawing.Color.FromArgb(41, 128, 185);
+            // 
+            // lblComentarioLectura
+            // 
+            this.lblComentarioLectura.Location = new System.Drawing.Point(15, 50);
+            this.lblComentarioLectura.Width = 430;
+            this.lblComentarioLectura.Height = 50;
+            this.lblComentarioLectura.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Italic);
 
             // frmDetalleCliente
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(484, 391);
+            this.AutoSize = true;
+            this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.Controls.Add(this.grpFeedback);
             this.Controls.Add(this.lblFechaCierre);
             this.Controls.Add(this.lblFechaCierreValor);
             this.Controls.Add(this.btnCerrar);
@@ -236,5 +380,17 @@ namespace HSis.UI
         private System.Windows.Forms.Button btnCerrar;
         private System.Windows.Forms.Label lblFechaCierre;
         private System.Windows.Forms.Label lblFechaCierreValor;
+        private System.Windows.Forms.GroupBox grpFeedback;
+        private System.Windows.Forms.Label lblEstrellas;
+        private System.Windows.Forms.Label lblStar1;
+        private System.Windows.Forms.Label lblStar2;
+        private System.Windows.Forms.Label lblStar3;
+        private System.Windows.Forms.Label lblStar4;
+        private System.Windows.Forms.Label lblStar5;
+        private System.Windows.Forms.Label lblComentario;
+        private System.Windows.Forms.TextBox txtComentario;
+        private System.Windows.Forms.Button btnEnviar;
+        private System.Windows.Forms.Label lblResumen;
+        private System.Windows.Forms.Label lblComentarioLectura;
     }
 }

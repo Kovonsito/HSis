@@ -484,5 +484,16 @@ namespace HSis.Logic.Services
             if (!calificaciones.Any()) return 0.0;
             return calificaciones.Average();
         }
+
+        // Obtener la lista de calificaciones y comentarios recibidos por un técnico
+        public async Task<List<TicketDto>> ObtenerFeedbackTecnicoAsync(int idTecnico)
+        {
+            using var db = dbContextFactory.CreateDbContext();
+            return mapper.Map<List<TicketDto>>(await db.Tickets
+                .Where(t => t.IdTecnico == idTecnico && t.Calificacion.HasValue)
+                .Include(t => t.IdUsuarioNavigation)
+                .OrderByDescending(t => t.FechaFeedback)
+                .ToListAsync());
+        }
     }
 }

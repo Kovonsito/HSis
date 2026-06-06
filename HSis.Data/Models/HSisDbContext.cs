@@ -14,29 +14,29 @@ public partial class HSisDbContext : DbContext
     {
     }
 
-    public virtual DbSet<Departamento> Departamentos { get; set; }
+    public virtual DbSet<Departamento> Departamentos { get; set; } = null!;
 
-    public virtual DbSet<DetTicket> DetTickets { get; set; }
+    public virtual DbSet<DetTicket> DetTickets { get; set; } = null!;
 
-    public virtual DbSet<Empresa> Empresas { get; set; }
+    public virtual DbSet<Empresa> Empresas { get; set; } = null!;
 
-    public virtual DbSet<HistorialCambiosTicket> HistorialCambiosTickets { get; set; }
+    public virtual DbSet<HistorialCambiosTicket> HistorialCambiosTickets { get; set; } = null!;
 
-    public virtual DbSet<MovimientoMaterial> MovimientosMaterials { get; set; }
+    public virtual DbSet<MovimientoMaterial> MovimientosMaterials { get; set; } = null!;
 
-    public virtual DbSet<Material> Materials { get; set; }
+    public virtual DbSet<Material> Materials { get; set; } = null!;
 
-    public virtual DbSet<Puesto> Puestos { get; set; }
+    public virtual DbSet<Puesto> Puestos { get; set; } = null!;
 
-    public virtual DbSet<RolUsuario> RolUsuarios { get; set; }
+    public virtual DbSet<RolUsuario> RolUsuarios { get; set; } = null!;
 
-    public virtual DbSet<Sucursal> Sucursals { get; set; }
+    public virtual DbSet<Sucursal> Sucursals { get; set; } = null!;
 
-    public virtual DbSet<Ticket> Tickets { get; set; }
+    public virtual DbSet<Ticket> Tickets { get; set; } = null!;
 
-    public virtual DbSet<Usuario> Usuarios { get; set; }
+    public virtual DbSet<Usuario> Usuarios { get; set; } = null!;
 
-    public virtual DbSet<VHistorialInventario> VHistorialInventarios { get; set; }
+    public virtual DbSet<VHistorialInventario> VHistorialInventarios { get; set; } = null!;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

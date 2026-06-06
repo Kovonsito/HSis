@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using System.Windows.Markup;
+using System.Diagnostics.CodeAnalysis;
 using WPF = System.Windows.Controls;
 
 namespace HSis.UI
@@ -43,6 +44,7 @@ namespace HSis.UI
 
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
+        [AllowNull]
         public override string Text
         {
             get => _wpfTextBox.Text;
@@ -96,7 +98,7 @@ namespace HSis.UI
         /// <summary>
         /// Evento que se dispara cuando el texto cambia.
         /// </summary>
-        public event EventHandler? TextChanged;
+        public new event EventHandler? TextChanged;
 
         protected override void OnCreateControl()
         {

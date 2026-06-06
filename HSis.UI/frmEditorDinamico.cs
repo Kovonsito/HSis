@@ -176,7 +176,7 @@ namespace HSis.UI
             }
         }
 
-        private async Task AgregarComboBoxDeMotivosAsync(PropertyInfo prop, Label lbl, int y)
+        private Task AgregarComboBoxDeMotivosAsync(PropertyInfo prop, Label lbl, int y)
         {
             ComboBox cmb = new() { Name = prop.Name, Location = new Point(230, y), Width = 250, DropDownStyle = ComboBoxStyle.DropDownList };
 
@@ -203,6 +203,7 @@ namespace HSis.UI
             {
                 cmb.SelectedIndex = 0; // "Ingreso por Compra" por defecto
             }
+            return Task.CompletedTask;
         }
 
         private async Task AgregarComboBoxAsync(PropertyInfo prop, PropertyInfo navProp, Label lbl, int y)
