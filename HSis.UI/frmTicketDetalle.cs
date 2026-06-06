@@ -60,17 +60,17 @@ namespace HSis.UI
                 lblFolio.Text = $"Folio: TK-{ticket.IdTicket:d6}";
                 txtUsuario.Text = ticket.NombreUsuario;
                 txtDepartamento.Text = ticket.DepartamentoUsuario;
-                dtpAlta.Value = ticket.Alta ?? DateTime.Now;
+                txtAlta.Text = (ticket.Alta ?? DateTime.Now).ToString("dddd, dd 'de' MMMM 'de' yyyy 'a las' HH:mm:ss");
                 rtbDescripcion.Text = ticket.Descripcion ?? string.Empty;
                 rtbSolucion.Text = ticket.Solucion ?? string.Empty;
 
-                ConfigurarFecha(dtpAtencion, ticket.Atencion);
-                ConfigurarFecha(dtpCierre, ticket.Cierre);
+                ConfigurarFecha(txtAtencion, ticket.Atencion);
+                ConfigurarFecha(txtCierre, ticket.Cierre);
 
-                // Bloquear siempre los datetimepickers para que las fechas sean 100% automáticas
-                dtpAlta.Enabled = false;
-                dtpAtencion.Enabled = false;
-                dtpCierre.Enabled = false;
+                // Bloquear siempre los controles para que las fechas sean 100% automáticas
+                txtAlta.ReadOnly = true;
+                txtAtencion.ReadOnly = true;
+                txtCierre.ReadOnly = true;
 
                 bool esAdmin = SesionSistema.IdRolUsuario == 1;
                 bool esPropietario = ticket.IdTecnico == SesionSistema.IdUsuario;
@@ -79,7 +79,7 @@ namespace HSis.UI
                 // Lógica del diccionario de opciones de estatus
                 cmbEstatus.Items.Clear();
 
-                var estatusPermitidos = _ticketService.ObtenerEstatusPermitidos(SesionSistema.IdRolUsuario, estatusActual);
+                var estatusPermitidos = TicketService.ObtenerEstatusPermitidos(SesionSistema.IdRolUsuario, estatusActual);
                 foreach (var estatus in estatusPermitidos)
                 {
                     cmbEstatus.Items.Add(estatus);
@@ -263,18 +263,15 @@ namespace HSis.UI
             this.Close();
         }
 
-        private static void ConfigurarFecha(DateTimePicker dtp, DateTime? fecha)
+        private static void ConfigurarFecha(TextBox txt, DateTime? fecha)
         {
             if (fecha.HasValue)
             {
-                dtp.Value = fecha.Value;
-                dtp.Format = DateTimePickerFormat.Custom;
-                dtp.CustomFormat = " dd/MM/yyyy HH:mm";
+                txt.Text = fecha.Value.ToString("dddd, dd 'de' MMMM 'de' yyyy 'a las' HH:mm:ss");
             }
             else
             {
-                dtp.Format = DateTimePickerFormat.Custom;
-                dtp.CustomFormat = " ";
+                txt.Text = string.Empty;
             }
         }
 
@@ -300,33 +297,19 @@ namespace HSis.UI
                 }
             }
 
-            // Guardar el anclaje original y quitar temporalmente el Bottom para evitar que la redimensión interfiera
-            var oldAnchor = dgvHistorial.Anchor;
-            dgvHistorial.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-
             if (!mostrarFdb)
             {
-                grpFeedback.Visible = false;
-                // Restaurar tamaño original por si cambia de estado
-                this.Height = 735;
-                lblHistoria.Location = new Point(12, 438);
-                dgvHistorial.Location = new Point(12, 456);
-                dgvHistorial.Height = 231;
-                
-                dgvHistorial.Anchor = oldAnchor;
+                if (tabControlTicket.TabPages.Contains(tbpFeedback))
+                {
+                    tabControlTicket.TabPages.Remove(tbpFeedback);
+                }
                 return;
             }
 
-            // Mostrar el GroupBox y aumentar tamaño del formulario
-            grpFeedback.Visible = true;
-            this.Height = 850;
-
-            // Desplazar el historial hacia abajo
-            lblHistoria.Location = new Point(12, 570);
-            dgvHistorial.Location = new Point(12, 590);
-            dgvHistorial.Height = 200;
-
-            dgvHistorial.Anchor = oldAnchor;
+            if (!tabControlTicket.TabPages.Contains(tbpFeedback))
+            {
+                tabControlTicket.TabPages.Add(tbpFeedback);
+            }
 
             // Configurar los controles internos según modo edición o lectura
             if (esEditable)
