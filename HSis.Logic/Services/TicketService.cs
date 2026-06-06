@@ -10,7 +10,8 @@ namespace HSis.Logic.Services
         IDbContextFactory<HSisDbContext> dbContextFactory,
         IMapper mapper,
         FluentValidation.IValidator<TicketCreateDto> createValidator,
-        FluentValidation.IValidator<TicketUpdateDto> updateValidator)
+        FluentValidation.IValidator<TicketUpdateDto> updateValidator,
+        NotificationClientService? notificationClient = null)
     {
         private static DateTime ObtenerLimiteSLA() => DateTime.Now.AddHours(-48);
 
@@ -114,8 +115,35 @@ namespace HSis.Logic.Services
             var ticketTracked = await db.Tickets.FindAsync(ticketDto.IdTicket)
                 ?? throw new KeyNotFoundException("El ticket no existe o ya fue eliminado.");
 
+            var estatusAnterior = ticketTracked.Status;
+
             mapper.Map(ticketDto, ticketTracked);
             await db.SaveChangesAsync();
+
+            // Guardar notificación en base de datos si el estatus cambió
+            if (estatusAnterior != ticketTracked.Status)
+            {
+                var notificacion = new Notificacion
+                {
+                    UsuarioDestinoId = ticketTracked.IdUsuario,
+                    Mensaje = $"El ticket TK-{ticketTracked.IdTicket:d6} ha cambiado al estatus: {ticketTracked.Status}.",
+                    Tipo = "EstadoTicket",
+                    FechaCreacion = DateTime.Now,
+                    Leido = false
+                };
+                db.Notificaciones.Add(notificacion);
+                await db.SaveChangesAsync();
+
+                if (notificationClient != null)
+                {
+                    _ = notificationClient.NotifyTicketStatusChangedAsync(
+                        ticketTracked.IdUsuario,
+                        ticketTracked.IdTicket,
+                        ticketTracked.IdTicket.ToString("d6"),
+                        ticketTracked.Status ?? string.Empty
+                    );
+                }
+            }
         }
 
         // Obtener tickets por usuario - Async
@@ -181,7 +209,7 @@ namespace HSis.Logic.Services
         }
 
         // Lógica de dominio: Transiciones de estatus permitidas (SRP)
-        public List<string> ObtenerEstatusPermitidos(int idRolUsuario, string estatusActual)
+        public static List<string> ObtenerEstatusPermitidos(int idRolUsuario, string estatusActual)
         {
             if (idRolUsuario == 1) // Admin
             {
@@ -467,6 +495,32 @@ namespace HSis.Logic.Services
             ticket.Calificacion = calificacion;
             ticket.ComentarioFeedback = comentario;
             ticket.FechaFeedback = DateTime.Now;
+
+            // Guardar notificación si hay técnico asignado
+            if (ticket.IdTecnico.HasValue)
+            {
+                var stars = new string('⭐', calificacion);
+                var notificacion = new Notificacion
+                {
+                    UsuarioDestinoId = ticket.IdTecnico.Value,
+                    Mensaje = $"El cliente calificó el ticket TK-{ticket.IdTicket:d6} con {stars} ({calificacion}/5). Comentario: \"{comentario ?? string.Empty}\"",
+                    Tipo = "Calificacion",
+                    FechaCreacion = DateTime.Now,
+                    Leido = false
+                };
+                db.Notificaciones.Add(notificacion);
+
+                if (notificationClient != null)
+                {
+                    _ = notificationClient.NotifyTicketRatedAsync(
+                        ticket.IdTecnico.Value,
+                        ticket.IdTicket,
+                        ticket.IdTicket.ToString("d6"),
+                        calificacion,
+                        comentario ?? string.Empty
+                    );
+                }
+            }
 
             await db.SaveChangesAsync();
             return true;
