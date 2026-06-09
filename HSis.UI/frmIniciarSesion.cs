@@ -1,5 +1,6 @@
 #nullable enable
 using HSis.Logic.Services;
+using HSis.Logic.DTOs;
 using System.Runtime.Versioning;
 using HSis.Data.Models;
 
@@ -8,12 +9,18 @@ namespace HSis.UI
     [SupportedOSPlatform("windows")]
     public partial class frmIniciarSesion : Form
     {
-        private readonly UsuarioService _usuarioService;
+        private readonly IUsuarioService _usuarioService;
+        private readonly ISessionCacheService _sessionCache;
+        private readonly IFormFactory _formFactory;
+        private readonly INotificationClientService _notificationClient;
 
-        public frmIniciarSesion(UsuarioService usuarioService)
+        public frmIniciarSesion(IUsuarioService usuarioService, ISessionCacheService sessionCache, IFormFactory formFactory, INotificationClientService notificationClient)
         {
             InitializeComponent();
             _usuarioService = usuarioService;
+            _sessionCache = sessionCache;
+            _formFactory = formFactory;
+            _notificationClient = notificationClient;
             InicializarLayoutLogin();
         }
 
@@ -32,15 +39,13 @@ namespace HSis.UI
             }
         }
 
-        private void ProcesarLoginExitoso(Usuario usuario, string password)
+        private void ProcesarLoginExitoso(UsuarioDto usuario, string password)
         {
             SesionSistema.UsuarioActual = usuario;
 
             // Guardar credenciales en caché
-            SessionCacheService.SaveCredentials(usuario.Nombre ?? string.Empty, password);
+            _sessionCache.SaveCredentials(usuario.Nombre ?? string.Empty, password);
 
-            // Iniciar servicio cliente de SignalR en segundo plano
-            var notificationClient = (NotificationClientService)Program.ServiceProvider.GetService(typeof(NotificationClientService))!;
             string roleName = SesionSistema.IdRolUsuario switch
             {
                 1 => "Admin",
@@ -48,14 +53,14 @@ namespace HSis.UI
                 3 => "Cliente",
                 _ => "Usuario"
             };
-            _ = notificationClient.IniciarAsync(SesionSistema.IdUsuario, roleName);
+            _ = _notificationClient.IniciarAsync(SesionSistema.IdUsuario, roleName);
 
             Form dashboardForm = SesionSistema.IdRolUsuario switch
             {
-                1 => (Form)Program.ServiceProvider.GetService(typeof(frmDashboardAdmin))!,
-                2 => (Form)Program.ServiceProvider.GetService(typeof(frmDashboardTecnico))!,
-                3 => (Form)Program.ServiceProvider.GetService(typeof(frmDashboardCliente))!,
-                _ => (Form)Program.ServiceProvider.GetService(typeof(frmDashboardAdmin))!
+                1 => (Form)_formFactory.Create<frmDashboardAdmin>(),
+                2 => (Form)_formFactory.Create<frmDashboardTecnico>(),
+                3 => (Form)_formFactory.Create<frmDashboardCliente>(),
+                _ => (Form)_formFactory.Create<frmDashboardAdmin>()
             };
 
             // Suscribirse al evento FormClosed para cerrar la aplicación correctamente
@@ -67,7 +72,7 @@ namespace HSis.UI
 
         private void frmIniciarSesion_Load(object? sender, EventArgs e)
         {
-            var cached = SessionCacheService.GetCredentials();
+            var cached = _sessionCache.GetCredentials();
             if (cached.HasValue)
             {
                 txtUsuario.Text = cached.Value.Username;

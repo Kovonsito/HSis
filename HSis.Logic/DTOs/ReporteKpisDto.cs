@@ -10,10 +10,10 @@ namespace HSis.Logic.DTOs
         public double TasaCierre { get; set; }
         public double TiempoPromedioAtencionHoras { get; set; }
 
-        public List<PersonalProductividadDto> ProductividadTecnica { get; set; } = new();
-        public List<UsuarioDemandaDto> DemandaUsuarios { get; set; } = new();
-        public List<DepartamentoMetricaDto> DemandaDepartamentos { get; set; } = new();
-        public List<AnalisisTemporalDto> AnalisisTemporal { get; set; } = new();
+        public List<PersonalProductividadDto> ProductividadTecnica { get; set; } = [];
+        public List<UsuarioDemandaDto> DemandaUsuarios { get; set; } = [];
+        public List<DepartamentoMetricaDto> DemandaDepartamentos { get; set; } = [];
+        public List<AnalisisTemporalDto> AnalisisTemporal { get; set; } = [];
     }
 
     public class PersonalProductividadDto

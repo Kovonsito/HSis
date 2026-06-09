@@ -13,7 +13,7 @@ namespace HSis.UI
     [SupportedOSPlatform("windows")]
     public partial class frmDashboardTecnico : Form
     {
-        private readonly TicketService _ticketService;
+        private readonly ITicketService _ticketService;
         private enum VistaDashboard
         {
             MisAsignados,
@@ -22,39 +22,46 @@ namespace HSis.UI
             Calificaciones
         }
         private VistaDashboard _vistaActual = VistaDashboard.MisAsignados;
-        private readonly NotificationClientService _notificationClient;
+        private readonly INotificationClientService _notificationClient;
         private Panel? _pnlResilienceBanner;
         private Label? _lblResilienceBanner;
         private ucPaginacion ucPaginacion = null!;
-        private List<TicketOperativoDto> _todosLosTickets = new();
-        private List<FeedbackTecnicoDto> _todosLosFeedbacks = new();
+        private List<TicketOperativoDto> _todosLosTickets = [];
+        private List<FeedbackTecnicoDto> _todosLosFeedbacks = [];
 
-        private readonly NotificacionStorageService _storageService;
+        private readonly INotificacionStorageService _storageService;
         private Panel? pnlNotificacionesHistorial;
         private FlowLayoutPanel? flpNotificaciones;
         private ToolStripMenuItem? menuCampanaItem;
         private int _notificacionesNoLeidas = 0;
+        private readonly IFormFactory _formFactory;
 
-        public frmDashboardTecnico(TicketService ticketService, NotificationClientService notificationClient, NotificacionStorageService storageService)
+        private readonly ISessionCacheService _sessionCache;
+
+        public frmDashboardTecnico(ITicketService ticketService, INotificationClientService notificationClient, INotificacionStorageService storageService, IFormFactory formFactory, ISessionCacheService sessionCache)
         {
             InitializeComponent();
             _ticketService = ticketService;
             _notificationClient = notificationClient;
             _storageService = storageService;
+            _formFactory = formFactory;
+            _sessionCache = sessionCache;
         }
 
         private async void frmDashboardTecnico_Load(object? sender, EventArgs e)
         {
             InicializarBannerResiliencia();
-            SesionSistema.ConfigurarMenuSesion(this);
+            SesionSistema.ConfigurarMenuSesion(this, _sessionCache);
             AjustarZOrderControles();
 
             // Configurar campana en el menú
             var menu = this.MainMenuStrip;
             if (menu != null)
             {
-                menuCampanaItem = new ToolStripMenuItem("🔔 (0)");
-                menuCampanaItem.Alignment = ToolStripItemAlignment.Right;
+                menuCampanaItem = new ToolStripMenuItem("🔔 (0)")
+                {
+                    Alignment = ToolStripItemAlignment.Right
+                };
                 menuCampanaItem.Click += BtnCampana_Click;
                 menu.Items.Add(menuCampanaItem);
             }
@@ -173,13 +180,13 @@ namespace HSis.UI
             try
             {
                 var feedback = await _ticketService.ObtenerFeedbackTecnicoAsync(SesionSistema.IdUsuario);
-                _todosLosFeedbacks = feedback.Select(t => new FeedbackTecnicoDto
+                _todosLosFeedbacks = [.. feedback.Select(t => new FeedbackTecnicoDto
                 {
                     IdTicket = t.IdTicket,
                     Calificacion = new string('★', t.Calificacion ?? 0) + new string('☆', 5 - (t.Calificacion ?? 0)),
                     Comentario = t.ComentarioFeedback ?? "Sin comentarios",
                     Fecha = t.FechaFeedback
-                }).ToList();
+                })];
 
                 ucPaginacion.CurrentPage = 1;
                 MostrarPaginaActual();
@@ -231,15 +238,15 @@ namespace HSis.UI
 
         private void CargarGridTickets(List<TicketDto> tickets)
         {
-            _todosLosTickets = tickets.Select(t => new TicketOperativoDto
+            _todosLosTickets = [.. tickets.Select(t => new TicketOperativoDto
             {
                 IdTicket = t.IdTicket,
                 FechaAlta = t.Alta,
                 Status = t.Status ?? "N/A",
                 Usuario = t.NombreUsuario ?? "N/A",
-                Descripcion = !string.IsNullOrEmpty(t.Descripcion) && t.Descripcion.Length > 50 ? t.Descripcion.Substring(0, 50) + "..." : (t.Descripcion ?? ""),
+                Descripcion = !string.IsNullOrEmpty(t.Descripcion) && t.Descripcion.Length > 50 ? t.Descripcion[..50] + "..." : (t.Descripcion ?? ""),
                 Prioridad = t.Prioridad
-            }).ToList();
+            })];
 
             ucPaginacion.CurrentPage = 1;
             MostrarPaginaActual();
@@ -334,8 +341,7 @@ namespace HSis.UI
                 var row = dgvTicketsOperativos.Rows[e.RowIndex];
                 if (int.TryParse(row.Cells["IdTicket"].Value?.ToString(), out int idTicket))
                 {
-                    if (Program.ServiceProvider is null) return;
-                    using var frmTicket = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateInstance<frmTicketDetalle>(Program.ServiceProvider, idTicket);
+                    using var frmTicket = _formFactory.CreateTicketDetalle(idTicket);
 
                     frmTicket.ShowDialog();
                     await CargarIndicadoresAsync();
@@ -649,7 +655,7 @@ namespace HSis.UI
                 pnlItem.Invalidate();
             }
 
-            using var frmTicket = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateInstance<frmTicketDetalle>(Program.ServiceProvider, notif.TicketId);
+            using var frmTicket = _formFactory.CreateTicketDetalle(notif.TicketId);
             frmTicket.ShowDialog();
             _ = CargarDatosInicialesAsync();
         }

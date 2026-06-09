@@ -13,9 +13,9 @@ namespace HSis.UI
     [SupportedOSPlatform("windows")]
     public partial class frmDashboardCliente : Form
     {
-        private readonly TicketService _ticketService;
-        private readonly NotificationClientService _notificationClient;
-        private readonly NotificacionStorageService _storageService;
+        private readonly ITicketService _ticketService;
+        private readonly INotificationClientService _notificationClient;
+        private readonly INotificacionStorageService _storageService;
         private Panel? _pnlResilienceBanner;
         private Label? _lblResilienceBanner;
         private ucPaginacion ucPaginacion = null!;
@@ -26,6 +26,7 @@ namespace HSis.UI
         private FlowLayoutPanel? flpNotificaciones;
         private ToolStripMenuItem? menuCampanaItem;
         private int _notificacionesNoLeidas = 0;
+        private readonly IFormFactory _formFactory;
 
         private enum VistaCliente
         {
@@ -35,26 +36,32 @@ namespace HSis.UI
         }
         private VistaCliente _vistaActual = VistaCliente.Todos;
 
-        public frmDashboardCliente(TicketService ticketService, NotificationClientService notificationClient, NotificacionStorageService storageService)
+        private readonly ISessionCacheService _sessionCache;
+
+        public frmDashboardCliente(ITicketService ticketService, INotificationClientService notificationClient, INotificacionStorageService storageService, IFormFactory formFactory, ISessionCacheService sessionCache)
         {
             InitializeComponent();
             _ticketService = ticketService;
             _notificationClient = notificationClient;
             _storageService = storageService;
+            _formFactory = formFactory;
+            _sessionCache = sessionCache;
         }
 
         private async void frmDashboardCliente_Load(object? sender, EventArgs e)
         {
             InicializarBannerResiliencia();
-            SesionSistema.ConfigurarMenuSesion(this);
+            SesionSistema.ConfigurarMenuSesion(this, _sessionCache);
             AjustarZOrderControles();
 
             // Configurar campana en el menú
             var menu = this.MainMenuStrip;
             if (menu != null)
             {
-                menuCampanaItem = new ToolStripMenuItem("🔔 (0)");
-                menuCampanaItem.Alignment = ToolStripItemAlignment.Right;
+                menuCampanaItem = new ToolStripMenuItem("🔔 (0)")
+                {
+                    Alignment = ToolStripItemAlignment.Right
+                };
                 menuCampanaItem.Click += BtnCampana_Click;
                 menu.Items.Add(menuCampanaItem);
             }
@@ -220,7 +227,7 @@ namespace HSis.UI
 
         private void btnNuevoReporte_Click(object? sender, EventArgs e)
         {
-            using var frmNuevo = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateInstance<frmNuevoTicket>(Program.ServiceProvider);
+            using var frmNuevo = _formFactory.Create<frmNuevoTicket>();
             if (frmNuevo.ShowDialog() == DialogResult.OK)
             {
                 _ = CargarDatosDashboardAsync();
@@ -234,7 +241,7 @@ namespace HSis.UI
                 var row = dgvMisTickets.Rows[e.RowIndex];
                 if (int.TryParse(row.Cells["IdTicket"].Value?.ToString(), out int idTicket))
                 {
-                    using var frmDetalle = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateInstance<frmDetalleCliente>(Program.ServiceProvider, idTicket);
+                    using var frmDetalle = _formFactory.CreateDetalleCliente(idTicket);
                     frmDetalle.ShowDialog();
                     _ = CargarDatosDashboardAsync();
                 }
@@ -552,7 +559,7 @@ namespace HSis.UI
                 pnlItem.Invalidate();
             }
 
-            using var frmDetalle = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateInstance<frmDetalleCliente>(Program.ServiceProvider, notif.TicketId);
+            using var frmDetalle = _formFactory.CreateDetalleCliente(notif.TicketId);
             frmDetalle.ShowDialog();
             _ = CargarDatosDashboardAsync();
         }

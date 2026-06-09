@@ -7,7 +7,7 @@ namespace HSis.Logic.Services
     /// Servicio para gestionar operaciones relacionadas con Materiales.
     /// Incluye obtención, creación y gestión de inventario de materiales.
     /// </summary>
-    public class MaterialService(IDbContextFactory<HSisDbContext> dbContextFactory)
+    public class MaterialService(IDbContextFactory<HSisDbContext> dbContextFactory) : IMaterialService
     {
 
         // Gestión de costos - Async

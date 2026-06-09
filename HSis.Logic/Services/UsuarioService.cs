@@ -1,5 +1,9 @@
 using HSis.Data.Models;
+using HSis.Logic.DTOs;
+using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace HSis.Logic.Services
 {
@@ -7,10 +11,10 @@ namespace HSis.Logic.Services
     /// Servicio para gestionar operaciones relacionadas con Usuarios.
     /// Incluye autenticación, creación y obtención de datos de usuario.
     /// </summary>
-    public class UsuarioService(IDbContextFactory<HSisDbContext> dbContextFactory)
+    public class UsuarioService(IDbContextFactory<HSisDbContext> dbContextFactory, IMapper mapper) : IUsuarioService
     {
 
-        // Hash de contraseña con SHA256
+        // Hash de contraseña con BCrypt
         public static string HashPassword(string? password)
         {
             if (string.IsNullOrEmpty(password)) return string.Empty;
@@ -25,7 +29,6 @@ namespace HSis.Logic.Services
 
         public async Task RehashearContraseñasAsync()
         {
-
             using var db = dbContextFactory.CreateDbContext();
             var usuarios = await db.Usuarios.ToListAsync();
 
@@ -38,7 +41,7 @@ namespace HSis.Logic.Services
             await db.SaveChangesAsync();
         }
 
-        public async Task<Usuario?> AutenticarAsync(string nombreUsuario, string contraseña)
+        public async Task<UsuarioDto?> AutenticarAsync(string nombreUsuario, string contraseña)
         {
             using var db = dbContextFactory.CreateDbContext();
             var usuario = await db.Usuarios
@@ -47,23 +50,26 @@ namespace HSis.Logic.Services
                 .Include(u => u.IdSucursalNavigation)
                 .Include(u => u.IdRolNavigation)
                 .FirstOrDefaultAsync(u => u.Nombre == nombreUsuario);
-            return usuario != null && VerifyPassword(contraseña, usuario.Contraseña) ? usuario : null;
+            
+            if (usuario != null && VerifyPassword(contraseña, usuario.Contraseña))
+            {
+                return mapper.Map<UsuarioDto>(usuario);
+            }
+            return null;
         }
 
-
-
-        public async Task<List<Usuario>> ObtenerUsuariosPorRolAsync(int idRol)
+        public async Task<List<UsuarioDto>> ObtenerUsuariosPorRolAsync(int idRol)
         {
             using var db = dbContextFactory.CreateDbContext();
-            return await db.Usuarios
+            var usuarios = await db.Usuarios
                 .Where(u => u.IdRol == idRol)
                 .Include(u => u.IdDepartamentoNavigation)
                 .Include(u => u.IdPuestoNavigation)
                 .Include(u => u.IdSucursalNavigation)
                 .Include(u => u.IdRolNavigation)
                 .ToListAsync();
+
+            return mapper.Map<List<UsuarioDto>>(usuarios);
         }
-
-
     }
 }
