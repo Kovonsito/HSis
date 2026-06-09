@@ -29,7 +29,7 @@ namespace HSis.Logic.Interceptors
                 .Where(e => e.State == EntityState.Modified)
                 .ToList();
 
-            if (!entradasModificadas.Any()) return;
+            if (entradasModificadas.Count == 0) return;
 
             int currentUserId = currentUserService.GetCurrentUserId();
             var auditorias = new List<HistorialCambiosTicket>();
@@ -63,7 +63,7 @@ namespace HSis.Logic.Interceptors
                 }
             }
 
-            if (auditorias.Any())
+            if (auditorias.Count > 0)
             {
                 context.Set<HistorialCambiosTicket>().AddRange(auditorias);
             }

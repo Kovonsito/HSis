@@ -12,9 +12,11 @@ namespace HSis.Logic.Services
         public bool Leido { get; set; }
     }
 
-    public class NotificacionStorageService
+    public class NotificacionStorageService : INotificacionStorageService
     {
-        private string GetFilePath(int userId)
+        private static readonly JsonSerializerOptions SerializerOptions = new() { WriteIndented = true };
+
+        private static string GetFilePath(int userId)
         {
             var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             var folder = Path.Combine(appData, "HSis");
@@ -30,17 +32,17 @@ namespace HSis.Logic.Services
             var path = GetFilePath(userId);
             if (!File.Exists(path))
             {
-                return new List<NotificacionLocal>();
+                return [];
             }
 
             try
             {
                 var json = await File.ReadAllTextAsync(path);
-                return JsonSerializer.Deserialize<List<NotificacionLocal>>(json) ?? new List<NotificacionLocal>();
+                return JsonSerializer.Deserialize<List<NotificacionLocal>>(json) ?? [];
             }
             catch
             {
-                return new List<NotificacionLocal>();
+                return [];
             }
         }
 
@@ -58,7 +60,7 @@ namespace HSis.Logic.Services
             // Limitar a las últimas 50 notificaciones para no saturar
             if (list.Count > 50)
             {
-                list = list.Take(50).ToList();
+                list = [.. list.Take(50)];
             }
 
             await GuardarListaAsync(userId, list);
@@ -77,7 +79,7 @@ namespace HSis.Logic.Services
 
         public async Task LimpiarTodasAsync(int userId)
         {
-            await GuardarListaAsync(userId, new List<NotificacionLocal>());
+            await GuardarListaAsync(userId, []);
         }
 
         private async Task GuardarListaAsync(int userId, List<NotificacionLocal> list)
@@ -85,7 +87,7 @@ namespace HSis.Logic.Services
             var path = GetFilePath(userId);
             try
             {
-                var json = JsonSerializer.Serialize(list, new JsonSerializerOptions { WriteIndented = true });
+                var json = JsonSerializer.Serialize(list, SerializerOptions);
                 await File.WriteAllTextAsync(path, json);
             }
             catch

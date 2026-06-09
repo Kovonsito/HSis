@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HSis.Logic.Services
 {
-    public class CatalogoService(IDbContextFactory<HSisDbContext> dbContextFactory, IServiceProvider serviceProvider)
+    public class CatalogoService(IDbContextFactory<HSisDbContext> dbContextFactory, IServiceProvider serviceProvider) : ICatalogoService
     {
 
         private async Task ValidarEntidadAsync<T>(T entidad) where T : class
@@ -60,6 +60,12 @@ namespace HSis.Logic.Services
         public async Task CrearAsync<T>(T entidad) where T : class
         {
             await ValidarEntidadAsync(entidad);
+            
+            if (entidad is Usuario usuario && !string.IsNullOrEmpty(usuario.Contraseña))
+            {
+                usuario.Contraseña = UsuarioService.HashPassword(usuario.Contraseña);
+            }
+
             using var db = dbContextFactory.CreateDbContext();
             db.Set<T>().Add(entidad);
             await db.SaveChangesAsync();
@@ -68,7 +74,25 @@ namespace HSis.Logic.Services
         public async Task ActualizarAsync<T>(T entidad) where T : class
         {
             await ValidarEntidadAsync(entidad);
+            
             using var db = dbContextFactory.CreateDbContext();
+
+            if (entidad is Usuario usuario)
+            {
+                var usuarioExistente = await db.Usuarios.AsNoTracking().FirstOrDefaultAsync(u => u.IdUsuario == usuario.IdUsuario);
+                if (usuarioExistente != null)
+                {
+                    if (string.IsNullOrWhiteSpace(usuario.Contraseña))
+                    {
+                        usuario.Contraseña = usuarioExistente.Contraseña;
+                    }
+                    else if (usuario.Contraseña != usuarioExistente.Contraseña)
+                    {
+                        usuario.Contraseña = UsuarioService.HashPassword(usuario.Contraseña);
+                    }
+                }
+            }
+
             db.Set<T>().Update(entidad);
             await db.SaveChangesAsync();
         }
@@ -109,22 +133,20 @@ namespace HSis.Logic.Services
 
                     // Extraemos el Result del Task
                     var resultProperty = task.GetType().GetProperty("Result");
-                    var list = resultProperty?.GetValue(task) as System.Collections.IEnumerable;
-
-                    if (list != null)
+                    if (resultProperty?.GetValue(task) is System.Collections.IEnumerable list)
                     {
-                        return list.Cast<object>().ToList();
+                        return [.. list.Cast<object>()];
                     }
                 }
             }
 
-            return new List<object>();
+            return [];
         }
 
         public async Task<int> ObtenerSiguienteIdAsync(System.Type tipoEntidad, string nombrePropiedadId)
         {
             var registros = await ObtenerTodosPorTipoAsync(tipoEntidad);
-            if (registros.Any())
+            if (registros.Count > 0)
             {
                 var propiedadId = tipoEntidad.GetProperty(nombrePropiedadId);
                 if (propiedadId != null)

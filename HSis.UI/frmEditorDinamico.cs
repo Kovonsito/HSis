@@ -10,9 +10,9 @@ namespace HSis.UI
     {
         private readonly object _entidad;
 
-        private readonly CatalogoService _catalogoService;
+        private readonly ICatalogoService _catalogoService;
 
-        public frmEditorDinamico(object entidad, string titulo, CatalogoService catalogoService)
+        public frmEditorDinamico(object entidad, string titulo, ICatalogoService catalogoService)
         {
             _entidad = entidad;
             _catalogoService = catalogoService;

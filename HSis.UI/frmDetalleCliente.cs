@@ -15,11 +15,11 @@ namespace HSis.UI
     public partial class frmDetalleCliente : Form
     {
         private readonly int _idTicket;
-        private readonly TicketService _ticketService;
+        private readonly ITicketService _ticketService;
         private TicketDto? _ticketActual;
         private int _calificacionSeleccionada = 5;
 
-        public frmDetalleCliente(int idTicket, TicketService ticketService)
+        public frmDetalleCliente(int idTicket, ITicketService ticketService)
         {
             InitializeComponent();
             _idTicket = idTicket;

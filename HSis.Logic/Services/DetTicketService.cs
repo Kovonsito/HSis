@@ -7,7 +7,7 @@ namespace HSis.Logic.Services
     /// Servicio para gestionar operaciones relacionadas con Detalles de Tickets.
     /// Incluye obtención, creación y gestión de materiales asociados a tickets.
     /// </summary>
-    public class DetTicketService(IDbContextFactory<HSisDbContext> dbContextFactory)
+    public class DetTicketService(IDbContextFactory<HSisDbContext> dbContextFactory) : IDetTicketService
     {
 
         // Obtener detalles de ticket - Async
@@ -71,15 +71,6 @@ namespace HSis.Logic.Services
                 .SumAsync(dt => dt.CostoUnitarioAplicado * dt.Cantidad);
         }
 
-        // Obtener todos los detalles - Async
-        public static async Task<List<DetTicket>> ObtenerTodosDetallesAsync()
-        {
-            using var db = new HSisDbContext();
-            return await db.DetTickets
-                .Include(dt => dt.IdMaterialNavigation)
-                .Include(dt => dt.IdTicketNavigation)
-                .ToListAsync();
-        }
     }
 }
 

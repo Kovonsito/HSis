@@ -11,7 +11,7 @@ namespace HSis.Logic.Services
         IMapper mapper,
         FluentValidation.IValidator<TicketCreateDto> createValidator,
         FluentValidation.IValidator<TicketUpdateDto> updateValidator,
-        NotificationClientService? notificationClient = null)
+        NotificationClientService? notificationClient = null) : ITicketService
     {
         private static DateTime ObtenerLimiteSLA() => DateTime.Now.AddHours(-48);
 
@@ -43,11 +43,9 @@ namespace HSis.Logic.Services
             using var db = dbContextFactory.CreateDbContext();
             DateTime fechaLimite = ObtenerLimiteSLA();
 
-            var slaFilterQuery = esUrgente
-                ? db.Tickets.Where(t => t.Status == ConstantesEstatus.ABIERTO && t.Alta < fechaLimite)
-                : db.Tickets.Where(t => t.Status == ConstantesEstatus.ABIERTO && t.Alta >= fechaLimite);
+            var query = db.Tickets.ApplySlaFilter(esUrgente, fechaLimite);
 
-            return mapper.Map<List<TicketDto>>(await slaFilterQuery
+            return mapper.Map<List<TicketDto>>(await query
                 .Include(t => t.IdUsuarioNavigation)
                 .Include(t => t.IdTecnicoNavigation)
                 .ToListAsync());
@@ -70,11 +68,7 @@ namespace HSis.Logic.Services
             using var db = dbContextFactory.CreateDbContext();
             DateTime fechaLimite = ObtenerLimiteSLA();
 
-            var slaFilterQuery = esUrgente
-                ? db.Tickets.Where(t => t.Status == ConstantesEstatus.ABIERTO && t.Alta < fechaLimite)
-                : db.Tickets.Where(t => t.Status == ConstantesEstatus.ABIERTO && t.Alta >= fechaLimite);
-
-            return await slaFilterQuery.CountAsync();
+            return await db.Tickets.ApplySlaFilter(esUrgente, fechaLimite).CountAsync();
         }
 
         // Contar tickets por estatus - Async
@@ -230,64 +224,10 @@ namespace HSis.Logic.Services
         public async Task<List<TicketDto>> ObtenerTicketsFiltradosAsync(TicketFilterDto filtros)
         {
             using var db = dbContextFactory.CreateDbContext();
-            IQueryable<Ticket> query = db.Tickets
+            var query = db.Tickets
                 .Include(t => t.IdUsuarioNavigation)
-                .Include(t => t.IdTecnicoNavigation);
-
-            // 1. Filtros de Texto / Identificadores
-            if (!string.IsNullOrWhiteSpace(filtros.UsuarioEmisor))
-            {
-                query = query.Where(t => t.IdUsuarioNavigation.Nombre != null && t.IdUsuarioNavigation.Nombre.Contains(filtros.UsuarioEmisor));
-            }
-            if (!string.IsNullOrWhiteSpace(filtros.Estatus))
-            {
-                query = query.Where(t => t.Status == filtros.Estatus);
-            }
-            if (filtros.IdTecnico.HasValue)
-            {
-                query = query.Where(t => t.IdTecnico == filtros.IdTecnico.Value);
-            }
-            if (!string.IsNullOrWhiteSpace(filtros.Prioridad))
-            {
-                query = query.Where(t => t.Prioridad == filtros.Prioridad);
-            }
-
-            // 2. Rangos de Fechas Explícitos
-            if (filtros.FechaAltaInicio.HasValue)
-                query = query.Where(t => t.Alta >= filtros.FechaAltaInicio.Value);
-            if (filtros.FechaAltaFin.HasValue)
-                query = query.Where(t => t.Alta <= filtros.FechaAltaFin.Value);
-
-            // 3. Vistas Temporales Rápidas (Día, Semana, Mes, Año)
-            if (filtros.RangoTemporal.HasValue)
-            {
-                var hoy = DateTime.Today;
-                DateTime inicio = hoy;
-                DateTime fin = hoy.AddDays(1).AddTicks(-1);
-
-                switch (filtros.RangoTemporal.Value)
-                {
-                    case VistaTemporal.Dia:
-                        inicio = hoy;
-                        break;
-                    case VistaTemporal.Semana:
-                        int diasAlLunes = (int)hoy.DayOfWeek - (int)DayOfWeek.Monday;
-                        if (diasAlLunes < 0) diasAlLunes += 7;
-                        inicio = hoy.AddDays(-diasAlLunes);
-                        break;
-                    case VistaTemporal.Mes:
-                        inicio = new DateTime(hoy.Year, hoy.Month, 1);
-                        break;
-                    case VistaTemporal.Ano:
-                        inicio = new DateTime(hoy.Year, 1, 1);
-                        break;
-                }
-
-                if (filtros.RangoTemporal.Value != VistaTemporal.Todos)
-                {
-                    query = query.Where(t => t.Alta >= inicio && t.Alta <= fin);
-                }
-            }
+                .Include(t => t.IdTecnicoNavigation)
+                .ApplyFilters(filtros);
 
             return mapper.Map<List<TicketDto>>(await query.OrderByDescending(t => t.Alta).ToListAsync());
         }
@@ -296,64 +236,10 @@ namespace HSis.Logic.Services
         public async Task<PaginatedResultDto<TicketDto>> ObtenerTicketsFiltradosPaginadosAsync(TicketFilterDto filtros, int pageNumber, int pageSize)
         {
             using var db = dbContextFactory.CreateDbContext();
-            IQueryable<Ticket> query = db.Tickets
+            var query = db.Tickets
                 .Include(t => t.IdUsuarioNavigation)
-                .Include(t => t.IdTecnicoNavigation);
-
-            // 1. Filtros de Texto / Identificadores
-            if (!string.IsNullOrWhiteSpace(filtros.UsuarioEmisor))
-            {
-                query = query.Where(t => t.IdUsuarioNavigation.Nombre != null && t.IdUsuarioNavigation.Nombre.Contains(filtros.UsuarioEmisor));
-            }
-            if (!string.IsNullOrWhiteSpace(filtros.Estatus))
-            {
-                query = query.Where(t => t.Status == filtros.Estatus);
-            }
-            if (filtros.IdTecnico.HasValue)
-            {
-                query = query.Where(t => t.IdTecnico == filtros.IdTecnico.Value);
-            }
-            if (!string.IsNullOrWhiteSpace(filtros.Prioridad))
-            {
-                query = query.Where(t => t.Prioridad == filtros.Prioridad);
-            }
-
-            // 2. Rangos de Fechas Explícitos
-            if (filtros.FechaAltaInicio.HasValue)
-                query = query.Where(t => t.Alta >= filtros.FechaAltaInicio.Value);
-            if (filtros.FechaAltaFin.HasValue)
-                query = query.Where(t => t.Alta <= filtros.FechaAltaFin.Value);
-
-            // 3. Vistas Temporales Rápidas (Día, Semana, Mes, Año)
-            if (filtros.RangoTemporal.HasValue)
-            {
-                var hoy = DateTime.Today;
-                DateTime inicio = hoy;
-                DateTime fin = hoy.AddDays(1).AddTicks(-1);
-
-                switch (filtros.RangoTemporal.Value)
-                {
-                    case VistaTemporal.Dia:
-                        inicio = hoy;
-                        break;
-                    case VistaTemporal.Semana:
-                        int diasAlLunes = (int)hoy.DayOfWeek - (int)DayOfWeek.Monday;
-                        if (diasAlLunes < 0) diasAlLunes += 7;
-                        inicio = hoy.AddDays(-diasAlLunes);
-                        break;
-                    case VistaTemporal.Mes:
-                        inicio = new DateTime(hoy.Year, hoy.Month, 1);
-                        break;
-                    case VistaTemporal.Ano:
-                        inicio = new DateTime(hoy.Year, 1, 1);
-                        break;
-                }
-
-                if (filtros.RangoTemporal.Value != VistaTemporal.Todos)
-                {
-                    query = query.Where(t => t.Alta >= inicio && t.Alta <= fin);
-                }
-            }
+                .Include(t => t.IdTecnicoNavigation)
+                .ApplyFilters(filtros);
 
             var totalCount = await query.CountAsync();
             var items = await query.OrderByDescending(t => t.Alta)
@@ -389,7 +275,7 @@ namespace HSis.Logic.Services
             var tasaCierre = totalCreados > 0 ? (double)totalResueltos / totalCreados * 100 : 0;
 
             var attendedTickets = tickets.Where(t => t.Atención.HasValue && t.Alta.HasValue).ToList();
-            double tiempoPromedio = attendedTickets.Any()
+            double tiempoPromedio = attendedTickets.Count > 0
                 ? attendedTickets.Average(t => (t.Atención!.Value - t.Alta!.Value).TotalHours)
                 : 0;
 
@@ -535,7 +421,7 @@ namespace HSis.Logic.Services
                 .Select(t => t.Calificacion!.Value)
                 .ToListAsync();
 
-            if (!calificaciones.Any()) return 0.0;
+            if (calificaciones.Count == 0) return 0.0;
             return calificaciones.Average();
         }
 

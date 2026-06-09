@@ -10,10 +10,10 @@ namespace HSis.UI
     [SupportedOSPlatform("windows")]
     public partial class frmDashboardAdmin : Form
     {
-        private readonly TicketService _ticketService;
-        private readonly CatalogoService _catalogoService;
-        private readonly UsuarioService _usuarioService;
-        private readonly NotificationClientService _notificationClient;
+        private readonly ITicketService _ticketService;
+        private readonly ICatalogoService _catalogoService;
+        private readonly IUsuarioService _usuarioService;
+        private readonly INotificationClientService _notificationClient;
         private bool _estaCargando = true;
         private int _paginaActual = 1;
         private int _tamanhoPagina = 10;
@@ -23,13 +23,15 @@ namespace HSis.UI
         private Label? _lblResilienceBanner;
         private ucIndicador? _ucCalificacion;
 
-        private readonly NotificacionStorageService _storageService;
+        private readonly INotificacionStorageService _storageService;
         private Panel? pnlNotificacionesHistorial;
         private FlowLayoutPanel? flpNotificaciones;
         private ToolStripMenuItem? menuCampanaItem;
         private int _notificacionesNoLeidas = 0;
+        private readonly IFormFactory _formFactory;
+        private readonly ISessionCacheService _sessionCache;
 
-        public frmDashboardAdmin(TicketService ticketService, CatalogoService catalogoService, UsuarioService usuarioService, NotificationClientService notificationClient, NotificacionStorageService storageService)
+        public frmDashboardAdmin(ITicketService ticketService, ICatalogoService catalogoService, IUsuarioService usuarioService, INotificationClientService notificationClient, INotificacionStorageService storageService, IFormFactory formFactory, ISessionCacheService sessionCache)
         {
             InitializeComponent();
             _ticketService = ticketService;
@@ -37,21 +39,25 @@ namespace HSis.UI
             _usuarioService = usuarioService;
             _notificationClient = notificationClient;
             _storageService = storageService;
+            _formFactory = formFactory;
+            _sessionCache = sessionCache;
         }
 
         private async void DashboardAdmin_Load(object sender, EventArgs e)
         {
             InicializarBannerResiliencia();
             InicializarLayoutTicketsAdmin();
-            SesionSistema.ConfigurarMenuSesion(this);
+            SesionSistema.ConfigurarMenuSesion(this, _sessionCache);
             AjustarZOrderControles();
 
             // Configurar campana en el menú
             var menu = this.MainMenuStrip;
             if (menu != null)
             {
-                menuCampanaItem = new ToolStripMenuItem("🔔 (0)");
-                menuCampanaItem.Alignment = ToolStripItemAlignment.Right;
+                menuCampanaItem = new ToolStripMenuItem("🔔 (0)")
+                {
+                    Alignment = ToolStripItemAlignment.Right
+                };
                 menuCampanaItem.Click += BtnCampana_Click;
                 menu.Items.Add(menuCampanaItem);
             }
@@ -122,9 +128,11 @@ namespace HSis.UI
             tblIndicadores.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 16.66F));
 
             // Instanciar el control de calificación
-            _ucCalificacion = new ucIndicador();
-            _ucCalificacion.Dock = DockStyle.Fill;
-            _ucCalificacion.Margin = new Padding(5);
+            _ucCalificacion = new ucIndicador
+            {
+                Dock = DockStyle.Fill,
+                Margin = new Padding(5)
+            };
             _ucCalificacion.ucIndicadorEvent += UcCalificacion_Click;
 
             // Configurar los indicadores para que ocupen su celda
@@ -385,7 +393,7 @@ namespace HSis.UI
 
         private void btnAbrirReportes_Click(object sender, EventArgs e)
         {
-            var modal = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateInstance<frmGeneradorReportes>(Program.ServiceProvider);
+            var modal = _formFactory.Create<frmGeneradorReportes>();
             modal.ShowDialog();
         }
 
@@ -512,7 +520,7 @@ namespace HSis.UI
                 if (int.TryParse(dgvTickets.Rows[e.RowIndex].Cells["Folio"].Value?.ToString(), out int idSeleccionado))
                 {
                     // Pasamos el ID al constructor del formulario a través de Inyección de Dependencias
-                    frmTicketDetalle formulario = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateInstance<frmTicketDetalle>(Program.ServiceProvider, idSeleccionado);
+                    frmTicketDetalle formulario = _formFactory.CreateTicketDetalle(idSeleccionado);
                     formulario.ShowDialog();
 
                     // Al cerrar el detalle, recargamos el Dashboard por si hubo cambios
@@ -534,9 +542,9 @@ namespace HSis.UI
                 ("Sucursales", typeof(Sucursal))
             };
 
-            foreach (var cat in catalogos)
+            foreach (var (nombre, tipo) in catalogos)
             {
-                await ConfigurarTabParaCatalogo(cat.Nombre, cat.Tipo);
+                await ConfigurarTabParaCatalogo(nombre, tipo);
             }
         }
 
@@ -595,7 +603,7 @@ namespace HSis.UI
                     Cantidad = 1,
                     Motivo = "Ingreso por Compra" // Motivo inicial por defecto
                 };
-                var frm = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateInstance<frmEditorDinamico>(Program.ServiceProvider, nuevoMovimiento, "Nuevo Movimiento de Almacén");
+                var frm = _formFactory.CreateEditorDinamico(nuevoMovimiento, "Nuevo Movimiento de Almacén");
                 if (frm.ShowDialog() == DialogResult.OK)
                 {
                     await _catalogoService.CrearAsync(nuevoMovimiento);
@@ -606,7 +614,7 @@ namespace HSis.UI
 
             btnKardex.Click += (s, ev) =>
             {
-                var frmK = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateInstance<frmKardex>(Program.ServiceProvider);
+                var frmK = _formFactory.Create<frmKardex>();
                 frmK.ShowDialog();
             };
 
@@ -648,19 +656,11 @@ namespace HSis.UI
         private async Task ManejarCreacionRegistro(Type tipo, DataGridView dgv)
         {
             object nuevaEntidad = Activator.CreateInstance(tipo)!;
-            var frm = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateInstance<frmEditorDinamico>(Program.ServiceProvider, nuevaEntidad, $"Crear {tipo.Name}");
+            var frm = _formFactory.CreateEditorDinamico(nuevaEntidad, $"Crear {tipo.Name}");
             if (frm.ShowDialog() == DialogResult.OK)
             {
                 try
                 {
-                    if (tipo == typeof(Usuario))
-                    {
-                        var u = (Usuario)nuevaEntidad;
-                        if (!string.IsNullOrEmpty(u.Contraseña))
-                        {
-                            u.Contraseña = UsuarioService.HashPassword(u.Contraseña);
-                        }
-                    }
                     var miMetodo = typeof(CatalogoService).GetMethod("CrearAsync")!.MakeGenericMethod(tipo);
                     Task task = (Task)miMetodo.Invoke(_catalogoService, [nuevaEntidad])!;
                     await task;
@@ -721,25 +721,11 @@ namespace HSis.UI
                     u.Contraseña = "";
                 }
 
-                if (Program.ServiceProvider is null) return;
-
-                var frm = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateInstance<frmEditorDinamico>(Program.ServiceProvider, entidadExistente, $"Editar {tipo.Name}");
+                var frm = _formFactory.CreateEditorDinamico(entidadExistente, $"Editar {tipo.Name}");
                 if (frm.ShowDialog() == DialogResult.OK)
                 {
                     try
                     {
-                        if (tipo == typeof(Usuario))
-                        {
-                            var u = (Usuario)entidadExistente;
-                            if (string.IsNullOrWhiteSpace(u.Contraseña))
-                            {
-                                u.Contraseña = passwordHashOriginal;
-                            }
-                            else
-                            {
-                                u.Contraseña = UsuarioService.HashPassword(u.Contraseña);
-                            }
-                        }
                         var miMetodo = typeof(CatalogoService).GetMethod("ActualizarAsync")!.MakeGenericMethod(tipo);
                         Task task = (Task)miMetodo.Invoke(_catalogoService, [entidadExistente])!;
                         await task;
@@ -798,8 +784,7 @@ namespace HSis.UI
             // --- DIAGNÓSTICO TEMPORAL ---
             if (tipoEntidad.Name == "Usuario")
             {
-                var debugLines = new List<string>();
-                debugLines.Add($"=== Columnas para Usuario ===");
+                var debugLines = new List<string> { $"=== Columnas para Usuario ===" };
                 foreach (DataGridViewColumn col in dgv.Columns)
                 {
                     bool isGeneric = col.ValueType?.IsGenericType == true;
@@ -824,7 +809,7 @@ namespace HSis.UI
                 {
                     if (col.Name.StartsWith("Id") && col.Name != idPk)
                     {
-                        col.HeaderText = col.Name.Substring(2); // Ejemplo: "IdDepartamento" se lee como "Departamento"
+                        col.HeaderText = col.Name[2..]; // Ejemplo: "IdDepartamento" se lee como "Departamento"
                     }
 
                     // Asegurar que ninguna columna se aplaste a un ancho menor al de su título
@@ -1074,7 +1059,7 @@ namespace HSis.UI
                 pnlItem.Invalidate();
             }
 
-            using var frmTicket = Microsoft.Extensions.DependencyInjection.ActivatorUtilities.CreateInstance<frmTicketDetalle>(Program.ServiceProvider, notif.TicketId);
+            using var frmTicket = _formFactory.CreateTicketDetalle(notif.TicketId);
             frmTicket.ShowDialog();
             _ = Task.WhenAll(CargarKPIsAsync(), CargarGridCompletoAsync());
         }

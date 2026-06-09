@@ -1,84 +1,86 @@
+using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace HSis.Logic.Services;
-
-[System.Runtime.Versioning.SupportedOSPlatform("windows")]
-public class SessionCacheService
+namespace HSis.Logic.Services
 {
-    private static readonly string CacheFilePath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "HSis",
-        "session.bin"
-    );
-
-    // Entropía adicional opcional para robustecer el cifrado DPAPI
-    private static readonly byte[] Entropy = [14, 55, 99, 102, 23, 76, 5, 88];
-
-    public static void SaveCredentials(string username, string password)
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+    public class SessionCacheService : ISessionCacheService
     {
-        try
+        private readonly string CacheFilePath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "HSis",
+            "session.bin"
+        );
+
+        // Entropía adicional opcional para robustecer el cifrado DPAPI
+        private readonly byte[] Entropy = [14, 55, 99, 102, 23, 76, 5, 88];
+
+        public void SaveCredentials(string username, string password)
         {
-            var directory = Path.GetDirectoryName(CacheFilePath);
-            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+            try
             {
-                Directory.CreateDirectory(directory);
+                var directory = Path.GetDirectoryName(CacheFilePath);
+                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
+
+                // Unir usuario y contraseña delimitados por una pestaña o caracter especial
+                var rawData = $"{username}\t{password}";
+                var rawBytes = Encoding.UTF8.GetBytes(rawData);
+
+                // Cifrar los bytes usando DPAPI (Cifrado a nivel de usuario de Windows actual)
+                var encryptedBytes = ProtectedData.Protect(rawBytes, Entropy, DataProtectionScope.CurrentUser);
+
+                File.WriteAllBytes(CacheFilePath, encryptedBytes);
             }
-
-            // Unir usuario y contraseña delimitados por una pestaña o caracter especial
-            var rawData = $"{username}\t{password}";
-            var rawBytes = Encoding.UTF8.GetBytes(rawData);
-
-            // Cifrar los bytes usando DPAPI (Cifrado a nivel de usuario de Windows actual)
-            var encryptedBytes = ProtectedData.Protect(rawBytes, Entropy, DataProtectionScope.CurrentUser);
-
-            File.WriteAllBytes(CacheFilePath, encryptedBytes);
-        }
-        catch
-        {
-            // Ignorar fallos de escritura o de cifrado de caché para que no altere el funcionamiento principal
-        }
-    }
-
-    public static (string Username, string Password)? GetCredentials()
-    {
-        try
-        {
-            if (!File.Exists(CacheFilePath)) return null;
-
-            var encryptedBytes = File.ReadAllBytes(CacheFilePath);
-
-            // Decodificar los bytes usando DPAPI
-            var decryptedBytes = ProtectedData.Unprotect(encryptedBytes, Entropy, DataProtectionScope.CurrentUser);
-            var rawData = Encoding.UTF8.GetString(decryptedBytes);
-
-            var parts = rawData.Split('\t');
-            if (parts.Length == 2)
+            catch
             {
-                return (parts[0], parts[1]);
+                // Ignorar fallos de escritura o de cifrado de caché para que no altere el funcionamiento principal
             }
         }
-        catch
-        {
-            // Si el archivo está corrupto o la desencriptación falla, eliminamos el archivo corrupto
-            ClearCredentials();
-        }
 
-        return null;
-    }
-
-    public static void ClearCredentials()
-    {
-        try
+        public (string Username, string Password)? GetCredentials()
         {
-            if (File.Exists(CacheFilePath))
+            try
             {
-                File.Delete(CacheFilePath);
+                if (!File.Exists(CacheFilePath)) return null;
+
+                var encryptedBytes = File.ReadAllBytes(CacheFilePath);
+
+                // Decodificar los bytes usando DPAPI
+                var decryptedBytes = ProtectedData.Unprotect(encryptedBytes, Entropy, DataProtectionScope.CurrentUser);
+                var rawData = Encoding.UTF8.GetString(decryptedBytes);
+
+                var parts = rawData.Split('\t');
+                if (parts.Length == 2)
+                {
+                    return (parts[0], parts[1]);
+                }
             }
+            catch
+            {
+                // Si el archivo está corrupto o la desencriptación falla, eliminamos el archivo corrupto
+                ClearCredentials();
+            }
+
+            return null;
         }
-        catch
+
+        public void ClearCredentials()
         {
-            // Ignorar
+            try
+            {
+                if (File.Exists(CacheFilePath))
+                {
+                    File.Delete(CacheFilePath);
+                }
+            }
+            catch
+            {
+                // Ignorar
+            }
         }
     }
 }

@@ -9,11 +9,11 @@ namespace HSis.UI
     public partial class frmTicketDetalle : Form
     {
         private int _idTicket;
-        private readonly TicketService _ticketService;
-        private readonly UsuarioService _usuarioService;
+        private readonly ITicketService _ticketService;
+        private readonly IUsuarioService _usuarioService;
         private TicketDto? _ticketActual;
 
-        public frmTicketDetalle(int idTicket, TicketService ticketService, UsuarioService usuarioService)
+        public frmTicketDetalle(int idTicket, ITicketService ticketService, IUsuarioService usuarioService)
         {
             InitializeComponent();
             _idTicket = idTicket;

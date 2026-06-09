@@ -8,9 +8,9 @@ namespace HSis.UI
     [SupportedOSPlatform("windows")]
     public partial class frmKardex : Form
     {
-        private readonly CatalogoService _catalogoService;
+        private readonly ICatalogoService _catalogoService;
 
-        public frmKardex(CatalogoService catalogoService)
+        public frmKardex(ICatalogoService catalogoService)
         {
             _catalogoService = catalogoService;
             InitializeComponent();
