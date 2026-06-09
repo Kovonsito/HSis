@@ -10,7 +10,7 @@ using QuestPDF.Infrastructure;
 
 namespace HSis.Logic.Services
 {
-    public class ReportExportService
+    public class ReportExportService : IReportExportService
     {
         static ReportExportService()
         {
@@ -19,7 +19,7 @@ namespace HSis.Logic.Services
         }
 
         // Generar archivo Excel con ClosedXML
-        public static byte[] GenerarExcel(ReporteKpisDto kpis, List<TicketDto> tickets, DateTime inicio, DateTime fin)
+        public byte[] GenerarExcel(ReporteKpisDto kpis, List<TicketDto> tickets, DateTime inicio, DateTime fin)
         {
             using var workbook = new XLWorkbook();
 
@@ -219,7 +219,7 @@ namespace HSis.Logic.Services
         }
 
         // Generar archivo PDF con QuestPDF
-        public static byte[] GenerarPdf(ReporteKpisDto kpis, List<TicketDto> tickets, DateTime inicio, DateTime fin)
+        public byte[] GenerarPdf(ReporteKpisDto kpis, List<TicketDto> tickets, DateTime inicio, DateTime fin)
         {
             var document = Document.Create(container =>
             {

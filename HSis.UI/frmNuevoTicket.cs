@@ -12,9 +12,9 @@ namespace HSis.UI
     [SupportedOSPlatform("windows")]
     public partial class frmNuevoTicket : Form
     {
-        private readonly TicketService _ticketService;
+        private readonly ITicketService _ticketService;
 
-        public frmNuevoTicket(TicketService ticketService)
+        public frmNuevoTicket(ITicketService ticketService)
         {
             InitializeComponent();
             _ticketService = ticketService;

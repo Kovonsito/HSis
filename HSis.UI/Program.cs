@@ -22,7 +22,7 @@ namespace HSis.UI
         ///  The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main()
+        static async Task Main()
         {
             ApplicationConfiguration.Initialize();
 
@@ -94,16 +94,17 @@ namespace HSis.UI
                     options.UseSqlServer(configuration.GetConnectionString("CadenaSQL"))
                            .AddInterceptors(sp.GetRequiredService<TicketAuditInterceptor>()));
 
-                // Registrar Servicios de Lógica
-                services.AddTransient<TicketService>();
-                services.AddTransient<UsuarioService>();
-                services.AddTransient<CatalogoService>();
-                services.AddTransient<DetTicketService>();
-                services.AddTransient<MaterialService>();
-                services.AddTransient<ReportExportService>();
-                services.AddSingleton<NotificationClientService>();
-                services.AddSingleton<SessionCacheService>();
-                services.AddSingleton<NotificacionStorageService>();
+                // Registrar Servicios de Lógica mediante Interfaces
+                services.AddTransient<ITicketService, TicketService>();
+                services.AddTransient<IUsuarioService, UsuarioService>();
+                services.AddTransient<ICatalogoService, CatalogoService>();
+                services.AddTransient<IDetTicketService, DetTicketService>();
+                services.AddTransient<IMaterialService, MaterialService>();
+                services.AddTransient<IReportExportService, ReportExportService>();
+                services.AddSingleton<INotificationClientService, NotificationClientService>();
+                services.AddSingleton<ISessionCacheService, SessionCacheService>();
+                services.AddSingleton<INotificacionStorageService, NotificacionStorageService>();
+                services.AddSingleton<IFormFactory, FormFactory>();
 
                 // Registrar Formularios
                 services.AddTransient<frmIniciarSesion>();
@@ -111,25 +112,28 @@ namespace HSis.UI
                 services.AddTransient<frmDashboardCliente>();
                 services.AddTransient<frmDashboardTecnico>();
                 services.AddTransient<frmGeneradorReportes>();
+                services.AddTransient<frmKardex>();
+                services.AddTransient<frmNuevoTicket>();
 
                 ServiceProvider = services.BuildServiceProvider();
 
                 Form? startForm = null;
-                var cached = SessionCacheService.GetCredentials();
+                var sessionCache = ServiceProvider.GetRequiredService<ISessionCacheService>();
+                var cached = sessionCache.GetCredentials();
 
                 if (cached.HasValue)
                 {
                     try
                     {
-                        var usuarioService = ServiceProvider.GetRequiredService<UsuarioService>();
-                        var usuario = usuarioService.AutenticarAsync(cached.Value.Username, cached.Value.Password).GetAwaiter().GetResult();
+                        var usuarioService = ServiceProvider.GetRequiredService<IUsuarioService>();
+                        var usuario = await usuarioService.AutenticarAsync(cached.Value.Username, cached.Value.Password);
 
                         if (usuario != null)
                         {
                             SesionSistema.UsuarioActual = usuario;
 
                             // Iniciar SignalR
-                            var notificationClient = ServiceProvider.GetRequiredService<NotificationClientService>();
+                            var notificationClient = ServiceProvider.GetRequiredService<INotificationClientService>();
                             string roleName = SesionSistema.IdRolUsuario switch
                             {
                                 1 => "Admin",
@@ -137,7 +141,7 @@ namespace HSis.UI
                                 3 => "Cliente",
                                 _ => "Usuario"
                             };
-                            _ = notificationClient.IniciarAsync(SesionSistema.IdUsuario, roleName);
+                            await notificationClient.IniciarAsync(SesionSistema.IdUsuario, roleName);
 
                             startForm = SesionSistema.IdRolUsuario switch
                             {

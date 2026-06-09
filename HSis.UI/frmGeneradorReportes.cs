@@ -8,10 +8,10 @@ namespace HSis.UI
 {
     public partial class frmGeneradorReportes : Form
     {
-        private readonly TicketService _ticketService;
-        private readonly ReportExportService _reportExportService;
+        private readonly ITicketService _ticketService;
+        private readonly IReportExportService _reportExportService;
 
-        public frmGeneradorReportes(TicketService ticketService, ReportExportService reportExportService)
+        public frmGeneradorReportes(ITicketService ticketService, IReportExportService reportExportService)
         {
             InitializeComponent();
             _ticketService = ticketService;
@@ -121,7 +121,7 @@ namespace HSis.UI
                 var tickets = await _ticketService.ObtenerTicketsFiltradosAsync(filtro);
 
                 // 2. Generar Excel
-                var bytes = ReportExportService.GenerarExcel(kpis, tickets, inicio, fin);
+                var bytes = _reportExportService.GenerarExcel(kpis, tickets, inicio, fin);
 
                 // 3. Guardar Archivo
                 using (var sfd = new SaveFileDialog())
@@ -170,7 +170,7 @@ namespace HSis.UI
                 var tickets = await _ticketService.ObtenerTicketsFiltradosAsync(filtro);
 
                 // 2. Generar PDF
-                var bytes = ReportExportService.GenerarPdf(kpis, tickets, inicio, fin);
+                var bytes = _reportExportService.GenerarPdf(kpis, tickets, inicio, fin);
 
                 // 3. Guardar Archivo
                 using (var sfd = new SaveFileDialog())

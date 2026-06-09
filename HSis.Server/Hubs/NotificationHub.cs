@@ -1,13 +1,9 @@
 using Microsoft.AspNetCore.SignalR;
-using System.Collections.Concurrent;
 
 namespace HSis.Server.Hubs;
 
 public class NotificationHub : Hub
 {
-    // Mapeo estático para asociar ConnectionId con UserId y Rol
-    private static readonly ConcurrentDictionary<string, (int UserId, string Role)> _connections = new();
-
     public override async Task OnConnectedAsync()
     {
         var httpContext = Context.GetHttpContext();
@@ -16,9 +12,6 @@ public class NotificationHub : Hub
 
         if (int.TryParse(userIdStr, out int userId))
         {
-            // Registrar conexión
-            _connections[Context.ConnectionId] = (userId, role);
-
             // Agregar a grupo de usuario individual
             await Groups.AddToGroupAsync(Context.ConnectionId, $"User_{userId}");
 
@@ -30,21 +23,6 @@ public class NotificationHub : Hub
         }
 
         await base.OnConnectedAsync();
-    }
-
-    public override async Task OnDisconnectedAsync(Exception? exception)
-    {
-        if (_connections.TryRemove(Context.ConnectionId, out var info))
-        {
-            // Remover de los grupos
-            await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"User_{info.UserId}");
-            if (!string.IsNullOrEmpty(info.Role))
-            {
-                await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"Role_{info.Role}");
-            }
-        }
-
-        await base.OnDisconnectedAsync(exception);
     }
 
     // Métodos para retransmitir notificaciones enviados por los clientes (Técnicos o Clientes)

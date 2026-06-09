@@ -1,32 +1,35 @@
 #nullable enable
 using System.Runtime.Versioning;
-using HSis.Data.Models;
+using HSis.Logic.DTOs;
+using HSis.Logic.Services;
 
 namespace HSis.UI
 {
     [SupportedOSPlatform("windows")]
     public static class SesionSistema
     {
-        public static Usuario? UsuarioActual { get; set; }
+        public static UsuarioDto? UsuarioActual { get; set; }
         public static int IdUsuario => UsuarioActual?.IdUsuario ?? 0;
         public static string NombreUsuario => UsuarioActual?.Nombre ?? string.Empty;
         public static int IdRolUsuario => UsuarioActual?.IdRol ?? 0;
 
-        public static void ConfigurarMenuSesion(Form form)
+        public static void ConfigurarMenuSesion(Form form, ISessionCacheService sessionCache)
         {
             var menu = new MenuStrip();
 
-            var menuUsuario = new ToolStripMenuItem($"Sesión de: {NombreUsuario}");
-            menuUsuario.Alignment = ToolStripItemAlignment.Right;
+            var menuUsuario = new ToolStripMenuItem($"Sesión de: {NombreUsuario}")
+            {
+                Alignment = ToolStripItemAlignment.Right
+            };
 
             var itemPerfil = new ToolStripMenuItem("Mi Perfil");
             itemPerfil.Click += (s, e) =>
             {
                 string rol = IdRolUsuario == 1 ? "Administrador" : (IdRolUsuario == 2 ? "Técnico" : "Cliente");
 
-                string depto = UsuarioActual?.IdDepartamentoNavigation?.Nombre ?? "Sin Asignar";
-                string puesto = UsuarioActual?.IdPuestoNavigation?.Nombre ?? "Sin Asignar";
-                string sucursal = UsuarioActual?.IdSucursalNavigation?.Nombre ?? "Sin Asignar";
+                string depto = UsuarioActual?.DepartamentoNombre ?? "Sin Asignar";
+                string puesto = UsuarioActual?.PuestoNombre ?? "Sin Asignar";
+                string sucursal = UsuarioActual?.SucursalNombre ?? "Sin Asignar";
 
                 string info = $"Nombre de Usuario: {NombreUsuario}\n" +
                               $"Rol asignado: {rol}\n\n" +
@@ -44,7 +47,7 @@ namespace HSis.UI
                 if (confirmResult == DialogResult.Yes)
                 {
                     // Limpiar credenciales guardadas en caché
-                    HSis.Logic.Services.SessionCacheService.ClearCredentials();
+                    sessionCache.ClearCredentials();
 
                     Application.Restart();
                 }

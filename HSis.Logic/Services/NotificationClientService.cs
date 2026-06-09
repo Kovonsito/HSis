@@ -5,10 +5,10 @@ using System.Collections.Concurrent;
 
 namespace HSis.Logic.Services;
 
-public class NotificationClientService
+public class NotificationClientService(IConfiguration configuration, ILogger<NotificationClientService> logger) : INotificationClientService
 {
-    private readonly IConfiguration _configuration;
-    private readonly ILogger<NotificationClientService> _logger;
+    private readonly IConfiguration _configuration = configuration;
+    private readonly ILogger<NotificationClientService> _logger = logger;
     private HubConnection? _connection;
     private bool _isConnecting = false;
     private readonly ConcurrentQueue<Func<HubConnection, Task>> _pendingNotifications = new();
@@ -19,12 +19,6 @@ public class NotificationClientService
     public event Action? OnDisconnected;
     public event Action? OnReconnecting;
     public event Action<string?>? OnReconnected;
-
-    public NotificationClientService(IConfiguration configuration, ILogger<NotificationClientService> logger)
-    {
-        _configuration = configuration;
-        _logger = logger;
-    }
 
     public bool IsConnected => _connection?.State == HubConnectionState.Connected;
 
@@ -38,7 +32,10 @@ public class NotificationClientService
         var baseUrl = _configuration["SignalR:ServerUrl"] ?? "http://localhost:5000/notificationHub";
         var connectionUrl = $"{baseUrl}?userId={userId}&role={Uri.EscapeDataString(role)}";
 
-        _logger.LogInformation("Iniciando conexión de SignalR a {Url}", baseUrl);
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation("Iniciando conexión de SignalR a {Url}", baseUrl);
+        }
 
         _connection = new HubConnectionBuilder()
             .WithUrl(connectionUrl)
@@ -56,7 +53,7 @@ public class NotificationClientService
         {
             _logger.LogWarning(error, "Conexión de SignalR cerrada.");
             OnDisconnected?.Invoke();
-            await IniciarReconexionBackgroundAsync(userId, role);
+            await IniciarReconexionBackgroundAsync();
         };
 
         _connection.Reconnecting += (error) =>
@@ -68,7 +65,10 @@ public class NotificationClientService
 
         _connection.Reconnected += (connectionId) =>
         {
-            _logger.LogInformation("SignalR reconectado correctamente. ID: {ConnectionId}", connectionId);
+            if (_logger.IsEnabled(LogLevel.Information))
+            {
+                _logger.LogInformation("SignalR reconectado correctamente. ID: {ConnectionId}", connectionId);
+            }
             OnReconnected?.Invoke(connectionId);
             _ = ProcesarNotificacionesPendientesAsync();
             return Task.CompletedTask;
@@ -77,7 +77,10 @@ public class NotificationClientService
         // Escuchar la recepción de notificaciones generales enviadas por el Hub
         _connection.On<string, int, string>("ReceiveNotification", (tipo, ticketId, mensaje) =>
         {
-            _logger.LogInformation("Notificación recibida: Tipo={Tipo}, TicketId={TicketId}", tipo, ticketId);
+            if (_logger.IsEnabled(LogLevel.Information))
+            {
+                _logger.LogInformation("Notificación recibida: Tipo={Tipo}, TicketId={TicketId}", tipo, ticketId);
+            }
             OnNotificationReceived?.Invoke(tipo, ticketId, mensaje);
         });
 
@@ -93,11 +96,11 @@ public class NotificationClientService
             _logger.LogError(ex, "Error al iniciar conexión inicial de SignalR.");
             OnDisconnected?.Invoke();
             // Iniciar ciclo de reintento en segundo plano para no bloquear el inicio de la app
-            await IniciarReconexionBackgroundAsync(userId, role);
+            await IniciarReconexionBackgroundAsync();
         }
     }
 
-    private async Task IniciarReconexionBackgroundAsync(int userId, string role)
+    private async Task IniciarReconexionBackgroundAsync()
     {
         if (_isConnecting) return;
         _isConnecting = true;
@@ -154,7 +157,10 @@ public class NotificationClientService
     {
         if (_connection == null || !IsConnected) return;
 
-        _logger.LogInformation("Procesando {Count} notificaciones pendientes...", _pendingNotifications.Count);
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation("Procesando {Count} notificaciones pendientes...", _pendingNotifications.Count);
+        }
 
         while (_pendingNotifications.TryDequeue(out var notificationAction))
         {
@@ -175,7 +181,7 @@ public class NotificationClientService
     // Métodos para enviar notificaciones a través del Hub
     public async Task NotifyTicketStatusChangedAsync(int clientUserId, int ticketId, string ticketFolio, string newStatus)
     {
-        Func<HubConnection, Task> action = (conn) => conn.InvokeAsync("NotifyTicketStatusChanged", clientUserId, ticketId, ticketFolio, newStatus);
+        Task action(HubConnection conn) => conn.InvokeAsync("NotifyTicketStatusChanged", clientUserId, ticketId, ticketFolio, newStatus);
 
         if (IsConnected && _connection != null)
         {
@@ -198,7 +204,7 @@ public class NotificationClientService
 
     public async Task NotifyTicketRatedAsync(int technicianUserId, int ticketId, string ticketFolio, int rating, string comment)
     {
-        Func<HubConnection, Task> action = (conn) => conn.InvokeAsync("NotifyTicketRated", technicianUserId, ticketId, ticketFolio, rating, comment);
+        Task action(HubConnection conn) => conn.InvokeAsync("NotifyTicketRated", technicianUserId, ticketId, ticketFolio, rating, comment);
 
         if (IsConnected && _connection != null)
         {
