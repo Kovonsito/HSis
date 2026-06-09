@@ -106,7 +106,7 @@ namespace HSis.UI
             txtContraseña.Dock = DockStyle.Fill;
             txtContraseña.Margin = new Padding(0, 0, 0, 20);
 
-            btnIniciarSesion.Dock = DockStyle.Fill;
+            btnIniciarSesion.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             btnIniciarSesion.Margin = new Padding(0);
             btnIniciarSesion.Height = 35;
 

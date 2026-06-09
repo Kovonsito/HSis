@@ -55,15 +55,7 @@ namespace HSis.UI
             dtpFechaInicio = new DateTimePicker();
             lblFechaFin = new Label();
             dtpFechaFin = new DateTimePicker();
-            pnlPaginacion = new Panel();
-            lblPageSize = new Label();
-            cmbPageSize = new ComboBox();
-            btnFirstPage = new Button();
-            btnPrevPage = new Button();
-            lblPageInfo = new Label();
-            btnNextPage = new Button();
-            btnLastPage = new Button();
-            lblTotalTickets = new Label();
+
             ((System.ComponentModel.ISupportInitialize)dgvTickets).BeginInit();
             tabMain.SuspendLayout();
             tabTickets.SuspendLayout();
@@ -154,7 +146,6 @@ namespace HSis.UI
             tabTickets.Controls.Add(ucReabiertos);
             tabTickets.Controls.Add(btnRecargar);
             tabTickets.Controls.Add(dgvTickets);
-            tabTickets.Controls.Add(pnlPaginacion);
             tabTickets.Controls.Add(ucCerrados);
             tabTickets.Controls.Add(ucEnProceso);
             tabTickets.Controls.Add(ucUrgentes);
@@ -231,99 +222,7 @@ namespace HSis.UI
             dtpFechaFin.Name = "dtpFechaFin";
             dtpFechaFin.Size = new Size(130, 23);
             dtpFechaFin.TabIndex = 8;
-            // 
-            // pnlPaginacion
-            // 
-            pnlPaginacion.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            pnlPaginacion.BorderStyle = BorderStyle.FixedSingle;
-            pnlPaginacion.AutoScroll = true;
-            pnlPaginacion.Controls.Add(lblPageSize);
-            pnlPaginacion.Controls.Add(cmbPageSize);
-            pnlPaginacion.Controls.Add(btnFirstPage);
-            pnlPaginacion.Controls.Add(btnPrevPage);
-            pnlPaginacion.Controls.Add(lblPageInfo);
-            pnlPaginacion.Controls.Add(btnNextPage);
-            pnlPaginacion.Controls.Add(btnLastPage);
-            pnlPaginacion.Controls.Add(lblTotalTickets);
-            pnlPaginacion.Location = new Point(12, 550);
-            pnlPaginacion.Name = "pnlPaginacion";
-            pnlPaginacion.Size = new Size(1024, 32);
-            pnlPaginacion.TabIndex = 9;
-            pnlPaginacion.BackColor = Color.White;
-            // 
-            // lblPageSize
-            // 
-            lblPageSize.AutoSize = true;
-            lblPageSize.Font = new Font("Segoe UI", 9F);
-            lblPageSize.Location = new Point(10, 7);
-            lblPageSize.Name = "lblPageSize";
-            lblPageSize.Size = new Size(111, 15);
-            lblPageSize.Text = "Tickets por página:";
-            // 
-            // cmbPageSize
-            // 
-            cmbPageSize.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbPageSize.Font = new Font("Segoe UI", 8.5F);
-            cmbPageSize.FormattingEnabled = true;
-            cmbPageSize.Location = new Point(125, 4);
-            cmbPageSize.Name = "cmbPageSize";
-            cmbPageSize.Size = new Size(60, 23);
-            cmbPageSize.TabIndex = 0;
-            // 
-            // btnFirstPage
-            // 
-            btnFirstPage.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
-            btnFirstPage.Location = new Point(360, 3);
-            btnFirstPage.Name = "btnFirstPage";
-            btnFirstPage.Size = new Size(40, 24);
-            btnFirstPage.Text = "|<";
-            btnFirstPage.UseVisualStyleBackColor = true;
-            // 
-            // btnPrevPage
-            // 
-            btnPrevPage.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
-            btnPrevPage.Location = new Point(405, 3);
-            btnPrevPage.Name = "btnPrevPage";
-            btnPrevPage.Size = new Size(40, 24);
-            btnPrevPage.Text = "<";
-            btnPrevPage.UseVisualStyleBackColor = true;
-            // 
-            // lblPageInfo
-            // 
-            lblPageInfo.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
-            lblPageInfo.Location = new Point(450, 6);
-            lblPageInfo.Name = "lblPageInfo";
-            lblPageInfo.Size = new Size(130, 20);
-            lblPageInfo.Text = "Página 1 de 1";
-            lblPageInfo.TextAlign = ContentAlignment.MiddleCenter;
-            // 
-            // btnNextPage
-            // 
-            btnNextPage.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
-            btnNextPage.Location = new Point(585, 3);
-            btnNextPage.Name = "btnNextPage";
-            btnNextPage.Size = new Size(40, 24);
-            btnNextPage.Text = ">";
-            btnNextPage.UseVisualStyleBackColor = true;
-            // 
-            // btnLastPage
-            // 
-            btnLastPage.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
-            btnLastPage.Location = new Point(630, 3);
-            btnLastPage.Name = "btnLastPage";
-            btnLastPage.Size = new Size(40, 24);
-            btnLastPage.Text = ">|";
-            btnLastPage.UseVisualStyleBackColor = true;
-            // 
-            // lblTotalTickets
-            // 
-            lblTotalTickets.Anchor = AnchorStyles.Top | AnchorStyles.Left;
-            lblTotalTickets.Font = new Font("Segoe UI", 9F);
-            lblTotalTickets.Location = new Point(810, 7);
-            lblTotalTickets.Name = "lblTotalTickets";
-            lblTotalTickets.Size = new Size(200, 15);
-            lblTotalTickets.Text = "Total: 0 tickets";
-            lblTotalTickets.TextAlign = ContentAlignment.TopRight;
+
             // 
             // lblFiltrosTitle
             // 
@@ -486,14 +385,6 @@ namespace HSis.UI
         private DateTimePicker dtpFechaInicio;
         private Label lblFechaFin;
         private DateTimePicker dtpFechaFin;
-        private Panel pnlPaginacion;
-        private Label lblPageSize;
-        private ComboBox cmbPageSize;
-        private Button btnFirstPage;
-        private Button btnPrevPage;
-        private Label lblPageInfo;
-        private Button btnNextPage;
-        private Button btnLastPage;
-        private Label lblTotalTickets;
+
     }
 }
