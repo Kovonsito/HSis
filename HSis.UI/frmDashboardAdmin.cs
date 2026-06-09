@@ -13,74 +13,43 @@ namespace HSis.UI
         private readonly ITicketService _ticketService;
         private readonly ICatalogoService _catalogoService;
         private readonly IUsuarioService _usuarioService;
-        private readonly INotificationClientService _notificationClient;
+        private readonly NotificationUIManager _uiManager;
         private bool _estaCargando = true;
-        private int _paginaActual = 1;
-        private int _tamanhoPagina = 10;
-        private int _totalRegistros = 0;
+        private ucPaginacion ucPaginacion = null!;
 
-        private Panel? _pnlResilienceBanner;
-        private Label? _lblResilienceBanner;
         private ucIndicador? _ucCalificacion;
 
-        private readonly INotificacionStorageService _storageService;
-        private Panel? pnlNotificacionesHistorial;
-        private FlowLayoutPanel? flpNotificaciones;
-        private ToolStripMenuItem? menuCampanaItem;
-        private int _notificacionesNoLeidas = 0;
         private readonly IFormFactory _formFactory;
         private readonly ISessionCacheService _sessionCache;
 
-        public frmDashboardAdmin(ITicketService ticketService, ICatalogoService catalogoService, IUsuarioService usuarioService, INotificationClientService notificationClient, INotificacionStorageService storageService, IFormFactory formFactory, ISessionCacheService sessionCache)
+        public frmDashboardAdmin(
+            ITicketService ticketService,
+            ICatalogoService catalogoService,
+            IUsuarioService usuarioService,
+            NotificationUIManager uiManager,
+            IFormFactory formFactory,
+            ISessionCacheService sessionCache)
         {
             InitializeComponent();
             _ticketService = ticketService;
             _catalogoService = catalogoService;
             _usuarioService = usuarioService;
-            _notificationClient = notificationClient;
-            _storageService = storageService;
+            _uiManager = uiManager;
             _formFactory = formFactory;
             _sessionCache = sessionCache;
         }
 
         private async void DashboardAdmin_Load(object sender, EventArgs e)
         {
-            InicializarBannerResiliencia();
             InicializarLayoutTicketsAdmin();
             SesionSistema.ConfigurarMenuSesion(this, _sessionCache);
-            AjustarZOrderControles();
 
-            // Configurar campana en el menú
-            var menu = this.MainMenuStrip;
-            if (menu != null)
+            if (tabMain != null)
             {
-                menuCampanaItem = new ToolStripMenuItem("🔔 (0)")
-                {
-                    Alignment = ToolStripItemAlignment.Right
-                };
-                menuCampanaItem.Click += BtnCampana_Click;
-                menu.Items.Add(menuCampanaItem);
+                _uiManager.Attach(this, tabMain, () => Task.WhenAll(CargarKPIsAsync(), CargarGridCompletoAsync()));
             }
 
-            // Suscribirse a los eventos de SignalR
-            _notificationClient.OnNotificationReceived += OnNotificationReceived;
-            _notificationClient.OnReconnecting += OnReconnecting;
-            _notificationClient.OnConnected += OnConnected;
-            _notificationClient.OnDisconnected += OnDisconnected;
-
-            // Limpieza al cerrar formulario
-            this.FormClosed += (s, args) =>
-            {
-                _notificationClient.OnNotificationReceived -= OnNotificationReceived;
-                _notificationClient.OnReconnecting -= OnReconnecting;
-                _notificationClient.OnConnected -= OnConnected;
-                _notificationClient.OnDisconnected -= OnDisconnected;
-            };
-
-            // Establecer estado inicial según la conexión
-            ActualizarEstadoConexion(_notificationClient.IsConnected, "⚠️ Conectando al servidor de notificaciones...", Color.FromArgb(230, 126, 34));
-
-            ConfigurarPaginacionYFechas();
+            ConfigurarFechasYFiltros();
 
             // Cargar los combos de filtros antes del grid
             await InicializarCombosFiltrosAsync();
@@ -89,13 +58,39 @@ namespace HSis.UI
             await Task.WhenAll(CargarKPIsAsync(), CargarGridCompletoAsync());
 
             ConfigurarTabsCatalogos();
-            await CargarHistorialNotificacionesAsync();
         }
 
         private void InicializarLayoutTicketsAdmin()
         {
-            // 1. Crear el TableLayoutPanel principal que ocupará la TabPage de Tickets
-            var tblPrincipal = new TableLayoutPanel
+            var tblPrincipal = CrearPanelPrincipal();
+            var tblIndicadores = CrearPanelIndicadores();
+            var pnlRecargar = ConfigurarBotonRecargar();
+
+            // Instanciar control de paginación reutilizable
+            ucPaginacion = new ucPaginacion();
+            ucPaginacion.PageChanged += async (s, e) => { if (!_estaCargando) await FiltrarTicketsAsync(); };
+
+            // Configurar otros paneles accesorios
+            pnlFiltros.Dock = DockStyle.Fill;
+            pnlFiltros.Margin = new Padding(5);
+
+            dgvTickets.Dock = DockStyle.Fill;
+            dgvTickets.Margin = new Padding(5);
+
+            // Ensamblar el layout en el grid principal
+            tblPrincipal.Controls.Add(tblIndicadores, 0, 0);
+            tblPrincipal.Controls.Add(pnlFiltros, 0, 1);
+            tblPrincipal.Controls.Add(pnlRecargar, 0, 2);
+            tblPrincipal.Controls.Add(dgvTickets, 0, 3);
+            tblPrincipal.Controls.Add(ucPaginacion, 0, 4);
+
+            // Reubicar controles desde el contenedor original al panel principal
+            ReubicarControlesAlPrincipal(tblPrincipal);
+        }
+
+        private TableLayoutPanel CrearPanelPrincipal()
+        {
+            var tbl = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
                 Name = "tblPrincipalTickets",
@@ -104,15 +99,18 @@ namespace HSis.UI
                 Size = tabTickets.ClientSize
             };
 
-            // Definir filas del grid principal
-            tblPrincipal.RowStyles.Add(new RowStyle(SizeType.Absolute, 110F)); // Fila 0: 6 Indicadores
-            tblPrincipal.RowStyles.Add(new RowStyle(SizeType.AutoSize));       // Fila 1: Panel de Filtros
-            tblPrincipal.RowStyles.Add(new RowStyle(SizeType.Absolute, 35F));  // Fila 2: Botón de Recargar
-            tblPrincipal.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));  // Fila 3: Grid (dgvTickets)
-            tblPrincipal.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));  // Fila 4: Panel de Paginación
+            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 110F)); // Fila 0: 6 Indicadores
+            tbl.RowStyles.Add(new RowStyle(SizeType.AutoSize));       // Fila 1: Panel de Filtros
+            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 35F));  // Fila 2: Botón de Recargar
+            tbl.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));  // Fila 3: Grid (dgvTickets)
+            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));  // Fila 4: Panel de Paginación
 
-            // 2. Crear el TableLayoutPanel para los 6 indicadores (6 columnas, 16.6% cada una)
-            var tblIndicadores = new TableLayoutPanel
+            return tbl;
+        }
+
+        private TableLayoutPanel CrearPanelIndicadores()
+        {
+            var tbl = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
                 Name = "tblIndicadoresAdmin",
@@ -120,14 +118,12 @@ namespace HSis.UI
                 ColumnCount = 6,
                 Margin = new Padding(0)
             };
-            tblIndicadores.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 16.66F));
-            tblIndicadores.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 16.66F));
-            tblIndicadores.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 16.66F));
-            tblIndicadores.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 16.66F));
-            tblIndicadores.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 16.66F));
-            tblIndicadores.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 16.66F));
 
-            // Instanciar el control de calificación
+            for (int i = 0; i < 6; i++)
+            {
+                tbl.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 16.66F));
+            }
+
             _ucCalificacion = new ucIndicador
             {
                 Dock = DockStyle.Fill,
@@ -135,61 +131,45 @@ namespace HSis.UI
             };
             _ucCalificacion.ucIndicadorEvent += UcCalificacion_Click;
 
-            // Configurar los indicadores para que ocupen su celda
-            ucNuevos.Dock = DockStyle.Fill;
-            ucUrgentes.Dock = DockStyle.Fill;
-            ucEnProceso.Dock = DockStyle.Fill;
-            ucCerrados.Dock = DockStyle.Fill;
-            ucReabiertos.Dock = DockStyle.Fill;
+            // Configurar docks y margins
+            ucNuevos.Dock = DockStyle.Fill; ucNuevos.Margin = new Padding(5);
+            ucUrgentes.Dock = DockStyle.Fill; ucUrgentes.Margin = new Padding(5);
+            ucEnProceso.Dock = DockStyle.Fill; ucEnProceso.Margin = new Padding(5);
+            ucCerrados.Dock = DockStyle.Fill; ucCerrados.Margin = new Padding(5);
+            ucReabiertos.Dock = DockStyle.Fill; ucReabiertos.Margin = new Padding(5);
 
-            ucNuevos.Margin = new Padding(5);
-            ucUrgentes.Margin = new Padding(5);
-            ucEnProceso.Margin = new Padding(5);
-            ucCerrados.Margin = new Padding(5);
-            ucReabiertos.Margin = new Padding(5);
+            tbl.Controls.Add(ucNuevos, 0, 0);
+            tbl.Controls.Add(ucUrgentes, 1, 0);
+            tbl.Controls.Add(ucEnProceso, 2, 0);
+            tbl.Controls.Add(ucCerrados, 3, 0);
+            tbl.Controls.Add(ucReabiertos, 4, 0);
+            tbl.Controls.Add(_ucCalificacion, 5, 0);
 
-            tblIndicadores.Controls.Add(ucNuevos, 0, 0);
-            tblIndicadores.Controls.Add(ucUrgentes, 1, 0);
-            tblIndicadores.Controls.Add(ucEnProceso, 2, 0);
-            tblIndicadores.Controls.Add(ucCerrados, 3, 0);
-            tblIndicadores.Controls.Add(ucReabiertos, 4, 0);
-            tblIndicadores.Controls.Add(_ucCalificacion, 5, 0);
+            return tbl;
+        }
 
-            // 3. Panel de filtros
-            pnlFiltros.Dock = DockStyle.Fill;
-            pnlFiltros.Margin = new Padding(5);
-
-            // 4. Botón de Recargar alineado a la derecha
-            var pnlRecargar = new Panel
+        private Panel ConfigurarBotonRecargar()
+        {
+            var pnl = new Panel
             {
                 Dock = DockStyle.Fill,
                 Margin = new Padding(0)
             };
-            btnRecargar.Anchor = AnchorStyles.Right;
-            btnRecargar.Location = new Point(pnlRecargar.Width - btnRecargar.Width - 12, (pnlRecargar.Height - btnRecargar.Height) / 2);
-            pnlRecargar.Controls.Add(btnRecargar);
 
-            pnlRecargar.SizeChanged += (s, e) =>
+            btnRecargar.Anchor = AnchorStyles.Right;
+            btnRecargar.Location = new Point(pnl.Width - btnRecargar.Width - 12, (pnl.Height - btnRecargar.Height) / 2);
+            pnl.Controls.Add(btnRecargar);
+
+            pnl.SizeChanged += (s, e) =>
             {
-                btnRecargar.Location = new Point(pnlRecargar.Width - btnRecargar.Width - 12, (pnlRecargar.Height - btnRecargar.Height) / 2);
+                btnRecargar.Location = new Point(pnl.Width - btnRecargar.Width - 12, (pnl.Height - btnRecargar.Height) / 2);
             };
 
-            // 5. Grid principal
-            dgvTickets.Dock = DockStyle.Fill;
-            dgvTickets.Margin = new Padding(5);
+            return pnl;
+        }
 
-            // 6. Panel de paginación
-            pnlPaginacion.Dock = DockStyle.Fill;
-            pnlPaginacion.Margin = new Padding(5, 0, 5, 0);
-
-            // Agregar componentes al TableLayoutPanel principal
-            tblPrincipal.Controls.Add(tblIndicadores, 0, 0);
-            tblPrincipal.Controls.Add(pnlFiltros, 0, 1);
-            tblPrincipal.Controls.Add(pnlRecargar, 0, 2);
-            tblPrincipal.Controls.Add(dgvTickets, 0, 3);
-            tblPrincipal.Controls.Add(pnlPaginacion, 0, 4);
-
-            // Remover de la tabTickets original para agregarlos al grid principal
+        private void ReubicarControlesAlPrincipal(TableLayoutPanel tblPrincipal)
+        {
             tabTickets.Controls.Remove(ucNuevos);
             tabTickets.Controls.Remove(ucUrgentes);
             tabTickets.Controls.Remove(ucEnProceso);
@@ -198,63 +178,19 @@ namespace HSis.UI
             tabTickets.Controls.Remove(pnlFiltros);
             tabTickets.Controls.Remove(btnRecargar);
             tabTickets.Controls.Remove(dgvTickets);
-            tabTickets.Controls.Remove(pnlPaginacion);
 
-            // Agregar el grid principal a la pestaña
             tabTickets.Controls.Add(tblPrincipal);
         }
 
-        private void ConfigurarPaginacionYFechas()
+        private void ConfigurarFechasYFiltros()
         {
-            // Inicializar Page Size ComboBox
-            cmbPageSize.Items.Clear();
-            cmbPageSize.Items.AddRange(["10", "20", "50", "100"]);
-            cmbPageSize.SelectedIndex = 0; // Default: 10
-            _tamanhoPagina = 10;
-
             // Configurar fechas iniciales (desde hace 30 días hasta hoy)
             dtpFechaInicio.Value = DateTime.Today.AddDays(-30);
             dtpFechaFin.Value = DateTime.Today.AddDays(1).AddTicks(-1);
 
             // Suscribir eventos de filtros de fecha
-            dtpFechaInicio.ValueChanged += async (s, e) => { if (!_estaCargando) { _paginaActual = 1; await FiltrarTicketsAsync(); } };
-            dtpFechaFin.ValueChanged += async (s, e) => { if (!_estaCargando) { _paginaActual = 1; await FiltrarTicketsAsync(); } };
-
-            cmbPageSize.SelectedIndexChanged += async (s, e) =>
-            {
-                if (int.TryParse(cmbPageSize.SelectedItem?.ToString(), out int size))
-                {
-                    _tamanhoPagina = size;
-                    _paginaActual = 1;
-                    await FiltrarTicketsAsync();
-                }
-            };
-
-            btnFirstPage.Click += async (s, e) => { _paginaActual = 1; await FiltrarTicketsAsync(); };
-            btnPrevPage.Click += async (s, e) => { if (_paginaActual > 1) { _paginaActual--; await FiltrarTicketsAsync(); } };
-            btnNextPage.Click += async (s, e) => { if (_paginaActual < ObtenerTotalPaginas()) { _paginaActual++; await FiltrarTicketsAsync(); } };
-            btnLastPage.Click += async (s, e) => { _paginaActual = ObtenerTotalPaginas(); await FiltrarTicketsAsync(); };
-        }
-
-        private int ObtenerTotalPaginas()
-        {
-            if (_totalRegistros <= 0) return 1;
-            return (int)Math.Ceiling((double)_totalRegistros / _tamanhoPagina);
-        }
-
-        private void ActualizarControlesPaginacion()
-        {
-            int totalPaginas = ObtenerTotalPaginas();
-            if (_paginaActual > totalPaginas) _paginaActual = totalPaginas;
-            if (_paginaActual < 1) _paginaActual = 1;
-
-            lblPageInfo.Text = $"Página {_paginaActual} de {totalPaginas}";
-            lblTotalTickets.Text = $"Total: {_totalRegistros} tickets";
-
-            btnFirstPage.Enabled = _paginaActual > 1;
-            btnPrevPage.Enabled = _paginaActual > 1;
-            btnNextPage.Enabled = _paginaActual < totalPaginas;
-            btnLastPage.Enabled = _paginaActual < totalPaginas;
+            dtpFechaInicio.ValueChanged += async (s, e) => { if (!_estaCargando) { ucPaginacion.CurrentPage = 1; await FiltrarTicketsAsync(); } };
+            dtpFechaFin.ValueChanged += async (s, e) => { if (!_estaCargando) { ucPaginacion.CurrentPage = 1; await FiltrarTicketsAsync(); } };
         }
 
         private async Task InicializarCombosFiltrosAsync()
@@ -363,18 +299,18 @@ namespace HSis.UI
             filtros.FechaAltaInicio = dtpFechaInicio.Value.Date;
             filtros.FechaAltaFin = dtpFechaFin.Value.Date.AddDays(1).AddTicks(-1);
 
-            var resultadoPaginado = await _ticketService.ObtenerTicketsFiltradosPaginadosAsync(filtros, _paginaActual, _tamanhoPagina);
-            _totalRegistros = resultadoPaginado.TotalCount;
+            var resultadoPaginado = await _ticketService.ObtenerTicketsFiltradosPaginadosAsync(filtros, ucPaginacion.CurrentPage, ucPaginacion.PageSize);
+            ucPaginacion.TotalRecords = resultadoPaginado.TotalCount;
 
             ActualizarGrid(resultadoPaginado.Items);
-            ActualizarControlesPaginacion();
+            ucPaginacion.ActualizarInterfaz();
         }
 
-        private async void cmbFiltroEstatus_SelectedIndexChanged(object sender, EventArgs e) { if (!_estaCargando) { _paginaActual = 1; await FiltrarTicketsAsync(); } }
-        private async void cmbFiltroPrioridad_SelectedIndexChanged(object sender, EventArgs e) { if (!_estaCargando) { _paginaActual = 1; await FiltrarTicketsAsync(); } }
-        private async void cmbFiltroTecnico_SelectedIndexChanged(object sender, EventArgs e) { if (!_estaCargando) { _paginaActual = 1; await FiltrarTicketsAsync(); } }
-        private async void txtFiltroUsuario_TextChanged(object sender, EventArgs e) { if (!_estaCargando) { _paginaActual = 1; await FiltrarTicketsAsync(); } }
-        private async void cmbFiltroTemporal_SelectedIndexChanged(object sender, EventArgs e) { if (!_estaCargando) { _paginaActual = 1; await FiltrarTicketsAsync(); } }
+        private async void cmbFiltroEstatus_SelectedIndexChanged(object sender, EventArgs e) { if (!_estaCargando) { ucPaginacion.CurrentPage = 1; await FiltrarTicketsAsync(); } }
+        private async void cmbFiltroPrioridad_SelectedIndexChanged(object sender, EventArgs e) { if (!_estaCargando) { ucPaginacion.CurrentPage = 1; await FiltrarTicketsAsync(); } }
+        private async void cmbFiltroTecnico_SelectedIndexChanged(object sender, EventArgs e) { if (!_estaCargando) { ucPaginacion.CurrentPage = 1; await FiltrarTicketsAsync(); } }
+        private async void txtFiltroUsuario_TextChanged(object sender, EventArgs e) { if (!_estaCargando) { ucPaginacion.CurrentPage = 1; await FiltrarTicketsAsync(); } }
+        private async void cmbFiltroTemporal_SelectedIndexChanged(object sender, EventArgs e) { if (!_estaCargando) { ucPaginacion.CurrentPage = 1; await FiltrarTicketsAsync(); } }
         private async void btnLimpiarFiltros_Click(object sender, EventArgs e)
         {
             _estaCargando = true;
@@ -385,7 +321,7 @@ namespace HSis.UI
             cmbFiltroTemporal.SelectedIndex = 0;
             dtpFechaInicio.Value = DateTime.Today.AddDays(-30);
             dtpFechaFin.Value = DateTime.Today.AddDays(1).AddTicks(-1);
-            _paginaActual = 1;
+            ucPaginacion.CurrentPage = 1;
             _estaCargando = false;
 
             await CargarGridCompletoAsync();
@@ -444,7 +380,7 @@ namespace HSis.UI
 
         private async Task CargarGridCompletoAsync()
         {
-            _paginaActual = 1;
+            ucPaginacion.CurrentPage = 1;
             await FiltrarTicketsAsync();
         }
 
@@ -512,20 +448,18 @@ namespace HSis.UI
             await CargarKPIsAsync();
         }
 
-        private void dgvTickets_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        private async void dgvTickets_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex >= 0)
             {
-                // Obtenemos el valor de la celda "Folio" de manera segura
                 if (int.TryParse(dgvTickets.Rows[e.RowIndex].Cells["Folio"].Value?.ToString(), out int idSeleccionado))
                 {
-                    // Pasamos el ID al constructor del formulario a través de Inyección de Dependencias
-                    frmTicketDetalle formulario = _formFactory.CreateTicketDetalle(idSeleccionado);
+                    using var formulario = _formFactory.CreateTicketDetalle(idSeleccionado);
                     formulario.ShowDialog();
 
                     // Al cerrar el detalle, recargamos el Dashboard por si hubo cambios
-                    _ = CargarKPIsAsync();
-                    _ = CargarGridCompletoAsync();
+                    await CargarKPIsAsync();
+                    await CargarGridCompletoAsync();
                 }
             }
         }
@@ -781,23 +715,7 @@ namespace HSis.UI
             // Ocultar columnas no deseadas y renombrar cabeceras
             string idPk = "Id" + (tipoEntidad.Name == "RolUsuario" ? "Rol" : tipoEntidad.Name);
 
-            // --- DIAGNÓSTICO TEMPORAL ---
-            if (tipoEntidad.Name == "Usuario")
-            {
-                var debugLines = new List<string> { $"=== Columnas para Usuario ===" };
-                foreach (DataGridViewColumn col in dgv.Columns)
-                {
-                    bool isGeneric = col.ValueType?.IsGenericType == true;
-                    string isNullable = col.ValueType != null && col.ValueType.IsGenericType && col.ValueType.GetGenericTypeDefinition() == typeof(Nullable<>) ? "Sí" : "No";
-                    debugLines.Add($"Columna: {col.Name} | Tipo: {col.ValueType?.Name ?? "null"} | Genérico: {isGeneric} | Nullable: {isNullable} | Visible original: {col.Visible}");
-                }
-                try
-                {
-                    System.IO.File.WriteAllLines(@"c:\HSis\debug_columns.txt", debugLines);
-                }
-                catch { }
-            }
-            // -----------------------------
+
 
             foreach (DataGridViewColumn col in dgv.Columns)
             {
@@ -831,289 +749,6 @@ namespace HSis.UI
             }
         }
 
-        private void InicializarBannerResiliencia()
-        {
-            _pnlResilienceBanner = new Panel
-            {
-                Dock = DockStyle.Top,
-                Height = 35,
-                BackColor = Color.FromArgb(231, 76, 60), // Rojo
-                Visible = false
-            };
 
-            _lblResilienceBanner = new Label
-            {
-                Dock = DockStyle.Fill,
-                ForeColor = Color.White,
-                Font = new Font("Segoe UI", 10F, FontStyle.Bold),
-                TextAlign = ContentAlignment.MiddleCenter,
-                Text = "⚠️ Sin conexión con el servidor de notificaciones. Intentando reconectar..."
-            };
-
-            _pnlResilienceBanner.Controls.Add(_lblResilienceBanner);
-            this.Controls.Add(_pnlResilienceBanner);
-            _pnlResilienceBanner.BringToFront();
-
-            // Crear Panel de Notificaciones (Flotante)
-            pnlNotificacionesHistorial = new Panel
-            {
-                Width = 300,
-                Height = this.ClientSize.Height - 35,
-                Location = new Point(this.ClientSize.Width - 300, 35),
-                Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right,
-                BackColor = Color.FromArgb(245, 247, 250),
-                Visible = false,
-                Padding = new Padding(10)
-            };
-
-            var pnlNotifHeader = new Panel
-            {
-                Dock = DockStyle.Top,
-                Height = 40,
-                Padding = new Padding(0, 0, 0, 5)
-            };
-            var lblNotifTitle = new Label
-            {
-                Text = "Notificaciones",
-                Font = new Font("Segoe UI", 12F, FontStyle.Bold),
-                Dock = DockStyle.Left,
-                AutoSize = true
-            };
-            var btnLimpiarNotif = new Button
-            {
-                Text = "Limpiar todo",
-                Font = new Font("Segoe UI", 9F, FontStyle.Regular),
-                Dock = DockStyle.Right,
-                Width = 95,
-                BackColor = Color.White,
-                FlatStyle = FlatStyle.Flat
-            };
-            btnLimpiarNotif.FlatAppearance.BorderSize = 1;
-            btnLimpiarNotif.FlatAppearance.BorderColor = Color.LightGray;
-            btnLimpiarNotif.Click += BtnLimpiarNotif_Click;
-
-            pnlNotifHeader.Controls.Add(lblNotifTitle);
-            pnlNotifHeader.Controls.Add(btnLimpiarNotif);
-            pnlNotificacionesHistorial.Controls.Add(pnlNotifHeader);
-
-            flpNotificaciones = new FlowLayoutPanel
-            {
-                Dock = DockStyle.Fill,
-                AutoScroll = true,
-                FlowDirection = FlowDirection.TopDown,
-                WrapContents = false,
-                Padding = new Padding(0, 5, 0, 0)
-            };
-            flpNotificaciones.SizeChanged += (s, e) =>
-            {
-                foreach (Control ctrl in flpNotificaciones.Controls)
-                {
-                    ctrl.Width = flpNotificaciones.ClientSize.Width - 10;
-                }
-            };
-            pnlNotificacionesHistorial.Controls.Add(flpNotificaciones);
-
-            pnlNotifHeader.SendToBack();
-            flpNotificaciones.BringToFront();
-
-            this.Controls.Add(pnlNotificacionesHistorial);
-        }
-
-        private void AjustarZOrderControles()
-        {
-            if (pnlNotificacionesHistorial != null)
-            {
-                this.Controls.SetChildIndex(pnlNotificacionesHistorial, 0); // Al frente de todo (flotante)
-            }
-            var tabMain = this.Controls["tabMain"];
-            if (tabMain != null)
-            {
-                this.Controls.SetChildIndex(tabMain, 1); // Debajo de pnlNotificacionesHistorial
-            }
-            if (_pnlResilienceBanner != null)
-            {
-                this.Controls.SetChildIndex(_pnlResilienceBanner, 2); // Debajo de tabMain
-            }
-            foreach (Control ctrl in this.Controls)
-            {
-                if (ctrl is MenuStrip)
-                {
-                    this.Controls.SetChildIndex(ctrl, 3); // Al fondo en lógica de layout (se queda hasta arriba)
-                    break;
-                }
-            }
-        }
-
-        private async void OnNotificationReceived(string tipo, int ticketId, string mensaje)
-        {
-            if (this.InvokeRequired)
-            {
-                this.BeginInvoke(new Action(() => OnNotificationReceived(tipo, ticketId, mensaje)));
-                return;
-            }
-
-            // Guardar persistentemente
-            await _storageService.GuardarNotificacionAsync(SesionSistema.IdUsuario, ticketId, mensaje);
-
-            MessageBox.Show(mensaje, "Notificación de HSis", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            
-            _ = Task.WhenAll(CargarKPIsAsync(), CargarGridCompletoAsync());
-            _ = CargarHistorialNotificacionesAsync();
-        }
-
-        private async Task CargarHistorialNotificacionesAsync()
-        {
-            if (flpNotificaciones == null) return;
-
-            flpNotificaciones.Controls.Clear();
-            var list = await _storageService.ObtenerNotificacionesAsync(SesionSistema.IdUsuario);
-
-            _notificacionesNoLeidas = list.Count(n => !n.Leido);
-            ActualizarCampanaBadge();
-
-            foreach (var notif in list)
-            {
-                AgregarNotificacionAUI(notif);
-            }
-        }
-
-        private void ActualizarCampanaBadge()
-        {
-            if (menuCampanaItem != null)
-            {
-                menuCampanaItem.Text = _notificacionesNoLeidas > 0 ? $"🔔 ({_notificacionesNoLeidas}) 🔴" : $"🔔 ({_notificacionesNoLeidas})";
-                menuCampanaItem.ForeColor = _notificacionesNoLeidas > 0 ? Color.Red : Color.Black;
-                menuCampanaItem.Font = new Font("Segoe UI", 10F, _notificacionesNoLeidas > 0 ? FontStyle.Bold : FontStyle.Regular);
-            }
-        }
-
-        private void AgregarNotificacionAUI(NotificacionLocal notif)
-        {
-            if (flpNotificaciones == null) return;
-
-            var pnlItem = new Panel
-            {
-                Width = flpNotificaciones.ClientSize.Width - 10,
-                Height = 85,
-                BackColor = notif.Leido ? Color.White : Color.FromArgb(235, 245, 251),
-                Padding = new Padding(8),
-                Margin = new Padding(0, 0, 0, 8),
-                Cursor = Cursors.Hand
-            };
-
-            pnlItem.Paint += (s, e) =>
-            {
-                ControlPaint.DrawBorder(e.Graphics, pnlItem.ClientRectangle, Color.FromArgb(220, 224, 230), ButtonBorderStyle.Solid);
-                if (!notif.Leido)
-                {
-                    using var brush = new SolidBrush(Color.FromArgb(52, 152, 219));
-                    e.Graphics.FillEllipse(brush, pnlItem.Width - 15, 8, 8, 8);
-                }
-            };
-
-            var lblMsg = new Label
-            {
-                Text = notif.Mensaje,
-                Font = new Font("Segoe UI", 9.5F, notif.Leido ? FontStyle.Regular : FontStyle.Bold),
-                ForeColor = Color.FromArgb(44, 62, 80),
-                Location = new Point(8, 8),
-                Size = new Size(pnlItem.Width - 25, 50),
-                AutoEllipsis = true
-            };
-
-            var lblFecha = new Label
-            {
-                Text = notif.Fecha.ToString("g"),
-                Font = new Font("Segoe UI", 8F, FontStyle.Italic),
-                ForeColor = Color.Gray,
-                Location = new Point(8, 60),
-                Size = new Size(pnlItem.Width - 20, 18)
-            };
-
-            lblMsg.Click += (s, e) => AbrirDetalleYMarcarLeido(notif, pnlItem);
-            lblFecha.Click += (s, e) => AbrirDetalleYMarcarLeido(notif, pnlItem);
-            pnlItem.Click += (s, e) => AbrirDetalleYMarcarLeido(notif, pnlItem);
-
-            pnlItem.Controls.Add(lblMsg);
-            pnlItem.Controls.Add(lblFecha);
-
-            flpNotificaciones.Controls.Add(pnlItem);
-        }
-
-        private async void AbrirDetalleYMarcarLeido(NotificacionLocal notif, Panel pnlItem)
-        {
-            if (!notif.Leido)
-            {
-                await _storageService.MarcarComoLeidaAsync(SesionSistema.IdUsuario, notif.Id);
-                notif.Leido = true;
-                pnlItem.BackColor = Color.White;
-                foreach (Control ctrl in pnlItem.Controls)
-                {
-                    if (ctrl is Label lbl && lbl.Text == notif.Mensaje)
-                    {
-                        lbl.Font = new Font("Segoe UI", 9.5F, FontStyle.Regular);
-                    }
-                }
-                _notificacionesNoLeidas = Math.Max(0, _notificacionesNoLeidas - 1);
-                ActualizarCampanaBadge();
-                pnlItem.Invalidate();
-            }
-
-            using var frmTicket = _formFactory.CreateTicketDetalle(notif.TicketId);
-            frmTicket.ShowDialog();
-            _ = Task.WhenAll(CargarKPIsAsync(), CargarGridCompletoAsync());
-        }
-
-        private async void BtnLimpiarNotif_Click(object? sender, EventArgs e)
-        {
-            await _storageService.LimpiarTodasAsync(SesionSistema.IdUsuario);
-            _notificacionesNoLeidas = 0;
-            ActualizarCampanaBadge();
-            flpNotificaciones?.Controls.Clear();
-        }
-
-        private void BtnCampana_Click(object? sender, EventArgs e)
-        {
-            if (pnlNotificacionesHistorial != null)
-            {
-                pnlNotificacionesHistorial.Visible = !pnlNotificacionesHistorial.Visible;
-                if (pnlNotificacionesHistorial.Visible)
-                {
-                    pnlNotificacionesHistorial.BringToFront();
-                }
-            }
-        }
-
-        private void OnReconnecting()
-        {
-            ActualizarEstadoConexion(false, "⚠️ Intentando reconectar con el servidor de notificaciones...", Color.FromArgb(230, 126, 34));
-        }
-
-        private void OnConnected()
-        {
-            ActualizarEstadoConexion(true, string.Empty, Color.Empty);
-            _ = Task.WhenAll(CargarKPIsAsync(), CargarGridCompletoAsync());
-        }
-
-        private void OnDisconnected()
-        {
-            ActualizarEstadoConexion(false, "⚠️ Sin conexión con el servidor de notificaciones. Intentando reconectar...", Color.FromArgb(231, 76, 60));
-        }
-
-        private void ActualizarEstadoConexion(bool conectado, string mensaje, Color colorFondo)
-        {
-            if (this.InvokeRequired)
-            {
-                this.BeginInvoke(new Action(() => ActualizarEstadoConexion(conectado, mensaje, colorFondo)));
-                return;
-            }
-
-            if (_pnlResilienceBanner != null && _lblResilienceBanner != null)
-            {
-                _pnlResilienceBanner.Visible = !conectado;
-                _lblResilienceBanner.Text = mensaje;
-                _pnlResilienceBanner.BackColor = colorFondo;
-            }
-        }
     }
 }

@@ -403,7 +403,7 @@ namespace HSis.UI
             var tblFields = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
-                RowCount = 5,
+                RowCount = 6,
                 ColumnCount = 4,
                 Padding = new Padding(12),
                 AutoScroll = true
@@ -417,6 +417,7 @@ namespace HSis.UI
             {
                 tblFields.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));
             }
+            tblFields.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
 
             lblFolio.Dock = DockStyle.Fill;
             lblFolio.TextAlign = ContentAlignment.MiddleLeft;

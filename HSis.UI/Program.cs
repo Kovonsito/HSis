@@ -22,7 +22,7 @@ namespace HSis.UI
         ///  The main entry point for the application.
         /// </summary>
         [STAThread]
-        static async Task Main()
+        static void Main()
         {
             ApplicationConfiguration.Initialize();
 
@@ -105,6 +105,7 @@ namespace HSis.UI
                 services.AddSingleton<ISessionCacheService, SessionCacheService>();
                 services.AddSingleton<INotificacionStorageService, NotificacionStorageService>();
                 services.AddSingleton<IFormFactory, FormFactory>();
+                services.AddTransient<NotificationUIManager>();
 
                 // Registrar Formularios
                 services.AddTransient<frmIniciarSesion>();
@@ -126,7 +127,7 @@ namespace HSis.UI
                     try
                     {
                         var usuarioService = ServiceProvider.GetRequiredService<IUsuarioService>();
-                        var usuario = await usuarioService.AutenticarAsync(cached.Value.Username, cached.Value.Password);
+                        var usuario = usuarioService.AutenticarAsync(cached.Value.Username, cached.Value.Password).GetAwaiter().GetResult();
 
                         if (usuario != null)
                         {
@@ -141,7 +142,7 @@ namespace HSis.UI
                                 3 => "Cliente",
                                 _ => "Usuario"
                             };
-                            await notificationClient.IniciarAsync(SesionSistema.IdUsuario, roleName);
+                            notificationClient.IniciarAsync(SesionSistema.IdUsuario, roleName).GetAwaiter().GetResult();
 
                             startForm = SesionSistema.IdRolUsuario switch
                             {
