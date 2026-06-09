@@ -67,6 +67,9 @@ namespace HSis.UI
 
                 var services = new ServiceCollection();
 
+                // Registrar IConfiguration en el contenedor DI
+                services.AddSingleton<IConfiguration>(configuration);
+
                 // Registrar Logging
                 services.AddLogging(loggingBuilder =>
                 {
@@ -100,6 +103,7 @@ namespace HSis.UI
                 services.AddTransient<ReportExportService>();
                 services.AddSingleton<NotificationClientService>();
                 services.AddSingleton<SessionCacheService>();
+                services.AddSingleton<NotificacionStorageService>();
 
                 // Registrar Formularios
                 services.AddTransient<frmIniciarSesion>();
@@ -110,7 +114,49 @@ namespace HSis.UI
 
                 ServiceProvider = services.BuildServiceProvider();
 
-                Application.Run(ServiceProvider.GetRequiredService<frmIniciarSesion>());
+                Form? startForm = null;
+                var cached = SessionCacheService.GetCredentials();
+
+                if (cached.HasValue)
+                {
+                    try
+                    {
+                        var usuarioService = ServiceProvider.GetRequiredService<UsuarioService>();
+                        var usuario = usuarioService.AutenticarAsync(cached.Value.Username, cached.Value.Password).GetAwaiter().GetResult();
+
+                        if (usuario != null)
+                        {
+                            SesionSistema.UsuarioActual = usuario;
+
+                            // Iniciar SignalR
+                            var notificationClient = ServiceProvider.GetRequiredService<NotificationClientService>();
+                            string roleName = SesionSistema.IdRolUsuario switch
+                            {
+                                1 => "Admin",
+                                2 => "Tecnico",
+                                3 => "Cliente",
+                                _ => "Usuario"
+                            };
+                            _ = notificationClient.IniciarAsync(SesionSistema.IdUsuario, roleName);
+
+                            startForm = SesionSistema.IdRolUsuario switch
+                            {
+                                1 => (Form)ServiceProvider.GetRequiredService<frmDashboardAdmin>(),
+                                2 => (Form)ServiceProvider.GetRequiredService<frmDashboardTecnico>(),
+                                3 => (Form)ServiceProvider.GetRequiredService<frmDashboardCliente>(),
+                                _ => (Form)ServiceProvider.GetRequiredService<frmDashboardAdmin>()
+                            };
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "Error durante el inicio de sesión automático.");
+                    }
+                }
+
+                startForm ??= ServiceProvider.GetRequiredService<frmIniciarSesion>();
+
+                Application.Run(startForm);
             }
             catch (Exception ex)
             {

@@ -20,6 +20,7 @@ namespace HSis.UI
             _ticketService = ticketService;
             _usuarioService = usuarioService;
 
+            InicializarLayoutDetalle();
             CargarDialogoTicket();
         }
 
@@ -277,67 +278,40 @@ namespace HSis.UI
 
         private void MostrarSeccionFeedback(TicketDto ticket)
         {
-            bool mostrarFdb = false;
-            bool esEditable = false;
-
-            if (SesionSistema.IdRolUsuario == 3) // Cliente
-            {
-                if (ticket.Status == ConstantesEstatus.CERRADO)
-                {
-                    mostrarFdb = true;
-                    esEditable = !ticket.Calificacion.HasValue;
-                }
-            }
-            else // Admin o Técnico
-            {
-                if (ticket.Calificacion.HasValue)
-                {
-                    mostrarFdb = true;
-                    esEditable = false;
-                }
-            }
-
-            if (!mostrarFdb)
-            {
-                if (tabControlTicket.TabPages.Contains(tbpFeedback))
-                {
-                    tabControlTicket.TabPages.Remove(tbpFeedback);
-                }
-                return;
-            }
-
+            // La pestaña siempre debe estar visible
             if (!tabControlTicket.TabPages.Contains(tbpFeedback))
             {
                 tabControlTicket.TabPages.Add(tbpFeedback);
             }
 
-            // Configurar los controles internos según modo edición o lectura
-            if (esEditable)
+            bool esCliente = SesionSistema.IdRolUsuario == 3;
+            bool esCerrado = ticket.Status == ConstantesEstatus.CERRADO;
+            bool tieneCalificacion = ticket.Calificacion.HasValue;
+
+            if (esCliente && esCerrado && !tieneCalificacion)
             {
-                // Mostrar controles de edición
+                // Modo Edición: El cliente puede calificar el ticket cerrado
                 lblEstrellas.Visible = true;
                 cmbEstrellas.Visible = true;
                 lblComentario.Visible = true;
                 txtComentario.Visible = true;
                 btnEnviar.Visible = true;
 
-                // Ocultar controles de lectura
                 lblResumen.Visible = false;
                 lblComentarioLectura.Visible = false;
 
                 cmbEstrellas.SelectedIndex = 4; // 5 estrellas por defecto
                 txtComentario.Text = string.Empty;
             }
-            else
+            else if (tieneCalificacion)
             {
-                // Ocultar controles de edición
+                // Modo Lectura: Mostrar la calificación existente (para Cliente, Técnico o Admin)
                 lblEstrellas.Visible = false;
                 cmbEstrellas.Visible = false;
                 lblComentario.Visible = false;
                 txtComentario.Visible = false;
                 btnEnviar.Visible = false;
 
-                // Mostrar controles de lectura
                 lblResumen.Visible = true;
                 lblComentarioLectura.Visible = true;
 
@@ -346,6 +320,27 @@ namespace HSis.UI
                 lblComentarioLectura.Text = string.IsNullOrEmpty(ticket.ComentarioFeedback)
                     ? "El cliente no dejó comentarios."
                     : $"Comentario: \"{ticket.ComentarioFeedback}\"";
+            }
+            else
+            {
+                // Modo Sin Calificación: Mostrar mensaje informativo
+                lblEstrellas.Visible = false;
+                cmbEstrellas.Visible = false;
+                lblComentario.Visible = false;
+                txtComentario.Visible = false;
+                btnEnviar.Visible = false;
+
+                lblComentarioLectura.Visible = false;
+
+                lblResumen.Visible = true;
+                if (esCliente && !esCerrado)
+                {
+                    lblResumen.Text = "El ticket debe estar Cerrado para poder calificar el servicio.";
+                }
+                else
+                {
+                    lblResumen.Text = "Aún no tienes calificación/comentarios.";
+                }
             }
         }
         private async void btnEnviarFeedback_Click(object? sender, EventArgs e)
@@ -367,6 +362,198 @@ namespace HSis.UI
             {
                 MessageBox.Show($"Error al guardar feedback: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void InicializarLayoutDetalle()
+        {
+            // 1. Crear panel de botones inferior
+            var flpBotones = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                FlowDirection = FlowDirection.RightToLeft,
+                Margin = new Padding(0)
+            };
+            btnCancelar.Margin = new Padding(12, 10, 12, 10);
+            btnGuardar.Margin = new Padding(0, 10, 0, 10);
+            btnCancelar.Dock = DockStyle.None;
+            btnGuardar.Dock = DockStyle.None;
+            flpBotones.Controls.Add(btnCancelar);
+            flpBotones.Controls.Add(btnGuardar);
+
+            // Grid principal
+            var tblPrincipal = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                RowCount = 2,
+                ColumnCount = 1,
+                Size = this.ClientSize
+            };
+            tblPrincipal.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            tblPrincipal.RowStyles.Add(new RowStyle(SizeType.Absolute, 55F));
+
+            this.Controls.Remove(tabControlTicket);
+            this.Controls.Remove(btnGuardar);
+            this.Controls.Remove(btnCancelar);
+
+            tblPrincipal.Controls.Add(tabControlTicket, 0, 0);
+            tblPrincipal.Controls.Add(flpBotones, 0, 1);
+            this.Controls.Add(tblPrincipal);
+
+            // 2. Pestaña: tabInfoGeneral
+            var tblFields = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                RowCount = 5,
+                ColumnCount = 4,
+                Padding = new Padding(12),
+                AutoScroll = true
+            };
+            tblFields.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 120F));
+            tblFields.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+            tblFields.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 120F));
+            tblFields.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+
+            for (int i = 0; i < 5; i++)
+            {
+                tblFields.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));
+            }
+
+            lblFolio.Dock = DockStyle.Fill;
+            lblFolio.TextAlign = ContentAlignment.MiddleLeft;
+            lblUsuario.Dock = DockStyle.Fill;
+            lblUsuario.TextAlign = ContentAlignment.MiddleLeft;
+            txtUsuario.Dock = DockStyle.Fill;
+            lblDepartamento.Dock = DockStyle.Fill;
+            lblDepartamento.TextAlign = ContentAlignment.MiddleLeft;
+            txtDepartamento.Dock = DockStyle.Fill;
+            lblEstatus.Dock = DockStyle.Fill;
+            lblEstatus.TextAlign = ContentAlignment.MiddleLeft;
+            cmbEstatus.Dock = DockStyle.Fill;
+            lblPrioridad.Dock = DockStyle.Fill;
+            lblPrioridad.TextAlign = ContentAlignment.MiddleLeft;
+            cmbPrioridad.Dock = DockStyle.Fill;
+            lblAlta.Dock = DockStyle.Fill;
+            lblAlta.TextAlign = ContentAlignment.MiddleLeft;
+            txtAlta.Dock = DockStyle.Fill;
+            lblAtencion.Dock = DockStyle.Fill;
+            lblAtencion.TextAlign = ContentAlignment.MiddleLeft;
+            txtAtencion.Dock = DockStyle.Fill;
+            lblCierre.Dock = DockStyle.Fill;
+            lblCierre.TextAlign = ContentAlignment.MiddleLeft;
+            txtCierre.Dock = DockStyle.Fill;
+            lblAtendido.Dock = DockStyle.Fill;
+            lblAtendido.TextAlign = ContentAlignment.MiddleLeft;
+            cmbAtendido.Dock = DockStyle.Fill;
+
+            tabInfoGeneral.Controls.Clear();
+            tblFields.Controls.Add(lblFolio, 0, 0);
+            tblFields.SetColumnSpan(lblFolio, 4);
+            tblFields.Controls.Add(lblUsuario, 0, 1);
+            tblFields.Controls.Add(txtUsuario, 1, 1);
+            tblFields.Controls.Add(lblDepartamento, 2, 1);
+            tblFields.Controls.Add(txtDepartamento, 3, 1);
+            tblFields.Controls.Add(lblEstatus, 0, 2);
+            tblFields.Controls.Add(cmbEstatus, 1, 2);
+            tblFields.Controls.Add(lblPrioridad, 2, 2);
+            tblFields.Controls.Add(cmbPrioridad, 3, 2);
+            tblFields.Controls.Add(lblAlta, 0, 3);
+            tblFields.Controls.Add(txtAlta, 1, 3);
+            tblFields.Controls.Add(lblAtencion, 2, 3);
+            tblFields.Controls.Add(txtAtencion, 3, 3);
+            tblFields.Controls.Add(lblCierre, 0, 4);
+            tblFields.Controls.Add(txtCierre, 1, 4);
+            tblFields.Controls.Add(lblAtendido, 2, 4);
+            tblFields.Controls.Add(cmbAtendido, 3, 4);
+            tabInfoGeneral.Controls.Add(tblFields);
+
+            // 3. Pestaña: tabDescripcionSolucion
+            var tblTextos = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                RowCount = 4,
+                ColumnCount = 1,
+                Padding = new Padding(12)
+            };
+            tblTextos.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            tblTextos.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
+            tblTextos.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            tblTextos.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
+
+            lblDescripcion.Dock = DockStyle.Fill;
+            lblDescripcion.Margin = new Padding(0, 0, 0, 5);
+            rtbDescripcion.Dock = DockStyle.Fill;
+            rtbDescripcion.Margin = new Padding(0, 0, 0, 15);
+            lblSolucion.Dock = DockStyle.Fill;
+            lblSolucion.Margin = new Padding(0, 0, 0, 5);
+            rtbSolucion.Dock = DockStyle.Fill;
+            rtbSolucion.Margin = new Padding(0);
+
+            tabDescripcionSolucion.Controls.Clear();
+            tblTextos.Controls.Add(lblDescripcion, 0, 0);
+            tblTextos.Controls.Add(rtbDescripcion, 0, 1);
+            tblTextos.Controls.Add(lblSolucion, 0, 2);
+            tblTextos.Controls.Add(rtbSolucion, 0, 3);
+            tabDescripcionSolucion.Controls.Add(tblTextos);
+
+            // 4. Pestaña: tbpFeedback
+            var tblFeedback = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                RowCount = 3,
+                ColumnCount = 1,
+                Padding = new Padding(12)
+            };
+            tblFeedback.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            tblFeedback.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            tblFeedback.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+
+            var flpEstrellas = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                FlowDirection = FlowDirection.LeftToRight,
+                AutoSize = true,
+                Margin = new Padding(0, 0, 0, 10)
+            };
+            lblEstrellas.Margin = new Padding(0, 5, 10, 0);
+            lblEstrellas.AutoSize = true;
+            cmbEstrellas.Margin = new Padding(0);
+            lblResumen.Margin = new Padding(0, 5, 0, 0);
+            lblResumen.AutoSize = true;
+
+            flpEstrellas.Controls.Add(lblEstrellas);
+            flpEstrellas.Controls.Add(cmbEstrellas);
+            flpEstrellas.Controls.Add(lblResumen);
+
+            lblComentario.Margin = new Padding(0, 0, 0, 5);
+            lblComentario.AutoSize = true;
+
+            var tblComentarioInput = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                RowCount = 1,
+                ColumnCount = 2,
+                Margin = new Padding(0)
+            };
+            tblComentarioInput.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            tblComentarioInput.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 140F));
+
+            var pnlComentarioText = new Panel { Dock = DockStyle.Fill, Margin = new Padding(0) };
+            txtComentario.Dock = DockStyle.Fill;
+            lblComentarioLectura.Dock = DockStyle.Fill;
+            pnlComentarioText.Controls.Add(txtComentario);
+            pnlComentarioText.Controls.Add(lblComentarioLectura);
+
+            btnEnviar.Dock = DockStyle.Fill;
+            btnEnviar.Margin = new Padding(10, 0, 0, 0);
+
+            tblComentarioInput.Controls.Add(pnlComentarioText, 0, 0);
+            tblComentarioInput.Controls.Add(btnEnviar, 1, 0);
+
+            grpFeedback.Controls.Clear();
+            tblFeedback.Controls.Add(flpEstrellas, 0, 0);
+            tblFeedback.Controls.Add(lblComentario, 0, 1);
+            tblFeedback.Controls.Add(tblComentarioInput, 0, 2);
+            grpFeedback.Controls.Add(tblFeedback);
         }
     }
 }
