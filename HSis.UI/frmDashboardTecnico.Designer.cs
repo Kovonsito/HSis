@@ -77,8 +77,8 @@ namespace HSis.UI
             // frmDashboardTecnico
             this.AutoScaleDimensions = new SizeF(7F, 15F);
             this.AutoScaleMode = AutoScaleMode.Font;
-            this.ClientSize = new Size(848, 461);
-            this.MinimumSize = new Size(860, 500);
+            this.ClientSize = new Size(1000, 600);
+            this.MinimumSize = new Size(1016, 639);
             this.Controls.Add(this.dgvTicketsOperativos);
             this.Controls.Add(this.ucDisponibles);
             this.Controls.Add(this.ucMisAsignados);

@@ -14,18 +14,11 @@ namespace HSis.UI
     public partial class frmDashboardCliente : Form
     {
         private readonly ITicketService _ticketService;
-        private readonly INotificationClientService _notificationClient;
-        private readonly INotificacionStorageService _storageService;
-        private Panel? _pnlResilienceBanner;
-        private Label? _lblResilienceBanner;
+        private readonly NotificationUIManager _uiManager;
         private ucPaginacion ucPaginacion = null!;
         private List<TicketClienteDto> _todosLosTickets = [];
 
         private ucIndicador ucMisCerrados = null!;
-        private Panel? pnlNotificacionesHistorial;
-        private FlowLayoutPanel? flpNotificaciones;
-        private ToolStripMenuItem? menuCampanaItem;
-        private int _notificacionesNoLeidas = 0;
         private readonly IFormFactory _formFactory;
 
         private enum VistaCliente
@@ -38,55 +31,32 @@ namespace HSis.UI
 
         private readonly ISessionCacheService _sessionCache;
 
-        public frmDashboardCliente(ITicketService ticketService, INotificationClientService notificationClient, INotificacionStorageService storageService, IFormFactory formFactory, ISessionCacheService sessionCache)
+        public frmDashboardCliente(
+            ITicketService ticketService,
+            NotificationUIManager uiManager,
+            IFormFactory formFactory,
+            ISessionCacheService sessionCache)
         {
             InitializeComponent();
             _ticketService = ticketService;
-            _notificationClient = notificationClient;
-            _storageService = storageService;
+            _uiManager = uiManager;
             _formFactory = formFactory;
             _sessionCache = sessionCache;
         }
 
         private async void frmDashboardCliente_Load(object? sender, EventArgs e)
         {
-            InicializarBannerResiliencia();
+            InicializarLayoutDashboard();
             SesionSistema.ConfigurarMenuSesion(this, _sessionCache);
-            AjustarZOrderControles();
 
-            // Configurar campana en el menú
-            var menu = this.MainMenuStrip;
-            if (menu != null)
+            var tblPrincipal = this.Controls["tblPrincipal"];
+            if (tblPrincipal != null)
             {
-                menuCampanaItem = new ToolStripMenuItem("🔔 (0)")
-                {
-                    Alignment = ToolStripItemAlignment.Right
-                };
-                menuCampanaItem.Click += BtnCampana_Click;
-                menu.Items.Add(menuCampanaItem);
+                _uiManager.Attach(this, tblPrincipal, CargarDatosDashboardAsync);
             }
-
-            // Suscribirse a los eventos de SignalR
-            _notificationClient.OnNotificationReceived += OnNotificationReceived;
-            _notificationClient.OnReconnecting += OnReconnecting;
-            _notificationClient.OnConnected += OnConnected;
-            _notificationClient.OnDisconnected += OnDisconnected;
-
-            // Limpieza al cerrar formulario
-            this.FormClosed += (s, args) =>
-            {
-                _notificationClient.OnNotificationReceived -= OnNotificationReceived;
-                _notificationClient.OnReconnecting -= OnReconnecting;
-                _notificationClient.OnConnected -= OnConnected;
-                _notificationClient.OnDisconnected -= OnDisconnected;
-            };
-
-            // Establecer estado inicial según la conexión
-            ActualizarEstadoConexion(_notificationClient.IsConnected, "⚠️ Conectando al servidor de notificaciones...", Color.FromArgb(230, 126, 34));
 
             // Cargamos la información una sola vez para evitar múltiples llamadas a la BD
             await CargarDatosDashboardAsync();
-            await CargarHistorialNotificacionesAsync();
         }
 
         private async Task CargarDatosDashboardAsync()
@@ -234,7 +204,7 @@ namespace HSis.UI
             }
         }
 
-        private void dgvMisTickets_CellDoubleClick(object? sender, DataGridViewCellEventArgs e)
+        private async void dgvMisTickets_CellDoubleClick(object? sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex >= 0)
             {
@@ -243,12 +213,12 @@ namespace HSis.UI
                 {
                     using var frmDetalle = _formFactory.CreateDetalleCliente(idTicket);
                     frmDetalle.ShowDialog();
-                    _ = CargarDatosDashboardAsync();
+                    await CargarDatosDashboardAsync();
                 }
             }
         }
 
-        private void InicializarBannerResiliencia()
+        private void InicializarLayoutDashboard()
         {
             // Instanciar control de paginación
             ucPaginacion = new ucPaginacion();
@@ -319,68 +289,6 @@ namespace HSis.UI
             dgvMisTickets.Dock = DockStyle.Fill;
             dgvMisTickets.Margin = new Padding(12, 10, 12, 12);
 
-            // Crear Panel de Notificaciones (Flotante)
-            pnlNotificacionesHistorial = new Panel
-            {
-                Width = 300,
-                Height = this.ClientSize.Height - 35,
-                Location = new Point(this.ClientSize.Width - 300, 35),
-                Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right,
-                BackColor = Color.FromArgb(245, 247, 250),
-                Visible = false,
-                Padding = new Padding(10)
-            };
-
-            var pnlNotifHeader = new Panel
-            {
-                Dock = DockStyle.Top,
-                Height = 40,
-                Padding = new Padding(0, 0, 0, 5)
-            };
-            var lblNotifTitle = new Label
-            {
-                Text = "Notificaciones",
-                Font = new Font("Segoe UI", 12F, FontStyle.Bold),
-                Dock = DockStyle.Left,
-                AutoSize = true
-            };
-            var btnLimpiarNotif = new Button
-            {
-                Text = "Limpiar todo",
-                Font = new Font("Segoe UI", 9F, FontStyle.Regular),
-                Dock = DockStyle.Right,
-                Width = 95,
-                BackColor = Color.White,
-                FlatStyle = FlatStyle.Flat
-            };
-            btnLimpiarNotif.FlatAppearance.BorderSize = 1;
-            btnLimpiarNotif.FlatAppearance.BorderColor = Color.LightGray;
-            btnLimpiarNotif.Click += BtnLimpiarNotif_Click;
-
-            pnlNotifHeader.Controls.Add(lblNotifTitle);
-            pnlNotifHeader.Controls.Add(btnLimpiarNotif);
-            pnlNotificacionesHistorial.Controls.Add(pnlNotifHeader);
-
-            flpNotificaciones = new FlowLayoutPanel
-            {
-                Dock = DockStyle.Fill,
-                AutoScroll = true,
-                FlowDirection = FlowDirection.TopDown,
-                WrapContents = false,
-                Padding = new Padding(0, 5, 0, 0)
-            };
-            flpNotificaciones.SizeChanged += (s, e) =>
-            {
-                foreach (Control ctrl in flpNotificaciones.Controls)
-                {
-                    ctrl.Width = flpNotificaciones.ClientSize.Width - 10;
-                }
-            };
-            pnlNotificacionesHistorial.Controls.Add(flpNotificaciones);
-
-            pnlNotifHeader.SendToBack();
-            flpNotificaciones.BringToFront();
-
             // Agregar componentes al TableLayoutPanel principal
             tblPrincipal.Controls.Add(lblTitulo, 0, 0);
             tblPrincipal.Controls.Add(tblCabecera, 0, 1);
@@ -393,228 +301,10 @@ namespace HSis.UI
             this.Controls.Remove(btnNuevoReporte);
             this.Controls.Remove(dgvMisTickets);
 
-            // 3. Crear el banner de resiliencia
-            _pnlResilienceBanner = new Panel
-            {
-                Dock = DockStyle.Top,
-                Height = 35,
-                BackColor = Color.FromArgb(231, 76, 60), // Rojo
-                Visible = false
-            };
-
-            _lblResilienceBanner = new Label
-            {
-                Dock = DockStyle.Fill,
-                ForeColor = Color.White,
-                Font = new Font("Segoe UI", 10F, FontStyle.Bold),
-                TextAlign = ContentAlignment.MiddleCenter,
-                Text = "⚠️ Sin conexión con el servidor de notificaciones. Intentando reconectar..."
-            };
-
-            _pnlResilienceBanner.Controls.Add(_lblResilienceBanner);
-
-            // 4. Agregar los paneles al formulario
+            // Agregar el panel principal al formulario
             this.Controls.Add(tblPrincipal);
-            this.Controls.Add(pnlNotificacionesHistorial);
-            this.Controls.Add(_pnlResilienceBanner);
         }
 
-        private void AjustarZOrderControles()
-        {
-            if (pnlNotificacionesHistorial != null)
-            {
-                this.Controls.SetChildIndex(pnlNotificacionesHistorial, 0); // Al frente de todo (flotante)
-            }
-            var tblPrincipal = this.Controls["tblPrincipal"];
-            if (tblPrincipal != null)
-            {
-                this.Controls.SetChildIndex(tblPrincipal, 1); // Debajo del panel de notificaciones
-            }
-            if (_pnlResilienceBanner != null)
-            {
-                this.Controls.SetChildIndex(_pnlResilienceBanner, 2); // Debajo de tblPrincipal
-            }
-            foreach (Control ctrl in this.Controls)
-            {
-                if (ctrl is MenuStrip)
-                {
-                    this.Controls.SetChildIndex(ctrl, 3); // Al fondo en lógica de layout
-                    break;
-                }
-            }
-        }
 
-        private async void OnNotificationReceived(string tipo, int ticketId, string mensaje)
-        {
-            if (this.InvokeRequired)
-            {
-                this.BeginInvoke(new Action(() => OnNotificationReceived(tipo, ticketId, mensaje)));
-                return;
-            }
-
-            // Guardar persistentemente
-            await _storageService.GuardarNotificacionAsync(SesionSistema.IdUsuario, ticketId, mensaje);
-
-            MessageBox.Show(mensaje, "Notificación de HSis", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            
-            _ = CargarDatosDashboardAsync();
-            _ = CargarHistorialNotificacionesAsync();
-        }
-
-        private async Task CargarHistorialNotificacionesAsync()
-        {
-            if (flpNotificaciones == null) return;
-
-            flpNotificaciones.Controls.Clear();
-            var list = await _storageService.ObtenerNotificacionesAsync(SesionSistema.IdUsuario);
-
-            _notificacionesNoLeidas = list.Count(n => !n.Leido);
-            ActualizarCampanaBadge();
-
-            foreach (var notif in list)
-            {
-                AgregarNotificacionAUI(notif);
-            }
-        }
-
-        private void ActualizarCampanaBadge()
-        {
-            if (menuCampanaItem != null)
-            {
-                menuCampanaItem.Text = _notificacionesNoLeidas > 0 ? $"🔔 ({_notificacionesNoLeidas}) 🔴" : $"🔔 ({_notificacionesNoLeidas})";
-                menuCampanaItem.ForeColor = _notificacionesNoLeidas > 0 ? Color.Red : Color.Black;
-                menuCampanaItem.Font = new Font("Segoe UI", 10F, _notificacionesNoLeidas > 0 ? FontStyle.Bold : FontStyle.Regular);
-            }
-        }
-
-        private void AgregarNotificacionAUI(NotificacionLocal notif)
-        {
-            if (flpNotificaciones == null) return;
-
-            var pnlItem = new Panel
-            {
-                Width = flpNotificaciones.ClientSize.Width - 10,
-                Height = 85,
-                BackColor = notif.Leido ? Color.White : Color.FromArgb(235, 245, 251),
-                Padding = new Padding(8),
-                Margin = new Padding(0, 0, 0, 8),
-                Cursor = Cursors.Hand
-            };
-
-            pnlItem.Paint += (s, e) =>
-            {
-                ControlPaint.DrawBorder(e.Graphics, pnlItem.ClientRectangle, Color.FromArgb(220, 224, 230), ButtonBorderStyle.Solid);
-                if (!notif.Leido)
-                {
-                    using var brush = new SolidBrush(Color.FromArgb(52, 152, 219));
-                    e.Graphics.FillEllipse(brush, pnlItem.Width - 15, 8, 8, 8);
-                }
-            };
-
-            var lblMsg = new Label
-            {
-                Text = notif.Mensaje,
-                Font = new Font("Segoe UI", 9.5F, notif.Leido ? FontStyle.Regular : FontStyle.Bold),
-                ForeColor = Color.FromArgb(44, 62, 80),
-                Location = new Point(8, 8),
-                Size = new Size(pnlItem.Width - 25, 50),
-                AutoEllipsis = true
-            };
-
-            var lblFecha = new Label
-            {
-                Text = notif.Fecha.ToString("g"),
-                Font = new Font("Segoe UI", 8F, FontStyle.Italic),
-                ForeColor = Color.Gray,
-                Location = new Point(8, 60),
-                Size = new Size(pnlItem.Width - 20, 18)
-            };
-
-            lblMsg.Click += (s, e) => AbrirDetalleYMarcarLeido(notif, pnlItem);
-            lblFecha.Click += (s, e) => AbrirDetalleYMarcarLeido(notif, pnlItem);
-            pnlItem.Click += (s, e) => AbrirDetalleYMarcarLeido(notif, pnlItem);
-
-            pnlItem.Controls.Add(lblMsg);
-            pnlItem.Controls.Add(lblFecha);
-
-            flpNotificaciones.Controls.Add(pnlItem);
-        }
-
-        private async void AbrirDetalleYMarcarLeido(NotificacionLocal notif, Panel pnlItem)
-        {
-            if (!notif.Leido)
-            {
-                await _storageService.MarcarComoLeidaAsync(SesionSistema.IdUsuario, notif.Id);
-                notif.Leido = true;
-                pnlItem.BackColor = Color.White;
-                foreach (Control ctrl in pnlItem.Controls)
-                {
-                    if (ctrl is Label lbl && lbl.Text == notif.Mensaje)
-                    {
-                        lbl.Font = new Font("Segoe UI", 9.5F, FontStyle.Regular);
-                    }
-                }
-                _notificacionesNoLeidas = Math.Max(0, _notificacionesNoLeidas - 1);
-                ActualizarCampanaBadge();
-                pnlItem.Invalidate();
-            }
-
-            using var frmDetalle = _formFactory.CreateDetalleCliente(notif.TicketId);
-            frmDetalle.ShowDialog();
-            _ = CargarDatosDashboardAsync();
-        }
-
-        private async void BtnLimpiarNotif_Click(object? sender, EventArgs e)
-        {
-            await _storageService.LimpiarTodasAsync(SesionSistema.IdUsuario);
-            _notificacionesNoLeidas = 0;
-            ActualizarCampanaBadge();
-            flpNotificaciones?.Controls.Clear();
-        }
-
-        private void BtnCampana_Click(object? sender, EventArgs e)
-        {
-            if (pnlNotificacionesHistorial != null)
-            {
-                pnlNotificacionesHistorial.Visible = !pnlNotificacionesHistorial.Visible;
-                if (pnlNotificacionesHistorial.Visible)
-                {
-                    pnlNotificacionesHistorial.BringToFront();
-                }
-            }
-        }
-
-        private void OnReconnecting()
-        {
-            ActualizarEstadoConexion(false, "⚠️ Intentando reconectar con el servidor de notificaciones...", Color.FromArgb(230, 126, 34)); // Naranja
-        }
-
-        private void OnConnected()
-        {
-            ActualizarEstadoConexion(true, string.Empty, Color.Empty);
-            _ = CargarDatosDashboardAsync(); // Recargar datos al reconectarse
-        }
-
-        private void OnDisconnected()
-        {
-            ActualizarEstadoConexion(false, "⚠️ Sin conexión con el servidor de notificaciones. Intentando reconectar...", Color.FromArgb(231, 76, 60)); // Rojo
-        }
-
-        private void ActualizarEstadoConexion(bool conectado, string mensaje, Color colorFondo)
-        {
-            if (this.InvokeRequired)
-            {
-                this.BeginInvoke(new Action(() => ActualizarEstadoConexion(conectado, mensaje, colorFondo)));
-                return;
-            }
-
-            if (_pnlResilienceBanner != null && _lblResilienceBanner != null)
-            {
-                _pnlResilienceBanner.Visible = !conectado;
-                _lblResilienceBanner.Text = mensaje;
-                _pnlResilienceBanner.BackColor = colorFondo;
-            }
-
-        }
     }
 }

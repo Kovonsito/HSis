@@ -69,6 +69,7 @@ public class NotificationClientService(IConfiguration configuration, ILogger<Not
             {
                 _logger.LogInformation("SignalR reconectado correctamente. ID: {ConnectionId}", connectionId);
             }
+            OnConnected?.Invoke();
             OnReconnected?.Invoke(connectionId);
             _ = ProcesarNotificacionesPendientesAsync();
             return Task.CompletedTask;
