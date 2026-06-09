@@ -1,9 +1,6 @@
 #nullable enable
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Reflection;
+
 
 namespace HSis.UI
 {
@@ -35,10 +32,7 @@ namespace HSis.UI
             _sortDirection = direction;
 
             var itemsList = this.Items as List<T>;
-            if (itemsList == null)
-            {
-                itemsList = this.Items.ToList();
-            }
+            itemsList ??= [.. this.Items];
 
             var pc = new PropertyComparer<T>(prop, direction);
             itemsList.Sort(pc);
@@ -67,16 +61,10 @@ namespace HSis.UI
         }
     }
 
-    public class PropertyComparer<T> : IComparer<T>
+    public class PropertyComparer<T>(PropertyDescriptor property, ListSortDirection direction) : IComparer<T>
     {
-        private readonly PropertyDescriptor _property;
-        private readonly ListSortDirection _direction;
-
-        public PropertyComparer(PropertyDescriptor property, ListSortDirection direction)
-        {
-            _property = property;
-            _direction = direction;
-        }
+        private readonly PropertyDescriptor _property = property;
+        private readonly ListSortDirection _direction = direction;
 
         public int Compare(T? x, T? y)
         {
