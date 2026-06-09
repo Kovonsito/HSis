@@ -18,6 +18,47 @@ namespace HSis.UI
         {
             InitializeComponent();
             _ticketService = ticketService;
+            InicializarLayoutNuevoTicket();
+        }
+
+        private void InicializarLayoutNuevoTicket()
+        {
+            var tblPrincipal = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                RowCount = 3,
+                ColumnCount = 1,
+                Padding = new Padding(15),
+                Name = "tblPrincipal"
+            };
+            tblPrincipal.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            tblPrincipal.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            tblPrincipal.RowStyles.Add(new RowStyle(SizeType.Absolute, 55F));
+
+            lblDescripcion.Dock = DockStyle.Fill;
+            lblDescripcion.Margin = new Padding(0, 0, 0, 5);
+            rtbDescripcion.Dock = DockStyle.Fill;
+            rtbDescripcion.Margin = new Padding(0, 0, 0, 10);
+
+            var flpBotones = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                FlowDirection = FlowDirection.RightToLeft,
+                Margin = new Padding(0)
+            };
+            btnCancelar.Margin = new Padding(10, 10, 0, 10);
+            btnCancelar.Dock = DockStyle.None;
+            btnGuardar.Margin = new Padding(0, 10, 0, 10);
+            btnGuardar.Dock = DockStyle.None;
+            flpBotones.Controls.Add(btnCancelar);
+            flpBotones.Controls.Add(btnGuardar);
+
+            tblPrincipal.Controls.Add(lblDescripcion, 0, 0);
+            tblPrincipal.Controls.Add(rtbDescripcion, 0, 1);
+            tblPrincipal.Controls.Add(flpBotones, 0, 2);
+
+            this.Controls.Clear();
+            this.Controls.Add(tblPrincipal);
         }
 
         private void frmNuevoTicket_Load(object? sender, EventArgs e)

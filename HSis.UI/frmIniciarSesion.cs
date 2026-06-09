@@ -14,6 +14,7 @@ namespace HSis.UI
         {
             InitializeComponent();
             _usuarioService = usuarioService;
+            InicializarLayoutLogin();
         }
 
         private async void btnIniciarSesion_Click(object? sender, EventArgs e)
@@ -64,20 +65,54 @@ namespace HSis.UI
             dashboardForm.Show();
         }
 
-        private async void frmIniciarSesion_Load(object? sender, EventArgs e)
+        private void frmIniciarSesion_Load(object? sender, EventArgs e)
         {
             var cached = SessionCacheService.GetCredentials();
             if (cached.HasValue)
             {
                 txtUsuario.Text = cached.Value.Username;
                 txtContraseña.Text = cached.Value.Password;
-
-                var usuario = await _usuarioService.AutenticarAsync(cached.Value.Username, cached.Value.Password);
-                if (usuario != null)
-                {
-                    ProcesarLoginExitoso(usuario, cached.Value.Password);
-                }
             }
+        }
+
+        private void InicializarLayoutLogin()
+        {
+            var tblPrincipal = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                RowCount = 5,
+                ColumnCount = 1,
+                Padding = new Padding(30, 20, 30, 20),
+                Name = "tblPrincipal"
+            };
+
+            for (int i = 0; i < 5; i++)
+            {
+                tblPrincipal.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            }
+
+            lblUsuario.Dock = DockStyle.Fill;
+            lblUsuario.Margin = new Padding(0, 0, 0, 5);
+            txtUsuario.Dock = DockStyle.Fill;
+            txtUsuario.Margin = new Padding(0, 0, 0, 15);
+
+            lblContraseña.Dock = DockStyle.Fill;
+            lblContraseña.Margin = new Padding(0, 0, 0, 5);
+            txtContraseña.Dock = DockStyle.Fill;
+            txtContraseña.Margin = new Padding(0, 0, 0, 20);
+
+            btnIniciarSesion.Dock = DockStyle.Fill;
+            btnIniciarSesion.Margin = new Padding(0);
+            btnIniciarSesion.Height = 35;
+
+            tblPrincipal.Controls.Add(lblUsuario, 0, 0);
+            tblPrincipal.Controls.Add(txtUsuario, 0, 1);
+            tblPrincipal.Controls.Add(lblContraseña, 0, 2);
+            tblPrincipal.Controls.Add(txtContraseña, 0, 3);
+            tblPrincipal.Controls.Add(btnIniciarSesion, 0, 4);
+
+            this.Controls.Clear();
+            this.Controls.Add(tblPrincipal);
         }
     }
 }
