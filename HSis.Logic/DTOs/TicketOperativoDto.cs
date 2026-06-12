@@ -1,4 +1,5 @@
 namespace HSis.Logic.DTOs
+
 {
     public class TicketOperativoDto
     {

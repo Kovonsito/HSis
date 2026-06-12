@@ -1,4 +1,8 @@
-namespace HSis.UI
+using System;
+using System.Drawing;
+using System.Windows.Forms;
+
+namespace HSis.UI.Forms.Dashboards
 {
     partial class DashboardAdminForm
     {
@@ -29,18 +33,18 @@ namespace HSis.UI
         private void InitializeComponent()
         {
             lblTitulo = new Label();
-            ucNuevos = new IndicadorControl();
-            ucUrgentes = new IndicadorControl();
-            ucEnProceso = new IndicadorControl();
-            ucCerrados = new IndicadorControl();
+            ucNuevos = new HSis.UI.Controls.IndicadorControl();
+            ucUrgentes = new HSis.UI.Controls.IndicadorControl();
+            ucEnProceso = new HSis.UI.Controls.IndicadorControl();
+            ucCerrados = new HSis.UI.Controls.IndicadorControl();
             dgvTickets = new DataGridView();
             btnRecargar = new Button();
-            ucReabiertos = new IndicadorControl();
+            ucReabiertos = new HSis.UI.Controls.IndicadorControl();
             tabMain = new TabControl();
             tabTickets = new TabPage();
             pnlFiltros = new Panel();
             lblFiltrosTitle = new Label();
-            filtroGenerico = new FiltroGenericoControl();
+            filtroGenerico = new HSis.UI.Controls.FiltroGenericoControl();
             btnLimpiarFiltros = new Button();
             btnAbrirReportes = new Button();
 
@@ -56,7 +60,7 @@ namespace HSis.UI
             ucNuevos.Name = "ucNuevos";
             ucNuevos.Size = new Size(200, 100);
             ucNuevos.TabIndex = 0;
-            ucNuevos.ucIndicadorEvent += ucNuevos_ucIndicadorEvent;
+            ucNuevos.IndicadorClic += ucNuevos_ucIndicadorEvent;
             // 
             // ucUrgentes
             // 
@@ -64,7 +68,7 @@ namespace HSis.UI
             ucUrgentes.Name = "ucUrgentes";
             ucUrgentes.Size = new Size(200, 100);
             ucUrgentes.TabIndex = 1;
-            ucUrgentes.ucIndicadorEvent += ucUrgentes_ucIndicadorEvent;
+            ucUrgentes.IndicadorClic += ucUrgentes_ucIndicadorEvent;
             // 
             // ucEnProceso
             // 
@@ -72,7 +76,7 @@ namespace HSis.UI
             ucEnProceso.Name = "ucEnProceso";
             ucEnProceso.Size = new Size(200, 100);
             ucEnProceso.TabIndex = 2;
-            ucEnProceso.ucIndicadorEvent += ucEnProceso_ucIndicadorEvent;
+            ucEnProceso.IndicadorClic += ucEnProceso_ucIndicadorEvent;
             // 
             // ucCerrados
             // 
@@ -80,7 +84,7 @@ namespace HSis.UI
             ucCerrados.Name = "ucCerrados";
             ucCerrados.Size = new Size(200, 100);
             ucCerrados.TabIndex = 3;
-            ucCerrados.ucIndicadorEvent += ucCerrados_ucIndicadorEvent;
+            ucCerrados.IndicadorClic += ucCerrados_ucIndicadorEvent;
             // 
             // dgvTickets
             // 
@@ -125,7 +129,7 @@ namespace HSis.UI
             ucReabiertos.Name = "ucReabiertos";
             ucReabiertos.Size = new Size(200, 100);
             ucReabiertos.TabIndex = 6;
-            ucReabiertos.ucIndicadorEvent += ucReabiertos_ucIndicadorEvent;
+            ucReabiertos.IndicadorClic += ucReabiertos_ucIndicadorEvent;
             // 
             // tabMain
             // 
@@ -231,18 +235,18 @@ namespace HSis.UI
 
         #endregion
         private Label lblTitulo;
-        private IndicadorControl ucNuevos;
-        private IndicadorControl ucUrgentes;
-        private IndicadorControl ucEnProceso;
-        private IndicadorControl ucCerrados;
+        private HSis.UI.Controls.IndicadorControl ucNuevos;
+        private HSis.UI.Controls.IndicadorControl ucUrgentes;
+        private HSis.UI.Controls.IndicadorControl ucEnProceso;
+        private HSis.UI.Controls.IndicadorControl ucCerrados;
         private DataGridView dgvTickets;
         private Button btnRecargar;
-        private IndicadorControl ucReabiertos;
+        private HSis.UI.Controls.IndicadorControl ucReabiertos;
         private TabControl tabMain;
         private TabPage tabTickets;
         private Panel pnlFiltros;
         private Label lblFiltrosTitle;
-        private FiltroGenericoControl filtroGenerico;
+        private HSis.UI.Controls.FiltroGenericoControl filtroGenerico;
         private Button btnLimpiarFiltros;
         private Button btnAbrirReportes;
 

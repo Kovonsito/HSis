@@ -2,7 +2,7 @@
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace HSis.UI
+namespace HSis.UI.Controls
 {
     partial class FiltroGenericoControl
     {

@@ -1,6 +1,5 @@
-using System.Collections.Generic;
-
 namespace HSis.Logic.DTOs
+
 {
     public class PaginatedResultDto<T>
     {

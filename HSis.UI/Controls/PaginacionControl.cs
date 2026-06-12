@@ -3,22 +3,59 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace HSis.UI
+namespace HSis.UI.Controls
 {
     public partial class PaginacionControl : UserControl
     {
-        public event EventHandler? PageChanged;
+        public event EventHandler? PaginaCambiada;
+
+        private int _tamanoPagina = 10;
+        private int _paginaActual = 1;
+        private int _totalRegistros = 0;
 
         [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
-        public int PageSize { get; set; } = 10;
+        public int TamanoPagina
+        {
+            get => _tamanoPagina;
+            set
+            {
+                if (_tamanoPagina != value)
+                {
+                    _tamanoPagina = value;
+                    ActualizarInterfaz();
+                }
+            }
+        }
 
         [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
-        public int CurrentPage { get; set; } = 1;
+        public int PaginaActual
+        {
+            get => _paginaActual;
+            set
+            {
+                if (_paginaActual != value)
+                {
+                    _paginaActual = value;
+                    ActualizarInterfaz();
+                }
+            }
+        }
 
         [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
-        public int TotalRecords { get; set; } = 0;
+        public int TotalRegistros
+        {
+            get => _totalRegistros;
+            set
+            {
+                if (_totalRegistros != value)
+                {
+                    _totalRegistros = value;
+                    ActualizarInterfaz();
+                }
+            }
+        }
 
-        public int TotalPages => Math.Max(1, (int)Math.Ceiling((double)TotalRecords / PageSize));
+        public int TotalPaginas => Math.Max(1, (int)Math.Ceiling((double)TotalRegistros / TamanoPagina));
 
         public PaginacionControl()
         {
@@ -28,61 +65,61 @@ namespace HSis.UI
 
         private void SuscribirEventos()
         {
-            if (_cmbPageSize != null)
-                _cmbPageSize.SelectedIndexChanged += CmbPageSize_SelectedIndexChanged;
+            if (_comboTamanoPagina != null)
+                _comboTamanoPagina.SelectedIndexChanged += CmbTamanoPagina_SelectedIndexChanged;
 
-            if (_btnFirst != null)
-                _btnFirst.Click += (s, e) => CambiarPagina(1);
+            if (_botonPrimero != null)
+                _botonPrimero.Click += (s, e) => CambiarPagina(1);
 
-            if (_btnPrev != null)
-                _btnPrev.Click += (s, e) => CambiarPagina(CurrentPage - 1);
+            if (_botonAnterior != null)
+                _botonAnterior.Click += (s, e) => CambiarPagina(PaginaActual - 1);
 
-            if (_btnNext != null)
-                _btnNext.Click += (s, e) => CambiarPagina(CurrentPage + 1);
+            if (_botonSiguiente != null)
+                _botonSiguiente.Click += (s, e) => CambiarPagina(PaginaActual + 1);
 
-            if (_btnLast != null)
-                _btnLast.Click += (s, e) => CambiarPagina(TotalPages);
+            if (_botonUltimo != null)
+                _botonUltimo.Click += (s, e) => CambiarPagina(TotalPaginas);
 
         }
 
-        private void CmbPageSize_SelectedIndexChanged(object? sender, EventArgs e)
+        private void CmbTamanoPagina_SelectedIndexChanged(object? sender, EventArgs e)
         {
-            if (_cmbPageSize != null && int.TryParse(_cmbPageSize.SelectedItem?.ToString(), out int size))
+            if (_comboTamanoPagina != null && int.TryParse(_comboTamanoPagina.SelectedItem?.ToString(), out int size))
             {
-                PageSize = size;
-                CurrentPage = 1;
-                PageChanged?.Invoke(this, EventArgs.Empty);
+                TamanoPagina = size;
+                PaginaActual = 1;
+                PaginaCambiada?.Invoke(this, EventArgs.Empty);
             }
         }
 
         private void CambiarPagina(int nuevaPagina)
         {
             if (nuevaPagina < 1) nuevaPagina = 1;
-            if (nuevaPagina > TotalPages) nuevaPagina = TotalPages;
+            if (nuevaPagina > TotalPaginas) nuevaPagina = TotalPaginas;
 
-            if (nuevaPagina != CurrentPage)
+            if (nuevaPagina != PaginaActual)
             {
-                CurrentPage = nuevaPagina;
-                PageChanged?.Invoke(this, EventArgs.Empty);
+                PaginaActual = nuevaPagina;
+                PaginaCambiada?.Invoke(this, EventArgs.Empty);
             }
         }
 
         public void ActualizarInterfaz()
         {
-            if (_lblPageInfo != null)
+            if (_etiquetaInformacionPagina != null)
             {
-                _lblPageInfo.Text = $"Página {CurrentPage} de {TotalPages}";
+                _etiquetaInformacionPagina.Text = $"Página {PaginaActual} de {TotalPaginas}";
             }
 
-            if (_lblTotal != null)
+            if (_etiquetaTotal != null)
             {
-                _lblTotal.Text = $"Total: {TotalRecords} registros";
+                _etiquetaTotal.Text = $"Total: {TotalRegistros} registros";
             }
 
-            if (_btnFirst != null) _btnFirst.Enabled = CurrentPage > 1;
-            if (_btnPrev != null) _btnPrev.Enabled = CurrentPage > 1;
-            if (_btnNext != null) _btnNext.Enabled = CurrentPage < TotalPages;
-            if (_btnLast != null) _btnLast.Enabled = CurrentPage < TotalPages;
+            if (_botonPrimero != null) _botonPrimero.Enabled = PaginaActual > 1;
+            if (_botonAnterior != null) _botonAnterior.Enabled = PaginaActual > 1;
+            if (_botonSiguiente != null) _botonSiguiente.Enabled = PaginaActual < TotalPaginas;
+            if (_botonUltimo != null) _botonUltimo.Enabled = PaginaActual < TotalPaginas;
         }
     }
 }

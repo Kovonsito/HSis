@@ -1,9 +1,12 @@
-#nullable enable
+using System;
+using System.Drawing;
+using System.Linq;
+using System.Windows.Forms;
 using System.Runtime.Versioning;
-using HSis.Data.Models;
 using HSis.Logic.Services;
+using HSis.UI.Helpers;
 
-namespace HSis.UI
+namespace HSis.UI.Forms.Tickets
 {
     /// <summary>
     /// Formulario para crear nuevos tickets por parte de usuarios regulares.
@@ -64,7 +67,7 @@ namespace HSis.UI
         private void frmNuevoTicket_Load(object? sender, EventArgs e)
         {
             // Inicialización básica del formulario
-            rtbDescripcion.Clear();
+            rtbDescripcion.Limpiar();
         }
 
         private async void btnGuardar_Click(object? sender, EventArgs e)

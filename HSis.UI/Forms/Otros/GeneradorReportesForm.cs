@@ -1,10 +1,11 @@
 using System;
+using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 using HSis.Logic.DTOs;
 using HSis.Logic.Services;
 
-namespace HSis.UI
+namespace HSis.UI.Forms.Otros
 {
     public partial class GeneradorReportesForm : Form
     {
@@ -55,7 +56,7 @@ namespace HSis.UI
             lblInicio.Dock = DockStyle.Fill;
             lblInicio.TextAlign = ContentAlignment.MiddleLeft;
             dtpInicio.Dock = DockStyle.Fill;
-            
+
             lblFin.Dock = DockStyle.Fill;
             lblFin.TextAlign = ContentAlignment.MiddleLeft;
             dtpFin.Dock = DockStyle.Fill;

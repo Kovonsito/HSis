@@ -1,4 +1,8 @@
-namespace HSis.UI
+using System;
+using System.Drawing;
+using System.Windows.Forms;
+
+namespace HSis.UI.Forms.Dashboards
 {
     partial class DashboardClienteForm
     {
@@ -16,7 +20,7 @@ namespace HSis.UI
         private void InitializeComponent()
         {
             this.lblTitulo = new Label();
-            this.ucMisActivos = new IndicadorControl();
+            this.ucMisActivos = new HSis.UI.Controls.IndicadorControl();
             this.dgvMisTickets = new DataGridView();
             this.btnNuevoReporte = new Button();
             ((System.ComponentModel.ISupportInitialize)(this.dgvMisTickets)).BeginInit();
@@ -58,7 +62,7 @@ namespace HSis.UI
             this.dgvMisTickets.Location = new Point(12, 170);
             this.dgvMisTickets.Name = "dgvMisTickets";
             this.dgvMisTickets.ReadOnly = true;
-            this.dgvMisTickets.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvMisTickets.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             this.dgvMisTickets.Size = new Size(760, 280);
             this.dgvMisTickets.TabIndex = 3;
             this.dgvMisTickets.CellDoubleClick += new DataGridViewCellEventHandler(this.dgvMisTickets_CellDoubleClick);
@@ -82,7 +86,7 @@ namespace HSis.UI
         }
 
         private Label lblTitulo;
-        private IndicadorControl ucMisActivos;
+        private HSis.UI.Controls.IndicadorControl ucMisActivos;
         private DataGridView dgvMisTickets;
         private Button btnNuevoReporte;
     }

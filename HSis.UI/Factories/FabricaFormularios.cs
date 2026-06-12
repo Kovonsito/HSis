@@ -1,29 +1,31 @@
 using System;
 using System.Runtime.Versioning;
 using System.Windows.Forms;
+using HSis.UI.Forms.Otros;
+using HSis.UI.Forms.Tickets;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace HSis.UI
+namespace HSis.UI.Factories
 {
     [SupportedOSPlatform("windows")]
-    public class FormFactory(IServiceProvider serviceProvider) : IFormFactory
+    public class FabricaFormularios(IServiceProvider serviceProvider) : IFabricaFormularios
     {
-        public T Create<T>() where T : Form
+        public T Crear<T>() where T : Form
         {
             return serviceProvider.GetRequiredService<T>();
         }
 
-        public DetalleClienteForm CreateDetalleCliente(int idTicket)
+        public DetalleClienteForm CrearDetalleCliente(int idTicket)
         {
             return ActivatorUtilities.CreateInstance<DetalleClienteForm>(serviceProvider, idTicket);
         }
 
-        public TicketDetalleForm CreateTicketDetalle(int idTicket)
+        public TicketDetalleForm CrearTicketDetalle(int idTicket)
         {
             return ActivatorUtilities.CreateInstance<TicketDetalleForm>(serviceProvider, idTicket);
         }
 
-        public EditorDinamicoForm CreateEditorDinamico(object entidad, string titulo)
+        public EditorDinamicoForm CrearEditorDinamico(object entidad, string titulo)
         {
             return ActivatorUtilities.CreateInstance<EditorDinamicoForm>(serviceProvider, entidad, titulo);
         }

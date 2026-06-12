@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using HSis.Logic.DTOs;
 
 namespace HSis.Logic.Services

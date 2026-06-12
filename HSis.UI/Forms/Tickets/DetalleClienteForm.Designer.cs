@@ -1,4 +1,8 @@
-namespace HSis.UI
+using System;
+using System.Drawing;
+using System.Windows.Forms;
+
+namespace HSis.UI.Forms.Tickets
 {
     partial class DetalleClienteForm
     {

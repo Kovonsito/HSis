@@ -1,15 +1,11 @@
 #nullable enable
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Windows.Forms;
 using HSis.UI.Controls;
 
-namespace HSis.UI
+namespace HSis.UI.Controls
 {
     public partial class FiltroGenericoControl : UserControl
     {
-        private readonly Dictionary<string, Control> _inputs = [];
+        private readonly Dictionary<string, Control> _controlesEntrada = [];
         private readonly Dictionary<string, TipoFiltroControl> _tipos = [];
         private bool _suspenderEventos = false;
 
@@ -24,7 +20,7 @@ namespace HSis.UI
         {
             _suspenderEventos = true;
             flowLayoutPanelMain.Controls.Clear();
-            _inputs.Clear();
+            _controlesEntrada.Clear();
             _tipos.Clear();
 
             foreach (var campo in campos)
@@ -56,7 +52,7 @@ namespace HSis.UI
                             Width = campo.Ancho - 10,
                             Font = new Font("Segoe UI", 9F)
                         };
-                        txt.TextChanged += (s, e) => RaiseFiltroCambiado();
+                        txt.TextChanged += (s, e) => LanzarFiltroCambiado();
                         input = txt;
                         break;
 
@@ -72,7 +68,7 @@ namespace HSis.UI
                             cmb.Items.AddRange(campo.ValoresCombo);
                             if (cmb.Items.Count > 0) cmb.SelectedIndex = 0;
                         }
-                        cmb.SelectedIndexChanged += (s, e) => RaiseFiltroCambiado();
+                        cmb.SelectedIndexChanged += (s, e) => LanzarFiltroCambiado();
                         input = cmb;
                         break;
 
@@ -87,7 +83,7 @@ namespace HSis.UI
                         {
                             dtp.Value = dt;
                         }
-                        dtp.ValueChanged += (s, e) => RaiseFiltroCambiado();
+                        dtp.ValueChanged += (s, e) => LanzarFiltroCambiado();
                         input = dtp;
                         break;
 
@@ -95,7 +91,7 @@ namespace HSis.UI
                         continue;
                 }
 
-                _inputs[campo.NombrePropiedad] = input;
+                _controlesEntrada[campo.NombrePropiedad] = input;
                 _tipos[campo.NombrePropiedad] = campo.Tipo;
 
                 container.Controls.Add(lbl);
@@ -108,7 +104,7 @@ namespace HSis.UI
 
         public void ActualizarCombo(string nombrePropiedad, object dataSource, string displayMember, string valueMember)
         {
-            if (_inputs.TryGetValue(nombrePropiedad, out var control) && control is ComboBox cmb)
+            if (_controlesEntrada.TryGetValue(nombrePropiedad, out var control) && control is ComboBox cmb)
             {
                 _suspenderEventos = true;
                 cmb.DataSource = null;
@@ -124,7 +120,7 @@ namespace HSis.UI
         public Dictionary<string, object?> ObtenerValoresFiltros()
         {
             var valores = new Dictionary<string, object?>();
-            foreach (var kvp in _inputs)
+            foreach (var kvp in _controlesEntrada)
             {
                 var nombre = kvp.Key;
                 var control = kvp.Value;
@@ -155,7 +151,7 @@ namespace HSis.UI
         public void LimpiarFiltros(Dictionary<string, object?>? valoresPorDefecto = null)
         {
             _suspenderEventos = true;
-            foreach (var kvp in _inputs)
+            foreach (var kvp in _controlesEntrada)
             {
                 var nombre = kvp.Key;
                 var control = kvp.Value;
@@ -203,10 +199,47 @@ namespace HSis.UI
                 }
             }
             _suspenderEventos = false;
-            RaiseFiltroCambiado();
+            LanzarFiltroCambiado();
         }
 
-        private void RaiseFiltroCambiado()
+        public void EstablecerValorFiltro(string nombrePropiedad, object? valor)
+        {
+            if (_controlesEntrada.TryGetValue(nombrePropiedad, out var control))
+            {
+                var tipo = _tipos[nombrePropiedad];
+                _suspenderEventos = true;
+                switch (tipo)
+                {
+                    case TipoFiltroControl.Texto:
+                        control.Text = valor?.ToString() ?? string.Empty;
+                        break;
+
+                    case TipoFiltroControl.ComboSeleccion:
+                        var cmb = (ComboBox)control;
+                        if (cmb.DataSource != null)
+                        {
+                            cmb.SelectedValue = valor;
+                        }
+                        else
+                        {
+                            cmb.SelectedItem = valor;
+                        }
+                        break;
+
+                    case TipoFiltroControl.Fecha:
+                        var dtp = (DateTimePicker)control;
+                        if (valor is DateTime dt)
+                        {
+                            dtp.Value = dt;
+                        }
+                        break;
+                }
+                _suspenderEventos = false;
+                LanzarFiltroCambiado();
+            }
+        }
+
+        private void LanzarFiltroCambiado()
         {
             if (!_suspenderEventos)
             {

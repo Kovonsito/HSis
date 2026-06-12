@@ -1,48 +1,44 @@
 #nullable enable
-using System;
-using System.Drawing;
-using System.Linq;
 using System.Runtime.Versioning;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using HSis.Data.Models;
 using HSis.Logic.Services;
+using HSis.UI.Factories;
+using HSis.UI.Helpers;
 
-namespace HSis.UI
+namespace HSis.UI.Services
 {
     [SupportedOSPlatform("windows")]
-    public class NotificationUIManager
+    public class AdministradorUINotificaciones
     {
-        private readonly INotificationClientService _notificationClient;
-        private readonly INotificacionStorageService _storageService;
-        private readonly IFormFactory _formFactory;
+        private readonly INotificationClientService _clienteNotificaciones;
+        private readonly INotificacionStorageService _servicioAlmacenamiento;
+        private readonly IFabricaFormularios _fabricaFormularios;
 
-        private Form? _hostForm;
-        private Control? _mainContainer;
-        private Func<Task>? _onDataReloadCallback;
+        private Form? _formularioAnfitrion;
+        private Control? _contenedorPrincipal;
+        private Func<Task>? _callbackRecargaDatos;
 
-        private Panel? _pnlResilienceBanner;
-        private Label? _lblResilienceBanner;
+        private Panel? _pnlBannerResiliencia;
+        private Label? _lblBannerResiliencia;
         private Panel? _pnlNotificacionesHistorial;
         private FlowLayoutPanel? _flpNotificaciones;
-        private ToolStripMenuItem? _menuCampanaItem;
+        private ToolStripMenuItem? _itemMenuCampana;
         private int _notificacionesNoLeidas = 0;
 
-        public NotificationUIManager(
-            INotificationClientService notificationClient,
-            INotificacionStorageService storageService,
-            IFormFactory formFactory)
+        public AdministradorUINotificaciones(
+            INotificationClientService clienteNotificaciones,
+            INotificacionStorageService servicioAlmacenamiento,
+            IFabricaFormularios fabricaFormularios)
         {
-            _notificationClient = notificationClient;
-            _storageService = storageService;
-            _formFactory = formFactory;
+            _clienteNotificaciones = clienteNotificaciones;
+            _servicioAlmacenamiento = servicioAlmacenamiento;
+            _fabricaFormularios = fabricaFormularios;
         }
 
-        public void Attach(Form hostForm, Control mainContainer, Func<Task> onDataReloadCallback)
+        public void Adjuntar(Form formularioAnfitrion, Control contenedorPrincipal, Func<Task> callbackRecargaDatos)
         {
-            _hostForm = hostForm;
-            _mainContainer = mainContainer;
-            _onDataReloadCallback = onDataReloadCallback;
+            _formularioAnfitrion = formularioAnfitrion;
+            _contenedorPrincipal = contenedorPrincipal;
+            _callbackRecargaDatos = callbackRecargaDatos;
 
             // 1. Inicializar banner de resiliencia y panel de notificaciones
             InicializarBannerResiliencia();
@@ -51,26 +47,26 @@ namespace HSis.UI
             ConfigurarCampanaMenu();
 
             // 3. Suscribirse a los eventos de SignalR
-            _notificationClient.OnNotificationReceived += OnNotificationReceived;
-            _notificationClient.OnReconnecting += OnReconnecting;
-            _notificationClient.OnConnected += OnConnected;
-            _notificationClient.OnDisconnected += OnDisconnected;
+            _clienteNotificaciones.OnNotificationReceived += EnNotificacionRecibida;
+            _clienteNotificaciones.OnReconnecting += EnReconectando;
+            _clienteNotificaciones.OnConnected += EnConectado;
+            _clienteNotificaciones.OnDisconnected += EnDesconectado;
 
             // 4. Limpieza automática de eventos al cerrar el formulario host
-            _hostForm.FormClosed += (s, args) =>
+            _formularioAnfitrion.FormClosed += (s, args) =>
             {
-                _notificationClient.OnNotificationReceived -= OnNotificationReceived;
-                _notificationClient.OnReconnecting -= OnReconnecting;
-                _notificationClient.OnConnected -= OnConnected;
-                _notificationClient.OnDisconnected -= OnDisconnected;
+                _clienteNotificaciones.OnNotificationReceived -= EnNotificacionRecibida;
+                _clienteNotificaciones.OnReconnecting -= EnReconectando;
+                _clienteNotificaciones.OnConnected -= EnConectado;
+                _clienteNotificaciones.OnDisconnected -= EnDesconectado;
             };
 
             // 5. Ajustar orden de apilamiento visual de los controles inyectados
-            AjustarZOrderControles();
+            AjustarOrdenZControles();
 
             // 6. Establecer estado de conexión inicial
             ActualizarEstadoConexion(
-                _notificationClient.IsConnected,
+                _clienteNotificaciones.IsConnected,
                 "⚠️ Conectando al servidor de notificaciones...",
                 Color.FromArgb(230, 126, 34)
             );
@@ -81,10 +77,10 @@ namespace HSis.UI
 
         private void InicializarBannerResiliencia()
         {
-            if (_hostForm == null) return;
+            if (_formularioAnfitrion == null) return;
 
             // Banner superior de resiliencia
-            _pnlResilienceBanner = new Panel
+            _pnlBannerResiliencia = new Panel
             {
                 Dock = DockStyle.Top,
                 Height = 35,
@@ -92,7 +88,7 @@ namespace HSis.UI
                 Visible = false
             };
 
-            _lblResilienceBanner = new Label
+            _lblBannerResiliencia = new Label
             {
                 Dock = DockStyle.Fill,
                 ForeColor = Color.White,
@@ -101,15 +97,15 @@ namespace HSis.UI
                 Text = "⚠️ Sin conexión con el servidor de notificaciones. Intentando reconectar..."
             };
 
-            _pnlResilienceBanner.Controls.Add(_lblResilienceBanner);
-            _hostForm.Controls.Add(_pnlResilienceBanner);
+            _pnlBannerResiliencia.Controls.Add(_lblBannerResiliencia);
+            _formularioAnfitrion.Controls.Add(_pnlBannerResiliencia);
 
             // Panel flotante de historial de notificaciones
             _pnlNotificacionesHistorial = new Panel
             {
                 Width = 300,
-                Height = _hostForm.ClientSize.Height - 35,
-                Location = new Point(_hostForm.ClientSize.Width - 300, 35),
+                Height = _formularioAnfitrion.ClientSize.Height - 35,
+                Location = new Point(_formularioAnfitrion.ClientSize.Width - 300, 35),
                 Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right,
                 BackColor = Color.FromArgb(245, 247, 250),
                 Visible = false,
@@ -170,70 +166,70 @@ namespace HSis.UI
             pnlNotifHeader.SendToBack();
             _flpNotificaciones.BringToFront();
 
-            _hostForm.Controls.Add(_pnlNotificacionesHistorial);
+            _formularioAnfitrion.Controls.Add(_pnlNotificacionesHistorial);
         }
 
         private void ConfigurarCampanaMenu()
         {
-            if (_hostForm == null) return;
+            if (_formularioAnfitrion == null) return;
 
-            var menu = _hostForm.MainMenuStrip;
+            var menu = _formularioAnfitrion.MainMenuStrip;
             if (menu != null)
             {
-                _menuCampanaItem = new ToolStripMenuItem("🔔 (0)")
+                _itemMenuCampana = new ToolStripMenuItem("🔔 (0)")
                 {
                     Alignment = ToolStripItemAlignment.Right
                 };
-                _menuCampanaItem.Click += BtnCampana_Click;
-                menu.Items.Add(_menuCampanaItem);
+                _itemMenuCampana.Click += BtnCampana_Click;
+                menu.Items.Add(_itemMenuCampana);
             }
         }
 
-        private void AjustarZOrderControles()
+        private void AjustarOrdenZControles()
         {
-            if (_hostForm == null) return;
+            if (_formularioAnfitrion == null) return;
 
             if (_pnlNotificacionesHistorial != null)
             {
-                _hostForm.Controls.SetChildIndex(_pnlNotificacionesHistorial, 0); // Al frente
+                _formularioAnfitrion.Controls.SetChildIndex(_pnlNotificacionesHistorial, 0); // Al frente
             }
-            if (_mainContainer != null)
+            if (_contenedorPrincipal != null)
             {
-                _hostForm.Controls.SetChildIndex(_mainContainer, 1);
+                _formularioAnfitrion.Controls.SetChildIndex(_contenedorPrincipal, 1);
             }
-            if (_pnlResilienceBanner != null)
+            if (_pnlBannerResiliencia != null)
             {
-                _hostForm.Controls.SetChildIndex(_pnlResilienceBanner, 2);
+                _formularioAnfitrion.Controls.SetChildIndex(_pnlBannerResiliencia, 2);
             }
-            foreach (Control ctrl in _hostForm.Controls)
+            foreach (Control ctrl in _formularioAnfitrion.Controls)
             {
                 if (ctrl is MenuStrip)
                 {
-                    _hostForm.Controls.SetChildIndex(ctrl, 3);
+                    _formularioAnfitrion.Controls.SetChildIndex(ctrl, 3);
                     break;
                 }
             }
         }
 
-        private async void OnNotificationReceived(string tipo, int ticketId, string mensaje)
+        private async void EnNotificacionRecibida(string tipo, int ticketId, string mensaje)
         {
-            if (_hostForm == null) return;
+            if (_formularioAnfitrion == null) return;
 
-            if (_hostForm.InvokeRequired)
+            if (_formularioAnfitrion.InvokeRequired)
             {
-                _hostForm.BeginInvoke(new Action(() => OnNotificationReceived(tipo, ticketId, mensaje)));
+                _formularioAnfitrion.BeginInvoke(new Action(() => EnNotificacionRecibida(tipo, ticketId, mensaje)));
                 return;
             }
 
             // Guardar en almacenamiento local persistente
-            await _storageService.GuardarNotificacionAsync(SesionSistema.IdUsuario, ticketId, mensaje);
+            await _servicioAlmacenamiento.GuardarNotificacionAsync(SesionSistema.IdUsuario, ticketId, mensaje);
 
             MessageBox.Show(mensaje, "Notificación de HSis", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
             // Recargar datos específicos del Dashboard
-            if (_onDataReloadCallback != null)
+            if (_callbackRecargaDatos != null)
             {
-                _ = _onDataReloadCallback();
+                _ = _callbackRecargaDatos();
             }
 
             // Recargar listado en la interfaz
@@ -245,28 +241,28 @@ namespace HSis.UI
             if (_flpNotificaciones == null) return;
 
             _flpNotificaciones.Controls.Clear();
-            var list = await _storageService.ObtenerNotificacionesAsync(SesionSistema.IdUsuario);
+            var list = await _servicioAlmacenamiento.ObtenerNotificacionesAsync(SesionSistema.IdUsuario);
 
             _notificacionesNoLeidas = list.Count(n => !n.Leido);
-            ActualizarCampanaBadge();
+            ActualizarInsigniaCampana();
 
             foreach (var notif in list)
             {
-                AgregarNotificacionAUI(notif);
+                AgregarNotificacionAInterfaz(notif);
             }
         }
 
-        private void ActualizarCampanaBadge()
+        private void ActualizarInsigniaCampana()
         {
-            if (_menuCampanaItem != null)
+            if (_itemMenuCampana != null)
             {
-                _menuCampanaItem.Text = _notificacionesNoLeidas > 0 ? $"🔔 ({_notificacionesNoLeidas}) 🔴" : $"🔔 ({_notificacionesNoLeidas})";
-                _menuCampanaItem.ForeColor = _notificacionesNoLeidas > 0 ? Color.Red : Color.Black;
-                _menuCampanaItem.Font = new Font("Segoe UI", 10F, _notificacionesNoLeidas > 0 ? FontStyle.Bold : FontStyle.Regular);
+                _itemMenuCampana.Text = _notificacionesNoLeidas > 0 ? $"🔔 ({_notificacionesNoLeidas}) 🔴" : $"🔔 ({_notificacionesNoLeidas})";
+                _itemMenuCampana.ForeColor = _notificacionesNoLeidas > 0 ? Color.Red : Color.Black;
+                _itemMenuCampana.Font = new Font("Segoe UI", 10F, _notificacionesNoLeidas > 0 ? FontStyle.Bold : FontStyle.Regular);
             }
         }
 
-        private void AgregarNotificacionAUI(NotificacionLocal notif)
+        private void AgregarNotificacionAInterfaz(NotificacionLocal notif)
         {
             if (_flpNotificaciones == null) return;
 
@@ -321,11 +317,11 @@ namespace HSis.UI
 
         private async void AbrirDetalleYMarcarLeido(NotificacionLocal notif, Panel pnlItem)
         {
-            if (_hostForm == null) return;
+            if (_formularioAnfitrion == null) return;
 
             if (!notif.Leido)
             {
-                await _storageService.MarcarComoLeidaAsync(SesionSistema.IdUsuario, notif.Id);
+                await _servicioAlmacenamiento.MarcarComoLeidaAsync(SesionSistema.IdUsuario, notif.Id);
                 notif.Leido = true;
                 pnlItem.BackColor = Color.White;
                 foreach (Control ctrl in pnlItem.Controls)
@@ -336,7 +332,7 @@ namespace HSis.UI
                     }
                 }
                 _notificacionesNoLeidas = Math.Max(0, _notificacionesNoLeidas - 1);
-                ActualizarCampanaBadge();
+                ActualizarInsigniaCampana();
                 pnlItem.Invalidate();
             }
 
@@ -344,11 +340,11 @@ namespace HSis.UI
             Form detailForm;
             if (SesionSistema.IdRolUsuario == 3) // Cliente
             {
-                detailForm = _formFactory.CreateDetalleCliente(notif.TicketId);
+                detailForm = _fabricaFormularios.CrearDetalleCliente(notif.TicketId);
             }
             else // Admin o Tecnico
             {
-                detailForm = _formFactory.CreateTicketDetalle(notif.TicketId);
+                detailForm = _fabricaFormularios.CrearTicketDetalle(notif.TicketId);
             }
 
             using (detailForm)
@@ -356,17 +352,17 @@ namespace HSis.UI
                 detailForm.ShowDialog();
             }
 
-            if (_onDataReloadCallback != null)
+            if (_callbackRecargaDatos != null)
             {
-                _ = _onDataReloadCallback();
+                _ = _callbackRecargaDatos();
             }
         }
 
         private async void BtnLimpiarNotif_Click(object? sender, EventArgs e)
         {
-            await _storageService.LimpiarTodasAsync(SesionSistema.IdUsuario);
+            await _servicioAlmacenamiento.LimpiarTodasAsync(SesionSistema.IdUsuario);
             _notificacionesNoLeidas = 0;
-            ActualizarCampanaBadge();
+            ActualizarInsigniaCampana();
             _flpNotificaciones?.Controls.Clear();
         }
 
@@ -382,40 +378,40 @@ namespace HSis.UI
             }
         }
 
-        private void OnReconnecting()
+        private void EnReconectando()
         {
             ActualizarEstadoConexion(false, "⚠️ Intentando reconectar con el servidor de notificaciones...", Color.FromArgb(230, 126, 34)); // Naranja
         }
 
-        private void OnConnected()
+        private void EnConectado()
         {
             ActualizarEstadoConexion(true, string.Empty, Color.Empty);
-            if (_onDataReloadCallback != null)
+            if (_callbackRecargaDatos != null)
             {
-                _ = _onDataReloadCallback();
+                _ = _callbackRecargaDatos();
             }
         }
 
-        private void OnDisconnected()
+        private void EnDesconectado()
         {
             ActualizarEstadoConexion(false, "⚠️ Sin conexión con el servidor de notificaciones. Intentando reconectar...", Color.FromArgb(231, 76, 60)); // Rojo
         }
 
         private void ActualizarEstadoConexion(bool conectado, string mensaje, Color colorFondo)
         {
-            if (_hostForm == null) return;
+            if (_formularioAnfitrion == null) return;
 
-            if (_hostForm.InvokeRequired)
+            if (_formularioAnfitrion.InvokeRequired)
             {
-                _hostForm.BeginInvoke(new Action(() => ActualizarEstadoConexion(conectado, mensaje, colorFondo)));
+                _formularioAnfitrion.BeginInvoke(new Action(() => ActualizarEstadoConexion(conectado, mensaje, colorFondo)));
                 return;
             }
 
-            if (_pnlResilienceBanner != null && _lblResilienceBanner != null)
+            if (_pnlBannerResiliencia != null && _lblBannerResiliencia != null)
             {
-                _pnlResilienceBanner.Visible = !conectado;
-                _lblResilienceBanner.Text = mensaje;
-                _pnlResilienceBanner.BackColor = colorFondo;
+                _pnlBannerResiliencia.Visible = !conectado;
+                _lblBannerResiliencia.Text = mensaje;
+                _pnlBannerResiliencia.BackColor = colorFondo;
             }
         }
     }

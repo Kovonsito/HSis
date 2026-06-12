@@ -60,7 +60,7 @@ namespace HSis.Logic.Services
         public async Task CrearAsync<T>(T entidad) where T : class
         {
             await ValidarEntidadAsync(entidad);
-            
+
             if (entidad is Usuario usuario && !string.IsNullOrEmpty(usuario.Contraseña))
             {
                 usuario.Contraseña = UsuarioService.HashPassword(usuario.Contraseña);
@@ -74,7 +74,7 @@ namespace HSis.Logic.Services
         public async Task ActualizarAsync<T>(T entidad) where T : class
         {
             await ValidarEntidadAsync(entidad);
-            
+
             using var db = dbContextFactory.CreateDbContext();
 
             if (entidad is Usuario usuario)

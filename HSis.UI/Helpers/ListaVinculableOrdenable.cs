@@ -2,19 +2,19 @@
 using System.ComponentModel;
 
 
-namespace HSis.UI
+namespace HSis.UI.Helpers
 {
-    public class SortableBindingList<T> : BindingList<T>
+    public class ListaVinculableOrdenable<T> : BindingList<T>
     {
         private bool _isSorted;
         private ListSortDirection _sortDirection = ListSortDirection.Ascending;
         private PropertyDescriptor? _sortProperty;
 
-        public SortableBindingList()
+        public ListaVinculableOrdenable()
         {
         }
 
-        public SortableBindingList(IList<T> list) : base(list)
+        public ListaVinculableOrdenable(IList<T> list) : base(list)
         {
         }
 
@@ -34,7 +34,7 @@ namespace HSis.UI
             var itemsList = this.Items as List<T>;
             itemsList ??= [.. this.Items];
 
-            var pc = new PropertyComparer<T>(prop, direction);
+            var pc = new ComparadorPropiedades<T>(prop, direction);
             itemsList.Sort(pc);
 
             if (this.Items != itemsList)
@@ -61,7 +61,7 @@ namespace HSis.UI
         }
     }
 
-    public class PropertyComparer<T>(PropertyDescriptor property, ListSortDirection direction) : IComparer<T>
+    public class ComparadorPropiedades<T>(PropertyDescriptor property, ListSortDirection direction) : IComparer<T>
     {
         private readonly PropertyDescriptor _property = property;
         private readonly ListSortDirection _direction = direction;
@@ -75,10 +75,10 @@ namespace HSis.UI
             var xValue = _property.GetValue(x);
             var yValue = _property.GetValue(y);
 
-            return PropertyComparer<T>.CompareValues(xValue, yValue, _direction);
+            return ComparadorPropiedades<T>.CompararValores(xValue, yValue, _direction);
         }
 
-        private static int CompareValues(object? xValue, object? yValue, ListSortDirection direction)
+        private static int CompararValores(object? xValue, object? yValue, ListSortDirection direction)
         {
             int result;
 

@@ -1,6 +1,6 @@
-using Mapster;
 using HSis.Data.Models;
 using HSis.Logic.DTOs;
+using Mapster;
 
 namespace HSis.Logic.Profiles
 {

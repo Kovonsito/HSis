@@ -2,8 +2,6 @@ using HSis.Data.Models;
 using HSis.Logic.DTOs;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace HSis.Logic.Services
 {
@@ -50,7 +48,7 @@ namespace HSis.Logic.Services
                 .Include(u => u.IdSucursalNavigation)
                 .Include(u => u.IdRolNavigation)
                 .FirstOrDefaultAsync(u => u.Nombre == nombreUsuario);
-            
+
             if (usuario != null && VerifyPassword(contraseña, usuario.Contraseña))
             {
                 return mapper.Map<UsuarioDto>(usuario);

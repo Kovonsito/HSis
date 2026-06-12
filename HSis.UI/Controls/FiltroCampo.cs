@@ -1,6 +1,5 @@
-using System;
-
 namespace HSis.UI.Controls
+
 {
     public enum TipoFiltroControl
     {

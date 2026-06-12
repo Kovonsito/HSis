@@ -1,7 +1,9 @@
+using System;
+using System.Drawing;
+using System.Windows.Forms;
 using System.ComponentModel;
 
-
-namespace HSis.UI
+namespace HSis.UI.Forms.Dashboards
 {
     partial class DashboardTecnicoForm
     {
@@ -19,14 +21,14 @@ namespace HSis.UI
         private void InitializeComponent()
         {
             this.lblTitulo = new Label();
-            this.ucMisAsignados = new IndicadorControl();
-            this.ucDisponibles = new IndicadorControl();
-            this.ucCerrados = new IndicadorControl();
-            this.ucCalificacion = new IndicadorControl();
+            this.ucMisAsignados = new HSis.UI.Controls.IndicadorControl();
+            this.ucDisponibles = new HSis.UI.Controls.IndicadorControl();
+            this.ucCerrados = new HSis.UI.Controls.IndicadorControl();
+            this.ucCalificacion = new HSis.UI.Controls.IndicadorControl();
             this.dgvTicketsOperativos = new DataGridView();
             this.pnlFiltros = new Panel();
             this.lblFiltrosTitle = new Label();
-            this.filtroGenerico = new FiltroGenericoControl();
+            this.filtroGenerico = new HSis.UI.Controls.FiltroGenericoControl();
             this.btnLimpiarFiltros = new Button();
             this.btnRecargar = new Button();
             ((System.ComponentModel.ISupportInitialize)(this.dgvTicketsOperativos)).BeginInit();
@@ -157,14 +159,14 @@ namespace HSis.UI
         }
 
         private Label lblTitulo;
-        private IndicadorControl ucMisAsignados;
-        private IndicadorControl ucDisponibles;
-        private IndicadorControl ucCerrados;
-        private IndicadorControl ucCalificacion;
+        private HSis.UI.Controls.IndicadorControl ucMisAsignados;
+        private HSis.UI.Controls.IndicadorControl ucDisponibles;
+        private HSis.UI.Controls.IndicadorControl ucCerrados;
+        private HSis.UI.Controls.IndicadorControl ucCalificacion;
         private DataGridView dgvTicketsOperativos;
         private Panel pnlFiltros;
         private Label lblFiltrosTitle;
-        private FiltroGenericoControl filtroGenerico;
+        private HSis.UI.Controls.FiltroGenericoControl filtroGenerico;
         private Button btnLimpiarFiltros;
         private Button btnRecargar;
     }
