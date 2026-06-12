@@ -2,12 +2,12 @@
 using System.ComponentModel;
 using System.Runtime.Versioning;
 
-namespace HSis.UI
+namespace HSis.UI.Controls
 {
     [SupportedOSPlatform("windows")]
     public partial class IndicadorControl : UserControl
     {
-        public event EventHandler? ucIndicadorEvent;
+        public event EventHandler? IndicadorClic;
 
         public IndicadorControl()
         {
@@ -52,10 +52,10 @@ namespace HSis.UI
             }
         }
 
-        private void ucIndicador_Click(object sender, EventArgs e)
+        private void Indicador_Click(object sender, EventArgs e)
         {
             // Si alguien se suscribió al evento, le avisamos
-            ucIndicadorEvent?.Invoke(this, e);
+            IndicadorClic?.Invoke(this, e);
         }
 
     }

@@ -1,7 +1,5 @@
-using System;
-using System.Collections.Generic;
-
 namespace HSis.Logic.DTOs
+
 {
     public class ReporteKpisDto
     {

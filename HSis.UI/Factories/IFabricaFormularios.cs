@@ -1,12 +1,14 @@
 using System.Windows.Forms;
+using HSis.UI.Forms.Otros;
+using HSis.UI.Forms.Tickets;
 
-namespace HSis.UI
+namespace HSis.UI.Factories
 {
-    public interface IFormFactory
+    public interface IFabricaFormularios
     {
-        T Create<T>() where T : Form;
-        DetalleClienteForm CreateDetalleCliente(int idTicket);
-        TicketDetalleForm CreateTicketDetalle(int idTicket);
-        EditorDinamicoForm CreateEditorDinamico(object entidad, string titulo);
+        T Crear<T>() where T : Form;
+        DetalleClienteForm CrearDetalleCliente(int idTicket);
+        TicketDetalleForm CrearTicketDetalle(int idTicket);
+        EditorDinamicoForm CrearEditorDinamico(object entidad, string titulo);
     }
 }

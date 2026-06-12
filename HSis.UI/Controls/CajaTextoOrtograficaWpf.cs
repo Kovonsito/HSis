@@ -1,27 +1,24 @@
 #nullable enable
-using System;
 using System.ComponentModel;
-using System.Drawing;
-using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using System.Windows.Markup;
 using System.Diagnostics.CodeAnalysis;
 using WPF = System.Windows.Controls;
 
-namespace HSis.UI
+namespace HSis.UI.Controls
 {
     /// <summary>
     /// Control personalizado que combina Windows Forms y WPF para proporcionar
     /// corrección ortográfica nativa en tiempo real con subrayado rojo y sugerencias.
     /// </summary>
     [DesignerCategory("code")]
-    public class WpfSpellTextBox : ElementHost
+    public class CajaTextoOrtograficaWpf : ElementHost
     {
-        private readonly WPF.TextBox _wpfTextBox;
+        private readonly WPF.TextBox _cajaTextoWpf;
 
-        public WpfSpellTextBox()
+        public CajaTextoOrtograficaWpf()
         {
-            _wpfTextBox = new WPF.TextBox
+            _cajaTextoWpf = new WPF.TextBox
             {
                 AcceptsReturn = true,
                 TextWrapping = System.Windows.TextWrapping.Wrap,
@@ -35,10 +32,10 @@ namespace HSis.UI
             };
 
             // Habilitar el corrector ortográfico nativo en español
-            _wpfTextBox.SpellCheck.IsEnabled = true;
-            _wpfTextBox.Language = XmlLanguage.GetLanguage("es-ES");
+            _cajaTextoWpf.SpellCheck.IsEnabled = true;
+            _cajaTextoWpf.Language = XmlLanguage.GetLanguage("es-ES");
 
-            this.Child = _wpfTextBox;
+            this.Child = _cajaTextoWpf;
             this.Size = new Size(250, 100);
         }
 
@@ -47,52 +44,52 @@ namespace HSis.UI
         [AllowNull]
         public override string Text
         {
-            get => _wpfTextBox.Text;
-            set => _wpfTextBox.Text = value ?? string.Empty;
+            get => _cajaTextoWpf.Text;
+            set => _cajaTextoWpf.Text = value ?? string.Empty;
         }
 
         [Browsable(true)]
         [DefaultValue(false)]
-        public bool ReadOnly
+        public bool SoloLectura
         {
-            get => _wpfTextBox.IsReadOnly;
+            get => _cajaTextoWpf.IsReadOnly;
             set
             {
-                _wpfTextBox.IsReadOnly = value;
+                _cajaTextoWpf.IsReadOnly = value;
                 // Ajustar el color de fondo para que coincida con el estilo de Windows Forms de sólo lectura
                 if (value)
                 {
-                    _wpfTextBox.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(240, 240, 240));
+                    _cajaTextoWpf.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(240, 240, 240));
                 }
                 else
                 {
-                    _wpfTextBox.Background = System.Windows.Media.Brushes.White;
+                    _cajaTextoWpf.Background = System.Windows.Media.Brushes.White;
                 }
             }
         }
 
         [Browsable(true)]
         [DefaultValue("es-ES")]
-        public string SpellCheckLanguage
+        public string IdiomaCorreccion
         {
-            get => _wpfTextBox.Language.IetfLanguageTag;
-            set => _wpfTextBox.Language = XmlLanguage.GetLanguage(value);
+            get => _cajaTextoWpf.Language.IetfLanguageTag;
+            set => _cajaTextoWpf.Language = XmlLanguage.GetLanguage(value);
         }
 
         [Browsable(true)]
         [DefaultValue(true)]
-        public bool SpellCheckEnabled
+        public bool CorreccionHabilitada
         {
-            get => _wpfTextBox.SpellCheck.IsEnabled;
-            set => _wpfTextBox.SpellCheck.IsEnabled = value;
+            get => _cajaTextoWpf.SpellCheck.IsEnabled;
+            set => _cajaTextoWpf.SpellCheck.IsEnabled = value;
         }
 
         /// <summary>
         /// Limpia el contenido del campo de texto.
         /// </summary>
-        public void Clear()
+        public void Limpiar()
         {
-            _wpfTextBox.Clear();
+            _cajaTextoWpf.Clear();
         }
 
         /// <summary>
@@ -103,7 +100,7 @@ namespace HSis.UI
         protected override void OnCreateControl()
         {
             base.OnCreateControl();
-            _wpfTextBox.TextChanged += (s, e) => TextChanged?.Invoke(this, EventArgs.Empty);
+            _cajaTextoWpf.TextChanged += (s, e) => TextChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 }

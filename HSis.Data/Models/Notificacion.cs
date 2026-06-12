@@ -1,5 +1,3 @@
-using System;
-
 namespace HSis.Data.Models;
 
 public partial class Notificacion

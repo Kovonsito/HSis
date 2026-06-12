@@ -1,8 +1,9 @@
 using System;
 using System.ComponentModel;
 using System.Windows.Forms;
+using System.Drawing;
 
-namespace HSis.UI
+namespace HSis.UI.Forms.Otros
 {
     partial class EditorDinamicoForm
     {

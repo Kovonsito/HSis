@@ -1,29 +1,36 @@
 #nullable enable
-using HSis.Logic.Services;
-using HSis.Logic.DTOs;
+using System;
+using System.Drawing;
 using System.Runtime.Versioning;
-using HSis.Data.Models;
+using System.Windows.Forms;
+using HSis.Logic.DTOs;
+using HSis.Logic.Services;
+using HSis.UI.Factories;
+using HSis.UI.Forms.Dashboards;
+using HSis.UI.Helpers;
 
-namespace HSis.UI
+namespace HSis.UI.Forms.Auth
 {
     [SupportedOSPlatform("windows")]
     public partial class IniciarSesionForm : Form
     {
         private readonly IUsuarioService _usuarioService;
         private readonly ISessionCacheService _sessionCache;
-        private readonly IFormFactory _formFactory;
+        private readonly IFabricaFormularios _fabricaFormularios;
         private readonly INotificationClientService _notificationClient;
 
-        public IniciarSesionForm(IUsuarioService usuarioService, ISessionCacheService sessionCache, IFormFactory formFactory, INotificationClientService notificationClient)
+        public IniciarSesionForm(IUsuarioService usuarioService, ISessionCacheService sessionCache, IFabricaFormularios fabricaFormularios, INotificationClientService notificationClient)
         {
             InitializeComponent();
             _usuarioService = usuarioService;
             _sessionCache = sessionCache;
-            _formFactory = formFactory;
+            _fabricaFormularios = fabricaFormularios;
             _notificationClient = notificationClient;
             InicializarLayoutLogin();
         }
 
+
+        #region Login Actions
         private async void btnIniciarSesion_Click(object? sender, EventArgs e)
         {
             var usuario = await _usuarioService.AutenticarAsync(txtUsuario.Text, txtContraseña.Text);
@@ -57,10 +64,10 @@ namespace HSis.UI
 
             Form dashboardForm = SesionSistema.IdRolUsuario switch
             {
-                1 => (Form)_formFactory.Create<DashboardAdminForm>(),
-                2 => (Form)_formFactory.Create<DashboardTecnicoForm>(),
-                3 => (Form)_formFactory.Create<DashboardClienteForm>(),
-                _ => (Form)_formFactory.Create<DashboardAdminForm>()
+                1 => (Form)_fabricaFormularios.Crear<DashboardAdminForm>(),
+                2 => (Form)_fabricaFormularios.Crear<DashboardTecnicoForm>(),
+                3 => (Form)_fabricaFormularios.Crear<DashboardClienteForm>(),
+                _ => (Form)_fabricaFormularios.Crear<DashboardAdminForm>()
             };
 
             // Suscribirse al evento FormClosed para cerrar la aplicación correctamente
@@ -119,5 +126,6 @@ namespace HSis.UI
             this.Controls.Clear();
             this.Controls.Add(tblPrincipal);
         }
+        #endregion
     }
 }

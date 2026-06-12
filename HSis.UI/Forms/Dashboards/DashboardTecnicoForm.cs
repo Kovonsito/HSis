@@ -1,14 +1,16 @@
 #nullable enable
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Drawing;
 using System.Runtime.Versioning;
 using System.Windows.Forms;
-using HSis.Data.Models;
 using HSis.Logic.DTOs;
 using HSis.Logic.Services;
+using HSis.UI.Controls;
+using HSis.UI.Factories;
+using HSis.UI.Helpers;
+using HSis.UI.Services;
 
-namespace HSis.UI
+namespace HSis.UI.Forms.Dashboards
 {
     [SupportedOSPlatform("windows")]
     public partial class DashboardTecnicoForm : Form
@@ -22,20 +24,20 @@ namespace HSis.UI
             Calificaciones
         }
         private VistaDashboard _vistaActual = VistaDashboard.MisAsignados;
-        private readonly NotificationUIManager _uiManager;
+        private readonly AdministradorUINotificaciones _uiManager;
         private PaginacionControl PaginacionControl = null!;
         private List<TicketOperativoDto> _todosLosTickets = [];
         private List<TicketOperativoDto> _ticketsFiltrados = [];
         private List<FeedbackTecnicoDto> _todosLosFeedbacks = [];
         private bool _estaCargando = false;
 
-        private readonly IFormFactory _formFactory;
+        private readonly IFabricaFormularios _formFactory;
         private readonly ISessionCacheService _sessionCache;
 
         public DashboardTecnicoForm(
             ITicketService ticketService,
-            NotificationUIManager uiManager,
-            IFormFactory formFactory,
+            AdministradorUINotificaciones uiManager,
+            IFabricaFormularios formFactory,
             ISessionCacheService sessionCache)
         {
             InitializeComponent();
@@ -54,7 +56,7 @@ namespace HSis.UI
             var tblPrincipal = this.Controls["tblPrincipal"];
             if (tblPrincipal != null)
             {
-                _uiManager.Attach(this, tblPrincipal, CargarDatosInicialesAsync);
+                _uiManager.Adjuntar(this, tblPrincipal, CargarDatosInicialesAsync);
             }
 
             // Cargamos indicadores y grid en paralelo
@@ -160,7 +162,7 @@ namespace HSis.UI
                     Fecha = t.FechaFeedback
                 })];
 
-                PaginacionControl.CurrentPage = 1;
+                PaginacionControl.PaginaActual = 1;
                 MostrarPaginaActual();
             }
             catch (Exception ex)
@@ -227,21 +229,21 @@ namespace HSis.UI
         {
             if (_vistaActual == VistaDashboard.Calificaciones)
             {
-                PaginacionControl.TotalRecords = _todosLosFeedbacks.Count;
+                PaginacionControl.TotalRegistros = _todosLosFeedbacks.Count;
                 var pageFeedbacks = _todosLosFeedbacks
-                    .Skip((PaginacionControl.CurrentPage - 1) * PaginacionControl.PageSize)
-                    .Take(PaginacionControl.PageSize)
+                    .Skip((PaginacionControl.PaginaActual - 1) * PaginacionControl.TamanoPagina)
+                    .Take(PaginacionControl.TamanoPagina)
                     .ToList();
-                dgvTicketsOperativos.DataSource = new SortableBindingList<FeedbackTecnicoDto>(pageFeedbacks);
+                dgvTicketsOperativos.DataSource = new ListaVinculableOrdenable<FeedbackTecnicoDto>(pageFeedbacks);
             }
             else
             {
-                PaginacionControl.TotalRecords = _ticketsFiltrados.Count;
+                PaginacionControl.TotalRegistros = _ticketsFiltrados.Count;
                 var pageTickets = _ticketsFiltrados
-                    .Skip((PaginacionControl.CurrentPage - 1) * PaginacionControl.PageSize)
-                    .Take(PaginacionControl.PageSize)
+                    .Skip((PaginacionControl.PaginaActual - 1) * PaginacionControl.TamanoPagina)
+                    .Take(PaginacionControl.TamanoPagina)
                     .ToList();
-                dgvTicketsOperativos.DataSource = new SortableBindingList<TicketOperativoDto>(pageTickets);
+                dgvTicketsOperativos.DataSource = new ListaVinculableOrdenable<TicketOperativoDto>(pageTickets);
             }
             PersonalizarColumnas();
             PaginacionControl.ActualizarInterfaz();
@@ -253,7 +255,7 @@ namespace HSis.UI
             {
                 dgvTicketsOperativos.ConfigurarOcultarColumnas("IdTicket");
 
-                if (dgvTicketsOperativos.DataSource is SortableBindingList<FeedbackTecnicoDto>)
+                if (dgvTicketsOperativos.DataSource is ListaVinculableOrdenable<FeedbackTecnicoDto>)
                 {
                     if (dgvTicketsOperativos.Columns["Folio"] is DataGridViewColumn colFolio)
                     {
@@ -309,123 +311,48 @@ namespace HSis.UI
 
         private async void dgvTicketsOperativos_CellDoubleClick(object? sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex >= 0)
-            {
-                var row = dgvTicketsOperativos.Rows[e.RowIndex];
-                if (int.TryParse(row.Cells["IdTicket"].Value?.ToString(), out int idTicket))
-                {
-                    using var frmTicket = _formFactory.CreateTicketDetalle(idTicket);
-
-                    frmTicket.ShowDialog();
-                    await CargarIndicadoresAsync();
-                    await CargarTicketsSegunVistaAsync();
-                }
-            }
+            await dgvTicketsOperativos.ManejarDetalleTicketAsync(e.RowIndex, _formFactory, () => Task.WhenAll(CargarIndicadoresAsync(), CargarTicketsSegunVistaAsync()));
         }
 
         private void InicializarLayoutDashboard()
         {
             // Instanciar control de paginación
             PaginacionControl = new PaginacionControl();
-            PaginacionControl.PageChanged += (s, e) => MostrarPaginaActual();
+            PaginacionControl.PaginaCambiada += (s, e) => MostrarPaginaActual();
             PaginacionControl.Margin = new Padding(12, 0, 12, 0);
- 
+
             // Suscribir eventos de filtrado una sola vez aquí (hilo de UI garantizado)
-            ucMisAsignados.ucIndicadorEvent += UcMisAsignados_Click;
-            ucDisponibles.ucIndicadorEvent   += UcDisponibles_Click;
-            ucCerrados.ucIndicadorEvent      += UcCerrados_Click;
-            ucCalificacion.ucIndicadorEvent  += UcCalificacion_Click;
- 
-            var tblPrincipal = CrearPanelPrincipal();
-            var tblIndicadores = CrearPanelIndicadores();
- 
+            ucMisAsignados.IndicadorClic += UcMisAsignados_Click;
+            ucDisponibles.IndicadorClic += UcDisponibles_Click;
+            ucCerrados.IndicadorClic += UcCerrados_Click;
+            ucCalificacion.IndicadorClic += UcCalificacion_Click;
+
+            var tblPrincipal = AyudanteDisenoPanel.CrearPanelPrincipal(this.ClientSize, incluirFiltros: true);
+            var tblIndicadores = AyudanteDisenoPanel.CrearPanelIndicadores(
+                "tblIndicadores",
+                4,
+                ucMisAsignados, ucDisponibles, ucCerrados, ucCalificacion
+            );
+
             // Configurar el título y el grid principal para que se estiren
             lblTitulo.Dock = DockStyle.Fill;
             lblTitulo.Margin = new Padding(12, 10, 12, 10);
- 
+
             dgvTicketsOperativos.Dock = DockStyle.Fill;
             dgvTicketsOperativos.Margin = new Padding(12, 10, 12, 12);
 
             pnlFiltros.Dock = DockStyle.Fill;
             pnlFiltros.Margin = new Padding(12, 5, 12, 5);
- 
+
             // Agregar componentes al TableLayoutPanel principal
             tblPrincipal.Controls.Add(lblTitulo, 0, 0);
             tblPrincipal.Controls.Add(tblIndicadores, 0, 1);
             tblPrincipal.Controls.Add(pnlFiltros, 0, 2);
             tblPrincipal.Controls.Add(dgvTicketsOperativos, 0, 3);
             tblPrincipal.Controls.Add(PaginacionControl, 0, 4);
- 
+
             // Remover controles del formulario para agregarlos al grid principal
-            ReubicarControlesAlPrincipal(tblPrincipal);
-        }
- 
-        private TableLayoutPanel CrearPanelPrincipal()
-        {
-            var tbl = new TableLayoutPanel
-            {
-                Dock = DockStyle.Fill,
-                Name = "tblPrincipal",
-                RowCount = 5,
-                ColumnCount = 1,
-                Size = this.ClientSize
-            };
- 
-            tbl.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Fila 0: Título (lblTitulo)
-            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 120F)); // Fila 1: Indicadores (ucMisAsignados, etc.)
-            tbl.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Fila 2: Panel de Filtros
-            tbl.RowStyles.Add(new RowStyle(SizeType.Percent, 100F)); // Fila 3: Grid de Tickets (dgvTicketsOperativos)
-            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 45F)); // Fila 4: Paginación
- 
-            return tbl;
-        }
- 
-        private TableLayoutPanel CrearPanelIndicadores()
-        {
-            var tblIndicadores = new TableLayoutPanel
-            {
-                Dock = DockStyle.Fill,
-                Name = "tblIndicadores",
-                RowCount = 1,
-                ColumnCount = 4,
-                Margin = new Padding(7, 0, 7, 0)
-            };
-            tblIndicadores.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
-            tblIndicadores.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
-            tblIndicadores.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
-            tblIndicadores.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
- 
-            // Configurar los indicadores para que ocupen todo su espacio asignado
-            ucMisAsignados.Dock = DockStyle.Fill;
-            ucDisponibles.Dock = DockStyle.Fill;
-            ucCerrados.Dock = DockStyle.Fill;
-            ucCalificacion.Dock = DockStyle.Fill;
- 
-            ucMisAsignados.Margin = new Padding(5);
-            ucDisponibles.Margin = new Padding(5);
-            ucCerrados.Margin = new Padding(5);
-            ucCalificacion.Margin = new Padding(5);
- 
-            // Agregar los indicadores al sub-grid
-            tblIndicadores.Controls.Add(ucMisAsignados, 0, 0);
-            tblIndicadores.Controls.Add(ucDisponibles, 1, 0);
-            tblIndicadores.Controls.Add(ucCerrados, 2, 0);
-            tblIndicadores.Controls.Add(ucCalificacion, 3, 0);
- 
-            return tblIndicadores;
-        }
- 
-        private void ReubicarControlesAlPrincipal(TableLayoutPanel tblPrincipal)
-        {
-            this.Controls.Remove(lblTitulo);
-            this.Controls.Remove(ucMisAsignados);
-            this.Controls.Remove(ucDisponibles);
-            this.Controls.Remove(ucCerrados);
-            this.Controls.Remove(ucCalificacion);
-            this.Controls.Remove(pnlFiltros);
-            this.Controls.Remove(dgvTicketsOperativos);
- 
-            this.Controls.Add(tblPrincipal);
+            AyudanteDisenoPanel.ReubicarControles(this, tblPrincipal, lblTitulo, ucMisAsignados, ucDisponibles, ucCerrados, ucCalificacion, pnlFiltros, dgvTicketsOperativos);
         }
 
         private void ConfigurarFiltros()
@@ -447,20 +374,37 @@ namespace HSis.UI
         {
             var vals = filtroGenerico.ObtenerValoresFiltros();
 
-            var estatus = vals.TryGetValue("Estatus", out var estVal) && estVal?.ToString() is string est && est != "Todos" ? est : null;
-            var prioridad = vals.TryGetValue("Prioridad", out var priVal) && priVal?.ToString() is string pri && pri != "Todos" ? pri : null;
-            var usuario = vals.TryGetValue("Usuario", out var usrVal) && usrVal?.ToString() is string usr && !string.IsNullOrWhiteSpace(usr) ? usr.ToLower() : null;
+            string? estatus = null;
+            if (vals.TryGetValue("Estatus", out var estVal) && estVal != null)
+            {
+                var estStr = estVal.ToString();
+                if (estStr != "Todos") estatus = estStr;
+            }
+
+            string? prioridad = null;
+            if (vals.TryGetValue("Prioridad", out var priVal) && priVal != null)
+            {
+                var priStr = priVal.ToString();
+                if (priStr != "Todos") prioridad = priStr;
+            }
+
+            string? usuario = null;
+            if (vals.TryGetValue("Usuario", out var usrVal) && usrVal != null)
+            {
+                var usrStr = usrVal.ToString();
+                if (!string.IsNullOrWhiteSpace(usrStr)) usuario = usrStr.ToLower();
+            }
 
             DateTime fechaInicio = DateTime.MinValue;
-            if (vals.TryGetValue("FechaInicio", out var fiVal) && fiVal is DateTime dtFi)
+            if (vals.TryGetValue("FechaInicio", out var fiVal) && fiVal is DateTime)
             {
-                fechaInicio = dtFi.Date;
+                fechaInicio = ((DateTime)fiVal).Date;
             }
 
             DateTime fechaFin = DateTime.MaxValue;
-            if (vals.TryGetValue("FechaFin", out var ffVal) && ffVal is DateTime dtFf)
+            if (vals.TryGetValue("FechaFin", out var ffVal) && ffVal is DateTime)
             {
-                fechaFin = dtFf.Date.AddDays(1).AddTicks(-1);
+                fechaFin = ((DateTime)ffVal).Date.AddDays(1).AddTicks(-1);
             }
 
             _ticketsFiltrados = _todosLosTickets.Where(t =>
@@ -472,7 +416,7 @@ namespace HSis.UI
                 return true;
             }).ToList();
 
-            PaginacionControl.CurrentPage = 1;
+            PaginacionControl.PaginaActual = 1;
             MostrarPaginaActual();
         }
 

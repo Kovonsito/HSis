@@ -1,9 +1,14 @@
 #nullable enable
+using System;
+using System.Drawing;
+using System.Linq;
+using System.Runtime.Versioning;
+using System.Windows.Forms;
 using HSis.Data.Models;
 using HSis.Logic.Services;
-using System.Runtime.Versioning;
+using HSis.UI.Helpers;
 
-namespace HSis.UI
+namespace HSis.UI.Forms.Otros
 {
     [SupportedOSPlatform("windows")]
     public partial class KardexForm : Form
@@ -40,7 +45,7 @@ namespace HSis.UI
                     // Obtenemos los registros filtrados asíncronamente y los ordenamos en memoria
                     var historialCompleto = await _catalogoService.ObtenerFiltradoAsync<VHistorialInventario>(h => h.IdMaterial == idMaterial);
                     var historialFiltradoYOrdenado = Enumerable.ToList(Enumerable.OrderByDescending(historialCompleto, h => h.Fecha));
-                    dgvKardex.DataSource = new SortableBindingList<VHistorialInventario>(historialFiltradoYOrdenado);
+                    dgvKardex.DataSource = new ListaVinculableOrdenable<VHistorialInventario>(historialFiltradoYOrdenado);
 
                     // Formatear columnas
                     var col1 = dgvKardex.Columns["IdMovimientoUnico"];

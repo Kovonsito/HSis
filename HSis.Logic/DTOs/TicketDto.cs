@@ -1,6 +1,5 @@
-using System;
-
 namespace HSis.Logic.DTOs
+
 {
     public class TicketDto
     {

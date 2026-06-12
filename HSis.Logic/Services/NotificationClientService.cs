@@ -1,7 +1,7 @@
+using System.Collections.Concurrent;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System.Collections.Concurrent;
 
 namespace HSis.Logic.Services;
 

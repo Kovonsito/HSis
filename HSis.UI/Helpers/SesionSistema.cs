@@ -1,9 +1,10 @@
 #nullable enable
 using System.Runtime.Versioning;
+using System.Windows.Forms;
 using HSis.Logic.DTOs;
 using HSis.Logic.Services;
 
-namespace HSis.UI
+namespace HSis.UI.Helpers
 {
     [SupportedOSPlatform("windows")]
     public static class SesionSistema

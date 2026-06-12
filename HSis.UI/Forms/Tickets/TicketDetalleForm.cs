@@ -1,9 +1,13 @@
-#nullable enable
+using System;
+using System.Drawing;
+using System.Linq;
+using System.Windows.Forms;
 using System.Runtime.Versioning;
-using HSis.Logic.Services;
 using HSis.Logic.DTOs;
+using HSis.Logic.Services;
+using HSis.UI.Helpers;
 
-namespace HSis.UI
+namespace HSis.UI.Forms.Tickets
 {
     [SupportedOSPlatform("windows")]
     public partial class TicketDetalleForm : Form
@@ -114,8 +118,8 @@ namespace HSis.UI
                 if (esSoloLectura)
                 {
                     cmbEstatus.Enabled = false;
-                    rtbSolucion.ReadOnly = true;
-                    rtbDescripcion.ReadOnly = true;
+                    rtbSolucion.SoloLectura = true;
+                    rtbDescripcion.SoloLectura = true;
                     btnGuardar.Enabled = false;
                     cmbPrioridad.Enabled = false;
                 }
@@ -246,7 +250,7 @@ namespace HSis.UI
                 var historial = rawHistorial.Cast<HistorialCambiosDto>().ToList();
 
                 // Asignamos al Grid
-                dgvHistorial.DataSource = new SortableBindingList<HistorialCambiosDto>(historial);
+                dgvHistorial.DataSource = new ListaVinculableOrdenable<HistorialCambiosDto>(historial);
 
                 // Limpieza visual: Asegurarnos de que no se auto-seleccione la primera fila
                 dgvHistorial.ClearSelection();

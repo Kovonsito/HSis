@@ -1,4 +1,9 @@
-namespace HSis.UI
+using System;
+using System.Drawing;
+using System.Windows.Forms;
+using HSis.UI.Controls;
+
+namespace HSis.UI.Forms.Tickets
 {
     partial class NuevoTicketForm
     {
@@ -29,7 +34,7 @@ namespace HSis.UI
         private void InitializeComponent()
         {
             this.lblDescripcion = new System.Windows.Forms.Label();
-            this.rtbDescripcion = new HSis.UI.WpfSpellTextBox();
+            this.rtbDescripcion = new CajaTextoOrtograficaWpf();
             this.btnGuardar = new System.Windows.Forms.Button();
             this.btnCancelar = new System.Windows.Forms.Button();
             this.SuspendLayout();
@@ -98,7 +103,7 @@ namespace HSis.UI
         #endregion
 
         private System.Windows.Forms.Label lblDescripcion;
-        private HSis.UI.WpfSpellTextBox rtbDescripcion;
+        private CajaTextoOrtograficaWpf rtbDescripcion;
         private System.Windows.Forms.Button btnGuardar;
         private System.Windows.Forms.Button btnCancelar;
     }
