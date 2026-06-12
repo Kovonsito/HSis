@@ -14,5 +14,5 @@ public partial class Empresa
 
     public string? Telefono { get; set; }
 
-    public virtual ICollection<Sucursal> Sucursals { get; set; } = new List<Sucursal>();
+    public virtual ICollection<Sucursal> Sucursals { get; set; } = [];
 }

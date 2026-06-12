@@ -12,7 +12,7 @@ public partial class Material
 
     public string UnidadMedida { get; set; } = null!;
 
-    public virtual ICollection<DetTicket> DetTickets { get; set; } = new List<DetTicket>();
+    public virtual ICollection<DetTicket> DetTickets { get; set; } = [];
 
-    public virtual ICollection<MovimientoMaterial> MovimientosMaterials { get; set; } = new List<MovimientoMaterial>();
+    public virtual ICollection<MovimientoMaterial> MovimientosMaterials { get; set; } = [];
 }

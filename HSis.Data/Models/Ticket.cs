@@ -22,9 +22,9 @@ public partial class Ticket
 
     public string? Prioridad { get; set; }
 
-    public virtual ICollection<DetTicket> DetTickets { get; set; } = new List<DetTicket>();
+    public virtual ICollection<DetTicket> DetTickets { get; set; } = [];
 
-    public virtual ICollection<HistorialCambiosTicket> HistorialCambiosTickets { get; set; } = new List<HistorialCambiosTicket>();
+    public virtual ICollection<HistorialCambiosTicket> HistorialCambiosTickets { get; set; } = [];
 
     public virtual Usuario? IdTecnicoNavigation { get; set; }
 
