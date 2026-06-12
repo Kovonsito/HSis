@@ -1,4 +1,4 @@
-namespace HSis.UI
+namespace HSis.UI.Controls
 {
     partial class IndicadorControl
     {
@@ -47,7 +47,7 @@ namespace HSis.UI
             pnlPrincipal.Name = "pnlPrincipal";
             pnlPrincipal.Size = new Size(200, 100);
             pnlPrincipal.TabIndex = 0;
-            pnlPrincipal.Click += ucIndicador_Click;
+            pnlPrincipal.Click += Indicador_Click;
             // 
             // pbxIcono
             // 
@@ -58,7 +58,7 @@ namespace HSis.UI
             pbxIcono.SizeMode = PictureBoxSizeMode.Zoom;
             pbxIcono.TabIndex = 2;
             pbxIcono.TabStop = false;
-            pbxIcono.Click += ucIndicador_Click;
+            pbxIcono.Click += Indicador_Click;
             // 
             // lblCantidad
             // 
@@ -69,7 +69,7 @@ namespace HSis.UI
             lblCantidad.Size = new Size(38, 45);
             lblCantidad.TabIndex = 1;
             lblCantidad.Text = "1";
-            lblCantidad.Click += ucIndicador_Click;
+            lblCantidad.Click += Indicador_Click;
             // 
             // lblTitulo
             // 
@@ -80,7 +80,7 @@ namespace HSis.UI
             lblTitulo.Size = new Size(114, 21);
             lblTitulo.TabIndex = 0;
             lblTitulo.Text = "Tickets Nuevos";
-            lblTitulo.Click += ucIndicador_Click;
+            lblTitulo.Click += Indicador_Click;
             // 
             // IndicadorControl
             // 

@@ -1,25 +1,28 @@
 #nullable enable
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Drawing;
 using System.Runtime.Versioning;
 using System.Windows.Forms;
-using HSis.Data.Models;
 using HSis.Logic.DTOs;
 using HSis.Logic.Services;
+using HSis.UI.Controls;
+using HSis.UI.Factories;
+using HSis.UI.Forms.Tickets;
+using HSis.UI.Helpers;
+using HSis.UI.Services;
 
-namespace HSis.UI
+namespace HSis.UI.Forms.Dashboards
 {
     [SupportedOSPlatform("windows")]
     public partial class DashboardClienteForm : Form
     {
         private readonly ITicketService _ticketService;
-        private readonly NotificationUIManager _uiManager;
+        private readonly AdministradorUINotificaciones _uiManager;
         private PaginacionControl PaginacionControl = null!;
         private List<TicketClienteDto> _todosLosTickets = [];
 
         private IndicadorControl ucMisCerrados = null!;
-        private readonly IFormFactory _formFactory;
+        private readonly IFabricaFormularios _formFactory;
 
         private enum VistaCliente
         {
@@ -33,8 +36,8 @@ namespace HSis.UI
 
         public DashboardClienteForm(
             ITicketService ticketService,
-            NotificationUIManager uiManager,
-            IFormFactory formFactory,
+            AdministradorUINotificaciones uiManager,
+            IFabricaFormularios formFactory,
             ISessionCacheService sessionCache)
         {
             InitializeComponent();
@@ -52,7 +55,7 @@ namespace HSis.UI
             var tblPrincipal = this.Controls["tblPrincipal"];
             if (tblPrincipal != null)
             {
-                _uiManager.Attach(this, tblPrincipal, CargarDatosDashboardAsync);
+                _uiManager.Adjuntar(this, tblPrincipal, CargarDatosDashboardAsync);
             }
 
             // Cargamos la información una sola vez para evitar múltiples llamadas a la BD
@@ -91,7 +94,7 @@ namespace HSis.UI
                     : "N/A"
             });
 
-            PaginacionControl.CurrentPage = 1;
+            PaginacionControl.PaginaActual = 1;
             MostrarPaginaActual();
         }
 
@@ -108,15 +111,15 @@ namespace HSis.UI
                 ticketsFiltrados = [.. _todosLosTickets.Where(t => t.Status == ConstantesEstatus.CERRADO)];
             }
 
-            PaginacionControl.TotalRecords = ticketsFiltrados.Count;
+            PaginacionControl.TotalRegistros = ticketsFiltrados.Count;
 
             // 2. Segmentar la página actual
             var pageTickets = ticketsFiltrados
-                .Skip((PaginacionControl.CurrentPage - 1) * PaginacionControl.PageSize)
-                .Take(PaginacionControl.PageSize)
+                .Skip((PaginacionControl.PaginaActual - 1) * PaginacionControl.TamanoPagina)
+                .Take(PaginacionControl.TamanoPagina)
                 .ToList();
 
-            dgvMisTickets.DataSource = new SortableBindingList<TicketClienteDto>(pageTickets);
+            dgvMisTickets.DataSource = new ListaVinculableOrdenable<TicketClienteDto>(pageTickets);
             PersonalizarColumnas();
             PaginacionControl.ActualizarInterfaz();
         }
@@ -185,20 +188,20 @@ namespace HSis.UI
         private void UcMisActivos_Click(object? sender, EventArgs e)
         {
             _vistaActual = _vistaActual == VistaCliente.Activos ? VistaCliente.Todos : VistaCliente.Activos;
-            PaginacionControl.CurrentPage = 1;
+            PaginacionControl.PaginaActual = 1;
             MostrarPaginaActual();
         }
 
         private void UcMisCerrados_Click(object? sender, EventArgs e)
         {
             _vistaActual = _vistaActual == VistaCliente.Cerrados ? VistaCliente.Todos : VistaCliente.Cerrados;
-            PaginacionControl.CurrentPage = 1;
+            PaginacionControl.PaginaActual = 1;
             MostrarPaginaActual();
         }
 
         private void btnNuevoReporte_Click(object? sender, EventArgs e)
         {
-            using var frmNuevo = _formFactory.Create<NuevoTicketForm>();
+            using var frmNuevo = _formFactory.Crear<NuevoTicketForm>();
             if (frmNuevo.ShowDialog() == DialogResult.OK)
             {
                 _ = CargarDatosDashboardAsync();
@@ -212,7 +215,7 @@ namespace HSis.UI
                 var row = dgvMisTickets.Rows[e.RowIndex];
                 if (int.TryParse(row.Cells["IdTicket"].Value?.ToString(), out int idTicket))
                 {
-                    using var frmDetalle = _formFactory.CreateDetalleCliente(idTicket);
+                    using var frmDetalle = _formFactory.CrearDetalleCliente(idTicket);
                     frmDetalle.ShowDialog();
                     await CargarDatosDashboardAsync();
                 }
@@ -223,15 +226,15 @@ namespace HSis.UI
         {
             // Instanciar control de paginación
             PaginacionControl = new PaginacionControl();
-            PaginacionControl.PageChanged += (s, e) => MostrarPaginaActual();
+            PaginacionControl.PaginaCambiada += (s, e) => MostrarPaginaActual();
             PaginacionControl.Margin = new Padding(12, 0, 12, 0);
 
             // Instanciar indicador de cerrados
             ucMisCerrados = new IndicadorControl();
 
             // Suscribir eventos de filtrado
-            ucMisActivos.ucIndicadorEvent += UcMisActivos_Click;
-            ucMisCerrados.ucIndicadorEvent += UcMisCerrados_Click;
+            ucMisActivos.IndicadorClic += UcMisActivos_Click;
+            ucMisCerrados.IndicadorClic += UcMisCerrados_Click;
 
             var tblPrincipal = CrearPanelPrincipal();
             var tblIndicadores = CrearPanelIndicadores();

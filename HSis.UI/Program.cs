@@ -1,15 +1,22 @@
 #nullable enable
-using Mapster;
-using MapsterMapper;
+using System.Runtime.Versioning;
 using FluentValidation;
 using HSis.Data.Models;
 using HSis.Logic.Interceptors;
 using HSis.Logic.Services;
+using HSis.UI.Factories;
+using HSis.UI.Forms.Auth;
+using HSis.UI.Forms.Dashboards;
+using HSis.UI.Forms.Otros;
+using HSis.UI.Forms.Tickets;
+using HSis.UI.Helpers;
+using HSis.UI.Services;
+using Mapster;
+using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
-using System.Runtime.Versioning;
 
 namespace HSis.UI
 {
@@ -86,7 +93,7 @@ namespace HSis.UI
                 services.AddValidatorsFromAssemblyContaining<HSis.Logic.Validators.TicketCreateValidator>();
 
                 // Configurar Sesión de Usuario e Interceptor
-                services.AddSingleton<ICurrentUserService, CurrentUserService>();
+                services.AddSingleton<ICurrentUserService, ServicioUsuarioActual>();
                 services.AddSingleton<TicketAuditInterceptor>();
 
                 // Configurar DbContextFactory con Interceptor
@@ -104,8 +111,8 @@ namespace HSis.UI
                 services.AddSingleton<INotificationClientService, NotificationClientService>();
                 services.AddSingleton<ISessionCacheService, SessionCacheService>();
                 services.AddSingleton<INotificacionStorageService, NotificacionStorageService>();
-                services.AddSingleton<IFormFactory, FormFactory>();
-                services.AddTransient<NotificationUIManager>();
+                services.AddSingleton<IFabricaFormularios, FabricaFormularios>();
+                services.AddTransient<AdministradorUINotificaciones>();
 
                 // Registrar Formularios
                 services.AddTransient<IniciarSesionForm>();

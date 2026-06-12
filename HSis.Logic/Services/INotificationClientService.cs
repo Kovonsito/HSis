@@ -1,7 +1,5 @@
-using System;
-using System.Threading.Tasks;
-
 namespace HSis.Logic.Services
+
 {
     public interface INotificationClientService
     {

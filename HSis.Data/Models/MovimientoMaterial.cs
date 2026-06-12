@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace HSis.Data.Models;
 
 public partial class MovimientoMaterial

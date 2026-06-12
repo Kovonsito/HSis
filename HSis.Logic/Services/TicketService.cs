@@ -1,7 +1,7 @@
-using Mapster;
-using MapsterMapper;
 using HSis.Data.Models;
 using HSis.Logic.DTOs;
+using Mapster;
+using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 
 namespace HSis.Logic.Services

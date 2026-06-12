@@ -36,7 +36,7 @@ namespace HSis.Logic.Validators
                 .NotEmpty().WithMessage("Debe seleccionar una unidad de medida.");
         }
     }
-    
+
     public class DepartamentoValidator : AbstractValidator<Departamento>
     {
         public DepartamentoValidator()

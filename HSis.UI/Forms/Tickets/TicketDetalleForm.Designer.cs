@@ -1,4 +1,9 @@
-namespace HSis.UI
+using System;
+using System.Drawing;
+using System.Windows.Forms;
+using HSis.UI.Controls;
+
+namespace HSis.UI.Forms.Tickets
 {
     partial class TicketDetalleForm
     {
@@ -33,12 +38,12 @@ namespace HSis.UI
             lblUsuario = new Label();
             lblEstatus = new Label();
             txtUsuario = new TextBox();
-            rtbSolucion = new WpfSpellTextBox();
+            rtbSolucion = new CajaTextoOrtograficaWpf();
             lblAlta = new Label();
             lblDescripcion = new Label();
             txtAlta = new TextBox();
             lblSolucion = new Label();
-            rtbDescripcion = new WpfSpellTextBox();
+            rtbDescripcion = new CajaTextoOrtograficaWpf();
             lblAtendido = new Label();
             lblAtencion = new Label();
             txtAtencion = new TextBox();
@@ -125,7 +130,7 @@ namespace HSis.UI
             rtbSolucion.Location = new Point(12, 250);
             rtbSolucion.Name = "rtbSolucion";
             rtbSolucion.Size = new Size(672, 180);
-            rtbSolucion.SpellCheckLanguage = "es-es";
+            rtbSolucion.IdiomaCorreccion = "es-es";
             rtbSolucion.TabIndex = 8;
             // 
             // lblAlta
@@ -169,9 +174,9 @@ namespace HSis.UI
             rtbDescripcion.Enabled = false;
             rtbDescripcion.Location = new Point(12, 35);
             rtbDescripcion.Name = "rtbDescripcion";
-            rtbDescripcion.ReadOnly = true;
+            rtbDescripcion.SoloLectura = true;
             rtbDescripcion.Size = new Size(672, 180);
-            rtbDescripcion.SpellCheckLanguage = "es-es";
+            rtbDescripcion.IdiomaCorreccion = "es-es";
             rtbDescripcion.TabIndex = 12;
             // 
             // lblAtendido
@@ -504,12 +509,12 @@ namespace HSis.UI
         private Label lblUsuario;
         private TextBox txtUsuario;
         private Label lblDescripcion;
-        private HSis.UI.WpfSpellTextBox rtbSolucion;
+        private CajaTextoOrtograficaWpf rtbSolucion;
         private Label lblAlta;
         private Label lblEstatus;
         private TextBox txtAlta;
         private Label lblSolucion;
-        private HSis.UI.WpfSpellTextBox rtbDescripcion;
+        private CajaTextoOrtograficaWpf rtbDescripcion;
         private Label lblAtendido;
         private Label lblAtencion;
         private TextBox txtAtencion;

@@ -1,10 +1,11 @@
-#nullable enable
-using HSis.Data.Models;
-using HSis.Logic.Services;
-using HSis.Logic.DTOs;
+using System;
+using System.Drawing;
+using System.Windows.Forms;
 using System.Runtime.Versioning;
+using HSis.Logic.DTOs;
+using HSis.Logic.Services;
 
-namespace HSis.UI
+namespace HSis.UI.Forms.Tickets
 {
     /// <summary>
     /// Formulario de solo lectura para que clientes (Rol 3) vean el progreso de sus tickets.

@@ -9,21 +9,21 @@ public class NotificacionConfiguration : IEntityTypeConfiguration<Notificacion>
     {
         entity.HasKey(e => e.IdNotificacion);
         entity.ToTable("Notificacion");
-        
+
         entity.Property(e => e.IdNotificacion).HasColumnName("id_Notificacion");
         entity.Property(e => e.UsuarioDestinoId).HasColumnName("usuario_Destino_Id");
-        
+
         entity.Property(e => e.Mensaje)
             .HasMaxLength(500)
             .IsUnicode(false);
-            
+
         entity.Property(e => e.Tipo)
             .HasMaxLength(50)
             .IsUnicode(false);
-            
+
         entity.Property(e => e.Leido)
             .HasDefaultValue(false);
-            
+
         entity.Property(e => e.FechaCreacion)
             .HasDefaultValueSql("GETDATE()");
 

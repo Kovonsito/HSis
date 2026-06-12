@@ -1,14 +1,14 @@
-using Xunit;
-using Moq;
-using HSis.Logic.Services;
-using HSis.Logic.DTOs;
+using FluentAssertions;
+using FluentValidation;
 using HSis.Data.Models;
-using Microsoft.EntityFrameworkCore;
+using HSis.Logic.DTOs;
+using HSis.Logic.Services;
+using HSis.Logic.Validators;
 using Mapster;
 using MapsterMapper;
-using FluentValidation;
-using HSis.Logic.Validators;
-using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
+using Moq;
+using Xunit;
 
 namespace HSis.Tests.Services
 {

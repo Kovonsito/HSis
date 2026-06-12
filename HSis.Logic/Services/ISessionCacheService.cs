@@ -1,4 +1,5 @@
 namespace HSis.Logic.Services
+
 {
     public interface ISessionCacheService
     {

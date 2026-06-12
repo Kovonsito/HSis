@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using HSis.Data.Models;
 using HSis.Logic.DTOs;
 
@@ -18,7 +16,20 @@ namespace HSis.Logic.Services
             }
             if (!string.IsNullOrWhiteSpace(filtros.Estatus))
             {
-                query = query.Where(t => t.Status == filtros.Estatus);
+                if (filtros.Estatus == "Nuevos")
+                {
+                    var limite = DateTime.Now.AddHours(-48);
+                    query = query.Where(t => t.Status == ConstantesEstatus.ABIERTO && t.Alta >= limite);
+                }
+                else if (filtros.Estatus == "Urgentes")
+                {
+                    var limite = DateTime.Now.AddHours(-48);
+                    query = query.Where(t => t.Status == ConstantesEstatus.ABIERTO && t.Alta < limite);
+                }
+                else
+                {
+                    query = query.Where(t => t.Status == filtros.Estatus);
+                }
             }
             if (filtros.IdTecnico.HasValue)
             {

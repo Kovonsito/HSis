@@ -1,9 +1,13 @@
 #nullable enable
+using System;
+using System.Drawing;
+using System.Linq;
 using System.Reflection;
-using HSis.Logic.Services;
 using System.Runtime.Versioning;
+using System.Windows.Forms;
+using HSis.Logic.Services;
 
-namespace HSis.UI
+namespace HSis.UI.Forms.Otros
 {
     [SupportedOSPlatform("windows")]
     public partial class EditorDinamicoForm : Form
