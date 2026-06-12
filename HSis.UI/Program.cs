@@ -98,7 +98,7 @@ namespace HSis.UI
                 services.AddTransient<ITicketService, TicketService>();
                 services.AddTransient<IUsuarioService, UsuarioService>();
                 services.AddTransient<ICatalogoService, CatalogoService>();
-                services.AddTransient<IDetTicketService, DetTicketService>();
+                services.AddTransient<ITicketDetalleService, TicketDetalleService>();
                 services.AddTransient<IMaterialService, MaterialService>();
                 services.AddTransient<IReportExportService, ReportExportService>();
                 services.AddSingleton<INotificationClientService, NotificationClientService>();
@@ -108,13 +108,13 @@ namespace HSis.UI
                 services.AddTransient<NotificationUIManager>();
 
                 // Registrar Formularios
-                services.AddTransient<frmIniciarSesion>();
-                services.AddTransient<frmDashboardAdmin>();
-                services.AddTransient<frmDashboardCliente>();
-                services.AddTransient<frmDashboardTecnico>();
-                services.AddTransient<frmGeneradorReportes>();
-                services.AddTransient<frmKardex>();
-                services.AddTransient<frmNuevoTicket>();
+                services.AddTransient<IniciarSesionForm>();
+                services.AddTransient<DashboardAdminForm>();
+                services.AddTransient<DashboardClienteForm>();
+                services.AddTransient<DashboardTecnicoForm>();
+                services.AddTransient<GeneradorReportesForm>();
+                services.AddTransient<KardexForm>();
+                services.AddTransient<NuevoTicketForm>();
 
                 ServiceProvider = services.BuildServiceProvider();
 
@@ -146,10 +146,10 @@ namespace HSis.UI
 
                             startForm = SesionSistema.IdRolUsuario switch
                             {
-                                1 => (Form)ServiceProvider.GetRequiredService<frmDashboardAdmin>(),
-                                2 => (Form)ServiceProvider.GetRequiredService<frmDashboardTecnico>(),
-                                3 => (Form)ServiceProvider.GetRequiredService<frmDashboardCliente>(),
-                                _ => (Form)ServiceProvider.GetRequiredService<frmDashboardAdmin>()
+                                1 => (Form)ServiceProvider.GetRequiredService<DashboardAdminForm>(),
+                                2 => (Form)ServiceProvider.GetRequiredService<DashboardTecnicoForm>(),
+                                3 => (Form)ServiceProvider.GetRequiredService<DashboardClienteForm>(),
+                                _ => (Form)ServiceProvider.GetRequiredService<DashboardAdminForm>()
                             };
                         }
                     }
@@ -159,7 +159,7 @@ namespace HSis.UI
                     }
                 }
 
-                startForm ??= ServiceProvider.GetRequiredService<frmIniciarSesion>();
+                startForm ??= ServiceProvider.GetRequiredService<IniciarSesionForm>();
 
                 Application.Run(startForm);
             }

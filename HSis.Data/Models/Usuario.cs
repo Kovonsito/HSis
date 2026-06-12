@@ -16,7 +16,7 @@ public partial class Usuario
 
     public string? Contraseña { get; set; }
 
-    public virtual ICollection<HistorialCambiosTicket> HistorialCambiosTickets { get; set; } = new List<HistorialCambiosTicket>();
+    public virtual ICollection<HistorialCambiosTicket> HistorialCambiosTickets { get; set; } = [];
 
     public virtual Departamento? IdDepartamentoNavigation { get; set; }
 
@@ -26,9 +26,9 @@ public partial class Usuario
 
     public virtual Sucursal? IdSucursalNavigation { get; set; }
 
-    public virtual ICollection<MovimientoMaterial> MovimientosMaterials { get; set; } = new List<MovimientoMaterial>();
+    public virtual ICollection<MovimientoMaterial> MovimientosMaterials { get; set; } = [];
 
-    public virtual ICollection<Ticket> TicketIdTecnicoNavigations { get; set; } = new List<Ticket>();
+    public virtual ICollection<Ticket> TicketIdTecnicoNavigations { get; set; } = [];
 
-    public virtual ICollection<Ticket> TicketIdUsuarioNavigations { get; set; } = new List<Ticket>();
+    public virtual ICollection<Ticket> TicketIdUsuarioNavigations { get; set; } = [];
 }
