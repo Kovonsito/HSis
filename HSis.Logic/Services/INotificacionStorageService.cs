@@ -7,5 +7,6 @@ namespace HSis.Logic.Services
         Task GuardarNotificacionAsync(int userId, int ticketId, string mensaje);
         Task MarcarComoLeidaAsync(int userId, Guid id);
         Task LimpiarTodasAsync(int userId);
+        Task SincronizarDesdeBDAsync(int userId);
     }
 }
