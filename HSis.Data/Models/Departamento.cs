@@ -8,5 +8,5 @@ public partial class Departamento
 
     public string? Descripción { get; set; }
 
-    public virtual ICollection<Usuario> Usuarios { get; set; } = new List<Usuario>();
+    public virtual ICollection<Usuario> Usuarios { get; set; } = [];
 }

@@ -18,5 +18,5 @@ public partial class Sucursal
 
     public virtual Empresa? IdEmpresaNavigation { get; set; }
 
-    public virtual ICollection<Usuario> Usuarios { get; set; } = new List<Usuario>();
+    public virtual ICollection<Usuario> Usuarios { get; set; } = [];
 }
