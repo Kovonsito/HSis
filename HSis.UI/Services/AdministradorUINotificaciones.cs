@@ -240,6 +240,15 @@ namespace HSis.UI.Services
         {
             if (_flpNotificaciones == null) return;
 
+            try
+            {
+                await _servicioAlmacenamiento.SincronizarDesdeBDAsync(SesionSistema.IdUsuario);
+            }
+            catch
+            {
+                // Ignorar errores durante la sincronización inicial
+            }
+
             _flpNotificaciones.Controls.Clear();
             var list = await _servicioAlmacenamiento.ObtenerNotificacionesAsync(SesionSistema.IdUsuario);
 

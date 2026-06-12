@@ -11,7 +11,7 @@ namespace HSis.Logic.Services
         IMapper mapper,
         FluentValidation.IValidator<TicketCreateDto> createValidator,
         FluentValidation.IValidator<TicketUpdateDto> updateValidator,
-        NotificationClientService? notificationClient = null) : ITicketService
+        INotificationClientService? notificationClient = null) : ITicketService
     {
         private static DateTime ObtenerLimiteSLA() => DateTime.Now.AddHours(-48);
 
