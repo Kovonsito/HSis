@@ -7,11 +7,11 @@ using HSis.UI.Helpers;
 namespace HSis.UI.Services
 {
     [SupportedOSPlatform("windows")]
-    public class AdministradorUINotificaciones
+    public class AdministradorUINotificaciones(
+        INotificationClientService clienteNotificaciones,
+        INotificacionStorageService servicioAlmacenamiento,
+        IFabricaFormularios fabricaFormularios)
     {
-        private readonly INotificationClientService _clienteNotificaciones;
-        private readonly INotificacionStorageService _servicioAlmacenamiento;
-        private readonly IFabricaFormularios _fabricaFormularios;
 
         private Form? _formularioAnfitrion;
         private Control? _contenedorPrincipal;
@@ -23,16 +23,6 @@ namespace HSis.UI.Services
         private FlowLayoutPanel? _flpNotificaciones;
         private ToolStripMenuItem? _itemMenuCampana;
         private int _notificacionesNoLeidas = 0;
-
-        public AdministradorUINotificaciones(
-            INotificationClientService clienteNotificaciones,
-            INotificacionStorageService servicioAlmacenamiento,
-            IFabricaFormularios fabricaFormularios)
-        {
-            _clienteNotificaciones = clienteNotificaciones;
-            _servicioAlmacenamiento = servicioAlmacenamiento;
-            _fabricaFormularios = fabricaFormularios;
-        }
 
         public void Adjuntar(Form formularioAnfitrion, Control contenedorPrincipal, Func<Task> callbackRecargaDatos)
         {
@@ -47,18 +37,18 @@ namespace HSis.UI.Services
             ConfigurarCampanaMenu();
 
             // 3. Suscribirse a los eventos de SignalR
-            _clienteNotificaciones.OnNotificationReceived += EnNotificacionRecibida;
-            _clienteNotificaciones.OnReconnecting += EnReconectando;
-            _clienteNotificaciones.OnConnected += EnConectado;
-            _clienteNotificaciones.OnDisconnected += EnDesconectado;
+            clienteNotificaciones.OnNotificationReceived += EnNotificacionRecibida;
+            clienteNotificaciones.OnReconnecting += EnReconectando;
+            clienteNotificaciones.OnConnected += EnConectado;
+            clienteNotificaciones.OnDisconnected += EnDesconectado;
 
             // 4. Limpieza automática de eventos al cerrar el formulario host
             _formularioAnfitrion.FormClosed += (s, args) =>
             {
-                _clienteNotificaciones.OnNotificationReceived -= EnNotificacionRecibida;
-                _clienteNotificaciones.OnReconnecting -= EnReconectando;
-                _clienteNotificaciones.OnConnected -= EnConectado;
-                _clienteNotificaciones.OnDisconnected -= EnDesconectado;
+                clienteNotificaciones.OnNotificationReceived -= EnNotificacionRecibida;
+                clienteNotificaciones.OnReconnecting -= EnReconectando;
+                clienteNotificaciones.OnConnected -= EnConectado;
+                clienteNotificaciones.OnDisconnected -= EnDesconectado;
             };
 
             // 5. Ajustar orden de apilamiento visual de los controles inyectados
@@ -66,7 +56,7 @@ namespace HSis.UI.Services
 
             // 6. Establecer estado de conexión inicial
             ActualizarEstadoConexion(
-                _clienteNotificaciones.IsConnected,
+                clienteNotificaciones.IsConnected,
                 "⚠️ Conectando al servidor de notificaciones...",
                 Color.FromArgb(230, 126, 34)
             );
@@ -222,7 +212,7 @@ namespace HSis.UI.Services
             }
 
             // Guardar en almacenamiento local persistente
-            await _servicioAlmacenamiento.GuardarNotificacionAsync(SesionSistema.IdUsuario, ticketId, mensaje);
+            await servicioAlmacenamiento.GuardarNotificacionAsync(SesionSistema.IdUsuario, ticketId, mensaje);
 
             MessageBox.Show(mensaje, "Notificación de HSis", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
@@ -242,7 +232,7 @@ namespace HSis.UI.Services
 
             try
             {
-                await _servicioAlmacenamiento.SincronizarDesdeBDAsync(SesionSistema.IdUsuario);
+                await servicioAlmacenamiento.SincronizarDesdeBDAsync(SesionSistema.IdUsuario);
             }
             catch
             {
@@ -250,7 +240,7 @@ namespace HSis.UI.Services
             }
 
             _flpNotificaciones.Controls.Clear();
-            var list = await _servicioAlmacenamiento.ObtenerNotificacionesAsync(SesionSistema.IdUsuario);
+            var list = await servicioAlmacenamiento.ObtenerNotificacionesAsync(SesionSistema.IdUsuario);
 
             _notificacionesNoLeidas = list.Count(n => !n.Leido);
             ActualizarInsigniaCampana();
@@ -330,7 +320,7 @@ namespace HSis.UI.Services
 
             if (!notif.Leido)
             {
-                await _servicioAlmacenamiento.MarcarComoLeidaAsync(SesionSistema.IdUsuario, notif.Id);
+                await servicioAlmacenamiento.MarcarComoLeidaAsync(SesionSistema.IdUsuario, notif.Id);
                 notif.Leido = true;
                 pnlItem.BackColor = Color.White;
                 foreach (Control ctrl in pnlItem.Controls)
@@ -349,11 +339,11 @@ namespace HSis.UI.Services
             Form detailForm;
             if (SesionSistema.IdRolUsuario == 3) // Cliente
             {
-                detailForm = _fabricaFormularios.CrearDetalleCliente(notif.TicketId);
+                detailForm = fabricaFormularios.CrearDetalleCliente(notif.TicketId);
             }
             else // Admin o Tecnico
             {
-                detailForm = _fabricaFormularios.CrearTicketDetalle(notif.TicketId);
+                detailForm = fabricaFormularios.CrearTicketDetalle(notif.TicketId);
             }
 
             using (detailForm)
@@ -369,7 +359,7 @@ namespace HSis.UI.Services
 
         private async void BtnLimpiarNotif_Click(object? sender, EventArgs e)
         {
-            await _servicioAlmacenamiento.LimpiarTodasAsync(SesionSistema.IdUsuario);
+            await servicioAlmacenamiento.LimpiarTodasAsync(SesionSistema.IdUsuario);
             _notificacionesNoLeidas = 0;
             ActualizarInsigniaCampana();
             _flpNotificaciones?.Controls.Clear();
