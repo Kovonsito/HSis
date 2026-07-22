@@ -1,0 +1,53 @@
+using Microsoft.AspNetCore.Mvc;
+using HSis.Logic.Services;
+using HSis.Data.Models;
+
+namespace HSis.Server.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class TicketDetalleController(ITicketDetalleService ticketDetalleService) : ControllerBase
+    {
+
+        [HttpGet("ticket/{idTicket}")]
+        public async Task<ActionResult<List<DetTicket>>> ObtenerDetallesTicket(int idTicket)
+        {
+            return Ok(await ticketDetalleService.ObtenerDetallesTicketAsync(idTicket));
+        }
+
+        [HttpGet("ticket/{idTicket}/material/{idMaterial}")]
+        public async Task<ActionResult<DetTicket>> ObtenerDetallePorId(int idTicket, int idMaterial)
+        {
+            var detalle = await ticketDetalleService.ObtenerDetallePorIdAsync(idTicket, idMaterial);
+            if (detalle == null) return NotFound();
+            return Ok(detalle);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AgregarMaterialATicket([FromBody] DetTicket detTicket)
+        {
+            await ticketDetalleService.AgregarMaterialATicketAsync(detTicket);
+            return Ok();
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> ActualizarDetalleTicket([FromBody] DetTicket detTicket)
+        {
+            await ticketDetalleService.ActualizarDetalleTicketAsync(detTicket);
+            return NoContent();
+        }
+
+        [HttpDelete("ticket/{idTicket}/material/{idMaterial}")]
+        public async Task<IActionResult> EliminarMaterialDeTicket(int idTicket, int idMaterial)
+        {
+            await ticketDetalleService.EliminarMaterialDeTicketAsync(idTicket, idMaterial);
+            return NoContent();
+        }
+
+        [HttpGet("ticket/{idTicket}/costo-total")]
+        public async Task<ActionResult<decimal>> ObtenerCostoTotalMaterialesTicket(int idTicket)
+        {
+            return Ok(await ticketDetalleService.ObtenerCostoTotalMaterialesTicketAsync(idTicket));
+        }
+    }
+}

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<item>
+    <version>1.0.0.0</version>
+    <url>http://192.168.34.107:5000/updates/Setup_HSis_Cliente.exe</url>
+    <changelog>http://192.168.34.107:5000/updates/changelog.html</changelog>
+    <mandatory>false</mandatory>
+</item>
