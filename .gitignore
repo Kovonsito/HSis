@@ -363,3 +363,21 @@ MigrationBackup/
 FodyWeavers.xsd
 
 *.code-workspace
+
+# Herramientas de IA y grafos generados
+graphify-out/
+.agents/
+
+# Configuración de editores e IDEs
+.vscode/
+.vs/
+
+# Bases de datos locales y carpetas de datos
+HSisBD/
+*.mdf
+*.ldf
+*.bak
+
+# Publicaciones locales
+PublicacionServer/
+Servidor_API/

@@ -1,6 +1,7 @@
 #nullable enable
 using System.Runtime.Versioning;
 using FluentValidation;
+using AutoUpdaterDotNET;
 using HSis.Data.Models;
 using HSis.Logic.Interceptors;
 using HSis.Logic.Services;
@@ -92,25 +93,21 @@ namespace HSis.UI
                 // Registrar FluentValidation
                 services.AddValidatorsFromAssemblyContaining<HSis.Logic.Validators.TicketCreateValidator>();
 
-                // Configurar Sesión de Usuario e Interceptor
-                services.AddSingleton<ICurrentUserService, ServicioUsuarioActual>();
-                services.AddSingleton<TicketAuditInterceptor>();
+                // Configurar ApiClients basados en HttpClient
+                var baseUrl = configuration.GetSection("ApiSettings")["BaseUrl"] ?? "http://localhost:5000";
 
-                // Configurar DbContextFactory con Interceptor
-                services.AddDbContextFactory<HSisDbContext>((sp, options) =>
-                    options.UseSqlServer(configuration.GetConnectionString("CadenaSQL"))
-                           .AddInterceptors(sp.GetRequiredService<TicketAuditInterceptor>()));
+                services.AddHttpClient<IUsuarioService, ApiClients.UsuarioApiClientService>(c => c.BaseAddress = new Uri(baseUrl));
+                services.AddHttpClient<ITicketService, ApiClients.TicketApiClientService>(c => c.BaseAddress = new Uri(baseUrl));
+                services.AddHttpClient<ICatalogoService, ApiClients.CatalogoApiClientService>(c => c.BaseAddress = new Uri(baseUrl));
+                services.AddHttpClient<ITicketDetalleService, ApiClients.TicketDetalleApiClientService>(c => c.BaseAddress = new Uri(baseUrl));
+                services.AddHttpClient<IMaterialService, ApiClients.MaterialApiClientService>(c => c.BaseAddress = new Uri(baseUrl));
+                services.AddHttpClient<IReportExportService, ApiClients.ReportExportApiClientService>(c => c.BaseAddress = new Uri(baseUrl));
 
-                // Registrar Servicios de Lógica mediante Interfaces
-                services.AddTransient<ITicketService, TicketService>();
-                services.AddTransient<IUsuarioService, UsuarioService>();
-                services.AddTransient<ICatalogoService, CatalogoService>();
-                services.AddTransient<ITicketDetalleService, TicketDetalleService>();
-                services.AddTransient<IMaterialService, MaterialService>();
-                services.AddTransient<IReportExportService, ReportExportService>();
+                // Mocks temporales para servicios que requerían EF local
+                services.AddSingleton<INotificacionStorageService, MockNotificacionStorageService>();
+
                 services.AddSingleton<INotificationClientService, NotificationClientService>();
                 services.AddSingleton<ISessionCacheService, SessionCacheService>();
-                services.AddSingleton<INotificacionStorageService, NotificacionStorageService>();
                 services.AddSingleton<IFabricaFormularios, FabricaFormularios>();
                 services.AddTransient<AdministradorUINotificaciones>();
 
@@ -124,6 +121,17 @@ namespace HSis.UI
                 services.AddTransient<NuevoTicketForm>();
 
                 ServiceProvider = services.BuildServiceProvider();
+
+                // Comprobar actualizaciones automáticas desde el servidor API
+                try
+                {
+                    var updateUrl = $"{baseUrl.TrimEnd('/')}/updates/update.xml";
+                    AutoUpdater.Start(updateUrl);
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, "No se pudo verificar la actualización automática.");
+                }
 
                 Form? startForm = null;
                 var sessionCache = ServiceProvider.GetRequiredService<ISessionCacheService>();
@@ -180,5 +188,15 @@ namespace HSis.UI
                 Log.CloseAndFlush();
             }
         }
+    }
+
+    // Mock temporal para INotificacionStorageService (ya que usaba EF)
+    public class MockNotificacionStorageService : INotificacionStorageService
+    {
+        public Task<List<NotificacionLocal>> ObtenerNotificacionesAsync(int userId) => Task.FromResult(new List<NotificacionLocal>());
+        public Task GuardarNotificacionAsync(int userId, int ticketId, string mensaje) => Task.CompletedTask;
+        public Task MarcarComoLeidaAsync(int userId, Guid id) => Task.CompletedTask;
+        public Task LimpiarTodasAsync(int userId) => Task.CompletedTask;
+        public Task SincronizarDesdeBDAsync(int userId) => Task.CompletedTask;
     }
 }

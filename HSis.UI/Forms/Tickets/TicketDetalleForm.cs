@@ -100,7 +100,7 @@ namespace HSis.UI.Forms.Tickets
                 await CargarTecnicosAsync();
                 await CargarHistorialAsync();
 
-                // 1. Asignar el técnico: Si el ticket ya tiene uno, se usa ese. Si no, se deja en blanco (libre).
+                // 1. Asignar el técnico: Si el ticket ya tiene uno, se usa ese. Si no, se asigna al usuario con sesión iniciada.
                 cmbAtendido.SelectedValue = (object?)ticket.IdTecnico ?? -1;
 
                 // 2. Control de permisos: Solo el administrador (Rol 1) puede cambiar el técnico asignado a otros.
