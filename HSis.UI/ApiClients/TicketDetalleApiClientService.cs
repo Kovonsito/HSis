@@ -21,19 +21,19 @@ namespace HSis.UI.ApiClients
         public async Task AgregarMaterialATicketAsync(DetTicket detTicket)
         {
             var response = await httpClient.PostAsJsonAsync("api/TicketDetalle", detTicket);
-            response.EnsureSuccessStatusCode();
+            await response.EnsureSuccessStatusCodeWithDetailsAsync();
         }
 
         public async Task ActualizarDetalleTicketAsync(DetTicket detTicket)
         {
             var response = await httpClient.PutAsJsonAsync("api/TicketDetalle", detTicket);
-            response.EnsureSuccessStatusCode();
+            await response.EnsureSuccessStatusCodeWithDetailsAsync();
         }
 
         public async Task EliminarMaterialDeTicketAsync(int idTicket, int idMaterial)
         {
             var response = await httpClient.DeleteAsync($"api/TicketDetalle/ticket/{idTicket}/material/{idMaterial}");
-            response.EnsureSuccessStatusCode();
+            await response.EnsureSuccessStatusCodeWithDetailsAsync();
         }
 
         public async Task<decimal> ObtenerCostoTotalMaterialesTicketAsync(int idTicket)

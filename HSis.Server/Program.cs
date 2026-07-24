@@ -1,5 +1,9 @@
+using System.Reflection;
+using System.Text;
 using HSis.Server.Middleware;
 using HSis.Server.Hubs;
+using HSis.Server.Configurations;
+using HSis.Server.Services;
 using HSis.Data.Models;
 using HSis.Logic.Services;
 using HSis.Logic.Interceptors;
@@ -7,7 +11,8 @@ using MapsterMapper;
 using Mapster;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
-using System.Reflection;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 {
@@ -15,8 +20,14 @@ var builder = WebApplication.CreateBuilder(new WebApplicationOptions
     ContentRootPath = AppContext.BaseDirectory
 });
 
-// Configurar para ejecutar como Servicio de Windows
-builder.Host.UseWindowsService();
+// Configurar para ejecutar como Servicio de Windows si la plataforma es Windows
+if (OperatingSystem.IsWindows())
+{
+    builder.Host.UseWindowsService(options =>
+    {
+        options.ServiceName = "HSisNotificationServer";
+    });
+}
 
 // Configurar la URL de escucha para red local (LAN)
 builder.WebHost.UseUrls(builder.Configuration["Urls"] ?? "http://0.0.0.0:5000");
@@ -52,8 +63,41 @@ builder.Services.AddScoped<IMapper, ServiceMapper>();
 // Registrar FluentValidation
 builder.Services.AddValidatorsFromAssemblyContaining<HSis.Logic.Validators.TicketCreateValidator>();
 
-// Configurar Sesión de Usuario (Mock para el API de momento, se debe usar JWT HttpContext)
-builder.Services.AddSingleton<ICurrentUserService, ServicioUsuarioActualMock>();
+// Registrar servicios JWT y HttpContextAccessor
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
+builder.Services.AddHttpContextAccessor();
+
+var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>() ?? new JwtSettings();
+string secretKeyString = string.IsNullOrWhiteSpace(jwtSettings.SecretKey) 
+    ? "HSis_Secret_Key_For_JWT_Authentication_Token_2026_SecureKey!" 
+    : jwtSettings.SecretKey;
+var secretKey = Encoding.UTF8.GetBytes(secretKeyString);
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.RequireHttpsMetadata = false;
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(secretKey),
+        ValidateIssuer = !string.IsNullOrEmpty(jwtSettings.Issuer),
+        ValidIssuer = jwtSettings.Issuer,
+        ValidateAudience = !string.IsNullOrEmpty(jwtSettings.Audience),
+        ValidAudience = jwtSettings.Audience,
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero
+    };
+});
+
+// Registrar Sesión de Usuario Real mediante HttpContext (Token JWT)
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddSingleton<TicketAuditInterceptor>();
 
 // Configurar DbContextFactory con Interceptor
@@ -87,6 +131,10 @@ app.UseStaticFiles();
 // Habilitar CORS
 app.UseCors("AllowAll");
 
+// Habilitar Autenticación y Autorización
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapControllers(); // Mapear controladores REST
 
 // Mapear el Hub de SignalR
@@ -97,17 +145,4 @@ app.MapGet("/", () => new { Status = "HSis Web API Server is running", DateTime.
 
 app.Run();
 
-// Clase Mock para ICurrentUserService en la API (hasta que implementemos JWT auth)
-public class ServicioUsuarioActualMock : ICurrentUserService
-{
-    public HSis.Logic.DTOs.UsuarioDto? ObtenerUsuarioActual() 
-    {
-        return new HSis.Logic.DTOs.UsuarioDto { IdUsuario = 1, Nombre = "API User" };
-    }
-    
-    public int GetCurrentUserId()
-    {
-        return 1;
-    }
-}
 

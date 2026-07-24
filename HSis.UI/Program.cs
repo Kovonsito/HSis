@@ -96,12 +96,21 @@ namespace HSis.UI
                 // Configurar ApiClients basados en HttpClient
                 var baseUrl = configuration.GetSection("ApiSettings")["BaseUrl"] ?? "http://localhost:5000";
 
-                services.AddHttpClient<IUsuarioService, ApiClients.UsuarioApiClientService>(c => c.BaseAddress = new Uri(baseUrl));
-                services.AddHttpClient<ITicketService, ApiClients.TicketApiClientService>(c => c.BaseAddress = new Uri(baseUrl));
-                services.AddHttpClient<ICatalogoService, ApiClients.CatalogoApiClientService>(c => c.BaseAddress = new Uri(baseUrl));
-                services.AddHttpClient<ITicketDetalleService, ApiClients.TicketDetalleApiClientService>(c => c.BaseAddress = new Uri(baseUrl));
-                services.AddHttpClient<IMaterialService, ApiClients.MaterialApiClientService>(c => c.BaseAddress = new Uri(baseUrl));
-                services.AddHttpClient<IReportExportService, ApiClients.ReportExportApiClientService>(c => c.BaseAddress = new Uri(baseUrl));
+                // Registrar JwtAuthHeaderHandler para inyectar token JWT automáticamente
+                services.AddTransient<ApiClients.JwtAuthHeaderHandler>();
+
+                services.AddHttpClient<IUsuarioService, ApiClients.UsuarioApiClientService>(c => c.BaseAddress = new Uri(baseUrl))
+                        .AddHttpMessageHandler<ApiClients.JwtAuthHeaderHandler>();
+                services.AddHttpClient<ITicketService, ApiClients.TicketApiClientService>(c => c.BaseAddress = new Uri(baseUrl))
+                        .AddHttpMessageHandler<ApiClients.JwtAuthHeaderHandler>();
+                services.AddHttpClient<ICatalogoService, ApiClients.CatalogoApiClientService>(c => c.BaseAddress = new Uri(baseUrl))
+                        .AddHttpMessageHandler<ApiClients.JwtAuthHeaderHandler>();
+                services.AddHttpClient<ITicketDetalleService, ApiClients.TicketDetalleApiClientService>(c => c.BaseAddress = new Uri(baseUrl))
+                        .AddHttpMessageHandler<ApiClients.JwtAuthHeaderHandler>();
+                services.AddHttpClient<IMaterialService, ApiClients.MaterialApiClientService>(c => c.BaseAddress = new Uri(baseUrl))
+                        .AddHttpMessageHandler<ApiClients.JwtAuthHeaderHandler>();
+                services.AddHttpClient<IReportExportService, ApiClients.ReportExportApiClientService>(c => c.BaseAddress = new Uri(baseUrl))
+                        .AddHttpMessageHandler<ApiClients.JwtAuthHeaderHandler>();
 
                 // Mocks temporales para servicios que requerían EF local
                 services.AddSingleton<INotificacionStorageService, MockNotificacionStorageService>();
