@@ -57,19 +57,48 @@ namespace HSis.UI
                 Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
                 Application.ThreadException += (sender, e) =>
                 {
-                    Log.Fatal(e.Exception, "Excepción no manejada en el hilo principal de la UI.");
-                    MessageBox.Show("Ha ocurrido un error inesperado. El sistema ha guardado los detalles para su revisión.", "Error Fatal", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    var ex = e.Exception;
+
+                    // A) Errores de Red / Conexión con la Web API
+                    if (ex is System.Net.Http.HttpRequestException || ex is System.Net.Sockets.SocketException)
+                    {
+                        Log.Warning(ex, "Fallo de comunicación con la Web API.");
+                        MessageBox.Show(
+                            "No se pudo establecer comunicación con el servidor de la aplicación.\n\n" +
+                            "• Categoría: ERR-NET-101 (Conexión de Red)\n" +
+                            "• Sugerencia: Verifique su conexión de red o contacte al administrador del servidor.",
+                            "Error de Conexión",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Warning
+                        );
+                        return;
+                    }
+
+                    // B) Errores Inesperados del Sistema / Crashes
+                    string correlationId = Guid.NewGuid().ToString("N")[..6].ToUpper();
+                    Log.Fatal(ex, "[Ref: {CorrelationId}] Excepción no manejada en el hilo principal de la UI.", correlationId);
+
+                    MessageBox.Show(
+                        $"Ocurrió un problema inesperado al procesar la información.\n\n" +
+                        $"• Categoría: ERR-SYS-999 (Error Inesperado)\n" +
+                        $"• Código de rastreo: #{correlationId}\n\n" +
+                        $"Proporcione este código al equipo de soporte técnico para su revisión.",
+                        "Error del Sistema",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error
+                    );
                 };
 
                 AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
                 {
+                    string correlationId = Guid.NewGuid().ToString("N")[..6].ToUpper();
                     if (e.ExceptionObject is Exception ex)
                     {
-                        Log.Fatal(ex, "Excepción no manejada en AppDomain.");
+                        Log.Fatal(ex, "[Ref: {CorrelationId}] Excepción no manejada en AppDomain.", correlationId);
                     }
                     else
                     {
-                        Log.Fatal("Excepción no manejada desconocida en AppDomain: {0}", e.ExceptionObject);
+                        Log.Fatal("[Ref: {CorrelationId}] Excepción no manejada desconocida en AppDomain: {0}", correlationId, e.ExceptionObject);
                     }
                 };
 

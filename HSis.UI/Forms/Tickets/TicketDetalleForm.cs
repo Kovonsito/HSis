@@ -246,8 +246,7 @@ namespace HSis.UI.Forms.Tickets
             try
             {
                 // Llamamos a la lógica asíncrona
-                var rawHistorial = await _ticketService.ObtenerHistorialPorTicketAsync(_idTicket);
-                var historial = rawHistorial.Cast<HistorialCambiosDto>().ToList();
+                var historial = await _ticketService.ObtenerHistorialPorTicketAsync(_idTicket);
 
                 // Asignamos al Grid
                 dgvHistorial.DataSource = new ListaVinculableOrdenable<HistorialCambiosDto>(historial);

@@ -58,7 +58,7 @@ namespace HSis.Server.Middleware
 
                 default:
                     statusCode = HttpStatusCode.InternalServerError;
-                    responseBody = new { Error = "Ocurrió un error interno en el servidor.", Detalle = exception.Message };
+                    responseBody = new { Error = "Ocurrió un error interno en el servidor.", Detalle = "Consulte los registros del servidor para más información." };
                     break;
             }
 

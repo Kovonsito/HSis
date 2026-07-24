@@ -75,7 +75,7 @@ namespace HSis.UI.Forms.Otros
             this.Controls.Add(btnCancelar);
 
             this.Height = Math.Min(y + 150, 600); // Máximo 600 de alto, si es más usa scroll
-            this.Width = 550;
+            this.Width = 600;
         }
 
         private void BtnGuardar_Click(object? sender, EventArgs e)
@@ -220,13 +220,19 @@ namespace HSis.UI.Forms.Otros
             Type navType = navProp.PropertyType;
             var list = await _catalogoService.ObtenerTodosPorTipoAsync(navType);
 
+            var typedArray = Array.CreateInstance(navType, list.Count);
+            for (int i = 0; i < list.Count; i++)
+            {
+                typedArray.SetValue(list[i], i);
+            }
+
             string displayMember = "Id" + navType.Name;
             if (navType.GetProperty("Nombre") != null) displayMember = "Nombre";
             else if (navType.GetProperty("Descripción") != null) displayMember = "Descripción";
 
             cmb.DisplayMember = displayMember;
             cmb.ValueMember = "Id" + (navType.Name == "RolUsuario" ? "Rol" : navType.Name);
-            cmb.DataSource = list;
+            cmb.DataSource = typedArray;
 
             var val = prop.GetValue(_entidad);
             if (val != null)
