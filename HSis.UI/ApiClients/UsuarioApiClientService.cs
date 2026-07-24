@@ -2,6 +2,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using HSis.Logic.DTOs;
 using HSis.Logic.Services;
+using HSis.UI.Helpers;
 
 namespace HSis.UI.ApiClients
 {
@@ -20,7 +21,12 @@ namespace HSis.UI.ApiClients
 
             if (response.IsSuccessStatusCode)
             {
-                return await response.Content.ReadFromJsonAsync<UsuarioDto>();
+                var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponseDto>();
+                if (loginResponse != null)
+                {
+                    SesionSistema.TokenJWT = loginResponse.Token;
+                    return loginResponse.Usuario;
+                }
             }
             return null;
         }

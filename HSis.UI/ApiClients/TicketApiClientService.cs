@@ -46,7 +46,7 @@ namespace HSis.UI.ApiClients
         public async Task ActualizarTicketAsync(TicketUpdateDto ticketDto)
         {
             var response = await httpClient.PutAsJsonAsync($"api/Tickets/{ticketDto.IdTicket}", ticketDto);
-            response.EnsureSuccessStatusCode();
+            await response.EnsureSuccessStatusCodeWithDetailsAsync();
         }
 
         public async Task<List<TicketDto>> ObtenerTicketsPorUsuarioAsync(int idUsuario)
@@ -72,21 +72,21 @@ namespace HSis.UI.ApiClients
         public async Task<TicketDto> CrearTicketAsync(TicketCreateDto ticketDto)
         {
             var response = await httpClient.PostAsJsonAsync("api/Tickets", ticketDto);
-            response.EnsureSuccessStatusCode();
+            await response.EnsureSuccessStatusCodeWithDetailsAsync();
             return await response.Content.ReadFromJsonAsync<TicketDto>() ?? new TicketDto();
         }
 
         public async Task<List<TicketDto>> ObtenerTicketsFiltradosAsync(TicketFilterDto filtros)
         {
             var response = await httpClient.PostAsJsonAsync("api/Tickets/filtrar/todos", filtros);
-            response.EnsureSuccessStatusCode();
+            await response.EnsureSuccessStatusCodeWithDetailsAsync();
             return await response.Content.ReadFromJsonAsync<List<TicketDto>>() ?? [];
         }
 
         public async Task<PaginatedResultDto<TicketDto>> ObtenerTicketsFiltradosPaginadosAsync(TicketFilterDto filtros, int pageNumber, int pageSize)
         {
             var response = await httpClient.PostAsJsonAsync($"api/Tickets/filtrar?pageNumber={pageNumber}&pageSize={pageSize}", filtros);
-            response.EnsureSuccessStatusCode();
+            await response.EnsureSuccessStatusCodeWithDetailsAsync();
             return await response.Content.ReadFromJsonAsync<PaginatedResultDto<TicketDto>>() ?? new PaginatedResultDto<TicketDto>();
         }
 
