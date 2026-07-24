@@ -38,9 +38,9 @@ namespace HSis.UI.ApiClients
             return await httpClient.GetFromJsonAsync<int>($"api/Tickets/estatus/{Uri.EscapeDataString(estatus)}/count");
         }
 
-        public async Task<List<object>> ObtenerHistorialPorTicketAsync(int idTicket)
+        public async Task<List<HistorialCambiosDto>> ObtenerHistorialPorTicketAsync(int idTicket)
         {
-            return await httpClient.GetFromJsonAsync<List<object>>($"api/Tickets/{idTicket}/historial") ?? [];
+            return await httpClient.GetFromJsonAsync<List<HistorialCambiosDto>>($"api/Tickets/{idTicket}/historial") ?? [];
         }
 
         public async Task ActualizarTicketAsync(TicketUpdateDto ticketDto)

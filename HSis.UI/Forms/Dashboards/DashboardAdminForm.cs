@@ -64,7 +64,7 @@ namespace HSis.UI.Forms.Dashboards
             // Cargamos KPIs y Grid de tickets en paralelo
             await Task.WhenAll(CargarKPIsAsync(), CargarGridCompletoAsync());
 
-            ConfigurarTabsCatalogos();
+            await ConfigurarTabsCatalogosAsync();
         }
 
         private void InicializarLayoutDashboard()
@@ -372,7 +372,7 @@ namespace HSis.UI.Forms.Dashboards
             await dgvTickets.ManejarDetalleTicketAsync(e.RowIndex, _fabricaFormularios, () => Task.WhenAll(CargarKPIsAsync(), CargarGridCompletoAsync()), "Folio");
         }
 
-        private async void ConfigurarTabsCatalogos()
+        private async Task ConfigurarTabsCatalogosAsync()
         {
             var catalogos = new (string Nombre, Type Tipo)[] {
                 ("Usuarios", typeof(Usuario)),
@@ -386,7 +386,14 @@ namespace HSis.UI.Forms.Dashboards
 
             foreach (var (nombre, tipo) in catalogos)
             {
-                await ConfigurarTabParaCatalogo(nombre, tipo);
+                try
+                {
+                    await ConfigurarTabParaCatalogo(nombre, tipo);
+                }
+                catch (Exception ex)
+                {
+                    Serilog.Log.Error(ex, "Error al configurar o cargar la pestaña de catálogo '{Nombre}'.", nombre);
+                }
             }
         }
 
@@ -503,7 +510,7 @@ namespace HSis.UI.Forms.Dashboards
             {
                 try
                 {
-                    var miMetodo = typeof(CatalogoService).GetMethod("CrearAsync")!.MakeGenericMethod(tipo);
+                    var miMetodo = typeof(ICatalogoService).GetMethod("CrearAsync")!.MakeGenericMethod(tipo);
                     Task task = (Task)miMetodo.Invoke(_catalogoService, [nuevaEntidad])!;
                     await task;
                     await CargarDatosCatalogo(tipo, dgv);
@@ -535,7 +542,7 @@ namespace HSis.UI.Forms.Dashboards
                 {
                     try
                     {
-                        var miMetodo = typeof(CatalogoService).GetMethod("EliminarAsync")!.MakeGenericMethod(tipo);
+                        var miMetodo = typeof(ICatalogoService).GetMethod("EliminarAsync")!.MakeGenericMethod(tipo);
                         Task task = (Task)miMetodo.Invoke(_catalogoService, [idObj])!;
                         await task;
                         await CargarDatosCatalogo(tipo, dgv);
@@ -568,7 +575,7 @@ namespace HSis.UI.Forms.Dashboards
                 {
                     try
                     {
-                        var miMetodo = typeof(CatalogoService).GetMethod("ActualizarAsync")!.MakeGenericMethod(tipo);
+                        var miMetodo = typeof(ICatalogoService).GetMethod("ActualizarAsync")!.MakeGenericMethod(tipo);
                         Task task = (Task)miMetodo.Invoke(_catalogoService, [entidadExistente])!;
                         await task;
                         await CargarDatosCatalogo(tipo, dgv);
@@ -602,7 +609,7 @@ namespace HSis.UI.Forms.Dashboards
 
         private async Task CargarDatosCatalogo(Type tipoEntidad, DataGridView dgv)
         {
-            var miMetodo = typeof(CatalogoService).GetMethod("ObtenerTodosAsync")!.MakeGenericMethod(tipoEntidad);
+            var miMetodo = typeof(ICatalogoService).GetMethod("ObtenerTodosAsync")!.MakeGenericMethod(tipoEntidad);
             Task task = (Task)miMetodo.Invoke(_catalogoService, null)!;
             await task;
 

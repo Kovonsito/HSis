@@ -2,24 +2,24 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build",
+            "label": "build-server",
             "command": "dotnet",
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/HSis.sln",
+                "${workspaceFolder}/HSis.Server/HSis.Server.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary;ForceNoAlign"
             ],
             "problemMatcher": "$msCompile"
         },
         {
-            "label": "publish",
+            "label": "build-ui",
             "command": "dotnet",
             "type": "process",
             "args": [
-                "publish",
-                "${workspaceFolder}/HSis.sln",
+                "build",
+                "${workspaceFolder}/HSis.UI/HSis.UI.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary;ForceNoAlign"
             ],
@@ -33,24 +33,9 @@
                 "watch",
                 "run",
                 "--project",
-                "${workspaceFolder}/HSis.Tests/HSis.Tests.csproj"
+                "${workspaceFolder}/HSis.slnx"
             ],
             "problemMatcher": "$msCompile"
-        },
-        {
-            "label": "Ejecutar Aplicación (HSis.UI)",
-            "type": "process",
-            "command": "dotnet",
-            "args": [
-                "run",
-                "--project",
-                "${workspaceFolder}/HSis.UI/HSis.UI.csproj"
-            ],
-            "problemMatcher": "$msCompile",
-            "group": {
-                "kind": "build",
-                "isDefault": false
-            }
         }
     ]
 }

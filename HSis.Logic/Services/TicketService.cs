@@ -79,7 +79,7 @@ namespace HSis.Logic.Services
         }
 
         // Obtener historial de cambios de un ticket - Async
-        public async Task<List<object>> ObtenerHistorialPorTicketAsync(int idTicket)
+        public async Task<List<HistorialCambiosDto>> ObtenerHistorialPorTicketAsync(int idTicket)
         {
             using var db = dbContextFactory.CreateDbContext();
             return await db.HistorialCambiosTickets
@@ -95,7 +95,7 @@ namespace HSis.Logic.Services
                     ValorAnterior = h.ValorAnterior ?? "-",
                     ValorNuevo = h.ValorNuevo ?? "-"
                 })
-                .ToListAsync<object>();
+                .ToListAsync();
         }
 
         // Actualizar ticket
