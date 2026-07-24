@@ -10,7 +10,7 @@ namespace HSis.Logic.Services
         Task<List<TicketDto>> ObtenerTicketsPorEstatusAsync(string estatus);
         Task<int> ObtenerCountTicketsPorSLAAsync(bool esUrgente);
         Task<int> ObtenerCountTicketsPorEstatusAsync(string estatus);
-        Task<List<object>> ObtenerHistorialPorTicketAsync(int idTicket);
+        Task<List<HistorialCambiosDto>> ObtenerHistorialPorTicketAsync(int idTicket);
         Task ActualizarTicketAsync(TicketUpdateDto ticketDto);
         Task<List<TicketDto>> ObtenerTicketsPorUsuarioAsync(int idUsuario);
         Task<List<TicketDto>> ObtenerTicketsAsignadosATecnicoAsync(int idTecnico);

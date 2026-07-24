@@ -60,7 +60,7 @@ namespace HSis.Server.Controllers
         }
 
         [HttpGet("{id}/historial")]
-        public async Task<ActionResult<List<object>>> ObtenerHistorial(int id)
+        public async Task<ActionResult<List<HistorialCambiosDto>>> ObtenerHistorial(int id)
         {
             return Ok(await ticketService.ObtenerHistorialPorTicketAsync(id));
         }

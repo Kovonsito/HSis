@@ -1,17 +1,18 @@
 using System.Reflection;
 using System.Text;
-using HSis.Server.Middleware;
-using HSis.Server.Hubs;
-using HSis.Server.Configurations;
-using HSis.Server.Services;
-using HSis.Data.Models;
-using HSis.Logic.Services;
-using HSis.Logic.Interceptors;
-using MapsterMapper;
-using Mapster;
 using FluentValidation;
-using Microsoft.EntityFrameworkCore;
+using HSis.Data;
+using HSis.Data.Models;
+using HSis.Logic.Interceptors;
+using HSis.Logic.Services;
+using HSis.Server.Configurations;
+using HSis.Server.Hubs;
+using HSis.Server.Middleware;
+using HSis.Server.Services;
+using Mapster;
+using MapsterMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions
@@ -69,8 +70,8 @@ builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
 builder.Services.AddHttpContextAccessor();
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>() ?? new JwtSettings();
-string secretKeyString = string.IsNullOrWhiteSpace(jwtSettings.SecretKey) 
-    ? "HSis_Secret_Key_For_JWT_Authentication_Token_2026_SecureKey!" 
+string secretKeyString = string.IsNullOrWhiteSpace(jwtSettings.SecretKey)
+    ? "HSis_Secret_Key_For_JWT_Authentication_Token_2026_SecureKey!"
     : jwtSettings.SecretKey;
 var secretKey = Encoding.UTF8.GetBytes(secretKeyString);
 
@@ -97,10 +98,10 @@ builder.Services.AddAuthentication(options =>
 });
 
 // Registrar Sesión de Usuario Real mediante HttpContext (Token JWT)
-builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddSingleton<ICurrentUserService, CurrentUserService>();
 builder.Services.AddSingleton<TicketAuditInterceptor>();
 
-// Configurar DbContextFactory con Interceptor
+// Configurar DbContextFactory con Interceptor de Auditoría
 builder.Services.AddDbContextFactory<HSisDbContext>((sp, options) =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("CadenaSQL"))
            .AddInterceptors(sp.GetRequiredService<TicketAuditInterceptor>()));
@@ -112,6 +113,8 @@ builder.Services.AddTransient<ICatalogoService, CatalogoService>();
 builder.Services.AddTransient<ITicketDetalleService, TicketDetalleService>();
 builder.Services.AddTransient<IMaterialService, MaterialService>();
 builder.Services.AddTransient<IReportExportService, ReportExportService>();
+builder.Services.AddTransient<INotificacionStorageService, NotificacionStorageService>();
+builder.Services.AddSingleton<INotificationClientService, NotificationClientService>();
 
 var app = builder.Build();
 
