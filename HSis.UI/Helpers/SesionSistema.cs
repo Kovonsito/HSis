@@ -10,6 +10,7 @@ namespace HSis.UI.Helpers
     public static class SesionSistema
     {
         public static UsuarioDto? UsuarioActual { get; set; }
+        public static string TokenJWT { get; set; } = string.Empty;
         public static int IdUsuario => UsuarioActual?.IdUsuario ?? 0;
         public static string NombreUsuario => UsuarioActual?.Nombre ?? string.Empty;
         public static int IdRolUsuario => UsuarioActual?.IdRol ?? 0;
