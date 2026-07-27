@@ -14,6 +14,8 @@ namespace HSis.UI.Helpers
         public static int IdUsuario => UsuarioActual?.IdUsuario ?? 0;
         public static string NombreUsuario => UsuarioActual?.Nombre ?? string.Empty;
         public static int IdRolUsuario => UsuarioActual?.IdRol ?? 0;
+        public static bool EsAdmin => IdRolUsuario == 1;
+        public static bool EsTecnico => IdRolUsuario == 2;
 
         public static void ConfigurarMenuSesion(Form form, ISessionCacheService sessionCache)
         {

@@ -33,6 +33,7 @@ namespace HSis.UI.Forms.Dashboards
         private void InitializeComponent()
         {
             lblTitulo = new Label();
+            btnNuevoTicket = new Button();
             ucNuevos = new HSis.UI.Controls.IndicadorControl();
             ucUrgentes = new HSis.UI.Controls.IndicadorControl();
             ucEnProceso = new HSis.UI.Controls.IndicadorControl();
@@ -113,6 +114,20 @@ namespace HSis.UI.Forms.Dashboards
             lblTitulo.TabIndex = 9;
             lblTitulo.Text = "Panel de Control - Administrador";
             // 
+            // btnNuevoTicket
+            // 
+            btnNuevoTicket.BackColor = Color.FromArgb(16, 185, 129);
+            btnNuevoTicket.FlatStyle = FlatStyle.Flat;
+            btnNuevoTicket.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
+            btnNuevoTicket.ForeColor = Color.White;
+            btnNuevoTicket.Location = new Point(430, 80);
+            btnNuevoTicket.Name = "btnNuevoTicket";
+            btnNuevoTicket.Size = new Size(140, 26);
+            btnNuevoTicket.TabIndex = 4;
+            btnNuevoTicket.Text = "+ Registrar Ticket";
+            btnNuevoTicket.UseVisualStyleBackColor = false;
+            btnNuevoTicket.Click += btnNuevoTicket_Click;
+            // 
             // btnRecargar
             // 
             btnRecargar.Location = new Point(580, 80);
@@ -167,6 +182,7 @@ namespace HSis.UI.Forms.Dashboards
             pnlFiltros.AutoScroll = true;
             pnlFiltros.Controls.Add(lblFiltrosTitle);
             pnlFiltros.Controls.Add(filtroGenerico);
+            pnlFiltros.Controls.Add(btnNuevoTicket);
             pnlFiltros.Controls.Add(btnLimpiarFiltros);
             pnlFiltros.Controls.Add(btnAbrirReportes);
             pnlFiltros.Controls.Add(btnRecargar);
@@ -240,6 +256,7 @@ namespace HSis.UI.Forms.Dashboards
         private HSis.UI.Controls.IndicadorControl ucEnProceso;
         private HSis.UI.Controls.IndicadorControl ucCerrados;
         private DataGridView dgvTickets;
+        private Button btnNuevoTicket;
         private Button btnRecargar;
         private HSis.UI.Controls.IndicadorControl ucReabiertos;
         private TabControl tabMain;
@@ -249,6 +266,5 @@ namespace HSis.UI.Forms.Dashboards
         private HSis.UI.Controls.FiltroGenericoControl filtroGenerico;
         private Button btnLimpiarFiltros;
         private Button btnAbrirReportes;
-
     }
 }
