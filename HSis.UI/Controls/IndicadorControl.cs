@@ -12,6 +12,10 @@ namespace HSis.UI.Controls
         public IndicadorControl()
         {
             InitializeComponent();
+            if (pnlPrincipal != null)
+            {
+                pnlPrincipal.SizeChanged += (s, e) => AjustarDisenoInterno();
+            }
         }
 
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -76,8 +80,8 @@ namespace HSis.UI.Controls
             if (pnlPrincipal == null || lblTitulo == null || lblCantidad == null || pbxIcono == null)
                 return;
 
-            int width = pnlPrincipal.Width;
-            int height = pnlPrincipal.Height;
+            int width = pnlPrincipal.ClientSize.Width;
+            int height = pnlPrincipal.ClientSize.Height;
 
             if (width <= 0 || height <= 0)
                 return;
@@ -93,10 +97,14 @@ namespace HSis.UI.Controls
             }
             lblTitulo.MaximumSize = new Size(width - 16, 0);
 
-            // 2. Ícono (Esquina inferior derecha, escalado sin salirse)
-            int iconSide = Math.Clamp((int)(Math.Min(width, height) * 0.38f), 22, 45);
+            // 2. Ícono (Esquina inferior derecha con margen seguro)
+            int marginX = Math.Clamp((int)(width * 0.05f), 8, 14);
+            int marginY = Math.Clamp((int)(height * 0.10f), 8, 14);
+            int iconSide = Math.Clamp((int)(Math.Min(width, height) * 0.35f), 20, 38);
+
             pbxIcono.Size = new Size(iconSide, iconSide);
-            pbxIcono.Location = new Point(width - iconSide - 6, height - iconSide - 6);
+            pbxIcono.Location = new Point(width - iconSide - marginX, height - iconSide - marginY);
+            pbxIcono.BringToFront();
 
             // 3. Cantidad (Centrado en la tarjeta)
             float numFontSize = Math.Clamp(height * 0.26f, 14f, 26f);

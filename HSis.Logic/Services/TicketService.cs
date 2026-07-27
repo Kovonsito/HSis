@@ -194,7 +194,15 @@ namespace HSis.Logic.Services
 
             var nuevoTicket = mapper.Map<Ticket>(ticketDto);
             nuevoTicket.Alta = DateTime.Now;
-            nuevoTicket.Status = ConstantesEstatus.ABIERTO;
+            if (nuevoTicket.IdTecnico.HasValue && nuevoTicket.IdTecnico.Value > 0)
+            {
+                nuevoTicket.Status = ConstantesEstatus.EN_PROCESO;
+                nuevoTicket.Atención = DateTime.Now;
+            }
+            else
+            {
+                nuevoTicket.Status = ConstantesEstatus.ABIERTO;
+            }
 
             db.Tickets.Add(nuevoTicket);
             await db.SaveChangesAsync();

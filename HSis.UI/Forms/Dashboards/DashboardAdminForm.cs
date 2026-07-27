@@ -9,6 +9,7 @@ using HSis.Logic.Services;
 using HSis.UI.Controls;
 using HSis.UI.Factories;
 using HSis.UI.Forms.Otros;
+using HSis.UI.Forms.Tickets;
 using HSis.UI.Helpers;
 using HSis.UI.Services;
 
@@ -650,6 +651,22 @@ namespace HSis.UI.Forms.Dashboards
             dgv.AutoajustarAnchosMinimos();
         }
 
+        private async void btnNuevoTicket_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                using var frm = _fabricaFormularios.Crear<NuevoTicketForm>();
+                if (frm.ShowDialog(this) == DialogResult.OK)
+                {
+                    await Task.WhenAll(CargarKPIsAsync(), CargarGridCompletoAsync());
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ocurrió un error al abrir el formulario de nuevo ticket: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
         private async void UcCalificacion_Click(object? sender, EventArgs e)
         {
             try
@@ -662,7 +679,5 @@ namespace HSis.UI.Forms.Dashboards
                 MessageBox.Show("Error al obtener la calificación: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
-
     }
 }

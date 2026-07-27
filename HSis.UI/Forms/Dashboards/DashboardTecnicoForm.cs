@@ -10,6 +10,8 @@ using HSis.UI.Factories;
 using HSis.UI.Helpers;
 using HSis.UI.Services;
 
+using HSis.UI.Forms.Tickets;
+
 namespace HSis.UI.Forms.Dashboards
 {
     [SupportedOSPlatform("windows")]
@@ -436,6 +438,22 @@ namespace HSis.UI.Forms.Dashboards
         private async void btnRecargar_Click(object? sender, EventArgs e)
         {
             await CargarDatosInicialesAsync();
+        }
+
+        private async void btnNuevoTicket_Click(object? sender, EventArgs e)
+        {
+            try
+            {
+                using var frm = _formFactory.Crear<NuevoTicketForm>();
+                if (frm.ShowDialog(this) == DialogResult.OK)
+                {
+                    await CargarDatosInicialesAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ocurrió un error al abrir el formulario de registro de ticket: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
     }
 }

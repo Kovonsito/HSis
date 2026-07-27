@@ -21,6 +21,7 @@ namespace HSis.UI.Forms.Dashboards
         private void InitializeComponent()
         {
             this.lblTitulo = new Label();
+            this.btnNuevoTicket = new Button();
             this.ucMisAsignados = new HSis.UI.Controls.IndicadorControl();
             this.ucDisponibles = new HSis.UI.Controls.IndicadorControl();
             this.ucCerrados = new HSis.UI.Controls.IndicadorControl();
@@ -89,6 +90,7 @@ namespace HSis.UI.Forms.Dashboards
             this.pnlFiltros.AutoScroll = true;
             this.pnlFiltros.Controls.Add(this.lblFiltrosTitle);
             this.pnlFiltros.Controls.Add(this.filtroGenerico);
+            this.pnlFiltros.Controls.Add(this.btnNuevoTicket);
             this.pnlFiltros.Controls.Add(this.btnLimpiarFiltros);
             this.pnlFiltros.Controls.Add(this.btnRecargar);
             this.pnlFiltros.Location = new Point(12, 145);
@@ -116,6 +118,21 @@ namespace HSis.UI.Forms.Dashboards
             this.lblFiltrosTitle.Name = "lblFiltrosTitle";
             this.lblFiltrosTitle.Size = new Size(180, 19);
             this.lblFiltrosTitle.Text = "Filtros de Búsqueda Rápida";
+
+            // 
+            // btnNuevoTicket
+            // 
+            this.btnNuevoTicket.BackColor = Color.FromArgb(16, 185, 129);
+            this.btnNuevoTicket.FlatStyle = FlatStyle.Flat;
+            this.btnNuevoTicket.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
+            this.btnNuevoTicket.ForeColor = Color.White;
+            this.btnNuevoTicket.Location = new Point(430, 80);
+            this.btnNuevoTicket.Name = "btnNuevoTicket";
+            this.btnNuevoTicket.Size = new Size(140, 26);
+            this.btnNuevoTicket.TabIndex = 3;
+            this.btnNuevoTicket.Text = "+ Registrar Ticket";
+            this.btnNuevoTicket.UseVisualStyleBackColor = false;
+            this.btnNuevoTicket.Click += new EventHandler(this.btnNuevoTicket_Click);
 
             // 
             // btnLimpiarFiltros
@@ -167,6 +184,7 @@ namespace HSis.UI.Forms.Dashboards
         private Panel pnlFiltros;
         private Label lblFiltrosTitle;
         private HSis.UI.Controls.FiltroGenericoControl filtroGenerico;
+        private Button btnNuevoTicket;
         private Button btnLimpiarFiltros;
         private Button btnRecargar;
     }
