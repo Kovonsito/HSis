@@ -207,6 +207,15 @@ namespace HSis.Logic.Services
             db.Tickets.Add(nuevoTicket);
             await db.SaveChangesAsync();
 
+            if (notificationClient != null)
+            {
+                _ = notificationClient.NotifyTicketCreatedAsync(
+                    nuevoTicket.IdTicket,
+                    nuevoTicket.IdTicket.ToString("d6"),
+                    nuevoTicket.Descripción ?? string.Empty
+                );
+            }
+
             return mapper.Map<TicketDto>(nuevoTicket);
         }
 
@@ -390,30 +399,28 @@ namespace HSis.Logic.Services
             ticket.ComentarioFeedback = comentario;
             ticket.FechaFeedback = DateTime.Now;
 
-            // Guardar notificación si hay técnico asignado
-            if (ticket.IdTecnico.HasValue)
+            // Notificar la calificación vía SignalR (a técnico si existe, o 0 para administradores)
+            int idTecnicoNotif = ticket.IdTecnico ?? 0;
+            var stars = new string('⭐', calificacion);
+            var notificacion = new Notificacion
             {
-                var stars = new string('⭐', calificacion);
-                var notificacion = new Notificacion
-                {
-                    UsuarioDestinoId = ticket.IdTecnico.Value,
-                    Mensaje = $"El cliente calificó el ticket TK-{ticket.IdTicket:d6} con {stars} ({calificacion}/5). Comentario: \"{comentario ?? string.Empty}\"",
-                    Tipo = "Calificacion",
-                    FechaCreacion = DateTime.Now,
-                    Leido = false
-                };
-                db.Notificaciones.Add(notificacion);
+                UsuarioDestinoId = idTecnicoNotif > 0 ? idTecnicoNotif : 1, // Admin si no hay técnico
+                Mensaje = $"El cliente calificó el ticket TK-{ticket.IdTicket:d6} con {stars} ({calificacion}/5). Comentario: \"{comentario ?? string.Empty}\"",
+                Tipo = "Calificacion",
+                FechaCreacion = DateTime.Now,
+                Leido = false
+            };
+            db.Notificaciones.Add(notificacion);
 
-                if (notificationClient != null)
-                {
-                    _ = notificationClient.NotifyTicketRatedAsync(
-                        ticket.IdTecnico.Value,
-                        ticket.IdTicket,
-                        ticket.IdTicket.ToString("d6"),
-                        calificacion,
-                        comentario ?? string.Empty
-                    );
-                }
+            if (notificationClient != null)
+            {
+                _ = notificationClient.NotifyTicketRatedAsync(
+                    idTecnicoNotif,
+                    ticket.IdTicket,
+                    ticket.IdTicket.ToString("d6"),
+                    calificacion,
+                    comentario ?? string.Empty
+                );
             }
 
             await db.SaveChangesAsync();

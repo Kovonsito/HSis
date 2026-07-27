@@ -180,6 +180,29 @@ public class NotificationClientService(IConfiguration configuration, ILogger<Not
     }
 
     // Métodos para enviar notificaciones a través del Hub
+    public async Task NotifyTicketCreatedAsync(int ticketId, string ticketFolio, string titulo)
+    {
+        Task action(HubConnection conn) => conn.InvokeAsync("NotifyTicketCreated", ticketId, ticketFolio, titulo);
+
+        if (IsConnected && _connection != null)
+        {
+            try
+            {
+                await action(_connection);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al invocar NotifyTicketCreated en el Hub. Guardando en cola pendiente.");
+                _pendingNotifications.Enqueue(action);
+            }
+        }
+        else
+        {
+            _logger.LogInformation("Conexión desconectada. Guardando notificación de creación de ticket en cola pendiente.");
+            _pendingNotifications.Enqueue(action);
+        }
+    }
+
     public async Task NotifyTicketStatusChangedAsync(int clientUserId, int ticketId, string ticketFolio, string newStatus)
     {
         Task action(HubConnection conn) => conn.InvokeAsync("NotifyTicketStatusChanged", clientUserId, ticketId, ticketFolio, newStatus);
