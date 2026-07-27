@@ -13,6 +13,7 @@ namespace HSis.Logic.Services
 
         Task IniciarAsync(int userId, string role);
         Task DetenerAsync();
+        Task NotifyTicketCreatedAsync(int ticketId, string ticketFolio, string titulo);
         Task NotifyTicketStatusChangedAsync(int clientUserId, int ticketId, string ticketFolio, string newStatus);
         Task NotifyTicketRatedAsync(int technicianUserId, int ticketId, string ticketFolio, int rating, string comment);
     }

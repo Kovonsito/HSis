@@ -214,16 +214,20 @@ namespace HSis.UI.Services
             // Guardar en almacenamiento local persistente
             await servicioAlmacenamiento.GuardarNotificacionAsync(SesionSistema.IdUsuario, ticketId, mensaje);
 
-            MessageBox.Show(mensaje, "Notificación de HSis", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-            // Recargar datos específicos del Dashboard
+            // Recargar datos específicos del Dashboard inmediatamente en segundo plano
             if (_callbackRecargaDatos != null)
             {
                 _ = _callbackRecargaDatos();
             }
 
-            // Recargar listado en la interfaz
+            // Recargar historial local de notificaciones
             await CargarHistorialNotificacionesAsync();
+
+            // Notificación discreta / Toast no bloqueante mediante Task.Run
+            _ = Task.Run(() =>
+            {
+                MessageBox.Show(mensaje, "Notificación de HSis", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            });
         }
 
         private async Task CargarHistorialNotificacionesAsync()
