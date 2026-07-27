@@ -66,6 +66,39 @@ namespace HSis.Tests.Services
         }
 
         [Fact]
+        public async Task CrearTicketAsync_ConSolicitanteNoRegistrado_DebeGuardarEtiquetaEnDescripcion()
+        {
+            // Arrange
+            var options = new DbContextOptionsBuilder<HSisDbContext>()
+                .UseInMemoryDatabase(databaseName: "HSis_Test_SolicitanteNoRegistrado")
+                .Options;
+
+            var service = new TicketService(CreateFactory(options), _mapper, _createValidator, _updateValidator);
+
+            string nombreSolicitante = "Zulema Ortiz";
+            string descripcionProblema = "Fallo en la impresión de reporte.";
+            string descripcionConTag = $"[Solicitante no registrado: {nombreSolicitante}]\r\n\r\n{descripcionProblema}";
+
+            var nuevoTicketDto = new TicketCreateDto
+            {
+                IdUsuario = 1,
+                Descripcion = descripcionConTag
+            };
+
+            // Act
+            var resultado = await service.CrearTicketAsync(nuevoTicketDto);
+
+            // Assert
+            resultado.Should().NotBeNull();
+            resultado.IdTicket.Should().BeGreaterThan(0);
+
+            using var contextVerification = new HSisDbContext(options);
+            var ticketEnBd = await contextVerification.Tickets.FindAsync(resultado.IdTicket);
+            ticketEnBd.Should().NotBeNull();
+            ticketEnBd!.Descripción.Should().StartWith($"[Solicitante no registrado: {nombreSolicitante}]");
+        }
+
+        [Fact]
         public async Task CrearTicketAsync_ConDescripcionCorta_DebeLanzarValidationException()
         {
             // Arrange

@@ -33,11 +33,46 @@ namespace HSis.UI.Forms.Tickets
         /// </summary>
         private void InitializeComponent()
         {
+            this.lblSolicitante = new System.Windows.Forms.Label();
+            this.cmbSolicitante = new System.Windows.Forms.ComboBox();
+            this.lblPrioridad = new System.Windows.Forms.Label();
+            this.cmbPrioridad = new System.Windows.Forms.ComboBox();
+            this.lblTecnico = new System.Windows.Forms.Label();
+            this.cmbTecnico = new System.Windows.Forms.ComboBox();
             this.lblDescripcion = new System.Windows.Forms.Label();
             this.rtbDescripcion = new CajaTextoOrtograficaWpf();
+            this.chkSolicitanteEnRepresentacion = new System.Windows.Forms.CheckBox();
+            this.txtNombreSolicitante = new System.Windows.Forms.TextBox();
             this.btnGuardar = new System.Windows.Forms.Button();
             this.btnCancelar = new System.Windows.Forms.Button();
             this.SuspendLayout();
+
+            // chkSolicitanteEnRepresentacion
+            this.chkSolicitanteEnRepresentacion.AutoSize = true;
+            this.chkSolicitanteEnRepresentacion.Text = "Solicitante no registrado en el sistema";
+            this.chkSolicitanteEnRepresentacion.CheckedChanged += new System.EventHandler(this.chkSolicitanteEnRepresentacion_CheckedChanged);
+
+            // txtNombreSolicitante
+            this.txtNombreSolicitante.Enabled = false;
+            this.txtNombreSolicitante.PlaceholderText = "Nombre del solicitante no registrado...";
+
+            // lblSolicitante
+            this.lblSolicitante.AutoSize = true;
+            this.lblSolicitante.Text = "Cliente / Solicitante:";
+            // cmbSolicitante
+            this.cmbSolicitante.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+
+            // lblPrioridad
+            this.lblPrioridad.AutoSize = true;
+            this.lblPrioridad.Text = "Prioridad:";
+            // cmbPrioridad
+            this.cmbPrioridad.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+
+            // lblTecnico
+            this.lblTecnico.AutoSize = true;
+            this.lblTecnico.Text = "Asignar Técnico:";
+            // cmbTecnico
+            this.cmbTecnico.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
 
             // lblDescripcion
             this.lblDescripcion.AutoSize = true;
@@ -83,18 +118,14 @@ namespace HSis.UI.Forms.Tickets
             // NuevoTicketForm
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(484, 250);
-            this.Controls.Add(this.btnCancelar);
-            this.Controls.Add(this.btnGuardar);
-            this.Controls.Add(this.rtbDescripcion);
-            this.Controls.Add(this.lblDescripcion);
+            this.ClientSize = new System.Drawing.Size(560, 420);
             this.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "NuevoTicketForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "Crear Nuevo Ticket";
+            this.Text = "Crear / Registrar Nuevo Ticket";
             this.Load += new System.EventHandler(this.frmNuevoTicket_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -102,8 +133,16 @@ namespace HSis.UI.Forms.Tickets
 
         #endregion
 
+        private System.Windows.Forms.Label lblSolicitante;
+        private System.Windows.Forms.ComboBox cmbSolicitante;
+        private System.Windows.Forms.Label lblPrioridad;
+        private System.Windows.Forms.ComboBox cmbPrioridad;
+        private System.Windows.Forms.Label lblTecnico;
+        private System.Windows.Forms.ComboBox cmbTecnico;
         private System.Windows.Forms.Label lblDescripcion;
         private CajaTextoOrtograficaWpf rtbDescripcion;
+        private System.Windows.Forms.CheckBox chkSolicitanteEnRepresentacion;
+        private System.Windows.Forms.TextBox txtNombreSolicitante;
         private System.Windows.Forms.Button btnGuardar;
         private System.Windows.Forms.Button btnCancelar;
     }
