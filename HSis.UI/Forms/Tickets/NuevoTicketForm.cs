@@ -8,6 +8,7 @@ using HSis.Data.Models;
 using HSis.Logic.DTOs;
 using HSis.Logic.Services;
 using HSis.UI.Helpers;
+using HSis.UI.Controls;
 
 namespace HSis.UI.Forms.Tickets
 {
@@ -20,6 +21,7 @@ namespace HSis.UI.Forms.Tickets
         private readonly ITicketService _ticketService;
         private readonly IUsuarioService _usuarioService;
         private readonly ICatalogoService _catalogoService;
+        private CajaTextoOrtograficaWpf rtbDescripcion;
 
         public NuevoTicketForm(
             ITicketService ticketService,
@@ -35,12 +37,15 @@ namespace HSis.UI.Forms.Tickets
 
         private void InicializarLayoutNuevoTicket()
         {
+            // Inicializar el control de texto con corrección ortográfica
+            rtbDescripcion = new CajaTextoOrtograficaWpf();
+
             bool esPerfilElevado = SesionSistema.EsAdmin || SesionSistema.EsTecnico;
 
             var tblPrincipal = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
-                RowCount = esPerfilElevado ? 6 : 4,
+                RowCount = esPerfilElevado ? 6 : 3,
                 ColumnCount = 1,
                 Padding = new Padding(15),
                 Name = "tblPrincipal"
@@ -72,7 +77,6 @@ namespace HSis.UI.Forms.Tickets
             }
             else
             {
-                tblPrincipal.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Representación / Tercero
                 tblPrincipal.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Descripcion Label
                 tblPrincipal.RowStyles.Add(new RowStyle(SizeType.Percent, 100F)); // Descripcion Rtb
                 tblPrincipal.RowStyles.Add(new RowStyle(SizeType.Absolute, 55F)); // Botones
@@ -146,10 +150,9 @@ namespace HSis.UI.Forms.Tickets
                 rtbDescripcion.Dock = DockStyle.Fill;
                 rtbDescripcion.Margin = new Padding(0, 0, 0, 10);
 
-                tblPrincipal.Controls.Add(pnlRepresentacion, 0, 0);
-                tblPrincipal.Controls.Add(lblDescripcion, 0, 1);
-                tblPrincipal.Controls.Add(rtbDescripcion, 0, 2);
-                tblPrincipal.Controls.Add(flpBotones, 0, 3);
+                tblPrincipal.Controls.Add(lblDescripcion, 0, 0);
+                tblPrincipal.Controls.Add(rtbDescripcion, 0, 1);
+                tblPrincipal.Controls.Add(flpBotones, 0, 2);
             }
 
             this.Controls.Clear();

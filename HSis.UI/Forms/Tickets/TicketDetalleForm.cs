@@ -6,6 +6,7 @@ using System.Runtime.Versioning;
 using HSis.Logic.DTOs;
 using HSis.Logic.Services;
 using HSis.UI.Helpers;
+using HSis.UI.Controls;
 
 namespace HSis.UI.Forms.Tickets
 {
@@ -16,6 +17,8 @@ namespace HSis.UI.Forms.Tickets
         private readonly ITicketService _ticketService;
         private readonly IUsuarioService _usuarioService;
         private TicketDto? _ticketActual;
+        private CajaTextoOrtograficaWpf rtbDescripcion;
+        private CajaTextoOrtograficaWpf rtbSolucion;
 
         public TicketDetalleForm(int idTicket, ITicketService ticketService, IUsuarioService usuarioService)
         {
@@ -369,6 +372,10 @@ namespace HSis.UI.Forms.Tickets
 
         private void InicializarLayoutDetalle()
         {
+            // Inicializar controles de texto con corrección ortográfica
+            rtbDescripcion = new CajaTextoOrtograficaWpf();
+            rtbSolucion = new CajaTextoOrtograficaWpf();
+
             // 1. Crear panel de botones inferior
             var flpBotones = new FlowLayoutPanel
             {
