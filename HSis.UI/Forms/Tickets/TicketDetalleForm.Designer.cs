@@ -38,12 +38,10 @@ namespace HSis.UI.Forms.Tickets
             lblUsuario = new Label();
             lblEstatus = new Label();
             txtUsuario = new TextBox();
-            rtbSolucion = new CajaTextoOrtograficaWpf();
             lblAlta = new Label();
             lblDescripcion = new Label();
             txtAlta = new TextBox();
             lblSolucion = new Label();
-            rtbDescripcion = new CajaTextoOrtograficaWpf();
             lblAtendido = new Label();
             lblAtencion = new Label();
             txtAtencion = new TextBox();
@@ -509,12 +507,10 @@ namespace HSis.UI.Forms.Tickets
         private Label lblUsuario;
         private TextBox txtUsuario;
         private Label lblDescripcion;
-        private CajaTextoOrtograficaWpf rtbSolucion;
         private Label lblAlta;
         private Label lblEstatus;
         private TextBox txtAlta;
         private Label lblSolucion;
-        private CajaTextoOrtograficaWpf rtbDescripcion;
         private Label lblAtendido;
         private Label lblAtencion;
         private TextBox txtAtencion;
@@ -541,5 +537,6 @@ namespace HSis.UI.Forms.Tickets
         private TabPage tabDescripcionSolucion;
         private TabPage tbpHistorial;
         private TabPage tbpFeedback;
+        // rtbSolucion y rtbDescripcion serán creados dinámicamente en el código del formulario
     }
 }

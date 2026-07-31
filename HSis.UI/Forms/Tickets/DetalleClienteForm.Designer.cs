@@ -32,339 +32,385 @@ namespace HSis.UI.Forms.Tickets
         /// </summary>
         private void InitializeComponent()
         {
-            this.lblFolio = new System.Windows.Forms.Label();
-            this.lblFolioValor = new System.Windows.Forms.Label();
-            this.lblFechaAlta = new System.Windows.Forms.Label();
-            this.lblFechaAltaValor = new System.Windows.Forms.Label();
-            this.lblEstatus = new System.Windows.Forms.Label();
-            this.lblEstatusValor = new System.Windows.Forms.Label();
-            this.lblTecnico = new System.Windows.Forms.Label();
-            this.lblTecnicoValor = new System.Windows.Forms.Label();
-            this.lblDescripcion = new System.Windows.Forms.Label();
-            this.txtDescripcion = new System.Windows.Forms.TextBox();
-            this.lblSolucion = new System.Windows.Forms.Label();
-            this.txtSolucion = new System.Windows.Forms.TextBox();
-            this.btnCerrar = new System.Windows.Forms.Button();
-            this.lblFechaCierre = new System.Windows.Forms.Label();
-            this.lblFechaCierreValor = new System.Windows.Forms.Label();
-            this.grpFeedback = new System.Windows.Forms.GroupBox();
-            this.lblEstrellas = new System.Windows.Forms.Label();
-            this.lblStar1 = new System.Windows.Forms.Label();
-            this.lblStar2 = new System.Windows.Forms.Label();
-            this.lblStar3 = new System.Windows.Forms.Label();
-            this.lblStar4 = new System.Windows.Forms.Label();
-            this.lblStar5 = new System.Windows.Forms.Label();
-            this.lblComentario = new System.Windows.Forms.Label();
-            this.txtComentario = new System.Windows.Forms.TextBox();
-            this.btnEnviar = new System.Windows.Forms.Button();
-            this.lblResumen = new System.Windows.Forms.Label();
-            this.lblComentarioLectura = new System.Windows.Forms.Label();
-            this.SuspendLayout();
-
+            lblFolio = new Label();
+            lblFolioValor = new Label();
+            lblFechaAlta = new Label();
+            lblFechaAltaValor = new Label();
+            lblEstatus = new Label();
+            lblEstatusValor = new Label();
+            lblTecnico = new Label();
+            lblTecnicoValor = new Label();
+            lblDescripcion = new Label();
+            txtDescripcion = new TextBox();
+            lblSolucion = new Label();
+            txtSolucion = new TextBox();
+            btnCerrar = new Button();
+            lblFechaCierre = new Label();
+            lblFechaCierreValor = new Label();
+            grpFeedback = new GroupBox();
+            lblEstrellas = new Label();
+            lblStar1 = new Label();
+            lblStar2 = new Label();
+            lblStar3 = new Label();
+            lblStar4 = new Label();
+            lblStar5 = new Label();
+            lblComentario = new Label();
+            txtComentario = new TextBox();
+            btnEnviar = new Button();
+            lblResumen = new Label();
+            lblComentarioLectura = new Label();
+            grpFeedback.SuspendLayout();
+            SuspendLayout();
+            // 
             // lblFolio
-            this.lblFolio.AutoSize = true;
-            this.lblFolio.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.lblFolio.Location = new System.Drawing.Point(12, 15);
-            this.lblFolio.Name = "lblFolio";
-            this.lblFolio.Size = new System.Drawing.Size(41, 15);
-            this.lblFolio.TabIndex = 0;
-            this.lblFolio.Text = "Folio:";
-
+            // 
+            lblFolio.AutoSize = true;
+            lblFolio.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
+            lblFolio.Location = new Point(12, 15);
+            lblFolio.Name = "lblFolio";
+            lblFolio.Size = new Size(47, 20);
+            lblFolio.TabIndex = 0;
+            lblFolio.Text = "Folio:";
+            // 
             // lblFolioValor
-            this.lblFolioValor.AutoSize = true;
-            this.lblFolioValor.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.lblFolioValor.Location = new System.Drawing.Point(60, 15);
-            this.lblFolioValor.Name = "lblFolioValor";
-            this.lblFolioValor.Size = new System.Drawing.Size(23, 15);
-            this.lblFolioValor.TabIndex = 1;
-            this.lblFolioValor.Text = "N/A";
-
+            // 
+            lblFolioValor.AutoSize = true;
+            lblFolioValor.Font = new Font("Segoe UI", 11F);
+            lblFolioValor.Location = new Point(60, 15);
+            lblFolioValor.Name = "lblFolioValor";
+            lblFolioValor.Size = new Size(36, 20);
+            lblFolioValor.TabIndex = 1;
+            lblFolioValor.Text = "N/A";
+            // 
             // lblFechaAlta
-            this.lblFechaAlta.AutoSize = true;
-            this.lblFechaAlta.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.lblFechaAlta.Location = new System.Drawing.Point(12, 40);
-            this.lblFechaAlta.Name = "lblFechaAlta";
-            this.lblFechaAlta.Size = new System.Drawing.Size(66, 15);
-            this.lblFechaAlta.TabIndex = 2;
-            this.lblFechaAlta.Text = "Fecha Alta:";
-
+            // 
+            lblFechaAlta.AutoSize = true;
+            lblFechaAlta.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
+            lblFechaAlta.Location = new Point(12, 40);
+            lblFechaAlta.Name = "lblFechaAlta";
+            lblFechaAlta.Size = new Size(86, 20);
+            lblFechaAlta.TabIndex = 2;
+            lblFechaAlta.Text = "Fecha Alta:";
+            // 
             // lblFechaAltaValor
-            this.lblFechaAltaValor.AutoSize = true;
-            this.lblFechaAltaValor.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.lblFechaAltaValor.Location = new System.Drawing.Point(85, 40);
-            this.lblFechaAltaValor.Name = "lblFechaAltaValor";
-            this.lblFechaAltaValor.Size = new System.Drawing.Size(23, 15);
-            this.lblFechaAltaValor.TabIndex = 3;
-            this.lblFechaAltaValor.Text = "N/A";
-
+            // 
+            lblFechaAltaValor.AutoSize = true;
+            lblFechaAltaValor.Font = new Font("Segoe UI", 11F);
+            lblFechaAltaValor.Location = new Point(101, 40);
+            lblFechaAltaValor.Name = "lblFechaAltaValor";
+            lblFechaAltaValor.Size = new Size(36, 20);
+            lblFechaAltaValor.TabIndex = 3;
+            lblFechaAltaValor.Text = "N/A";
+            // 
             // lblEstatus
-            this.lblEstatus.AutoSize = true;
-            this.lblEstatus.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.lblEstatus.Location = new System.Drawing.Point(12, 65);
-            this.lblEstatus.Name = "lblEstatus";
-            this.lblEstatus.Size = new System.Drawing.Size(52, 15);
-            this.lblEstatus.TabIndex = 4;
-            this.lblEstatus.Text = "Estatus:";
-
+            // 
+            lblEstatus.AutoSize = true;
+            lblEstatus.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
+            lblEstatus.Location = new Point(12, 65);
+            lblEstatus.Name = "lblEstatus";
+            lblEstatus.Size = new Size(64, 20);
+            lblEstatus.TabIndex = 4;
+            lblEstatus.Text = "Estatus:";
+            // 
             // lblEstatusValor
-            this.lblEstatusValor.AutoSize = true;
-            this.lblEstatusValor.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.lblEstatusValor.Location = new System.Drawing.Point(71, 65);
-            this.lblEstatusValor.Name = "lblEstatusValor";
-            this.lblEstatusValor.Padding = new System.Windows.Forms.Padding(5);
-            this.lblEstatusValor.Size = new System.Drawing.Size(35, 25);
-            this.lblEstatusValor.TabIndex = 5;
-            this.lblEstatusValor.Text = "N/A";
-
+            // 
+            lblEstatusValor.AutoSize = true;
+            lblEstatusValor.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
+            lblEstatusValor.Location = new Point(71, 60);
+            lblEstatusValor.Name = "lblEstatusValor";
+            lblEstatusValor.Padding = new Padding(5);
+            lblEstatusValor.Size = new Size(49, 30);
+            lblEstatusValor.TabIndex = 5;
+            lblEstatusValor.Text = "N/A";
+            // 
             // lblTecnico
-            this.lblTecnico.AutoSize = true;
-            this.lblTecnico.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.lblTecnico.Location = new System.Drawing.Point(12, 100);
-            this.lblTecnico.Name = "lblTecnico";
-            this.lblTecnico.Size = new System.Drawing.Size(96, 15);
-            this.lblTecnico.TabIndex = 6;
-            this.lblTecnico.Text = "Técnico Asignado:";
-
+            // 
+            lblTecnico.AutoSize = true;
+            lblTecnico.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
+            lblTecnico.Location = new Point(12, 100);
+            lblTecnico.Name = "lblTecnico";
+            lblTecnico.Size = new Size(135, 20);
+            lblTecnico.TabIndex = 6;
+            lblTecnico.Text = "Técnico Asignado:";
+            // 
             // lblTecnicoValor
-            this.lblTecnicoValor.AutoSize = true;
-            this.lblTecnicoValor.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.lblTecnicoValor.Location = new System.Drawing.Point(115, 100);
-            this.lblTecnicoValor.Name = "lblTecnicoValor";
-            this.lblTecnicoValor.Size = new System.Drawing.Size(23, 15);
-            this.lblTecnicoValor.TabIndex = 7;
-            this.lblTecnicoValor.Text = "N/A";
-
+            // 
+            lblTecnicoValor.AutoSize = true;
+            lblTecnicoValor.Font = new Font("Segoe UI", 11F);
+            lblTecnicoValor.Location = new Point(152, 100);
+            lblTecnicoValor.Name = "lblTecnicoValor";
+            lblTecnicoValor.Size = new Size(36, 20);
+            lblTecnicoValor.TabIndex = 7;
+            lblTecnicoValor.Text = "N/A";
+            // 
             // lblDescripcion
-            this.lblDescripcion.AutoSize = true;
-            this.lblDescripcion.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.lblDescripcion.Location = new System.Drawing.Point(12, 125);
-            this.lblDescripcion.Name = "lblDescripcion";
-            this.lblDescripcion.Size = new System.Drawing.Size(75, 15);
-            this.lblDescripcion.TabIndex = 8;
-            this.lblDescripcion.Text = "Descripción:";
-
+            // 
+            lblDescripcion.AutoSize = true;
+            lblDescripcion.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
+            lblDescripcion.Location = new Point(12, 125);
+            lblDescripcion.Name = "lblDescripcion";
+            lblDescripcion.Size = new Size(94, 20);
+            lblDescripcion.TabIndex = 8;
+            lblDescripcion.Text = "Descripción:";
+            // 
             // txtDescripcion
-            this.txtDescripcion.BackColor = System.Drawing.SystemColors.Control;
-            this.txtDescripcion.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.txtDescripcion.Location = new System.Drawing.Point(12, 145);
-            this.txtDescripcion.Multiline = true;
-            this.txtDescripcion.Name = "txtDescripcion";
-            this.txtDescripcion.ReadOnly = true;
-            this.txtDescripcion.Size = new System.Drawing.Size(496, 80);
-            this.txtDescripcion.TabIndex = 9;
-
+            // 
+            txtDescripcion.BackColor = SystemColors.Control;
+            txtDescripcion.Font = new Font("Segoe UI", 11F);
+            txtDescripcion.Location = new Point(12, 145);
+            txtDescripcion.Multiline = true;
+            txtDescripcion.Name = "txtDescripcion";
+            txtDescripcion.ReadOnly = true;
+            txtDescripcion.Size = new Size(496, 80);
+            txtDescripcion.TabIndex = 9;
+            // 
             // lblSolucion
-            this.lblSolucion.AutoSize = true;
-            this.lblSolucion.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.lblSolucion.Location = new System.Drawing.Point(12, 235);
-            this.lblSolucion.Name = "lblSolucion";
-            this.lblSolucion.Size = new System.Drawing.Size(56, 15);
-            this.lblSolucion.TabIndex = 10;
-            this.lblSolucion.Text = "Solución:";
-
+            // 
+            lblSolucion.AutoSize = true;
+            lblSolucion.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
+            lblSolucion.Location = new Point(12, 235);
+            lblSolucion.Name = "lblSolucion";
+            lblSolucion.Size = new Size(72, 20);
+            lblSolucion.TabIndex = 10;
+            lblSolucion.Text = "Solución:";
+            // 
             // txtSolucion
-            this.txtSolucion.BackColor = System.Drawing.SystemColors.Control;
-            this.txtSolucion.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.txtSolucion.Location = new System.Drawing.Point(12, 255);
-            this.txtSolucion.Multiline = true;
-            this.txtSolucion.Name = "txtSolucion";
-            this.txtSolucion.ReadOnly = true;
-            this.txtSolucion.Size = new System.Drawing.Size(496, 80);
-            this.txtSolucion.TabIndex = 11;
-
+            // 
+            txtSolucion.BackColor = SystemColors.Control;
+            txtSolucion.Font = new Font("Segoe UI", 11F);
+            txtSolucion.Location = new Point(12, 255);
+            txtSolucion.Multiline = true;
+            txtSolucion.Name = "txtSolucion";
+            txtSolucion.ReadOnly = true;
+            txtSolucion.Size = new Size(496, 80);
+            txtSolucion.TabIndex = 11;
+            // 
             // btnCerrar
-            this.btnCerrar.BackColor = System.Drawing.Color.FromArgb(231, 76, 60);
-            this.btnCerrar.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.btnCerrar.ForeColor = System.Drawing.Color.White;
-            this.btnCerrar.Location = new System.Drawing.Point(413, 590);
-            this.btnCerrar.Name = "btnCerrar";
-            this.btnCerrar.Size = new System.Drawing.Size(95, 33);
-            this.btnCerrar.TabIndex = 12;
-            this.btnCerrar.Text = "Cerrar";
-            this.btnCerrar.UseVisualStyleBackColor = false;
-            this.btnCerrar.Click += new System.EventHandler(this.btnCerrar_Click);
-
+            // 
+            btnCerrar.BackColor = Color.FromArgb(231, 76, 60);
+            btnCerrar.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
+            btnCerrar.ForeColor = Color.White;
+            btnCerrar.Location = new Point(413, 590);
+            btnCerrar.Name = "btnCerrar";
+            btnCerrar.Size = new Size(95, 33);
+            btnCerrar.TabIndex = 12;
+            btnCerrar.Text = "Cerrar";
+            btnCerrar.UseVisualStyleBackColor = false;
+            btnCerrar.Click += btnCerrar_Click;
+            // 
             // lblFechaCierre
-            this.lblFechaCierre.AutoSize = true;
-            this.lblFechaCierre.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.lblFechaCierre.Location = new System.Drawing.Point(220, 40);
-            this.lblFechaCierre.Name = "lblFechaCierre";
-            this.lblFechaCierre.Size = new System.Drawing.Size(80, 15);
-            this.lblFechaCierre.TabIndex = 13;
-            this.lblFechaCierre.Text = "Fecha Cierre:";
-            this.lblFechaCierre.Visible = false;
-
+            // 
+            lblFechaCierre.AutoSize = true;
+            lblFechaCierre.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
+            lblFechaCierre.Location = new Point(220, 40);
+            lblFechaCierre.Name = "lblFechaCierre";
+            lblFechaCierre.Size = new Size(98, 20);
+            lblFechaCierre.TabIndex = 13;
+            lblFechaCierre.Text = "Fecha Cierre:";
+            lblFechaCierre.Visible = false;
+            // 
             // lblFechaCierreValor
-            this.lblFechaCierreValor.AutoSize = true;
-            this.lblFechaCierreValor.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.lblFechaCierreValor.Location = new System.Drawing.Point(310, 40);
-            this.lblFechaCierreValor.Name = "lblFechaCierreValor";
-            this.lblFechaCierreValor.Size = new System.Drawing.Size(120, 15);
-            this.lblFechaCierreValor.TabIndex = 14;
-            this.lblFechaCierreValor.Text = "N/A";
-            this.lblFechaCierreValor.Visible = false;
+            // 
+            lblFechaCierreValor.AutoSize = true;
+            lblFechaCierreValor.Font = new Font("Segoe UI", 11F);
+            lblFechaCierreValor.Location = new Point(321, 40);
+            lblFechaCierreValor.Name = "lblFechaCierreValor";
+            lblFechaCierreValor.Size = new Size(36, 20);
+            lblFechaCierreValor.TabIndex = 14;
+            lblFechaCierreValor.Text = "N/A";
+            lblFechaCierreValor.Visible = false;
             // 
             // grpFeedback
             // 
-            this.grpFeedback.Text = "Retroalimentación de la Atención";
-            this.grpFeedback.Location = new System.Drawing.Point(12, 350);
-            this.grpFeedback.Size = new System.Drawing.Size(496, 120);
-            this.grpFeedback.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.grpFeedback.Visible = false;
-            this.grpFeedback.Controls.Add(this.lblEstrellas);
-            this.grpFeedback.Controls.Add(this.lblStar1);
-            this.grpFeedback.Controls.Add(this.lblStar2);
-            this.grpFeedback.Controls.Add(this.lblStar3);
-            this.grpFeedback.Controls.Add(this.lblStar4);
-            this.grpFeedback.Controls.Add(this.lblStar5);
-            this.grpFeedback.Controls.Add(this.lblComentario);
-            this.grpFeedback.Controls.Add(this.txtComentario);
-            this.grpFeedback.Controls.Add(this.btnEnviar);
-            this.grpFeedback.Controls.Add(this.lblResumen);
-            this.grpFeedback.Controls.Add(this.lblComentarioLectura);
+            grpFeedback.Controls.Add(lblEstrellas);
+            grpFeedback.Controls.Add(lblStar1);
+            grpFeedback.Controls.Add(lblStar2);
+            grpFeedback.Controls.Add(lblStar3);
+            grpFeedback.Controls.Add(lblStar4);
+            grpFeedback.Controls.Add(lblStar5);
+            grpFeedback.Controls.Add(lblComentario);
+            grpFeedback.Controls.Add(txtComentario);
+            grpFeedback.Controls.Add(btnEnviar);
+            grpFeedback.Controls.Add(lblResumen);
+            grpFeedback.Controls.Add(lblComentarioLectura);
+            grpFeedback.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            grpFeedback.Location = new Point(12, 350);
+            grpFeedback.Name = "grpFeedback";
+            grpFeedback.Size = new Size(496, 120);
+            grpFeedback.TabIndex = 0;
+            grpFeedback.TabStop = false;
+            grpFeedback.Text = "Retroalimentación de la Atención";
+            grpFeedback.Visible = false;
             // 
             // lblEstrellas
             // 
-            this.lblEstrellas.Text = "Calificación (1 al 5):";
-            this.lblEstrellas.Location = new System.Drawing.Point(15, 23);
-            this.lblEstrellas.AutoSize = true;
-            this.lblEstrellas.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular);
+            lblEstrellas.AutoSize = true;
+            lblEstrellas.Font = new Font("Segoe UI", 9F);
+            lblEstrellas.Location = new Point(15, 23);
+            lblEstrellas.Name = "lblEstrellas";
+            lblEstrellas.Size = new Size(110, 15);
+            lblEstrellas.TabIndex = 0;
+            lblEstrellas.Text = "Calificación (1 al 5):";
             // 
             // lblStar1
             // 
-            this.lblStar1.Text = "☆";
-            this.lblStar1.Location = new System.Drawing.Point(140, 18);
-            this.lblStar1.Size = new System.Drawing.Size(30, 30);
-            this.lblStar1.Font = new System.Drawing.Font("Segoe UI", 16F, System.Drawing.FontStyle.Regular);
-            this.lblStar1.ForeColor = System.Drawing.Color.Gray;
-            this.lblStar1.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.lblStar1.Tag = "1";
-            this.lblStar1.Click += new System.EventHandler(this.lblStar_Click);
-            this.lblStar1.MouseEnter += new System.EventHandler(this.lblStar_MouseEnter);
-            this.lblStar1.MouseLeave += new System.EventHandler(this.lblStar_MouseLeave);
+            lblStar1.Cursor = Cursors.Hand;
+            lblStar1.Font = new Font("Segoe UI", 16F);
+            lblStar1.ForeColor = Color.Gray;
+            lblStar1.Location = new Point(140, 18);
+            lblStar1.Name = "lblStar1";
+            lblStar1.Size = new Size(30, 30);
+            lblStar1.TabIndex = 1;
+            lblStar1.Tag = "1";
+            lblStar1.Text = "☆";
+            lblStar1.Click += lblStar_Click;
+            lblStar1.MouseEnter += lblStar_MouseEnter;
+            lblStar1.MouseLeave += lblStar_MouseLeave;
             // 
             // lblStar2
             // 
-            this.lblStar2.Text = "☆";
-            this.lblStar2.Location = new System.Drawing.Point(175, 18);
-            this.lblStar2.Size = new System.Drawing.Size(30, 30);
-            this.lblStar2.Font = new System.Drawing.Font("Segoe UI", 16F, System.Drawing.FontStyle.Regular);
-            this.lblStar2.ForeColor = System.Drawing.Color.Gray;
-            this.lblStar2.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.lblStar2.Tag = "2";
-            this.lblStar2.Click += new System.EventHandler(this.lblStar_Click);
-            this.lblStar2.MouseEnter += new System.EventHandler(this.lblStar_MouseEnter);
-            this.lblStar2.MouseLeave += new System.EventHandler(this.lblStar_MouseLeave);
+            lblStar2.Cursor = Cursors.Hand;
+            lblStar2.Font = new Font("Segoe UI", 16F);
+            lblStar2.ForeColor = Color.Gray;
+            lblStar2.Location = new Point(175, 18);
+            lblStar2.Name = "lblStar2";
+            lblStar2.Size = new Size(30, 30);
+            lblStar2.TabIndex = 2;
+            lblStar2.Tag = "2";
+            lblStar2.Text = "☆";
+            lblStar2.Click += lblStar_Click;
+            lblStar2.MouseEnter += lblStar_MouseEnter;
+            lblStar2.MouseLeave += lblStar_MouseLeave;
             // 
             // lblStar3
             // 
-            this.lblStar3.Text = "☆";
-            this.lblStar3.Location = new System.Drawing.Point(210, 18);
-            this.lblStar3.Size = new System.Drawing.Size(30, 30);
-            this.lblStar3.Font = new System.Drawing.Font("Segoe UI", 16F, System.Drawing.FontStyle.Regular);
-            this.lblStar3.ForeColor = System.Drawing.Color.Gray;
-            this.lblStar3.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.lblStar3.Tag = "3";
-            this.lblStar3.Click += new System.EventHandler(this.lblStar_Click);
-            this.lblStar3.MouseEnter += new System.EventHandler(this.lblStar_MouseEnter);
-            this.lblStar3.MouseLeave += new System.EventHandler(this.lblStar_MouseLeave);
+            lblStar3.Cursor = Cursors.Hand;
+            lblStar3.Font = new Font("Segoe UI", 16F);
+            lblStar3.ForeColor = Color.Gray;
+            lblStar3.Location = new Point(210, 18);
+            lblStar3.Name = "lblStar3";
+            lblStar3.Size = new Size(30, 30);
+            lblStar3.TabIndex = 3;
+            lblStar3.Tag = "3";
+            lblStar3.Text = "☆";
+            lblStar3.Click += lblStar_Click;
+            lblStar3.MouseEnter += lblStar_MouseEnter;
+            lblStar3.MouseLeave += lblStar_MouseLeave;
             // 
             // lblStar4
             // 
-            this.lblStar4.Text = "☆";
-            this.lblStar4.Location = new System.Drawing.Point(245, 18);
-            this.lblStar4.Size = new System.Drawing.Size(30, 30);
-            this.lblStar4.Font = new System.Drawing.Font("Segoe UI", 16F, System.Drawing.FontStyle.Regular);
-            this.lblStar4.ForeColor = System.Drawing.Color.Gray;
-            this.lblStar4.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.lblStar4.Tag = "4";
-            this.lblStar4.Click += new System.EventHandler(this.lblStar_Click);
-            this.lblStar4.MouseEnter += new System.EventHandler(this.lblStar_MouseEnter);
-            this.lblStar4.MouseLeave += new System.EventHandler(this.lblStar_MouseLeave);
+            lblStar4.Cursor = Cursors.Hand;
+            lblStar4.Font = new Font("Segoe UI", 16F);
+            lblStar4.ForeColor = Color.Gray;
+            lblStar4.Location = new Point(245, 18);
+            lblStar4.Name = "lblStar4";
+            lblStar4.Size = new Size(30, 30);
+            lblStar4.TabIndex = 4;
+            lblStar4.Tag = "4";
+            lblStar4.Text = "☆";
+            lblStar4.Click += lblStar_Click;
+            lblStar4.MouseEnter += lblStar_MouseEnter;
+            lblStar4.MouseLeave += lblStar_MouseLeave;
             // 
             // lblStar5
             // 
-            this.lblStar5.Text = "☆";
-            this.lblStar5.Location = new System.Drawing.Point(280, 18);
-            this.lblStar5.Size = new System.Drawing.Size(30, 30);
-            this.lblStar5.Font = new System.Drawing.Font("Segoe UI", 16F, System.Drawing.FontStyle.Regular);
-            this.lblStar5.ForeColor = System.Drawing.Color.Gray;
-            this.lblStar5.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.lblStar5.Tag = "5";
-            this.lblStar5.Click += new System.EventHandler(this.lblStar_Click);
-            this.lblStar5.MouseEnter += new System.EventHandler(this.lblStar_MouseEnter);
-            this.lblStar5.MouseLeave += new System.EventHandler(this.lblStar_MouseLeave);
+            lblStar5.Cursor = Cursors.Hand;
+            lblStar5.Font = new Font("Segoe UI", 16F);
+            lblStar5.ForeColor = Color.Gray;
+            lblStar5.Location = new Point(280, 18);
+            lblStar5.Name = "lblStar5";
+            lblStar5.Size = new Size(30, 30);
+            lblStar5.TabIndex = 5;
+            lblStar5.Tag = "5";
+            lblStar5.Text = "☆";
+            lblStar5.Click += lblStar_Click;
+            lblStar5.MouseEnter += lblStar_MouseEnter;
+            lblStar5.MouseLeave += lblStar_MouseLeave;
             // 
             // lblComentario
             // 
-            this.lblComentario.Text = "Comentario (Opcional):";
-            this.lblComentario.Location = new System.Drawing.Point(15, 50);
-            this.lblComentario.AutoSize = true;
-            this.lblComentario.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular);
+            lblComentario.AutoSize = true;
+            lblComentario.Font = new Font("Segoe UI", 9F);
+            lblComentario.Location = new Point(15, 50);
+            lblComentario.Name = "lblComentario";
+            lblComentario.Size = new Size(132, 15);
+            lblComentario.TabIndex = 6;
+            lblComentario.Text = "Comentario (Opcional):";
             // 
             // txtComentario
             // 
-            this.txtComentario.Location = new System.Drawing.Point(15, 70);
-            this.txtComentario.Width = 330;
-            this.txtComentario.Height = 25;
-            this.txtComentario.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular);
+            txtComentario.Font = new Font("Segoe UI", 9F);
+            txtComentario.Location = new Point(15, 70);
+            txtComentario.Name = "txtComentario";
+            txtComentario.Size = new Size(330, 23);
+            txtComentario.TabIndex = 7;
             // 
             // btnEnviar
             // 
-            this.btnEnviar.Text = "Enviar";
-            this.btnEnviar.Location = new System.Drawing.Point(365, 68);
-            this.btnEnviar.Width = 115;
-            this.btnEnviar.Height = 30;
-            this.btnEnviar.BackColor = System.Drawing.Color.FromArgb(52, 152, 219);
-            this.btnEnviar.ForeColor = System.Drawing.Color.White;
-            this.btnEnviar.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnEnviar.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.btnEnviar.FlatAppearance.BorderSize = 0;
-            this.btnEnviar.Click += new System.EventHandler(this.btnEnviarFeedback_Click);
+            btnEnviar.BackColor = Color.FromArgb(52, 152, 219);
+            btnEnviar.FlatAppearance.BorderSize = 0;
+            btnEnviar.FlatStyle = FlatStyle.Flat;
+            btnEnviar.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            btnEnviar.ForeColor = Color.White;
+            btnEnviar.Location = new Point(365, 68);
+            btnEnviar.Name = "btnEnviar";
+            btnEnviar.Size = new Size(115, 30);
+            btnEnviar.TabIndex = 8;
+            btnEnviar.Text = "Enviar";
+            btnEnviar.UseVisualStyleBackColor = false;
+            btnEnviar.Click += btnEnviarFeedback_Click;
             // 
             // lblResumen
             // 
-            this.lblResumen.Location = new System.Drawing.Point(15, 25);
-            this.lblResumen.AutoSize = true;
-            this.lblResumen.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
-            this.lblResumen.ForeColor = System.Drawing.Color.FromArgb(41, 128, 185);
+            lblResumen.AutoSize = true;
+            lblResumen.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            lblResumen.ForeColor = Color.FromArgb(41, 128, 185);
+            lblResumen.Location = new Point(15, 25);
+            lblResumen.Name = "lblResumen";
+            lblResumen.Size = new Size(0, 19);
+            lblResumen.TabIndex = 9;
             // 
             // lblComentarioLectura
             // 
-            this.lblComentarioLectura.Location = new System.Drawing.Point(15, 50);
-            this.lblComentarioLectura.Width = 430;
-            this.lblComentarioLectura.Height = 50;
-            this.lblComentarioLectura.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Italic);
-
+            lblComentarioLectura.Font = new Font("Segoe UI", 9F, FontStyle.Italic);
+            lblComentarioLectura.Location = new Point(15, 50);
+            lblComentarioLectura.Name = "lblComentarioLectura";
+            lblComentarioLectura.Size = new Size(430, 50);
+            lblComentarioLectura.TabIndex = 10;
+            // 
             // DetalleClienteForm
-            this.AutoSize = true;
-            this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.Controls.Add(this.grpFeedback);
-            this.Controls.Add(this.lblFechaCierre);
-            this.Controls.Add(this.lblFechaCierreValor);
-            this.Controls.Add(this.btnCerrar);
-            this.Controls.Add(this.txtSolucion);
-            this.Controls.Add(this.lblSolucion);
-            this.Controls.Add(this.txtDescripcion);
-            this.Controls.Add(this.lblDescripcion);
-            this.Controls.Add(this.lblTecnicoValor);
-            this.Controls.Add(this.lblTecnico);
-            this.Controls.Add(this.lblEstatusValor);
-            this.Controls.Add(this.lblEstatus);
-            this.Controls.Add(this.lblFechaAltaValor);
-            this.Controls.Add(this.lblFechaAlta);
-            this.Controls.Add(this.lblFolioValor);
-            this.Controls.Add(this.lblFolio);
-            this.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-            this.MaximizeBox = false;
-            this.MinimizeBox = false;
-            this.Name = "DetalleClienteForm";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "Detalle del Ticket - Solo Lectura";
-            this.Load += new System.EventHandler(this.frmDetalleCliente_Load);
-            this.ResumeLayout(false);
-            this.PerformLayout();
+            // 
+            AutoSize = true;
+            AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            ClientSize = new Size(559, 482);
+            Controls.Add(grpFeedback);
+            Controls.Add(lblFechaCierre);
+            Controls.Add(lblFechaCierreValor);
+            Controls.Add(btnCerrar);
+            Controls.Add(txtSolucion);
+            Controls.Add(lblSolucion);
+            Controls.Add(txtDescripcion);
+            Controls.Add(lblDescripcion);
+            Controls.Add(lblTecnicoValor);
+            Controls.Add(lblTecnico);
+            Controls.Add(lblEstatusValor);
+            Controls.Add(lblEstatus);
+            Controls.Add(lblFechaAltaValor);
+            Controls.Add(lblFechaAlta);
+            Controls.Add(lblFolioValor);
+            Controls.Add(lblFolio);
+            Font = new Font("Segoe UI", 11F);
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            MaximizeBox = false;
+            MinimizeBox = false;
+            Name = "DetalleClienteForm";
+            StartPosition = FormStartPosition.CenterParent;
+            Text = "Detalle del Ticket - Solo Lectura";
+            Load += frmDetalleCliente_Load;
+            grpFeedback.ResumeLayout(false);
+            grpFeedback.PerformLayout();
+            ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
