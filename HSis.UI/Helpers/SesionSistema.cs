@@ -44,6 +44,17 @@ namespace HSis.UI.Helpers
                 MessageBox.Show(info, "Información de Sesión", MessageBoxButtons.OK, MessageBoxIcon.Information);
             };
 
+            var versionAssembly = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+            string versionTexto = versionAssembly != null 
+                ? $"{versionAssembly.Major}.{versionAssembly.Minor}.{versionAssembly.Build}" 
+                : Application.ProductVersion;
+
+            var itemVersion = new ToolStripMenuItem($"Versión: {versionTexto}");
+            itemVersion.Click += (s, e) =>
+            {
+                MessageBox.Show($"HSis - Sistema de Soporte e Inventario\n\nVersión instalada: v{versionTexto}", "Acerca de HSis", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            };
+
             var itemCerrarSesion = new ToolStripMenuItem("Cerrar Sesión");
             itemCerrarSesion.Click += (s, e) =>
             {
@@ -58,6 +69,7 @@ namespace HSis.UI.Helpers
             };
 
             menuUsuario.DropDownItems.Add(itemPerfil);
+            menuUsuario.DropDownItems.Add(itemVersion);
             menuUsuario.DropDownItems.Add(itemCerrarSesion);
 
             menu.Items.Add(menuUsuario);
