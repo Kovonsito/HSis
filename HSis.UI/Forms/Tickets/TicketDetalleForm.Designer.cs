@@ -42,6 +42,7 @@ namespace HSis.UI.Forms.Tickets
             lblDescripcion = new Label();
             txtAlta = new TextBox();
             lblSolucion = new Label();
+            rtbSolucion = new CajaTextoOrtograficaWpf();
             lblAtendido = new Label();
             lblAtencion = new Label();
             txtAtencion = new TextBox();
