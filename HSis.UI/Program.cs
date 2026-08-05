@@ -190,8 +190,8 @@ namespace HSis.UI
                             var notificationClient = ServiceProvider.GetRequiredService<INotificationClientService>();
                             string roleName = SesionSistema.IdRolUsuario switch
                             {
-                                1 => "Admin",
-                                2 => "Tecnico",
+                                1 => "Administrador",
+                                2 => "Técnico",
                                 3 => "Cliente",
                                 _ => "Usuario"
                             };
