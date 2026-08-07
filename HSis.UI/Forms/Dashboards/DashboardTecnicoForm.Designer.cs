@@ -122,14 +122,10 @@ namespace HSis.UI.Forms.Dashboards
             // 
             // btnNuevoTicket
             // 
-            this.btnNuevoTicket.BackColor = Color.FromArgb(16, 185, 129);
-            this.btnNuevoTicket.FlatStyle = FlatStyle.Flat;
-            this.btnNuevoTicket.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
-            this.btnNuevoTicket.ForeColor = Color.White;
+            this.btnNuevoTicket.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold);
             this.btnNuevoTicket.Location = new Point(430, 80);
             this.btnNuevoTicket.Name = "btnNuevoTicket";
-            this.btnNuevoTicket.Size = new Size(140, 26);
-            this.btnNuevoTicket.TabIndex = 3;
+            this.btnNuevoTicket.Size = new Size(130, 26);
             this.btnNuevoTicket.Text = "+ Registrar Ticket";
             this.btnNuevoTicket.UseVisualStyleBackColor = false;
             this.btnNuevoTicket.Click += new EventHandler(this.btnNuevoTicket_Click);
@@ -137,7 +133,7 @@ namespace HSis.UI.Forms.Dashboards
             // 
             // btnLimpiarFiltros
             // 
-            this.btnLimpiarFiltros.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
+            this.btnLimpiarFiltros.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold);
             this.btnLimpiarFiltros.Location = new Point(720, 80);
             this.btnLimpiarFiltros.Name = "btnLimpiarFiltros";
             this.btnLimpiarFiltros.Size = new Size(130, 26);
