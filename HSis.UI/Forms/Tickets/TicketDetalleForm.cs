@@ -17,8 +17,8 @@ namespace HSis.UI.Forms.Tickets
         private readonly ITicketService _ticketService;
         private readonly IUsuarioService _usuarioService;
         private TicketDto? _ticketActual;
-        private CajaTextoOrtograficaWpf rtbDescripcion;
-        private CajaTextoOrtograficaWpf rtbSolucion;
+        private CajaTextoOrtograficaWpf rtbDescripcion = null!;
+        private CajaTextoOrtograficaWpf rtbSolucion = null!;
 
         public TicketDetalleForm(int idTicket, ITicketService ticketService, IUsuarioService usuarioService)
         {
@@ -494,6 +494,7 @@ namespace HSis.UI.Forms.Tickets
             lblDescripcion.Margin = new Padding(0, 0, 0, 5);
             rtbDescripcion.Dock = DockStyle.Fill;
             rtbDescripcion.Margin = new Padding(0, 0, 0, 15);
+            rtbDescripcion.SoloLectura = true;
             lblSolucion.Dock = DockStyle.Fill;
             lblSolucion.Margin = new Padding(0, 0, 0, 5);
             rtbSolucion.Dock = DockStyle.Fill;

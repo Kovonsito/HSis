@@ -38,7 +38,7 @@ namespace HSis.UI.Controls
                 {
                     Text = campo.Etiqueta,
                     AutoSize = true,
-                    Font = new Font("Segoe UI", 9F, FontStyle.Regular),
+                    Font = new Font("Segoe UI", 10F, FontStyle.Regular),
                     ForeColor = Color.FromArgb(75, 85, 99), // Slate gray style
                     Margin = new Padding(0, 0, 0, 3)
                 };
@@ -50,7 +50,7 @@ namespace HSis.UI.Controls
                         var txt = new TextBox
                         {
                             Width = campo.Ancho - 10,
-                            Font = new Font("Segoe UI", 9F)
+                            Font = new Font("Segoe UI", 10F)
                         };
                         txt.TextChanged += (s, e) => LanzarFiltroCambiado();
                         input = txt;
@@ -61,7 +61,7 @@ namespace HSis.UI.Controls
                         {
                             DropDownStyle = ComboBoxStyle.DropDownList,
                             Width = campo.Ancho - 10,
-                            Font = new Font("Segoe UI", 9F)
+                            Font = new Font("Segoe UI", 10F)
                         };
                         if (campo.ValoresCombo != null)
                         {
@@ -77,7 +77,7 @@ namespace HSis.UI.Controls
                         {
                             Format = DateTimePickerFormat.Short,
                             Width = campo.Ancho - 10,
-                            Font = new Font("Segoe UI", 9F)
+                            Font = new Font("Segoe UI", 10F)
                         };
                         if (campo.ValorDefecto is DateTime dt)
                         {

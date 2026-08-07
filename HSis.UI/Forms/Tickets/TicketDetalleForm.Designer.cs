@@ -42,7 +42,6 @@ namespace HSis.UI.Forms.Tickets
             lblDescripcion = new Label();
             txtAlta = new TextBox();
             lblSolucion = new Label();
-            rtbSolucion = new CajaTextoOrtograficaWpf();
             lblAtendido = new Label();
             lblAtencion = new Label();
             txtAtencion = new TextBox();
@@ -123,15 +122,6 @@ namespace HSis.UI.Forms.Tickets
             txtUsuario.Size = new Size(228, 23);
             txtUsuario.TabIndex = 7;
             // 
-            // rtbSolucion
-            // 
-            rtbSolucion.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            rtbSolucion.Location = new Point(12, 250);
-            rtbSolucion.Name = "rtbSolucion";
-            rtbSolucion.Size = new Size(672, 180);
-            rtbSolucion.IdiomaCorreccion = "es-es";
-            rtbSolucion.TabIndex = 8;
-            // 
             // lblAlta
             // 
             lblAlta.AutoSize = true;
@@ -166,17 +156,6 @@ namespace HSis.UI.Forms.Tickets
             lblSolucion.Size = new Size(53, 15);
             lblSolucion.TabIndex = 11;
             lblSolucion.Text = "Solución";
-            // 
-            // rtbDescripcion
-            // 
-            rtbDescripcion.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            rtbDescripcion.Enabled = false;
-            rtbDescripcion.Location = new Point(12, 35);
-            rtbDescripcion.Name = "rtbDescripcion";
-            rtbDescripcion.SoloLectura = true;
-            rtbDescripcion.Size = new Size(672, 180);
-            rtbDescripcion.IdiomaCorreccion = "es-es";
-            rtbDescripcion.TabIndex = 12;
             // 
             // lblAtendido
             // 
@@ -440,9 +419,7 @@ namespace HSis.UI.Forms.Tickets
             // 
             tabDescripcionSolucion.AutoScroll = true;
             tabDescripcionSolucion.Controls.Add(lblDescripcion);
-            tabDescripcionSolucion.Controls.Add(rtbDescripcion);
             tabDescripcionSolucion.Controls.Add(lblSolucion);
-            tabDescripcionSolucion.Controls.Add(rtbSolucion);
             tabDescripcionSolucion.Location = new Point(4, 24);
             tabDescripcionSolucion.Name = "tabDescripcionSolucion";
             tabDescripcionSolucion.Padding = new Padding(3);
