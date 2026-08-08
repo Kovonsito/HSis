@@ -27,6 +27,17 @@
             "stopAtEntry": false
         },
         {
+            "name": ".NET UI - Instancia 2 (HSis.UI)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-ui",
+            "program": "${workspaceFolder}/HSis.UI/bin/Debug/net10.0-windows/HSis.UI.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}/HSis.UI",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
             // Use IntelliSense to find out which attributes exist for C# debugging
             // Use hover for the description of the existing attributes
             // For further information visit https://github.com/dotnet/vscode-csharp/blob/main/debugger-launchjson.md
@@ -54,6 +65,21 @@
             "configurations": [
                 ".NET Server (HSis.Server)",
                 ".NET UI (HSis.UI)"
+            ]
+        },
+        {
+            "name": "Servidor + 2x UI (Depuración)",
+            "configurations": [
+                ".NET Server (HSis.Server)",
+                ".NET UI (HSis.UI)",
+                ".NET UI - Instancia 2 (HSis.UI)"
+            ]
+        },
+        {
+            "name": "2x UI (Depuración)",
+            "configurations": [
+                ".NET UI (HSis.UI)",
+                ".NET UI - Instancia 2 (HSis.UI)"
             ]
         }
     ]
