@@ -121,5 +121,15 @@ namespace HSis.UI.Controls
             if (_botonSiguiente != null) _botonSiguiente.Enabled = PaginaActual < TotalPaginas;
             if (_botonUltimo != null) _botonUltimo.Enabled = PaginaActual < TotalPaginas;
         }
+
+        private void _botonSiguiente_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void PaginacionControl_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 }

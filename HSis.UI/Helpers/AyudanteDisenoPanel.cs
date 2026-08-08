@@ -23,12 +23,12 @@ namespace HSis.UI.Helpers
             {
                 tbl.RowStyles.Add(new RowStyle(SizeType.AutoSize));       // Fila 2: Panel de Filtros
                 tbl.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));  // Fila 3: Grid
-                tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 45F));  // Fila 4: Paginación
+                tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 50F));  // Fila 4: Paginación
             }
             else
             {
                 tbl.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));  // Fila 2: Grid
-                tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 45F));  // Fila 3: Paginación
+                tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 50F));  // Fila 3: Paginación
             }
 
             return tbl;
