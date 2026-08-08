@@ -226,8 +226,9 @@ namespace HSis.UI.Forms.Dashboards
         {
             // Instanciar control de paginación
             PaginacionControl = new PaginacionControl();
+            PaginacionControl.Dock = DockStyle.Fill;
             PaginacionControl.PaginaCambiada += (s, e) => MostrarPaginaActual();
-            PaginacionControl.Margin = new Padding(12, 0, 12, 0);
+            PaginacionControl.Margin = new Padding(12, 0, 12, 6);
 
             // Instanciar indicador de cerrados
             ucMisCerrados = new IndicadorControl();

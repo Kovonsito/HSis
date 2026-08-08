@@ -20,28 +20,26 @@ namespace HSis.UI.Controls
 
         private void InitializeComponent()
         {
-            this.flowLayoutPanelMain = new FlowLayoutPanel();
-            this.SuspendLayout();
+            flowLayoutPanelMain = new FlowLayoutPanel();
+            SuspendLayout();
             // 
             // flowLayoutPanelMain
             // 
-            this.flowLayoutPanelMain.Dock = DockStyle.Fill;
-            this.flowLayoutPanelMain.FlowDirection = FlowDirection.LeftToRight;
-            this.flowLayoutPanelMain.Location = new Point(0, 0);
-            this.flowLayoutPanelMain.Name = "flowLayoutPanelMain";
-            this.flowLayoutPanelMain.Size = new Size(800, 70);
-            this.flowLayoutPanelMain.TabIndex = 0;
-            this.flowLayoutPanelMain.WrapContents = true;
-            this.flowLayoutPanelMain.AutoScroll = true;
+            flowLayoutPanelMain.AutoScroll = true;
+            flowLayoutPanelMain.Dock = DockStyle.Fill;
+            flowLayoutPanelMain.Location = new Point(0, 0);
+            flowLayoutPanelMain.Name = "flowLayoutPanelMain";
+            flowLayoutPanelMain.Size = new Size(800, 93);
+            flowLayoutPanelMain.TabIndex = 0;
             // 
             // FiltroGenericoControl
             // 
-            this.AutoScaleDimensions = new SizeF(7F, 15F);
-            this.AutoScaleMode = AutoScaleMode.Font;
-            this.Controls.Add(this.flowLayoutPanelMain);
-            this.Name = "FiltroGenericoControl";
-            this.Size = new Size(800, 70);
-            this.ResumeLayout(false);
+            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleMode = AutoScaleMode.Font;
+            Controls.Add(flowLayoutPanelMain);
+            Name = "FiltroGenericoControl";
+            Size = new Size(800, 93);
+            ResumeLayout(false);
         }
     }
 }

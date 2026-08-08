@@ -218,7 +218,7 @@ namespace HSis.UI.Controls
                         var cmb = (ComboBox)control;
                         if (cmb.DataSource != null)
                         {
-                            cmb.SelectedValue = valor;
+                            cmb.SelectedValue = valor!;
                         }
                         else
                         {
