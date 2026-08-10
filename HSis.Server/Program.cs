@@ -114,7 +114,7 @@ builder.Services.AddTransient<ITicketDetalleService, TicketDetalleService>();
 builder.Services.AddTransient<IMaterialService, MaterialService>();
 builder.Services.AddTransient<IReportExportService, ReportExportService>();
 builder.Services.AddTransient<INotificacionStorageService, NotificacionStorageService>();
-builder.Services.AddSingleton<INotificationClientService, NotificationClientService>();
+builder.Services.AddTransient<IServerNotificationDispatcher, ServerNotificationDispatcher>();
 
 var app = builder.Build();
 
