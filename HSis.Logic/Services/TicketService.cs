@@ -11,7 +11,8 @@ namespace HSis.Logic.Services
         IMapper mapper,
         FluentValidation.IValidator<TicketCreateDto> createValidator,
         FluentValidation.IValidator<TicketUpdateDto> updateValidator,
-        INotificationClientService? notificationClient = null) : ITicketService
+        INotificationClientService? notificationClient = null,
+        IServerNotificationDispatcher? notificationDispatcher = null) : ITicketService
     {
         private static DateTime ObtenerLimiteSLA() => DateTime.Now.AddHours(-48);
 
@@ -128,7 +129,16 @@ namespace HSis.Logic.Services
                 db.Notificaciones.Add(notificacion);
                 await db.SaveChangesAsync();
 
-                if (notificationClient != null)
+                if (notificationDispatcher != null)
+                {
+                    _ = notificationDispatcher.NotifyTicketStatusChangedAsync(
+                        ticketTracked.IdUsuario,
+                        ticketTracked.IdTicket,
+                        ticketTracked.IdTicket.ToString("d6"),
+                        ticketTracked.Status ?? string.Empty
+                    );
+                }
+                else if (notificationClient != null)
                 {
                     _ = notificationClient.NotifyTicketStatusChangedAsync(
                         ticketTracked.IdUsuario,
@@ -207,7 +217,15 @@ namespace HSis.Logic.Services
             db.Tickets.Add(nuevoTicket);
             await db.SaveChangesAsync();
 
-            if (notificationClient != null)
+            if (notificationDispatcher != null)
+            {
+                _ = notificationDispatcher.NotifyTicketCreatedAsync(
+                    nuevoTicket.IdTicket,
+                    nuevoTicket.IdTicket.ToString("d6"),
+                    nuevoTicket.Descripción ?? string.Empty
+                );
+            }
+            else if (notificationClient != null)
             {
                 _ = notificationClient.NotifyTicketCreatedAsync(
                     nuevoTicket.IdTicket,
@@ -412,7 +430,17 @@ namespace HSis.Logic.Services
             };
             db.Notificaciones.Add(notificacion);
 
-            if (notificationClient != null)
+            if (notificationDispatcher != null)
+            {
+                _ = notificationDispatcher.NotifyTicketRatedAsync(
+                    idTecnicoNotif,
+                    ticket.IdTicket,
+                    ticket.IdTicket.ToString("d6"),
+                    calificacion,
+                    comentario ?? string.Empty
+                );
+            }
+            else if (notificationClient != null)
             {
                 _ = notificationClient.NotifyTicketRatedAsync(
                     idTecnicoNotif,
