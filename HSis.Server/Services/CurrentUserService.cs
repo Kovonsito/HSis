@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using HSis.Logic.DTOs;
 using HSis.Logic.Services;
 
 namespace HSis.Server.Services

@@ -1,10 +1,6 @@
 #nullable enable
-using System;
-using System.Drawing;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.Versioning;
-using System.Windows.Forms;
 using HSis.Logic.Services;
 
 namespace HSis.UI.Forms.Otros

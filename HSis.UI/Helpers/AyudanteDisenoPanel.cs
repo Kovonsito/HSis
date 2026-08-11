@@ -1,7 +1,4 @@
 #nullable enable
-using System.Drawing;
-using System.Windows.Forms;
-
 namespace HSis.UI.Helpers
 {
     public static class AyudanteDisenoPanel

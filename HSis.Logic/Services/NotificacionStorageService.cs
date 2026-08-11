@@ -99,6 +99,33 @@ namespace HSis.Logic.Services
             }
         }
 
+        public async Task MarcarTodasComoLeidasAsync(int userId)
+        {
+            var list = await ObtenerNotificacionesAsync(userId);
+            if (list.Count == 0) return;
+
+            foreach (var item in list)
+            {
+                item.Leido = true;
+            }
+            await GuardarListaAsync(userId, list);
+
+            try
+            {
+                using var db = _dbContextFactory.CreateDbContext();
+                var dbNotifs = await db.Notificaciones.Where(n => n.UsuarioDestinoId == userId && !n.Leido).ToListAsync();
+                foreach (var n in dbNotifs)
+                {
+                    n.Leido = true;
+                }
+                await db.SaveChangesAsync();
+            }
+            catch
+            {
+                // Ignorar errores de base de datos
+            }
+        }
+
         public async Task LimpiarTodasAsync(int userId)
         {
             await GuardarListaAsync(userId, []);

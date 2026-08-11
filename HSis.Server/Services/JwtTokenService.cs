@@ -25,8 +25,8 @@ namespace HSis.Server.Services
         public string GenerarToken(UsuarioDto usuario)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            string secretKeyString = string.IsNullOrWhiteSpace(_jwtSettings.SecretKey) 
-                ? "REMOVED_HSIS_JWT_SECRET" 
+            string secretKeyString = string.IsNullOrWhiteSpace(_jwtSettings.SecretKey)
+                ? "REMOVED_HSIS_JWT_SECRET"
                 : _jwtSettings.SecretKey;
             var key = Encoding.UTF8.GetBytes(secretKeyString);
 

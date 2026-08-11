@@ -1,6 +1,6 @@
-using Microsoft.AspNetCore.Mvc;
-using HSis.Logic.Services;
 using HSis.Logic.DTOs;
+using HSis.Logic.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace HSis.Server.Controllers
 {

@@ -1,7 +1,6 @@
 using System.Reflection;
 using System.Text;
 using FluentValidation;
-using HSis.Data;
 using HSis.Data.Models;
 using HSis.Logic.Interceptors;
 using HSis.Logic.Services;

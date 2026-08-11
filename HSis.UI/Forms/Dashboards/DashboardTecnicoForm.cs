@@ -1,16 +1,12 @@
 #nullable enable
-using System;
-using System.Drawing;
 using System.Runtime.Versioning;
-using System.Windows.Forms;
 using HSis.Logic.DTOs;
 using HSis.Logic.Services;
 using HSis.UI.Controls;
 using HSis.UI.Factories;
+using HSis.UI.Forms.Tickets;
 using HSis.UI.Helpers;
 using HSis.UI.Services;
-
-using HSis.UI.Forms.Tickets;
 
 namespace HSis.UI.Forms.Dashboards
 {

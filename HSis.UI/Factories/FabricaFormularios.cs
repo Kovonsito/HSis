@@ -1,6 +1,4 @@
-using System;
 using System.Runtime.Versioning;
-using System.Windows.Forms;
 using HSis.UI.Forms.Otros;
 using HSis.UI.Forms.Tickets;
 using Microsoft.Extensions.DependencyInjection;
