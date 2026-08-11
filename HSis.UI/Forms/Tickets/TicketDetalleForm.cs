@@ -1,12 +1,8 @@
-using System;
-using System.Drawing;
-using System.Linq;
-using System.Windows.Forms;
 using System.Runtime.Versioning;
 using HSis.Logic.DTOs;
 using HSis.Logic.Services;
-using HSis.UI.Helpers;
 using HSis.UI.Controls;
+using HSis.UI.Helpers;
 
 namespace HSis.UI.Forms.Tickets
 {
@@ -181,6 +177,13 @@ namespace HSis.UI.Forms.Tickets
 
                 string solucionIngresada = rtbSolucion.Text ?? string.Empty;
                 string prioridadSeleccionada = cmbPrioridad.SelectedItem?.ToString() ?? string.Empty;
+
+                if (estatusSeleccionado == ConstantesEstatus.EN_PROCESO && string.IsNullOrWhiteSpace(prioridadSeleccionada))
+                {
+                    MessageBox.Show("Es necesario seleccionar una prioridad para el ticket para poder guardarlo y cambiarlo a estatus 'En Proceso'.", "Prioridad requerida", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    cmbPrioridad.Focus();
+                    return;
+                }
 
                 // Validación de cambios: Evitar viajes a la BD e historial innecesario si nada cambió
                 bool huboCambios = ticket.Status != estatusSeleccionado ||

@@ -10,19 +10,13 @@ public class ServerNotificationDispatcher(IHubContext<NotificationHub> hubContex
     {
         var message = $"Se ha registrado un nuevo ticket TK-{ticketFolio}: \"{titulo}\".";
         await hubContext.Clients.Group("Role_Técnico").SendAsync("ReceiveNotification", "NuevoTicket", ticketId, message);
-        await hubContext.Clients.Group("Role_Tecnico").SendAsync("ReceiveNotification", "NuevoTicket", ticketId, message);
         await hubContext.Clients.Group("Role_Administrador").SendAsync("ReceiveNotification", "NuevoTicket", ticketId, message);
-        await hubContext.Clients.Group("Role_Admin").SendAsync("ReceiveNotification", "NuevoTicket", ticketId, message);
     }
 
     public async Task NotifyTicketStatusChangedAsync(int clientUserId, int ticketId, string ticketFolio, string newStatus)
     {
         var message = $"El ticket TK-{ticketFolio} ha cambiado al estatus: {newStatus}.";
         await hubContext.Clients.Group($"User_{clientUserId}").SendAsync("ReceiveNotification", "EstadoTicket", ticketId, message);
-        await hubContext.Clients.Group("Role_Técnico").SendAsync("ReceiveNotification", "EstadoTicket", ticketId, message);
-        await hubContext.Clients.Group("Role_Tecnico").SendAsync("ReceiveNotification", "EstadoTicket", ticketId, message);
-        await hubContext.Clients.Group("Role_Administrador").SendAsync("ReceiveNotification", "EstadoTicket", ticketId, message);
-        await hubContext.Clients.Group("Role_Admin").SendAsync("ReceiveNotification", "EstadoTicket", ticketId, message);
     }
 
     public async Task NotifyTicketRatedAsync(int technicianUserId, int ticketId, string ticketFolio, int rating, string comment)
@@ -36,6 +30,5 @@ public class ServerNotificationDispatcher(IHubContext<NotificationHub> hubContex
         }
 
         await hubContext.Clients.Group("Role_Administrador").SendAsync("ReceiveNotification", "Calificacion", ticketId, message);
-        await hubContext.Clients.Group("Role_Admin").SendAsync("ReceiveNotification", "Calificacion", ticketId, message);
     }
 }

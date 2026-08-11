@@ -1,7 +1,7 @@
 using System.Net.Http;
 using System.Net.Http.Json;
-using HSis.Logic.Services;
 using HSis.Data.Models;
+using HSis.Logic.Services;
 
 namespace HSis.UI.ApiClients
 {
