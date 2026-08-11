@@ -1,6 +1,5 @@
 #nullable enable
 using System.Runtime.Versioning;
-using System.Windows.Forms;
 using HSis.Logic.DTOs;
 using HSis.Logic.Services;
 
@@ -45,8 +44,8 @@ namespace HSis.UI.Helpers
             };
 
             var versionAssembly = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
-            string versionTexto = versionAssembly != null 
-                ? $"{versionAssembly.Major}.{versionAssembly.Minor}.{versionAssembly.Build}" 
+            string versionTexto = versionAssembly != null
+                ? $"{versionAssembly.Major}.{versionAssembly.Minor}.{versionAssembly.Build}"
                 : Application.ProductVersion;
 
             var itemVersion = new ToolStripMenuItem($"Versión: {versionTexto}");

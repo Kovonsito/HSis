@@ -61,8 +61,43 @@ namespace HSis.UI.Services
                 Color.FromArgb(230, 126, 34)
             );
 
-            // 7. Cargar el historial local de notificaciones
+            // 7. Configurar evento para ocultar el panel al hacer clic fuera de él
+            ConfigurarOcultarAlHacerClicFuera();
+
+            // 8. Cargar el historial local de notificaciones
             _ = CargarHistorialNotificacionesAsync();
+        }
+
+        private void ConfigurarOcultarAlHacerClicFuera()
+        {
+            if (_formularioAnfitrion == null) return;
+
+            SuscribirEventosClicRecursivo(_formularioAnfitrion);
+        }
+
+        private void SuscribirEventosClicRecursivo(Control container)
+        {
+            container.Click += (s, e) => OcultarSiClicFuera();
+
+            foreach (Control ctrl in container.Controls)
+            {
+                if (ctrl == _pnlNotificacionesHistorial) continue; // No ocultar al hacer clic dentro del panel de notificaciones
+
+                SuscribirEventosClicRecursivo(ctrl);
+            }
+        }
+
+        private void OcultarSiClicFuera()
+        {
+            if (_pnlNotificacionesHistorial != null && _pnlNotificacionesHistorial.Visible)
+            {
+                // Verificar si el cursor del mouse está fuera de los límites del panel de notificaciones
+                Point mousePos = _formularioAnfitrion?.PointToClient(Cursor.Position) ?? Point.Empty;
+                if (!_pnlNotificacionesHistorial.Bounds.Contains(mousePos))
+                {
+                    _pnlNotificacionesHistorial.Visible = false;
+                }
+            }
         }
 
         private void InicializarBannerResiliencia()
@@ -93,9 +128,9 @@ namespace HSis.UI.Services
             // Panel flotante de historial de notificaciones
             _pnlNotificacionesHistorial = new Panel
             {
-                Width = 300,
+                Width = 330,
                 Height = _formularioAnfitrion.ClientSize.Height - 35,
-                Location = new Point(_formularioAnfitrion.ClientSize.Width - 300, 35),
+                Location = new Point(_formularioAnfitrion.ClientSize.Width - 330, 35),
                 Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right,
                 BackColor = Color.FromArgb(245, 247, 250),
                 Visible = false,
@@ -105,7 +140,7 @@ namespace HSis.UI.Services
             var pnlNotifHeader = new Panel
             {
                 Dock = DockStyle.Top,
-                Height = 40,
+                Height = 65,
                 Padding = new Padding(0, 0, 0, 5)
             };
 
@@ -113,24 +148,42 @@ namespace HSis.UI.Services
             {
                 Text = "Notificaciones",
                 Font = new Font("Segoe UI", 12F, FontStyle.Bold),
-                Dock = DockStyle.Left,
+                Location = new Point(0, 0),
                 AutoSize = true
             };
+
+            var btnMarcarTodasLeidas = new Button
+            {
+                Text = "Marcar todas leídas",
+                Font = new Font("Segoe UI", 8.5F, FontStyle.Regular),
+                Location = new Point(0, 32),
+                Width = 145,
+                Height = 26,
+                BackColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand
+            };
+            btnMarcarTodasLeidas.FlatAppearance.BorderSize = 1;
+            btnMarcarTodasLeidas.FlatAppearance.BorderColor = Color.LightGray;
+            btnMarcarTodasLeidas.Click += BtnMarcarTodasLeidas_Click;
 
             var btnLimpiarNotif = new Button
             {
                 Text = "Limpiar todo",
-                Font = new Font("Segoe UI", 9F, FontStyle.Regular),
-                Dock = DockStyle.Right,
-                Width = 95,
+                Font = new Font("Segoe UI", 8.5F, FontStyle.Regular),
+                Location = new Point(152, 32),
+                Width = 100,
+                Height = 26,
                 BackColor = Color.White,
-                FlatStyle = FlatStyle.Flat
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand
             };
             btnLimpiarNotif.FlatAppearance.BorderSize = 1;
             btnLimpiarNotif.FlatAppearance.BorderColor = Color.LightGray;
             btnLimpiarNotif.Click += BtnLimpiarNotif_Click;
 
             pnlNotifHeader.Controls.Add(lblNotifTitle);
+            pnlNotifHeader.Controls.Add(btnMarcarTodasLeidas);
             pnlNotifHeader.Controls.Add(btnLimpiarNotif);
             _pnlNotificacionesHistorial.Controls.Add(pnlNotifHeader);
 
@@ -359,6 +412,12 @@ namespace HSis.UI.Services
             {
                 _ = _callbackRecargaDatos();
             }
+        }
+
+        private async void BtnMarcarTodasLeidas_Click(object? sender, EventArgs e)
+        {
+            await servicioAlmacenamiento.MarcarTodasComoLeidasAsync(SesionSistema.IdUsuario);
+            await CargarHistorialNotificacionesAsync();
         }
 
         private async void BtnLimpiarNotif_Click(object? sender, EventArgs e)

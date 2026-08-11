@@ -1,8 +1,4 @@
 #nullable enable
-using System;
-using System.Drawing;
-using System.Windows.Forms;
-
 namespace HSis.UI.Controls
 {
     public partial class PaginacionControl : UserControl

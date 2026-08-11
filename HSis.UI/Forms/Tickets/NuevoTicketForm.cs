@@ -1,14 +1,9 @@
-using System;
-using System.Drawing;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using System.Runtime.Versioning;
 using HSis.Data.Models;
 using HSis.Logic.DTOs;
 using HSis.Logic.Services;
-using HSis.UI.Helpers;
 using HSis.UI.Controls;
+using HSis.UI.Helpers;
 
 namespace HSis.UI.Forms.Tickets
 {

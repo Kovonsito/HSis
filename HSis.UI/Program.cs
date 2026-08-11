@@ -1,9 +1,7 @@
 #nullable enable
 using System.Runtime.Versioning;
-using FluentValidation;
 using AutoUpdaterDotNET;
-using HSis.Data.Models;
-using HSis.Logic.Interceptors;
+using FluentValidation;
 using HSis.Logic.Services;
 using HSis.UI.Factories;
 using HSis.UI.Forms.Auth;
@@ -14,7 +12,6 @@ using HSis.UI.Helpers;
 using HSis.UI.Services;
 using Mapster;
 using MapsterMapper;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
@@ -141,8 +138,8 @@ namespace HSis.UI
                 services.AddHttpClient<IReportExportService, ApiClients.ReportExportApiClientService>(c => c.BaseAddress = new Uri(baseUrl))
                         .AddHttpMessageHandler<ApiClients.JwtAuthHeaderHandler>();
 
-                // Mocks temporales para servicios que requerían EF local
-                services.AddSingleton<INotificacionStorageService, MockNotificacionStorageService>();
+                // Almacenamiento local persistente para notificaciones de la UI
+                services.AddSingleton<INotificacionStorageService, LocalFileNotificacionStorageService>();
 
                 services.AddSingleton<INotificationClientService, NotificationClientService>();
                 services.AddSingleton<ISessionCacheService, SessionCacheService>();
@@ -226,15 +223,5 @@ namespace HSis.UI
                 Log.CloseAndFlush();
             }
         }
-    }
-
-    // Mock temporal para INotificacionStorageService (ya que usaba EF)
-    public class MockNotificacionStorageService : INotificacionStorageService
-    {
-        public Task<List<NotificacionLocal>> ObtenerNotificacionesAsync(int userId) => Task.FromResult(new List<NotificacionLocal>());
-        public Task GuardarNotificacionAsync(int userId, int ticketId, string mensaje) => Task.CompletedTask;
-        public Task MarcarComoLeidaAsync(int userId, Guid id) => Task.CompletedTask;
-        public Task LimpiarTodasAsync(int userId) => Task.CompletedTask;
-        public Task SincronizarDesdeBDAsync(int userId) => Task.CompletedTask;
     }
 }

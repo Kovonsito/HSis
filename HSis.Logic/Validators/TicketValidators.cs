@@ -32,10 +32,10 @@ namespace HSis.Logic.Validators
                 .When(x => x.Status == "Cerrado")
                 .WithMessage("Debe ingresar una solución antes de cerrar el ticket.");
 
-            RuleFor(x => x.Solucion)
-                .Empty()
-                .When(x => x.Status == "Abierto")
-                .WithMessage("No se puede registrar una solución para un ticket en estatus Abierto.");
+            RuleFor(x => x.Prioridad)
+                .NotEmpty()
+                .When(x => x.Status == "En Proceso")
+                .WithMessage("Debe seleccionar una prioridad para el ticket al cambiar el estatus a En Proceso.");
         }
     }
 }
