@@ -1,7 +1,6 @@
 namespace HSis.Logic.Services
-
 {
-    public interface INotificationClientService
+    public interface INotificationClientService : INotificadorTicket
     {
         event Action<string, int, string>? OnNotificationReceived;
         event Action? OnConnected;
@@ -13,8 +12,7 @@ namespace HSis.Logic.Services
 
         Task IniciarAsync(int userId, string role);
         Task DetenerAsync();
-        Task NotifyTicketCreatedAsync(int ticketId, string ticketFolio, string titulo);
-        Task NotifyTicketStatusChangedAsync(int clientUserId, int ticketId, string ticketFolio, string newStatus);
-        Task NotifyTicketRatedAsync(int technicianUserId, int ticketId, string ticketFolio, int rating, string comment);
+        Task NotificarCambioEstatusTicketAsync(int clientUserId, int ticketId, string ticketFolio, string newStatus);
+        Task NotificarCalificacionTicketAsync(int technicianUserId, int ticketId, string ticketFolio, int rating, string comment);
     }
 }

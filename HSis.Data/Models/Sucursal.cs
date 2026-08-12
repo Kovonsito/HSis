@@ -1,4 +1,4 @@
-﻿namespace HSis.Data.Models;
+namespace HSis.Data.Models;
 
 public partial class Sucursal
 {
@@ -8,7 +8,7 @@ public partial class Sucursal
 
     public string? Calle { get; set; }
 
-    public string? Número { get; set; }
+    public string? Numero { get; set; }
 
     public string? Colonia { get; set; }
 
@@ -16,7 +16,7 @@ public partial class Sucursal
 
     public int? IdEmpresa { get; set; }
 
-    public virtual Empresa? IdEmpresaNavigation { get; set; }
+    public virtual Empresa? Empresa { get; set; }
 
     public virtual ICollection<Usuario> Usuarios { get; set; } = [];
 }

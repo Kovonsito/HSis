@@ -24,17 +24,17 @@ namespace HSis.Logic.Validators
             RuleFor(x => x.IdTicket)
                 .GreaterThan(0).WithMessage("El ID del ticket es inválido.");
 
-            RuleFor(x => x.Status)
+            RuleFor(x => x.Estatus)
                 .NotEmpty().WithMessage("El estatus es obligatorio.");
 
             RuleFor(x => x.Solucion)
                 .NotEmpty()
-                .When(x => x.Status == "Cerrado")
+                .When(x => x.Estatus == "Cerrado")
                 .WithMessage("Debe ingresar una solución antes de cerrar el ticket.");
 
             RuleFor(x => x.Prioridad)
                 .NotEmpty()
-                .When(x => x.Status == "En Proceso")
+                .When(x => x.Estatus == "En Proceso")
                 .WithMessage("Debe seleccionar una prioridad para el ticket al cambiar el estatus a En Proceso.");
         }
     }

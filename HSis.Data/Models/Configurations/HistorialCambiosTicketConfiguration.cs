@@ -17,12 +17,12 @@ public class HistorialCambiosTicketConfiguration : IEntityTypeConfiguration<Hist
         entity.Property(e => e.ValorAnterior).IsUnicode(false).HasColumnName("Valor_Anterior");
         entity.Property(e => e.ValorNuevo).IsUnicode(false).HasColumnName("Valor_Nuevo");
 
-        entity.HasOne(d => d.IdTicketNavigation).WithMany(p => p.HistorialCambiosTickets)
+        entity.HasOne(d => d.Ticket).WithMany(p => p.HistorialCambiosTickets)
             .HasForeignKey(d => d.IdTicket)
             .OnDelete(DeleteBehavior.ClientSetNull)
             .HasConstraintName("FK_Historial_Ticket_Ticket");
 
-        entity.HasOne(d => d.IdUsuarioCambioNavigation).WithMany(p => p.HistorialCambiosTickets)
+        entity.HasOne(d => d.UsuarioCambio).WithMany(p => p.HistorialCambiosTickets)
             .HasForeignKey(d => d.IdUsuarioCambio)
             .OnDelete(DeleteBehavior.ClientSetNull)
             .HasConstraintName("FK_Historial_Usuario");

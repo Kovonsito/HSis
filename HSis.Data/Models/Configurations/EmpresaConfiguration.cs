@@ -13,7 +13,7 @@ public class EmpresaConfiguration : IEntityTypeConfiguration<Empresa>
         entity.Property(e => e.Calle).HasMaxLength(50).IsUnicode(false);
         entity.Property(e => e.Colonia).HasMaxLength(50).IsUnicode(false);
         entity.Property(e => e.Nombre).HasMaxLength(50).IsUnicode(false);
-        entity.Property(e => e.Número).HasMaxLength(10).IsUnicode(false);
+        entity.Property(e => e.Numero).HasMaxLength(10).IsUnicode(false).HasColumnName("Numero");
         entity.Property(e => e.Telefono).HasMaxLength(15).IsUnicode(false);
     }
 }

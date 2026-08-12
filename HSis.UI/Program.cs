@@ -129,6 +129,9 @@ namespace HSis.UI
                         .AddHttpMessageHandler<ApiClients.JwtAuthHeaderHandler>();
                 services.AddHttpClient<ITicketService, ApiClients.TicketApiClientService>(c => c.BaseAddress = new Uri(baseUrl))
                         .AddHttpMessageHandler<ApiClients.JwtAuthHeaderHandler>();
+                services.AddTransient<ITicketQueryService>(sp => sp.GetRequiredService<ITicketService>());
+                services.AddTransient<ITicketCommandService>(sp => sp.GetRequiredService<ITicketService>());
+                services.AddTransient<ITicketKpiService>(sp => sp.GetRequiredService<ITicketService>());
                 services.AddHttpClient<ICatalogoService, ApiClients.CatalogoApiClientService>(c => c.BaseAddress = new Uri(baseUrl))
                         .AddHttpMessageHandler<ApiClients.JwtAuthHeaderHandler>();
                 services.AddHttpClient<ITicketDetalleService, ApiClients.TicketDetalleApiClientService>(c => c.BaseAddress = new Uri(baseUrl))
@@ -140,11 +143,14 @@ namespace HSis.UI
 
                 // Almacenamiento local persistente para notificaciones de la UI
                 services.AddSingleton<INotificacionStorageService, LocalFileNotificacionStorageService>();
-
+                services.AddSingleton<INotificationEventBus, NotificationEventBus>();
                 services.AddSingleton<INotificationClientService, NotificationClientService>();
                 services.AddSingleton<ISessionCacheService, SessionCacheService>();
                 services.AddSingleton<IFabricaFormularios, FabricaFormularios>();
                 services.AddTransient<AdministradorUINotificaciones>();
+                services.AddTransient<Presenters.DashboardAdminPresenter>();
+                services.AddTransient<Presenters.DashboardTecnicoPresenter>();
+                services.AddTransient<Presenters.DashboardClientePresenter>();
 
                 // Registrar Formularios
                 services.AddTransient<IniciarSesionForm>();

@@ -107,12 +107,16 @@ builder.Services.AddDbContextFactory<HSisDbContext>((sp, options) =>
 
 // Registrar Servicios de Lógica mediante Interfaces
 builder.Services.AddTransient<ITicketService, TicketService>();
+builder.Services.AddTransient<ITicketQueryService>(sp => sp.GetRequiredService<ITicketService>());
+builder.Services.AddTransient<ITicketCommandService>(sp => sp.GetRequiredService<ITicketService>());
+builder.Services.AddTransient<ITicketKpiService>(sp => sp.GetRequiredService<ITicketService>());
 builder.Services.AddTransient<IUsuarioService, UsuarioService>();
 builder.Services.AddTransient<ICatalogoService, CatalogoService>();
 builder.Services.AddTransient<ITicketDetalleService, TicketDetalleService>();
 builder.Services.AddTransient<IMaterialService, MaterialService>();
 builder.Services.AddTransient<IReportExportService, ReportExportService>();
 builder.Services.AddTransient<INotificacionStorageService, NotificacionStorageService>();
+builder.Services.AddSingleton<INotificationEventBus, NotificationEventBus>();
 builder.Services.AddTransient<IServerNotificationDispatcher, ServerNotificationDispatcher>();
 
 var app = builder.Build();

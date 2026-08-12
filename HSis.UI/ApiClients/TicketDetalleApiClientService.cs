@@ -1,6 +1,6 @@
 using System.Net.Http;
 using System.Net.Http.Json;
-using HSis.Data.Models;
+using HSis.Logic.DTOs;
 using HSis.Logic.Services;
 
 namespace HSis.UI.ApiClients
@@ -8,25 +8,25 @@ namespace HSis.UI.ApiClients
     public class TicketDetalleApiClientService(HttpClient httpClient) : ITicketDetalleService
     {
 
-        public async Task<List<DetTicket>> ObtenerDetallesTicketAsync(int idTicket)
+        public async Task<List<TicketDetalleDto>> ObtenerDetallesTicketAsync(int idTicket)
         {
-            return await httpClient.GetFromJsonAsync<List<DetTicket>>($"api/TicketDetalle/ticket/{idTicket}") ?? [];
+            return await httpClient.GetFromJsonAsync<List<TicketDetalleDto>>($"api/TicketDetalle/ticket/{idTicket}") ?? [];
         }
 
-        public async Task<DetTicket?> ObtenerDetallePorIdAsync(int idTicket, int idMaterial)
+        public async Task<TicketDetalleDto?> ObtenerDetallePorIdAsync(int idTicket, int idMaterial)
         {
-            return await httpClient.GetFromJsonAsync<DetTicket>($"api/TicketDetalle/ticket/{idTicket}/material/{idMaterial}");
+            return await httpClient.GetFromJsonAsync<TicketDetalleDto>($"api/TicketDetalle/ticket/{idTicket}/material/{idMaterial}");
         }
 
-        public async Task AgregarMaterialATicketAsync(DetTicket detTicket)
+        public async Task AgregarMaterialATicketAsync(TicketDetalleDto detTicketDto)
         {
-            var response = await httpClient.PostAsJsonAsync("api/TicketDetalle", detTicket);
+            var response = await httpClient.PostAsJsonAsync("api/TicketDetalle", detTicketDto);
             await response.EnsureSuccessStatusCodeWithDetailsAsync();
         }
 
-        public async Task ActualizarDetalleTicketAsync(DetTicket detTicket)
+        public async Task ActualizarDetalleTicketAsync(TicketDetalleDto detTicketDto)
         {
-            var response = await httpClient.PutAsJsonAsync("api/TicketDetalle", detTicket);
+            var response = await httpClient.PutAsJsonAsync("api/TicketDetalle", detTicketDto);
             await response.EnsureSuccessStatusCodeWithDetailsAsync();
         }
 

@@ -10,25 +10,24 @@ namespace HSis.Logic.Profiles
         {
             // Entidad a DTO
             config.NewConfig<Ticket, TicketDto>()
-                .Map(dest => dest.NombreUsuario, src => src.IdUsuarioNavigation != null ? src.IdUsuarioNavigation.Nombre : string.Empty)
-                .Map(dest => dest.NombreTecnico, src => src.IdTecnicoNavigation != null ? src.IdTecnicoNavigation.Nombre : string.Empty)
-                .Map(dest => dest.Descripcion, src => src.Descripción)
-                .Map(dest => dest.Solucion, src => src.Solución)
-                .Map(dest => dest.Atencion, src => src.Atención)
-                .Map(dest => dest.DepartamentoUsuario, src => src.IdUsuarioNavigation != null && src.IdUsuarioNavigation.IdDepartamentoNavigation != null ? src.IdUsuarioNavigation.IdDepartamentoNavigation.Nombre : string.Empty);
+                .Map(dest => dest.NombreUsuario, src => src.Usuario != null ? src.Usuario.Nombre : string.Empty)
+                .Map(dest => dest.NombreTecnico, src => src.Tecnico != null ? src.Tecnico.Nombre : string.Empty)
+                .Map(dest => dest.DepartamentoUsuario, src => src.Usuario != null && src.Usuario.Departamento != null ? src.Usuario.Departamento.Nombre : string.Empty);
 
             // Create DTO a Entidad
             config.NewConfig<TicketCreateDto, Ticket>()
-                .Map(dest => dest.Descripción, src => src.Descripcion)
-                .Map(dest => dest.IdTecnico, src => src.IdTecnico)
-                .Map(dest => dest.Prioridad, src => src.Prioridad)
-                .Ignore(dest => dest.Alta!)
-                .Ignore(dest => dest.Status!);
+                .Ignore(dest => dest.FechaAlta!)
+                .Ignore(dest => dest.Estatus!);
 
             // Update DTO a Entidad
-            config.NewConfig<TicketUpdateDto, Ticket>()
-                .Map(dest => dest.Solución, src => src.Solucion)
-                .Map(dest => dest.Atención, src => src.Atencion);
+            config.NewConfig<TicketUpdateDto, Ticket>();
+
+            // DetTicket <-> TicketDetalleDto
+            config.NewConfig<DetTicket, TicketDetalleDto>()
+                .Map(dest => dest.NombreMaterial, src => src.Material != null ? src.Material.Nombre : null)
+                .Map(dest => dest.UnidadMedidaMaterial, src => src.Material != null ? src.Material.UnidadMedida : null);
+
+            config.NewConfig<TicketDetalleDto, DetTicket>();
         }
     }
 }

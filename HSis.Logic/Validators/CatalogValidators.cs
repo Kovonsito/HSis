@@ -1,18 +1,16 @@
 using FluentValidation;
 using HSis.Data.Models;
+using HSis.Logic.DTOs;
 
 namespace HSis.Logic.Validators
 {
-    public class UsuarioValidator : AbstractValidator<Usuario>
+    public class UsuarioValidator : AbstractValidator<UsuarioDto>
     {
         public UsuarioValidator()
         {
             RuleFor(x => x.Nombre)
                 .NotEmpty().WithMessage("El nombre es obligatorio.")
                 .MaximumLength(100).WithMessage("El nombre no puede exceder los 100 caracteres.");
-
-            // El modelo Usuario no tiene Email actualmente en la base de datos
-            // RuleFor(x => x.Email)...
 
             RuleFor(x => x.Contraseña)
                 .NotEmpty().WithMessage("La contraseña es obligatoria.")
@@ -85,7 +83,7 @@ namespace HSis.Logic.Validators
     {
         public RolUsuarioValidator()
         {
-            RuleFor(x => x.Descripción)
+            RuleFor(x => x.Descripcion)
                 .NotEmpty().WithMessage("La descripción del rol es obligatoria.")
                 .MaximumLength(50).WithMessage("La descripción del rol no puede exceder los 50 caracteres.");
         }

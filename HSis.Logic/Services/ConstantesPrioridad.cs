@@ -5,5 +5,6 @@ namespace HSis.Logic.Services
         public const string ALTA = "Alta";
         public const string MEDIA = "Media";
         public const string BAJA = "Baja";
+        public const string URGENTE = "Urgente";
     }
 }

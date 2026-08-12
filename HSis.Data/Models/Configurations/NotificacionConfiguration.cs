@@ -27,7 +27,7 @@ public class NotificacionConfiguration : IEntityTypeConfiguration<Notificacion>
         entity.Property(e => e.FechaCreacion)
             .HasDefaultValueSql("GETDATE()");
 
-        entity.HasOne(d => d.UsuarioDestinoNavigation)
+        entity.HasOne(d => d.UsuarioDestino)
             .WithMany()
             .HasForeignKey(d => d.UsuarioDestinoId)
             .OnDelete(DeleteBehavior.Cascade)

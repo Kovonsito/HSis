@@ -1,4 +1,4 @@
-﻿namespace HSis.Data.Models;
+namespace HSis.Data.Models;
 
 public partial class Empresa
 {
@@ -8,7 +8,7 @@ public partial class Empresa
 
     public string? Calle { get; set; }
 
-    public string? Número { get; set; }
+    public string? Numero { get; set; }
 
     public string? Colonia { get; set; }
 

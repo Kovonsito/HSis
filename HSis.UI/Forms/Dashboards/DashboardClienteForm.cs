@@ -8,12 +8,15 @@ using HSis.UI.Forms.Tickets;
 using HSis.UI.Helpers;
 using HSis.UI.Services;
 
+using HSis.UI.Presenters;
+
 namespace HSis.UI.Forms.Dashboards
 {
     [SupportedOSPlatform("windows")]
-    public partial class DashboardClienteForm : Form
+    public partial class DashboardClienteForm : Form, IDashboardClienteView
     {
         private readonly ITicketService _ticketService;
+        private readonly DashboardClientePresenter? _presenter;
         private readonly AdministradorUINotificaciones _uiManager;
         private PaginacionControl PaginacionControl = null!;
         private List<TicketClienteDto> _todosLosTickets = [];
@@ -35,13 +38,16 @@ namespace HSis.UI.Forms.Dashboards
             ITicketService ticketService,
             AdministradorUINotificaciones uiManager,
             IFabricaFormularios formFactory,
-            ISessionCacheService sessionCache)
+            ISessionCacheService sessionCache,
+            DashboardClientePresenter? presenter = null)
         {
             InitializeComponent();
             _ticketService = ticketService;
             _uiManager = uiManager;
             _formFactory = formFactory;
             _sessionCache = sessionCache;
+            _presenter = presenter;
+            _presenter?.SetView(this);
         }
 
         private async void frmDashboardCliente_Load(object? sender, EventArgs e)
@@ -82,11 +88,11 @@ namespace HSis.UI.Forms.Dashboards
             _todosLosTickets = tickets.ConvertAll(t => new TicketClienteDto
             {
                 IdTicket = t.IdTicket,
-                FechaAlta = t.Alta,
-                Status = t.Status,
+                FechaAlta = t.FechaAlta,
+                Status = t.Estatus,
                 TecnicoAsignado = t.NombreTecnico ?? "Sin asignar",
                 Descripcion = !string.IsNullOrEmpty(t.Descripcion) && t.Descripcion.Length > 50 ? string.Concat(t.Descripcion.AsSpan(0, 50), "...") : (t.Descripcion ?? ""),
-                Feedback = t.Status == ConstantesEstatus.CERRADO
+                Feedback = t.Estatus == ConstantesEstatus.CERRADO
                     ? (t.Calificacion.HasValue ? $"Enviada ({new string('★', t.Calificacion.Value)}{new string('☆', 5 - t.Calificacion.Value)})" : "Pendiente")
                     : "N/A"
             });
@@ -167,8 +173,8 @@ namespace HSis.UI.Forms.Dashboards
 
         private void ActualizarIndicador(List<TicketDto> tickets)
         {
-            var activos = tickets.FindAll(t => t.Status != ConstantesEstatus.CERRADO);
-            var cerrados = tickets.FindAll(t => t.Status == ConstantesEstatus.CERRADO);
+            var activos = tickets.FindAll(t => t.Estatus != ConstantesEstatus.CERRADO);
+            var cerrados = tickets.FindAll(t => t.Estatus == ConstantesEstatus.CERRADO);
 
             ucMisActivos.Cantidad = activos.Count.ToString();
             ucMisActivos.Titulo = "Mis Tickets Activos";
@@ -322,6 +328,31 @@ namespace HSis.UI.Forms.Dashboards
             this.Controls.Add(tblPrincipal);
         }
 
+        #region Implementación IDashboardClienteView (MVP)
 
+        public void MostrarTickets(List<TicketClienteDto> tickets)
+        {
+            _todosLosTickets = tickets;
+            MostrarPaginaActual();
+        }
+
+        public void MostrarIndicadores(int activos, int cerrados)
+        {
+            if (ucMisActivos != null) ucMisActivos.Cantidad = activos.ToString();
+            if (ucMisCerrados != null) ucMisCerrados.Cantidad = cerrados.ToString();
+        }
+
+        public void MostrarCargando(bool cargando)
+        {
+            Cursor = cargando ? Cursors.WaitCursor : Cursors.Default;
+        }
+
+        public void MostrarError(string mensaje)
+        {
+            MessageBox.Show(mensaje, "Error en Dashboard de Cliente", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
+        #endregion
     }
 }
+
