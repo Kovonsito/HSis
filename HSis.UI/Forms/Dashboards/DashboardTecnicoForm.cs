@@ -1,5 +1,6 @@
 #nullable enable
 using System.Runtime.Versioning;
+using HSis.Logic.Constants;
 using HSis.Logic.DTOs;
 using HSis.Logic.Services;
 using HSis.UI.Controls;
@@ -25,7 +26,8 @@ namespace HSis.UI.Forms.Dashboards
             Calificaciones
         }
         private VistaDashboard _vistaActual = VistaDashboard.MisAsignados;
-        private readonly AdministradorUINotificaciones _uiManager;
+        private readonly NotificacionesPresenter _notificacionesPresenter;
+        private readonly IContextoSesion _contextoSesion;
         private PaginacionControl PaginacionControl = null!;
         private List<TicketOperativoDto> _todosLosTickets = [];
         private List<TicketOperativoDto> _ticketsFiltrados = [];
@@ -37,14 +39,16 @@ namespace HSis.UI.Forms.Dashboards
 
         public DashboardTecnicoForm(
             ITicketService ticketService,
-            AdministradorUINotificaciones uiManager,
+            NotificacionesPresenter notificacionesPresenter,
+            IContextoSesion contextoSesion,
             IFabricaFormularios formFactory,
             ISessionCacheService sessionCache,
             DashboardTecnicoPresenter? presenter = null)
         {
             InitializeComponent();
             _ticketService = ticketService;
-            _uiManager = uiManager;
+            _notificacionesPresenter = notificacionesPresenter;
+            _contextoSesion = contextoSesion;
             _formFactory = formFactory;
             _sessionCache = sessionCache;
             _presenter = presenter;
@@ -57,11 +61,10 @@ namespace HSis.UI.Forms.Dashboards
             ConfigurarFiltros();
             SesionSistema.ConfigurarMenuSesion(this, _sessionCache);
 
-            var tblPrincipal = this.Controls["tblPrincipal"];
-            if (tblPrincipal != null)
-            {
-                _uiManager.Adjuntar(this, tblPrincipal, CargarDatosInicialesAsync);
-            }
+            var notifControl = new NotificacionesControl();
+            notifControl.Configurar(_notificacionesPresenter, _formFactory, _contextoSesion, CargarDatosInicialesAsync);
+            this.Controls.Add(notifControl);
+            notifControl.BringToFront();
 
             // Cargamos indicadores y grid en paralelo
             await CargarDatosInicialesAsync();
@@ -318,47 +321,7 @@ namespace HSis.UI.Forms.Dashboards
             await dgvTicketsOperativos.ManejarDetalleTicketAsync(e.RowIndex, _formFactory, () => Task.WhenAll(CargarIndicadoresAsync(), CargarTicketsSegunVistaAsync()));
         }
 
-        private void InicializarLayoutDashboard()
-        {
-            // Instanciar control de paginación
-            PaginacionControl = new PaginacionControl();
-            PaginacionControl.Dock = DockStyle.Fill;
-            PaginacionControl.PaginaCambiada += (s, e) => MostrarPaginaActual();
-            PaginacionControl.Margin = new Padding(12, 0, 12, 6);
 
-            // Suscribir eventos de filtrado una sola vez aquí (hilo de UI garantizado)
-            ucMisAsignados.IndicadorClic += UcMisAsignados_Click;
-            ucDisponibles.IndicadorClic += UcDisponibles_Click;
-            ucCerrados.IndicadorClic += UcCerrados_Click;
-            ucCalificacion.IndicadorClic += UcCalificacion_Click;
-
-            var tblPrincipal = AyudanteDisenoPanel.CrearPanelPrincipal(this.ClientSize, incluirFiltros: true);
-            var tblIndicadores = AyudanteDisenoPanel.CrearPanelIndicadores(
-                "tblIndicadores",
-                4,
-                ucMisAsignados, ucDisponibles, ucCerrados, ucCalificacion
-            );
-
-            // Configurar el título y el grid principal para que se estiren
-            lblTitulo.Dock = DockStyle.Fill;
-            lblTitulo.Margin = new Padding(12, 10, 12, 10);
-
-            dgvTicketsOperativos.Dock = DockStyle.Fill;
-            dgvTicketsOperativos.Margin = new Padding(12, 10, 12, 12);
-
-            pnlFiltros.Dock = DockStyle.Fill;
-            pnlFiltros.Margin = new Padding(12, 5, 12, 5);
-
-            // Agregar componentes al TableLayoutPanel principal
-            tblPrincipal.Controls.Add(lblTitulo, 0, 0);
-            tblPrincipal.Controls.Add(tblIndicadores, 0, 1);
-            tblPrincipal.Controls.Add(pnlFiltros, 0, 2);
-            tblPrincipal.Controls.Add(dgvTicketsOperativos, 0, 3);
-            tblPrincipal.Controls.Add(PaginacionControl, 0, 4);
-
-            // Remover controles del formulario para agregarlos al grid principal
-            AyudanteDisenoPanel.ReubicarControles(this, tblPrincipal, lblTitulo, ucMisAsignados, ucDisponibles, ucCerrados, ucCalificacion, pnlFiltros, dgvTicketsOperativos);
-        }
 
         private void ConfigurarFiltros()
         {

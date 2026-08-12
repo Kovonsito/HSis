@@ -1,6 +1,8 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
+using HSis.UI.Controls;
+using HSis.UI.Helpers;
 
 namespace HSis.UI.Forms.Dashboards
 {
@@ -61,7 +63,7 @@ namespace HSis.UI.Forms.Dashboards
             ucNuevos.Name = "ucNuevos";
             ucNuevos.Size = new Size(200, 100);
             ucNuevos.TabIndex = 0;
-            ucNuevos.IndicadorClic += ucNuevos_ucIndicadorEvent;
+            ucNuevos.IndicadorClic += UcNuevosUcIndicadorEvent;
             // 
             // ucUrgentes
             // 
@@ -69,7 +71,7 @@ namespace HSis.UI.Forms.Dashboards
             ucUrgentes.Name = "ucUrgentes";
             ucUrgentes.Size = new Size(200, 100);
             ucUrgentes.TabIndex = 1;
-            ucUrgentes.IndicadorClic += ucUrgentes_ucIndicadorEvent;
+            ucUrgentes.IndicadorClic += UcUrgentes_ucIndicadorEvent;
             // 
             // ucEnProceso
             // 
@@ -77,7 +79,7 @@ namespace HSis.UI.Forms.Dashboards
             ucEnProceso.Name = "ucEnProceso";
             ucEnProceso.Size = new Size(200, 100);
             ucEnProceso.TabIndex = 2;
-            ucEnProceso.IndicadorClic += ucEnProceso_ucIndicadorEvent;
+            ucEnProceso.IndicadorClic += UcEnProceso_ucIndicadorEvent;
             // 
             // ucCerrados
             // 
@@ -85,7 +87,7 @@ namespace HSis.UI.Forms.Dashboards
             ucCerrados.Name = "ucCerrados";
             ucCerrados.Size = new Size(200, 100);
             ucCerrados.TabIndex = 3;
-            ucCerrados.IndicadorClic += ucCerrados_ucIndicadorEvent;
+            ucCerrados.IndicadorClic += UcCerrados_ucIndicadorEvent;
             // 
             // dgvTickets
             // 
@@ -144,7 +146,7 @@ namespace HSis.UI.Forms.Dashboards
             ucReabiertos.Name = "ucReabiertos";
             ucReabiertos.Size = new Size(200, 100);
             ucReabiertos.TabIndex = 6;
-            ucReabiertos.IndicadorClic += ucReabiertos_ucIndicadorEvent;
+            ucReabiertos.IndicadorClic += UcReabiertos_ucIndicadorEvent;
             // 
             // tabMain
             // 
@@ -266,5 +268,44 @@ namespace HSis.UI.Forms.Dashboards
         private HSis.UI.Controls.FiltroGenericoControl filtroGenerico;
         private Button btnLimpiarFiltros;
         private Button btnAbrirReportes;
+        
+        private void InicializarLayoutDashboard()
+        {
+            // Instanciar control de paginación reutilizable
+            PaginacionControl = new PaginacionControl
+            {
+                Dock = DockStyle.Fill
+            };
+            PaginacionControl.PaginaCambiada += async (s, e) => { if (!_estaCargando) await FiltrarTicketsAsync(); };
+            PaginacionControl.Margin = new Padding(12, 0, 12, 6);
+
+            var tblPrincipal = AyudanteDisenoPanel.CrearPanelPrincipal(tabTickets.ClientSize, incluirFiltros: true);
+            tblPrincipal.Name = "tblPrincipalTickets";
+
+            _ucCalificacion = new IndicadorControl();
+            _ucCalificacion.IndicadorClic += UcCalificacion_Click;
+            var tblIndicadores = AyudanteDisenoPanel.CrearPanelIndicadores(
+                "tblIndicadoresAdmin",
+                6,
+                ucNuevos, ucUrgentes, ucEnProceso, ucCerrados, ucReabiertos, _ucCalificacion
+            );
+
+            // Configurar otros paneles accesorios
+            pnlFiltros.Dock = DockStyle.Fill;
+            pnlFiltros.Margin = new Padding(12, 5, 12, 5);
+
+            dgvTickets.Dock = DockStyle.Fill;
+            dgvTickets.Margin = new Padding(12, 10, 12, 12);
+
+            // Ensamblar el layout en el grid principal
+            tblPrincipal.Controls.Add(lblTitulo, 0, 0);
+            tblPrincipal.Controls.Add(tblIndicadores, 0, 1);
+            tblPrincipal.Controls.Add(pnlFiltros, 0, 2);
+            tblPrincipal.Controls.Add(dgvTickets, 0, 3);
+            tblPrincipal.Controls.Add(PaginacionControl, 0, 4);
+
+            // Reubicar controles desde el contenedor original al panel principal
+            AyudanteDisenoPanel.ReubicarControles(tabTickets, tblPrincipal, lblTitulo, ucNuevos, ucUrgentes, ucEnProceso, ucCerrados, ucReabiertos, pnlFiltros, dgvTickets);
+        }
     }
 }

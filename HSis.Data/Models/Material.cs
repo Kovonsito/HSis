@@ -14,5 +14,5 @@ public partial class Material
 
     public virtual ICollection<DetTicket> DetTickets { get; set; } = [];
 
-    public virtual ICollection<MovimientoMaterial> MovimientosMaterials { get; set; } = [];
+    public virtual ICollection<MovimientoMaterial> MovimientosMateriales { get; set; } = [];
 }

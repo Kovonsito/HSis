@@ -1,4 +1,4 @@
-namespace HSis.Logic.Services
+namespace HSis.Logic.Constants
 {
     public static class ConstantesPrioridad
     {

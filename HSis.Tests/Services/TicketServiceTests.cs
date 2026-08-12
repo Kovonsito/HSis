@@ -1,6 +1,7 @@
 using FluentAssertions;
 using FluentValidation;
 using HSis.Data.Models;
+using HSis.Logic.Constants;
 using HSis.Logic.DTOs;
 using HSis.Logic.Services;
 using HSis.Logic.Validators;
@@ -22,7 +23,7 @@ namespace HSis.Tests.Services
         {
             // Configuración real de Mapster para las pruebas
             var config = new TypeAdapterConfig();
-            new HSis.Logic.Profiles.TicketProfile().Register(config);
+            new Logic.Profiles.TicketProfile().Register(config);
             _mapper = new Mapper(config);
             _createValidator = new TicketCreateValidator();
             _updateValidator = new TicketUpdateValidator();
@@ -36,7 +37,7 @@ namespace HSis.Tests.Services
         }
 
         [Fact]
-        public async Task CrearTicketAsync_ConDatosValidos_DebeGuardarYRetornarDto()
+        public async Task CrearTicketAsyncConDatosValidosDebeGuardarYRetornarDto()
         {
             // Arrange
             var options = new DbContextOptionsBuilder<HSisDbContext>()
@@ -66,7 +67,7 @@ namespace HSis.Tests.Services
         }
 
         [Fact]
-        public async Task CrearTicketAsync_ConSolicitanteNoRegistrado_DebeGuardarEtiquetaEnDescripcion()
+        public async Task CrearTicketAsyncConSolicitanteNoRegistradoDebeGuardarEtiquetaEnDescripcion()
         {
             // Arrange
             var options = new DbContextOptionsBuilder<HSisDbContext>()
@@ -99,7 +100,7 @@ namespace HSis.Tests.Services
         }
 
         [Fact]
-        public async Task CrearTicketAsync_ConDescripcionCorta_DebeLanzarValidationException()
+        public async Task CrearTicketAsyncConDescripcionCortaDebeLanzarValidationException()
         {
             // Arrange
             var options = new DbContextOptionsBuilder<HSisDbContext>()
@@ -119,7 +120,7 @@ namespace HSis.Tests.Services
         }
 
         [Fact]
-        public void ObtenerEstatusPermitidos_ParaAdmin_DebeRetornarTodosLosEstatus()
+        public void ObtenerEstatusPermitidosParaAdminDebeRetornarTodosLosEstatus()
         {
             // Arrange
             var mockFactory = new Mock<IDbContextFactory<HSisDbContext>>();
@@ -135,7 +136,7 @@ namespace HSis.Tests.Services
         }
 
         [Fact]
-        public async Task ObtenerTicketsFiltradosAsync_ConFiltrosVarios_DebeFiltrarCorrectamente()
+        public async Task ObtenerTicketsFiltradosAsyncConFiltrosVariosDebeFiltrarCorrectamente()
         {
             // Arrange
             var options = new DbContextOptionsBuilder<HSisDbContext>()

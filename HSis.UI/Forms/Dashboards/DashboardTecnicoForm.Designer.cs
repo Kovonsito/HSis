@@ -2,6 +2,8 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 using System.ComponentModel;
+using HSis.UI.Controls;
+using HSis.UI.Helpers;
 
 namespace HSis.UI.Forms.Dashboards
 {
@@ -183,5 +185,47 @@ namespace HSis.UI.Forms.Dashboards
         private Button btnNuevoTicket;
         private Button btnLimpiarFiltros;
         private Button btnRecargar;
+        
+        private void InicializarLayoutDashboard()
+        {
+            // Instanciar control de paginación
+            PaginacionControl = new PaginacionControl();
+            PaginacionControl.Dock = DockStyle.Fill;
+            PaginacionControl.PaginaCambiada += (s, e) => MostrarPaginaActual();
+            PaginacionControl.Margin = new Padding(12, 0, 12, 6);
+
+            // Suscribir eventos de filtrado una sola vez aquí (hilo de UI garantizado)
+            ucMisAsignados.IndicadorClic += UcMisAsignados_Click;
+            ucDisponibles.IndicadorClic += UcDisponibles_Click;
+            ucCerrados.IndicadorClic += UcCerrados_Click;
+            ucCalificacion.IndicadorClic += UcCalificacion_Click;
+
+            var tblPrincipal = AyudanteDisenoPanel.CrearPanelPrincipal(this.ClientSize, incluirFiltros: true);
+            var tblIndicadores = AyudanteDisenoPanel.CrearPanelIndicadores(
+                "tblIndicadores",
+                4,
+                ucMisAsignados, ucDisponibles, ucCerrados, ucCalificacion
+            );
+
+            // Configurar el título y el grid principal para que se estiren
+            lblTitulo.Dock = DockStyle.Fill;
+            lblTitulo.Margin = new Padding(12, 10, 12, 10);
+
+            dgvTicketsOperativos.Dock = DockStyle.Fill;
+            dgvTicketsOperativos.Margin = new Padding(12, 10, 12, 12);
+
+            pnlFiltros.Dock = DockStyle.Fill;
+            pnlFiltros.Margin = new Padding(12, 5, 12, 5);
+
+            // Agregar componentes al TableLayoutPanel principal
+            tblPrincipal.Controls.Add(lblTitulo, 0, 0);
+            tblPrincipal.Controls.Add(tblIndicadores, 0, 1);
+            tblPrincipal.Controls.Add(pnlFiltros, 0, 2);
+            tblPrincipal.Controls.Add(dgvTicketsOperativos, 0, 3);
+            tblPrincipal.Controls.Add(PaginacionControl, 0, 4);
+
+            // Remover controles del formulario para agregarlos al grid principal
+            AyudanteDisenoPanel.ReubicarControles(this, tblPrincipal, lblTitulo, ucMisAsignados, ucDisponibles, ucCerrados, ucCalificacion, pnlFiltros, dgvTicketsOperativos);
+        }
     }
 }

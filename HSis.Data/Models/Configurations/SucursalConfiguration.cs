@@ -17,7 +17,7 @@ public class SucursalConfiguration : IEntityTypeConfiguration<Sucursal>
         entity.Property(e => e.Numero).HasMaxLength(10).IsUnicode(false).HasColumnName("Numero");
         entity.Property(e => e.Telefono).HasMaxLength(15).IsUnicode(false);
 
-        entity.HasOne(d => d.Empresa).WithMany(p => p.Sucursals)
+        entity.HasOne(d => d.Empresa).WithMany(p => p.Sucursales)
             .HasForeignKey(d => d.IdEmpresa)
             .HasConstraintName("FK_Sucursal_Empresa");
     }

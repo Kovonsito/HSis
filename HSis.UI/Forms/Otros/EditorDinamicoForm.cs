@@ -1,23 +1,32 @@
-#nullable enable
+using System.ComponentModel;
 using System.Reflection;
 using System.Runtime.Versioning;
-using HSis.Logic.Services;
+using HSis.UI.Presenters;
 
 namespace HSis.UI.Forms.Otros
 {
     [SupportedOSPlatform("windows")]
-    public partial class EditorDinamicoForm : Form
+    public partial class EditorDinamicoForm : Form, IEditorDinamicoView
     {
         private readonly object _entidad;
+        private readonly EditorDinamicoPresenter _presenter;
 
-        private readonly ICatalogoService _catalogoService;
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public object Entidad => _entidad;
 
-        public EditorDinamicoForm(object entidad, string titulo, ICatalogoService catalogoService)
+        public EditorDinamicoForm(object entidad, string titulo, EditorDinamicoPresenter presenter)
         {
             _entidad = entidad;
-            _catalogoService = catalogoService;
+            _presenter = presenter;
+            _presenter.SetView(this);
             InitializeComponent();
             this.Text = titulo;
+        }
+
+        public void MostrarError(string mensaje)
+        {
+            MessageBox.Show(mensaje, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
         protected override async void OnLoad(EventArgs e)
@@ -37,8 +46,6 @@ namespace HSis.UI.Forms.Otros
                 await CrearControlParaPropiedadAsync(prop, y);
                 y += 45;
             }
-
-
 
             Button btnGuardar = new()
             {
@@ -70,7 +77,7 @@ namespace HSis.UI.Forms.Otros
             this.Controls.Add(btnGuardar);
             this.Controls.Add(btnCancelar);
 
-            this.Height = Math.Min(y + 150, 600); // Máximo 600 de alto, si es más usa scroll
+            this.Height = Math.Min(y + 150, 600);
             this.Width = 600;
         }
 
@@ -152,7 +159,7 @@ namespace HSis.UI.Forms.Otros
             bool isId = prop.Name == idPk;
 
             string labelText = prop.Name;
-            var navProp = _entidad.GetType().GetProperty(prop.Name + "Navigation");
+            var navProp = _entidad.GetType().GetProperty(prop.Name);
 
             if (navProp != null && (prop.PropertyType == typeof(int) || prop.PropertyType == typeof(int?)))
             {
@@ -183,7 +190,6 @@ namespace HSis.UI.Forms.Otros
             this.Controls.Add(lbl);
             this.Controls.Add(cmb);
 
-            // Lista de motivos preestablecidos
             string[] motivos = [
                 "Ingreso por Compra",
                 "Ajuste por Error de Captura",
@@ -201,7 +207,7 @@ namespace HSis.UI.Forms.Otros
             }
             else
             {
-                cmb.SelectedIndex = 0; // "Ingreso por Compra" por defecto
+                cmb.SelectedIndex = 0;
             }
             return Task.CompletedTask;
         }
@@ -211,10 +217,10 @@ namespace HSis.UI.Forms.Otros
             ComboBox cmb = new() { Name = prop.Name, Location = new Point(230, y), Width = 250, DropDownStyle = ComboBoxStyle.DropDownList };
 
             this.Controls.Add(lbl);
-            this.Controls.Add(cmb); // Se agrega a los controles primero para inicializar su handle nativo
+            this.Controls.Add(cmb);
 
             Type navType = navProp.PropertyType;
-            var list = await _catalogoService.ObtenerTodosPorTipoAsync(navType);
+            var list = await _presenter.ObtenerTodosPorTipoAsync(navType);
 
             var typedArray = Array.CreateInstance(navType, list.Count);
             for (int i = 0; i < list.Count; i++)
@@ -233,7 +239,6 @@ namespace HSis.UI.Forms.Otros
             var val = prop.GetValue(_entidad);
             if (val != null)
             {
-                // Si es un Nullable, obtenemos su tipo subyacente (ej: int) para evitar conflictos de tipo en WinForms
                 Type? underlyingType = Nullable.GetUnderlyingType(prop.PropertyType);
                 if (underlyingType != null)
                 {
@@ -246,7 +251,7 @@ namespace HSis.UI.Forms.Otros
             }
             else
             {
-                cmb.SelectedIndex = -1; // Si el valor es null en la base de datos, no seleccionar ninguna opción
+                cmb.SelectedIndex = -1;
             }
 
             if ((_entidad.GetType().Name.StartsWith("Ingreso") || _entidad.GetType().Name == "MovimientoMaterial") && prop.Name == "IdUsuario")
@@ -277,7 +282,7 @@ namespace HSis.UI.Forms.Otros
             {
                 try
                 {
-                    int nextId = await _catalogoService.ObtenerSiguienteIdAsync(_entidad.GetType(), prop.Name);
+                    int nextId = await _presenter.ObtenerSiguienteIdAsync(_entidad.GetType(), prop.Name);
                     txt.Text = nextId.ToString();
                     lbl.Text += nextId == 1 ? " (Primero)" : " (Sig. Sugerido)";
                 }

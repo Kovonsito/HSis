@@ -1,128 +1,97 @@
-#nullable enable
+using System.ComponentModel;
 using System.Runtime.Versioning;
+using HSis.Logic.Constants;
 using HSis.Logic.DTOs;
-using HSis.Logic.Services;
 using HSis.UI.Factories;
 using HSis.UI.Forms.Dashboards;
 using HSis.UI.Helpers;
+using HSis.UI.Presenters;
 
 namespace HSis.UI.Forms.Auth
 {
     [SupportedOSPlatform("windows")]
-    public partial class IniciarSesionForm : Form
+    public partial class IniciarSesionForm : Form, IIniciarSesionView
     {
-        private readonly IUsuarioService _usuarioService;
-        private readonly ISessionCacheService _sessionCache;
+        private readonly IniciarSesionPresenter _presenter;
         private readonly IFabricaFormularios _fabricaFormularios;
-        private readonly INotificationClientService _notificationClient;
 
-        public IniciarSesionForm(IUsuarioService usuarioService, ISessionCacheService sessionCache, IFabricaFormularios fabricaFormularios, INotificationClientService notificationClient)
+        public IniciarSesionForm(IniciarSesionPresenter presenter, IFabricaFormularios fabricaFormularios)
         {
             InitializeComponent();
-            _usuarioService = usuarioService;
-            _sessionCache = sessionCache;
+            _presenter = presenter;
             _fabricaFormularios = fabricaFormularios;
-            _notificationClient = notificationClient;
+            _presenter.SetView(this);
             InicializarLayoutLogin();
         }
 
-
-        #region Login Actions
-        private async void btnIniciarSesion_Click(object? sender, EventArgs e)
+        #region Propiedades de IIniciarSesionView
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public string NombreUsuario
         {
-            var usuario = await _usuarioService.AutenticarAsync(txtUsuario.Text, txtContraseña.Text);
-            if (usuario != null)
-            {
-                ProcesarLoginExitoso(usuario, txtContraseña.Text);
-            }
-            else
-            {
-                MessageBox.Show("Usuario o contraseña incorrectos", "Error al iniciar sesión", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                txtUsuario.Clear();
-                txtContraseña.Clear();
-            }
+            get => txtUsuario.Text;
+            set => txtUsuario.Text = value;
         }
 
-        private void ProcesarLoginExitoso(UsuarioDto usuario, string password)
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public string Contraseña
         {
-            SesionSistema.UsuarioActual = usuario;
+            get => txtContraseña.Text;
+            set => txtContraseña.Text = value;
+        }
 
-            // Guardar credenciales en caché
-            _sessionCache.SaveCredentials(usuario.Nombre ?? string.Empty, password);
+        public void LimpiarCredenciales()
+        {
+            txtUsuario.Clear();
+            txtContraseña.Clear();
+        }
 
-            string roleName = SesionSistema.IdRolUsuario switch
+        public void CargarCredencialesGuardadas(string usuario, string contraseña)
+        {
+            txtUsuario.Text = usuario;
+            txtContraseña.Text = contraseña;
+        }
+
+        public void NavegarADashboard(UsuarioDto usuario, string rolNombre)
+        {
+            Form dashboardForm = (RolUsuarioEnum)(usuario.IdRol ?? (int)RolUsuarioEnum.Administrador) switch
             {
-                1 => "Administrador",
-                2 => "Técnico",
-                3 => "Cliente",
-                _ => "Usuario"
-            };
-            _ = _notificationClient.IniciarAsync(SesionSistema.IdUsuario, roleName);
-
-            Form dashboardForm = SesionSistema.IdRolUsuario switch
-            {
-                1 => (Form)_fabricaFormularios.Crear<DashboardAdminForm>(),
-                2 => (Form)_fabricaFormularios.Crear<DashboardTecnicoForm>(),
-                3 => (Form)_fabricaFormularios.Crear<DashboardClienteForm>(),
+                RolUsuarioEnum.Administrador => (Form)_fabricaFormularios.Crear<DashboardAdminForm>(),
+                RolUsuarioEnum.Tecnico => (Form)_fabricaFormularios.Crear<DashboardTecnicoForm>(),
+                RolUsuarioEnum.Cliente => (Form)_fabricaFormularios.Crear<DashboardClienteForm>(),
                 _ => (Form)_fabricaFormularios.Crear<DashboardAdminForm>()
             };
 
-            // Suscribirse al evento FormClosed para cerrar la aplicación correctamente
             dashboardForm.FormClosed += (s, closedArgs) => Application.Exit();
-
             this.Hide();
             dashboardForm.Show();
         }
 
+        public void MostrarError(string mensaje)
+        {
+            MessageBox.Show(mensaje, "Error al iniciar sesión", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+
+        public void MostrarCargando(bool cargando)
+        {
+            btnIniciarSesion.Enabled = !cargando;
+            this.UseWaitCursor = cargando;
+        }
+        #endregion
+
+        #region Form Events
+        private async void btnIniciarSesion_Click(object? sender, EventArgs e)
+        {
+            await _presenter.IniciarSesionAsync();
+        }
+
         private void frmIniciarSesion_Load(object? sender, EventArgs e)
         {
-            var cached = _sessionCache.GetCredentials();
-            if (cached.HasValue)
-            {
-                txtUsuario.Text = cached.Value.Username;
-                txtContraseña.Text = cached.Value.Password;
-            }
+            _presenter.CargarCredencialesEnCache();
         }
 
-        private void InicializarLayoutLogin()
-        {
-            var tblPrincipal = new TableLayoutPanel
-            {
-                Dock = DockStyle.Fill,
-                RowCount = 5,
-                ColumnCount = 1,
-                Padding = new Padding(30, 20, 30, 20),
-                Name = "tblPrincipal"
-            };
 
-            for (int i = 0; i < 5; i++)
-            {
-                tblPrincipal.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-            }
-
-            lblUsuario.Dock = DockStyle.Fill;
-            lblUsuario.Margin = new Padding(0, 0, 0, 5);
-            txtUsuario.Dock = DockStyle.Fill;
-            txtUsuario.Margin = new Padding(0, 0, 0, 15);
-
-            lblContraseña.Dock = DockStyle.Fill;
-            lblContraseña.Margin = new Padding(0, 0, 0, 5);
-            txtContraseña.Dock = DockStyle.Fill;
-            txtContraseña.Margin = new Padding(0, 0, 0, 20);
-
-            btnIniciarSesion.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            btnIniciarSesion.Margin = new Padding(0);
-            btnIniciarSesion.Height = 35;
-
-            tblPrincipal.Controls.Add(lblUsuario, 0, 0);
-            tblPrincipal.Controls.Add(txtUsuario, 0, 1);
-            tblPrincipal.Controls.Add(lblContraseña, 0, 2);
-            tblPrincipal.Controls.Add(txtContraseña, 0, 3);
-            tblPrincipal.Controls.Add(btnIniciarSesion, 0, 4);
-
-            this.Controls.Clear();
-            this.Controls.Add(tblPrincipal);
-        }
         #endregion
     }
 }

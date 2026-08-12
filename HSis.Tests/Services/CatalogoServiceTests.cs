@@ -23,7 +23,7 @@ namespace HSis.Tests.Services
         }
 
         [Fact]
-        public async Task CrearAsync_ConEntidadUsuario_DebeHashearContraseñaYGuardar()
+        public async Task CrearAsyncConEntidadUsuarioDebeHashearContraseñaYGuardar()
         {
             // Arrange
             var options = new DbContextOptionsBuilder<HSisDbContext>()
@@ -51,7 +51,7 @@ namespace HSis.Tests.Services
         }
 
         [Fact]
-        public async Task ObtenerTodosAsync_DebeRetornarListaDeEntidades()
+        public async Task ObtenerTodosAsyncDebeRetornarListaDeEntidades()
         {
             // Arrange
             var options = new DbContextOptionsBuilder<HSisDbContext>()
@@ -75,7 +75,7 @@ namespace HSis.Tests.Services
         }
 
         [Fact]
-        public async Task ObtenerFiltradoAsync_ConPredicado_DebeFiltrarResultados()
+        public async Task ObtenerFiltradoAsyncConPredicadoDebeFiltrarResultados()
         {
             // Arrange
             var options = new DbContextOptionsBuilder<HSisDbContext>()
@@ -84,8 +84,8 @@ namespace HSis.Tests.Services
 
             using (var db = new HSisDbContext(options))
             {
-                db.Sucursals.Add(new Sucursal { IdSucursal = 1, Nombre = "Matriz" });
-                db.Sucursals.Add(new Sucursal { IdSucursal = 2, Nombre = "Norte" });
+                db.Sucursales.Add(new Sucursal { IdSucursal = 1, Nombre = "Matriz" });
+                db.Sucursales.Add(new Sucursal { IdSucursal = 2, Nombre = "Norte" });
                 await db.SaveChangesAsync();
             }
 
@@ -100,7 +100,7 @@ namespace HSis.Tests.Services
         }
 
         [Fact]
-        public async Task EliminarAsync_ConIdValido_DebeRemoverEntidad()
+        public async Task EliminarAsyncConIdValidoDebeRemoverEntidad()
         {
             // Arrange
             var options = new DbContextOptionsBuilder<HSisDbContext>()
@@ -125,7 +125,7 @@ namespace HSis.Tests.Services
         }
 
         [Fact]
-        public async Task ObtenerSiguienteIdAsync_ConRegistrosExistentes_DebeCalcularIdSiguiente()
+        public async Task ObtenerSiguienteIdAsyncConRegistrosExistentesDebeCalcularIdSiguiente()
         {
             // Arrange
             var options = new DbContextOptionsBuilder<HSisDbContext>()

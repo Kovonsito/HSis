@@ -1,4 +1,5 @@
 using HSis.Data.Models;
+using HSis.Logic.Constants;
 using HSis.Logic.DTOs;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
@@ -68,6 +69,10 @@ namespace HSis.Logic.Services
                 .ToListAsync();
 
             return mapper.Map<List<UsuarioDto>>(usuarios);
+        }
+        public async Task<List<UsuarioDto>> ObtenerUsuariosPorRolAsync(RolUsuarioEnum rol)
+        {
+            return await ObtenerUsuariosPorRolAsync((int)rol);
         }
     }
 }
