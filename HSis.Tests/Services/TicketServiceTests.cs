@@ -57,12 +57,12 @@ namespace HSis.Tests.Services
             // Assert
             resultado.Should().NotBeNull();
             resultado.IdTicket.Should().BeGreaterThan(0);
-            resultado.Status.Should().Be("Abierto");
+            resultado.Estatus.Should().Be("Abierto");
 
             using var contextVerification = new HSisDbContext(options);
             var ticketEnBd = await contextVerification.Tickets.FindAsync(resultado.IdTicket);
             ticketEnBd.Should().NotBeNull();
-            ticketEnBd!.Descripción.Should().Be(nuevoTicketDto.Descripcion);
+            ticketEnBd!.Descripcion.Should().Be(nuevoTicketDto.Descripcion);
         }
 
         [Fact]
@@ -95,7 +95,7 @@ namespace HSis.Tests.Services
             using var contextVerification = new HSisDbContext(options);
             var ticketEnBd = await contextVerification.Tickets.FindAsync(resultado.IdTicket);
             ticketEnBd.Should().NotBeNull();
-            ticketEnBd!.Descripción.Should().StartWith($"[Solicitante no registrado: {nombreSolicitante}]");
+            ticketEnBd!.Descripcion.Should().StartWith($"[Solicitante no registrado: {nombreSolicitante}]");
         }
 
         [Fact]
@@ -151,9 +151,9 @@ namespace HSis.Tests.Services
                 db.Usuarios.Add(new Usuario { IdUsuario = 10, Nombre = "Juan Perez" });
                 db.Usuarios.Add(new Usuario { IdUsuario = 11, Nombre = "Pedro Gomez" });
 
-                db.Tickets.Add(new Ticket { IdTicket = 101, IdUsuario = 10, Status = "Abierto", Prioridad = "Alta", Alta = DateTime.Today });
-                db.Tickets.Add(new Ticket { IdTicket = 102, IdUsuario = 10, Status = "En Proceso", Prioridad = "Media", Alta = DateTime.Today });
-                db.Tickets.Add(new Ticket { IdTicket = 103, IdUsuario = 11, Status = "Cerrado", Prioridad = "Baja", Alta = DateTime.Today.AddDays(-5) });
+                db.Tickets.Add(new Ticket { IdTicket = 101, IdUsuario = 10, Estatus = "Abierto", Prioridad = ConstantesPrioridad.ALTA, FechaAlta = DateTime.Today });
+                db.Tickets.Add(new Ticket { IdTicket = 102, IdUsuario = 10, Estatus = "En Proceso", Prioridad = ConstantesPrioridad.MEDIA, FechaAlta = DateTime.Today });
+                db.Tickets.Add(new Ticket { IdTicket = 103, IdUsuario = 11, Estatus = "Cerrado", Prioridad = ConstantesPrioridad.BAJA, FechaAlta = DateTime.Today.AddDays(-5) });
 
                 await db.SaveChangesAsync();
             }
@@ -174,7 +174,8 @@ namespace HSis.Tests.Services
             resultadoUsuario.Should().HaveCount(2);
 
             // Act 3: Filtrar por Prioridad y Rango Temporal
-            var filtroComplejo = new TicketFilterDto { Prioridad = "Media", RangoTemporal = VistaTemporal.Semana };
+            var filtroComplejo = new TicketFilterDto { Prioridad = ConstantesPrioridad.MEDIA, RangoTemporal = VistaTemporal.Semana };
+
             var resultadoComplejo = await service.ObtenerTicketsFiltradosAsync(filtroComplejo);
 
             // Assert 3

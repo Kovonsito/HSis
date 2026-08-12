@@ -5,15 +5,19 @@ using Microsoft.Extensions.Logging;
 
 namespace HSis.Logic.Services;
 
-public class NotificationClientService(IConfiguration configuration, ILogger<NotificationClientService> logger) : INotificationClientService
+public class NotificationClientService(
+    IConfiguration configuration,
+    ILogger<NotificationClientService> logger,
+    INotificationEventBus? eventBus = null) : INotificationClientService
 {
     private readonly IConfiguration _configuration = configuration;
     private readonly ILogger<NotificationClientService> _logger = logger;
+    private readonly INotificationEventBus? _eventBus = eventBus;
     private HubConnection? _connection;
     private bool _isConnecting = false;
     private readonly ConcurrentQueue<Func<HubConnection, Task>> _pendingNotifications = new();
 
-    // Eventos expuestos para que la UI responda a los cambios
+    // Eventos expuestos para que la UI responda a los cambios (compatibilidad legacy)
     public event Action<string, int, string>? OnNotificationReceived;
     public event Action? OnConnected;
     public event Action? OnDisconnected;
@@ -53,6 +57,7 @@ public class NotificationClientService(IConfiguration configuration, ILogger<Not
         {
             _logger.LogWarning(error, "Conexión de SignalR cerrada.");
             OnDisconnected?.Invoke();
+            _eventBus?.PublicarEstadoConexion(false, "⚠️ Sin conexión con el servidor de notificaciones. Intentando reconectar...");
             await IniciarReconexionBackgroundAsync();
         };
 
@@ -60,6 +65,7 @@ public class NotificationClientService(IConfiguration configuration, ILogger<Not
         {
             _logger.LogInformation(error, "SignalR intentando reconectar automáticamente...");
             OnReconnecting?.Invoke();
+            _eventBus?.PublicarEstadoConexion(false, "⚠️ Intentando reconectar con el servidor de notificaciones...");
             return Task.CompletedTask;
         };
 
@@ -71,6 +77,7 @@ public class NotificationClientService(IConfiguration configuration, ILogger<Not
             }
             OnConnected?.Invoke();
             OnReconnected?.Invoke(connectionId);
+            _eventBus?.PublicarEstadoConexion(true);
             _ = ProcesarNotificacionesPendientesAsync();
             return Task.CompletedTask;
         };
@@ -83,6 +90,7 @@ public class NotificationClientService(IConfiguration configuration, ILogger<Not
                 _logger.LogInformation("Notificación recibida: Tipo={Tipo}, TicketId={TicketId}", tipo, ticketId);
             }
             OnNotificationReceived?.Invoke(tipo, ticketId, mensaje);
+            _eventBus?.PublicarNotificacion(ticketId, tipo, mensaje);
         });
 
         try
@@ -90,12 +98,14 @@ public class NotificationClientService(IConfiguration configuration, ILogger<Not
             await _connection.StartAsync();
             _logger.LogInformation("SignalR conectado correctamente.");
             OnConnected?.Invoke();
+            _eventBus?.PublicarEstadoConexion(true);
             _ = ProcesarNotificacionesPendientesAsync();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error al iniciar conexión inicial de SignalR.");
             OnDisconnected?.Invoke();
+            _eventBus?.PublicarEstadoConexion(false, "⚠️ Conectando al servidor de notificaciones...");
             // Iniciar ciclo de reintento en segundo plano para no bloquear el inicio de la app
             await IniciarReconexionBackgroundAsync();
         }
@@ -112,140 +122,115 @@ public class NotificationClientService(IConfiguration configuration, ILogger<Not
             {
                 _logger.LogInformation("Intentando conectar al Hub de SignalR en segundo plano...");
                 OnReconnecting?.Invoke();
+                _eventBus?.PublicarEstadoConexion(false, "⚠️ Intentando reconectar con el servidor de notificaciones...");
                 try
                 {
                     await _connection.StartAsync();
                     _logger.LogInformation("Conexión de SignalR reestablecida en segundo plano.");
                     OnConnected?.Invoke();
+                    _eventBus?.PublicarEstadoConexion(true);
                     _ = ProcesarNotificacionesPendientesAsync();
                     break;
                 }
-                catch (Exception ex)
+                catch
                 {
-                    _logger.LogWarning("Fallo en reintento de conexión de SignalR: {Message}", ex.Message);
-                    // Esperar antes del siguiente reintento
-                    await Task.Delay(TimeSpan.FromSeconds(10));
+                    await Task.Delay(5000);
                 }
             }
             _isConnecting = false;
         });
+    }
 
-        await Task.CompletedTask;
+    private async Task ProcesarNotificacionesPendientesAsync()
+    {
+        while (_pendingNotifications.TryDequeue(out var action))
+        {
+            if (_connection?.State == HubConnectionState.Connected)
+            {
+                try
+                {
+                    await action(_connection);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error enviando notificación pendiente.");
+                }
+            }
+        }
     }
 
     public async Task DetenerAsync()
     {
         if (_connection != null)
         {
-            try
-            {
-                await _connection.StopAsync();
-                await _connection.DisposeAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al detener conexión de SignalR.");
-            }
-            finally
-            {
-                _connection = null;
-                OnDisconnected?.Invoke();
-            }
+            await _connection.StopAsync();
+            await _connection.DisposeAsync();
+            _connection = null;
+            OnDisconnected?.Invoke();
+            _eventBus?.PublicarEstadoConexion(false, "Servidor de notificaciones detenido.");
         }
     }
 
-    private async Task ProcesarNotificacionesPendientesAsync()
+    public async Task NotificarCambioTicketAsync(int ticketId, string tipoAccion, string mensaje)
     {
-        if (_connection == null || !IsConnected) return;
-
-        if (_logger.IsEnabled(LogLevel.Information))
-        {
-            _logger.LogInformation("Procesando {Count} notificaciones pendientes...", _pendingNotifications.Count);
-        }
-
-        while (_pendingNotifications.TryDequeue(out var notificationAction))
+        if (_connection?.State == HubConnectionState.Connected)
         {
             try
             {
-                await notificationAction(_connection);
-                _logger.LogInformation("Notificación pendiente enviada con éxito.");
+                await _connection.InvokeAsync("EnviarNotificacionTicket", ticketId, tipoAccion, mensaje);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al enviar notificación pendiente. Re-encolando.");
-                _pendingNotifications.Enqueue(notificationAction);
-                break; // Detener hasta la siguiente reconexión exitosa
-            }
-        }
-    }
-
-    // Métodos para enviar notificaciones a través del Hub
-    public async Task NotifyTicketCreatedAsync(int ticketId, string ticketFolio, string titulo)
-    {
-        Task action(HubConnection conn) => conn.InvokeAsync("NotifyTicketCreated", ticketId, ticketFolio, titulo);
-
-        if (IsConnected && _connection != null)
-        {
-            try
-            {
-                await action(_connection);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al invocar NotifyTicketCreated en el Hub. Guardando en cola pendiente.");
-                _pendingNotifications.Enqueue(action);
+                _logger.LogError(ex, "Error al invocar EnviarNotificacionTicket.");
+                EncolarNotificacion(conn => conn.InvokeAsync("EnviarNotificacionTicket", ticketId, tipoAccion, mensaje));
             }
         }
         else
         {
-            _logger.LogInformation("Conexión desconectada. Guardando notificación de creación de ticket en cola pendiente.");
-            _pendingNotifications.Enqueue(action);
+            _logger.LogWarning("Conexión no activa. Encolando notificación.");
+            EncolarNotificacion(conn => conn.InvokeAsync("EnviarNotificacionTicket", ticketId, tipoAccion, mensaje));
         }
     }
 
-    public async Task NotifyTicketStatusChangedAsync(int clientUserId, int ticketId, string ticketFolio, string newStatus)
+    public async Task NotificarCambioEstatusAsync(int ticketId, string nuevoEstatus)
     {
-        Task action(HubConnection conn) => conn.InvokeAsync("NotifyTicketStatusChanged", clientUserId, ticketId, ticketFolio, newStatus);
-
-        if (IsConnected && _connection != null)
+        if (_connection?.State == HubConnectionState.Connected)
         {
             try
             {
-                await action(_connection);
+                await _connection.InvokeAsync("EnviarCambioEstatus", ticketId, nuevoEstatus);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al invocar NotifyTicketStatusChanged en el Hub. Guardando en cola pendiente.");
-                _pendingNotifications.Enqueue(action);
+                _logger.LogError(ex, "Error al invocar EnviarCambioEstatus.");
+                EncolarNotificacion(conn => conn.InvokeAsync("EnviarCambioEstatus", ticketId, nuevoEstatus));
             }
         }
         else
         {
-            _logger.LogInformation("Conexión desconectada. Guardando notificación de cambio de estatus en cola pendiente.");
-            _pendingNotifications.Enqueue(action);
+            _logger.LogWarning("Conexión no activa. Encolando notificación.");
+            EncolarNotificacion(conn => conn.InvokeAsync("EnviarCambioEstatus", ticketId, nuevoEstatus));
         }
     }
 
-    public async Task NotifyTicketRatedAsync(int technicianUserId, int ticketId, string ticketFolio, int rating, string comment)
+    public async Task NotificarTicketCreadoAsync(int ticketId, string ticketFolio, string titulo)
     {
-        Task action(HubConnection conn) => conn.InvokeAsync("NotifyTicketRated", technicianUserId, ticketId, ticketFolio, rating, comment);
+        await NotificarCambioTicketAsync(ticketId, "Creado", $"Nuevo ticket #{ticketFolio}: {titulo}");
+    }
 
-        if (IsConnected && _connection != null)
-        {
-            try
-            {
-                await action(_connection);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al invocar NotifyTicketRated en el Hub. Guardando en cola pendiente.");
-                _pendingNotifications.Enqueue(action);
-            }
-        }
-        else
-        {
-            _logger.LogInformation("Conexión desconectada. Guardando notificación de calificación en cola pendiente.");
-            _pendingNotifications.Enqueue(action);
-        }
+    public async Task NotificarCambioEstatusTicketAsync(int clientUserId, int ticketId, string ticketFolio, string newStatus)
+    {
+        await NotificarCambioEstatusAsync(ticketId, newStatus);
+    }
+
+    public async Task NotificarCalificacionTicketAsync(int technicianUserId, int ticketId, string ticketFolio, int rating, string comment)
+    {
+        await NotificarCambioTicketAsync(ticketId, "Calificado", $"Ticket #{ticketFolio} calificado con {rating} estrellas: {comment}");
+    }
+
+    private void EncolarNotificacion(Func<HubConnection, Task> action)
+    {
+        _pendingNotifications.Enqueue(action);
     }
 }
+

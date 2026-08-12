@@ -16,7 +16,7 @@ public partial class MovimientoMaterial
 
     public string? Motivo { get; set; }
 
-    public virtual Material IdMaterialNavigation { get; set; } = null!;
+    public virtual Material Material { get; set; } = null!;
 
-    public virtual Usuario IdUsuarioNavigation { get; set; } = null!;
+    public virtual Usuario Usuario { get; set; } = null!;
 }

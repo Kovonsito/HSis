@@ -1,5 +1,6 @@
 using FluentAssertions;
 using HSis.Data.Models;
+using HSis.Logic.DTOs;
 using HSis.Logic.Services;
 using Microsoft.EntityFrameworkCore;
 using Moq;
@@ -33,7 +34,7 @@ namespace HSis.Tests.Services
 
             var service = new TicketDetalleService(CreateFactory(options));
 
-            var detTicket = new DetTicket
+            var detTicketDto = new TicketDetalleDto
             {
                 IdTicket = 1,
                 IdMaterial = 100,
@@ -41,7 +42,7 @@ namespace HSis.Tests.Services
             };
 
             // Act
-            await service.AgregarMaterialATicketAsync(detTicket);
+            await service.AgregarMaterialATicketAsync(detTicketDto);
 
             // Assert
             using var dbVerification = new HSisDbContext(options);

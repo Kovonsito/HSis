@@ -64,12 +64,12 @@ namespace HSis.UI.Forms.Tickets
                 lblFolio.Text = $"Folio: TK-{ticket.IdTicket:d6}";
                 txtUsuario.Text = ticket.NombreUsuario;
                 txtDepartamento.Text = ticket.DepartamentoUsuario;
-                txtAlta.Text = (ticket.Alta ?? DateTime.Now).ToString("dddd, dd 'de' MMMM 'de' yyyy 'a las' HH:mm:ss");
+                txtAlta.Text = (ticket.FechaAlta ?? DateTime.Now).ToString("dddd, dd 'de' MMMM 'de' yyyy 'a las' HH:mm:ss");
                 rtbDescripcion.Text = ticket.Descripcion ?? string.Empty;
                 rtbSolucion.Text = ticket.Solucion ?? string.Empty;
 
-                ConfigurarFecha(txtAtencion, ticket.Atencion);
-                ConfigurarFecha(txtCierre, ticket.Cierre);
+                ConfigurarFecha(txtAtencion, ticket.FechaAtencion);
+                ConfigurarFecha(txtCierre, ticket.FechaCierre);
 
                 // Bloquear siempre los controles para que las fechas sean 100% automáticas
                 txtAlta.ReadOnly = true;
@@ -78,7 +78,7 @@ namespace HSis.UI.Forms.Tickets
 
                 bool esAdmin = SesionSistema.IdRolUsuario == 1;
                 bool esPropietario = ticket.IdTecnico == SesionSistema.IdUsuario;
-                string estatusActual = ticket.Status ?? ConstantesEstatus.ABIERTO;
+                string estatusActual = ticket.Estatus ?? ConstantesEstatus.ABIERTO;
 
                 // Lógica del diccionario de opciones de estatus
                 cmbEstatus.Items.Clear();
@@ -186,7 +186,7 @@ namespace HSis.UI.Forms.Tickets
                 }
 
                 // Validación de cambios: Evitar viajes a la BD e historial innecesario si nada cambió
-                bool huboCambios = ticket.Status != estatusSeleccionado ||
+                bool huboCambios = ticket.Estatus != estatusSeleccionado ||
                                    ticket.IdTecnico != idTecnico ||
                                    (ticket.Solucion ?? string.Empty) != solucionIngresada ||
                                    (ticket.Prioridad ?? string.Empty) != prioridadSeleccionada;
@@ -201,31 +201,31 @@ namespace HSis.UI.Forms.Tickets
                 var updateDto = new HSis.Logic.DTOs.TicketUpdateDto
                 {
                     IdTicket = ticket.IdTicket,
-                    Status = estatusSeleccionado,
+                    Estatus = estatusSeleccionado,
                     IdTecnico = idTecnico,
                     Solucion = solucionIngresada,
-                    Atencion = ticket.Atencion,
-                    Cierre = ticket.Cierre,
+                    FechaAtencion = ticket.FechaAtencion,
+                    FechaCierre = ticket.FechaCierre,
                     Prioridad = prioridadSeleccionada
                 };
 
                 // Lógica automática de fechas para KPIs
-                if (updateDto.Status == ConstantesEstatus.REABIERTO)
+                if (updateDto.Estatus == ConstantesEstatus.REABIERTO)
                 {
-                    updateDto.Cierre = null;
+                    updateDto.FechaCierre = null;
                 }
-                else if (updateDto.Status == ConstantesEstatus.EN_PROCESO && updateDto.Atencion == null)
+                else if (updateDto.Estatus == ConstantesEstatus.EN_PROCESO && updateDto.FechaAtencion == null)
                 {
-                    updateDto.Atencion = DateTime.Now;
+                    updateDto.FechaAtencion = DateTime.Now;
                 }
-                else if (updateDto.Status == ConstantesEstatus.CERRADO && updateDto.Cierre == null)
+                else if (updateDto.Estatus == ConstantesEstatus.CERRADO && updateDto.FechaCierre == null)
                 {
-                    updateDto.Cierre = DateTime.Now;
+                    updateDto.FechaCierre = DateTime.Now;
                 }
-                else if (updateDto.Status == ConstantesEstatus.ABIERTO)
+                else if (updateDto.Estatus == ConstantesEstatus.ABIERTO)
                 {
-                    updateDto.Atencion = null;
-                    updateDto.Cierre = null;
+                    updateDto.FechaAtencion = null;
+                    updateDto.FechaCierre = null;
                 }
 
                 // Llamar al método de actualización
@@ -294,7 +294,7 @@ namespace HSis.UI.Forms.Tickets
             }
 
             bool esCliente = SesionSistema.IdRolUsuario == 3;
-            bool esCerrado = ticket.Status == ConstantesEstatus.CERRADO;
+            bool esCerrado = ticket.Estatus == ConstantesEstatus.CERRADO;
             bool tieneCalificacion = ticket.Calificacion.HasValue;
 
             if (esCliente && esCerrado && !tieneCalificacion)
@@ -326,9 +326,9 @@ namespace HSis.UI.Forms.Tickets
 
                 string estrellasStr = new string('⭐', ticket.Calificacion ?? 0);
                 lblResumen.Text = $"Calificación recibida: {estrellasStr} ({ticket.Calificacion}/5)";
-                lblComentarioLectura.Text = string.IsNullOrEmpty(ticket.ComentarioFeedback)
+                lblComentarioLectura.Text = string.IsNullOrEmpty(ticket.ComentarioEvaluacion)
                     ? "El cliente no dejó comentarios."
-                    : $"Comentario: \"{ticket.ComentarioFeedback}\"";
+                    : $"Comentario: \"{ticket.ComentarioEvaluacion}\"";
             }
             else
             {

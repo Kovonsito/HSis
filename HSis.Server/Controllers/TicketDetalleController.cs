@@ -1,4 +1,4 @@
-using HSis.Data.Models;
+using HSis.Logic.DTOs;
 using HSis.Logic.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,13 +10,13 @@ namespace HSis.Server.Controllers
     {
 
         [HttpGet("ticket/{idTicket}")]
-        public async Task<ActionResult<List<DetTicket>>> ObtenerDetallesTicket(int idTicket)
+        public async Task<ActionResult<List<TicketDetalleDto>>> ObtenerDetallesTicket(int idTicket)
         {
             return Ok(await ticketDetalleService.ObtenerDetallesTicketAsync(idTicket));
         }
 
         [HttpGet("ticket/{idTicket}/material/{idMaterial}")]
-        public async Task<ActionResult<DetTicket>> ObtenerDetallePorId(int idTicket, int idMaterial)
+        public async Task<ActionResult<TicketDetalleDto>> ObtenerDetallePorId(int idTicket, int idMaterial)
         {
             var detalle = await ticketDetalleService.ObtenerDetallePorIdAsync(idTicket, idMaterial);
             if (detalle == null) return NotFound();
@@ -24,16 +24,16 @@ namespace HSis.Server.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AgregarMaterialATicket([FromBody] DetTicket detTicket)
+        public async Task<IActionResult> AgregarMaterialATicket([FromBody] TicketDetalleDto detTicketDto)
         {
-            await ticketDetalleService.AgregarMaterialATicketAsync(detTicket);
+            await ticketDetalleService.AgregarMaterialATicketAsync(detTicketDto);
             return Ok();
         }
 
         [HttpPut]
-        public async Task<IActionResult> ActualizarDetalleTicket([FromBody] DetTicket detTicket)
+        public async Task<IActionResult> ActualizarDetalleTicket([FromBody] TicketDetalleDto detTicketDto)
         {
-            await ticketDetalleService.ActualizarDetalleTicketAsync(detTicket);
+            await ticketDetalleService.ActualizarDetalleTicketAsync(detTicketDto);
             return NoContent();
         }
 

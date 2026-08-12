@@ -10,7 +10,8 @@ namespace HSis.UI.Services
     public class AdministradorUINotificaciones(
         INotificationClientService clienteNotificaciones,
         INotificacionStorageService servicioAlmacenamiento,
-        IFabricaFormularios fabricaFormularios)
+        IFabricaFormularios fabricaFormularios,
+        INotificationEventBus? eventBus = null)
     {
 
         private Form? _formularioAnfitrion;
@@ -36,20 +37,37 @@ namespace HSis.UI.Services
             // 2. Configurar campana en el menú principal del formulario
             ConfigurarCampanaMenu();
 
-            // 3. Suscribirse a los eventos de SignalR
-            clienteNotificaciones.OnNotificationReceived += EnNotificacionRecibida;
-            clienteNotificaciones.OnReconnecting += EnReconectando;
-            clienteNotificaciones.OnConnected += EnConectado;
-            clienteNotificaciones.OnDisconnected += EnDesconectado;
+            // 3. Suscribirse a los eventos del Bus de Eventos (Event Aggregator) o cliente legacy
+            if (eventBus != null)
+            {
+                eventBus.OnNotificacionPublicada += EnBusNotificacionPublicada;
+                eventBus.OnEstadoConexionCambiado += EnBusEstadoConexionCambiado;
+            }
+            else
+            {
+                clienteNotificaciones.OnNotificationReceived += EnNotificacionRecibida;
+                clienteNotificaciones.OnReconnecting += EnReconectando;
+                clienteNotificaciones.OnConnected += EnConectado;
+                clienteNotificaciones.OnDisconnected += EnDesconectado;
+            }
 
             // 4. Limpieza automática de eventos al cerrar el formulario host
             _formularioAnfitrion.FormClosed += (s, args) =>
             {
-                clienteNotificaciones.OnNotificationReceived -= EnNotificacionRecibida;
-                clienteNotificaciones.OnReconnecting -= EnReconectando;
-                clienteNotificaciones.OnConnected -= EnConectado;
-                clienteNotificaciones.OnDisconnected -= EnDesconectado;
+                if (eventBus != null)
+                {
+                    eventBus.OnNotificacionPublicada -= EnBusNotificacionPublicada;
+                    eventBus.OnEstadoConexionCambiado -= EnBusEstadoConexionCambiado;
+                }
+                else
+                {
+                    clienteNotificaciones.OnNotificationReceived -= EnNotificacionRecibida;
+                    clienteNotificaciones.OnReconnecting -= EnReconectando;
+                    clienteNotificaciones.OnConnected -= EnConectado;
+                    clienteNotificaciones.OnDisconnected -= EnDesconectado;
+                }
             };
+
 
             // 5. Ajustar orden de apilamiento visual de los controles inyectados
             AjustarOrdenZControles();
@@ -476,5 +494,21 @@ namespace HSis.UI.Services
                 _pnlBannerResiliencia.BackColor = colorFondo;
             }
         }
+
+        private void EnBusNotificacionPublicada(object? sender, NotificacionEventArgs e)
+        {
+            EnNotificacionRecibida(e.Tipo, e.TicketId, e.Mensaje);
+        }
+
+        private void EnBusEstadoConexionCambiado(object? sender, EstadoConexionEventArgs e)
+        {
+            Color colorFondo = e.Conectado ? Color.Empty : Color.FromArgb(231, 76, 60);
+            ActualizarEstadoConexion(e.Conectado, e.MensajeEstado ?? string.Empty, colorFondo);
+            if (e.Conectado && _callbackRecargaDatos != null)
+            {
+                _ = _callbackRecargaDatos();
+            }
+        }
     }
 }
+

@@ -224,7 +224,7 @@ namespace HSis.UI.Forms.Otros
 
             string displayMember = "Id" + navType.Name;
             if (navType.GetProperty("Nombre") != null) displayMember = "Nombre";
-            else if (navType.GetProperty("Descripción") != null) displayMember = "Descripción";
+            else if (navType.GetProperty("Descripcion") != null) displayMember = "Descripcion";
 
             cmb.DisplayMember = displayMember;
             cmb.ValueMember = "Id" + (navType.Name == "RolUsuario" ? "Rol" : navType.Name);

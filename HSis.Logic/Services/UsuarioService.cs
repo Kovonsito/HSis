@@ -43,10 +43,10 @@ namespace HSis.Logic.Services
         {
             using var db = dbContextFactory.CreateDbContext();
             var usuario = await db.Usuarios
-                .Include(u => u.IdDepartamentoNavigation)
-                .Include(u => u.IdPuestoNavigation)
-                .Include(u => u.IdSucursalNavigation)
-                .Include(u => u.IdRolNavigation)
+                .Include(u => u.Departamento)
+                .Include(u => u.Puesto)
+                .Include(u => u.Sucursal)
+                .Include(u => u.Rol)
                 .FirstOrDefaultAsync(u => u.Nombre == nombreUsuario);
 
             if (usuario != null && VerifyPassword(contraseña, usuario.Contraseña))
@@ -61,10 +61,10 @@ namespace HSis.Logic.Services
             using var db = dbContextFactory.CreateDbContext();
             var usuarios = await db.Usuarios
                 .Where(u => u.IdRol == idRol)
-                .Include(u => u.IdDepartamentoNavigation)
-                .Include(u => u.IdPuestoNavigation)
-                .Include(u => u.IdSucursalNavigation)
-                .Include(u => u.IdRolNavigation)
+                .Include(u => u.Departamento)
+                .Include(u => u.Puesto)
+                .Include(u => u.Sucursal)
+                .Include(u => u.Rol)
                 .ToListAsync();
 
             return mapper.Map<List<UsuarioDto>>(usuarios);

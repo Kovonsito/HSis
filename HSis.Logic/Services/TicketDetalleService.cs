@@ -1,4 +1,6 @@
 using HSis.Data.Models;
+using HSis.Logic.DTOs;
+using Mapster;
 using Microsoft.EntityFrameworkCore;
 
 namespace HSis.Logic.Services
@@ -11,27 +13,32 @@ namespace HSis.Logic.Services
     {
 
         // Obtener detalles de ticket - Async
-        public async Task<List<DetTicket>> ObtenerDetallesTicketAsync(int idTicket)
+        public async Task<List<TicketDetalleDto>> ObtenerDetallesTicketAsync(int idTicket)
         {
             using var db = dbContextFactory.CreateDbContext();
-            return await db.DetTickets
-                .Include(dt => dt.IdMaterialNavigation)
+            var detalles = await db.DetTickets
+                .Include(dt => dt.Material)
                 .Where(dt => dt.IdTicket == idTicket)
                 .ToListAsync();
+
+            return detalles.Adapt<List<TicketDetalleDto>>();
         }
 
-        public async Task<DetTicket?> ObtenerDetallePorIdAsync(int idTicket, int idMaterial)
+        public async Task<TicketDetalleDto?> ObtenerDetallePorIdAsync(int idTicket, int idMaterial)
         {
             using var db = dbContextFactory.CreateDbContext();
-            return await db.DetTickets
-                .Include(dt => dt.IdMaterialNavigation)
+            var detalle = await db.DetTickets
+                .Include(dt => dt.Material)
                 .FirstOrDefaultAsync(dt => dt.IdTicket == idTicket && dt.IdMaterial == idMaterial);
+
+            return detalle?.Adapt<TicketDetalleDto>();
         }
 
         // CRUD DetTicket - Async
-        public async Task AgregarMaterialATicketAsync(DetTicket detTicket)
+        public async Task AgregarMaterialATicketAsync(TicketDetalleDto detalleDto)
         {
             using var db = dbContextFactory.CreateDbContext();
+            var detTicket = detalleDto.Adapt<DetTicket>();
 
             // Consultar el costo actual del material para este egreso
             var material = await db.Materials.FindAsync(detTicket.IdMaterial);
@@ -44,9 +51,10 @@ namespace HSis.Logic.Services
             await db.SaveChangesAsync();
         }
 
-        public async Task ActualizarDetalleTicketAsync(DetTicket detTicket)
+        public async Task ActualizarDetalleTicketAsync(TicketDetalleDto detalleDto)
         {
             using var db = dbContextFactory.CreateDbContext();
+            var detTicket = detalleDto.Adapt<DetTicket>();
             db.DetTickets.Update(detTicket);
             await db.SaveChangesAsync();
         }
