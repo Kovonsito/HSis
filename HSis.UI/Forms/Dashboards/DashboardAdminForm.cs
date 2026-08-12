@@ -11,15 +11,18 @@ using HSis.UI.Forms.Tickets;
 using HSis.UI.Helpers;
 using HSis.UI.Services;
 
+using HSis.UI.Presenters;
+
 namespace HSis.UI.Forms.Dashboards
 {
     [SupportedOSPlatform("windows")]
-    public partial class DashboardAdminForm : Form
+    public partial class DashboardAdminForm : Form, IDashboardAdminView
     {
         private readonly ITicketService _ticketService;
         private readonly ICatalogoService _catalogoService;
         private readonly IUsuarioService _usuarioService;
         private readonly AdministradorUINotificaciones _uiManager;
+        private readonly DashboardAdminPresenter? _presenter;
         private bool _estaCargando = true;
         private PaginacionControl PaginacionControl = null!;
 
@@ -34,7 +37,8 @@ namespace HSis.UI.Forms.Dashboards
             IUsuarioService usuarioService,
             AdministradorUINotificaciones uiManager,
             IFabricaFormularios fabricaFormularios,
-            ISessionCacheService sessionCache)
+            ISessionCacheService sessionCache,
+            DashboardAdminPresenter? presenter = null)
         {
             InitializeComponent();
             _ticketService = ticketService;
@@ -43,6 +47,8 @@ namespace HSis.UI.Forms.Dashboards
             _uiManager = uiManager;
             _fabricaFormularios = fabricaFormularios;
             _sessionCache = sessionCache;
+            _presenter = presenter;
+            _presenter?.SetView(this);
         }
 
         private async void DashboardAdmin_Load(object sender, EventArgs e)
@@ -108,7 +114,7 @@ namespace HSis.UI.Forms.Dashboards
             var campos = new List<HSis.UI.Controls.FiltroCampo>
             {
                 new() { NombrePropiedad = "Estatus", Etiqueta = "Estatus:", Tipo = HSis.UI.Controls.TipoFiltroControl.ComboSeleccion, ValoresCombo = ["Todos", "Nuevos", "Urgentes", "Abierto", "En Proceso", "Cerrado", "Reabierto"], Ancho = 130 },
-                new() { NombrePropiedad = "Prioridad", Etiqueta = "Prioridad:", Tipo = HSis.UI.Controls.TipoFiltroControl.ComboSeleccion, ValoresCombo = ["Todos", "Alta", "Media", "Baja", "Urgente"], Ancho = 130 },
+                new() { NombrePropiedad = "Prioridad", Etiqueta = "Prioridad:", Tipo = HSis.UI.Controls.TipoFiltroControl.ComboSeleccion, ValoresCombo = ["Todos", ConstantesPrioridad.ALTA, ConstantesPrioridad.MEDIA, ConstantesPrioridad.BAJA, ConstantesPrioridad.URGENTE], Ancho = 130 },
                 new() { NombrePropiedad = "Tecnico", Etiqueta = "Técnico:", Tipo = HSis.UI.Controls.TipoFiltroControl.ComboSeleccion, Ancho = 160 },
                 new() { NombrePropiedad = "Usuario", Etiqueta = "Usuario Emisor:", Tipo = HSis.UI.Controls.TipoFiltroControl.Texto, Ancho = 160 },
                 new() { NombrePropiedad = "Temporal", Etiqueta = "Vista Temporal:", Tipo = HSis.UI.Controls.TipoFiltroControl.ComboSeleccion, ValoresCombo = ["Todos", "Día", "Semana", "Mes", "Año"], Ancho = 130 },
@@ -346,14 +352,14 @@ namespace HSis.UI.Forms.Dashboards
             {
                 Folio = t.IdTicket,
                 NombreUsuario = t.NombreUsuario,
-                Status = t.Status ?? "N/A",
+                Estatus = t.Estatus ?? "N/A",
                 Prioridad = t.Prioridad ?? "N/A",
-                Alta = t.Alta,
-                Atención = t.Atencion,
-                Cierre = t.Cierre ?? DateTime.Now,
-                AtendidoPor = t.NombreTecnico,
-                Descripción = t.Descripcion ?? "N/A",
-                Solución = t.Solucion ?? "N/A"
+                FechaAlta = t.FechaAlta,
+                FechaAtencion = t.FechaAtencion,
+                FechaCierre = t.FechaCierre ?? DateTime.Now,
+                TecnicoAsignado = t.NombreTecnico,
+                Descripcion = t.Descripcion ?? "N/A",
+                Solucion = t.Solucion ?? "N/A"
             }).ToList();
 
             dgvTickets.DataSource = new ListaVinculableOrdenable<TicketGridDto>(listaMapeada);
@@ -490,7 +496,7 @@ namespace HSis.UI.Forms.Dashboards
                         var navObj = navProp?.GetValue(entidad);
                         if (navObj != null)
                         {
-                            var nombreProp = navObj.GetType().GetProperty("Nombre") ?? navObj.GetType().GetProperty("Descripción");
+                            var nombreProp = navObj.GetType().GetProperty("Nombre") ?? navObj.GetType().GetProperty("Descripcion");
                             if (nombreProp != null)
                             {
                                 e.Value = nombreProp.GetValue(navObj);
@@ -678,5 +684,71 @@ namespace HSis.UI.Forms.Dashboards
                 MessageBox.Show("Error al obtener la calificación: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
+        #region Implementación IDashboardAdminView (MVP)
+
+        public void MostrarKPIs(ReporteKpisDto kpis)
+        {
+            if (ucNuevos != null) { ucNuevos.Cantidad = kpis.TotalCreados.ToString(); }
+            if (ucCerrados != null) { ucCerrados.Cantidad = kpis.TotalResueltos.ToString(); }
+        }
+
+        public void MostrarTickets(List<TicketDto> tickets, int totalCount, int pageNumber, int pageSize)
+        {
+            _estaCargando = true;
+            try
+            {
+                if (PaginacionControl != null)
+                {
+                    PaginacionControl.TotalRegistros = totalCount;
+                    PaginacionControl.TamanoPagina = pageSize;
+                    PaginacionControl.PaginaActual = pageNumber;
+                }
+
+                dgvTickets.DataSource = tickets.Select(t => new TicketGridDto
+                {
+                    Folio = t.IdTicket,
+                    NombreUsuario = t.NombreUsuario,
+                    Estatus = t.Estatus,
+                    FechaAlta = t.FechaAlta,
+                    FechaAtencion = t.FechaAtencion,
+                    FechaCierre = t.FechaCierre,
+                    TecnicoAsignado = t.NombreTecnico,
+                    Descripcion = t.Descripcion,
+                    Solucion = t.Solucion,
+                    Prioridad = t.Prioridad
+                }).ToList();
+            }
+            finally
+            {
+                _estaCargando = false;
+            }
+        }
+
+        public void MostrarCargando(bool cargando)
+        {
+            Cursor = cargando ? Cursors.WaitCursor : Cursors.Default;
+        }
+
+        public void MostrarError(string mensaje)
+        {
+            MessageBox.Show(mensaje, "Error en Dashboard de Administración", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
+        public void CargarCombosFiltros(List<Usuario> tecnicos)
+        {
+            if (filtroGenerico == null) return;
+            var opcionesTecnico = new List<ElementoCombo<int?>>
+            {
+                new("Todos", 0)
+            };
+            opcionesTecnico.AddRange(tecnicos.Select(u => new ElementoCombo<int?>(u.Nombre ?? string.Empty, u.IdUsuario)));
+            filtroGenerico.ActualizarCombo("Tecnico", opcionesTecnico, "Texto", "Valor");
+        }
+
+        #endregion
     }
 }
+
+
+

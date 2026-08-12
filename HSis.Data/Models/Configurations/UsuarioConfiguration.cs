@@ -17,19 +17,19 @@ public class UsuarioConfiguration : IEntityTypeConfiguration<Usuario>
         entity.Property(e => e.IdSucursal).HasColumnName("id_Sucursal");
         entity.Property(e => e.Nombre).HasMaxLength(50).IsUnicode(false);
 
-        entity.HasOne(d => d.IdDepartamentoNavigation).WithMany(p => p.Usuarios)
+        entity.HasOne(d => d.Departamento).WithMany(p => p.Usuarios)
             .HasForeignKey(d => d.IdDepartamento)
             .HasConstraintName("FK_Usuario_Departamento");
 
-        entity.HasOne(d => d.IdPuestoNavigation).WithMany(p => p.Usuarios)
+        entity.HasOne(d => d.Puesto).WithMany(p => p.Usuarios)
             .HasForeignKey(d => d.IdPuesto)
             .HasConstraintName("FK_Usuario_Puesto");
 
-        entity.HasOne(d => d.IdRolNavigation).WithMany(p => p.Usuarios)
+        entity.HasOne(d => d.Rol).WithMany(p => p.Usuarios)
             .HasForeignKey(d => d.IdRol)
             .HasConstraintName("FK_Usuario_Rol_Usuario");
 
-        entity.HasOne(d => d.IdSucursalNavigation).WithMany(p => p.Usuarios)
+        entity.HasOne(d => d.Sucursal).WithMany(p => p.Usuarios)
             .HasForeignKey(d => d.IdSucursal)
             .HasConstraintName("FK_Usuario_Sucursal");
     }

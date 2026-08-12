@@ -6,14 +6,34 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HSis.Logic.Services
 {
-    public class TicketService(
-        IDbContextFactory<HSisDbContext> dbContextFactory,
-        IMapper mapper,
-        FluentValidation.IValidator<TicketCreateDto> createValidator,
-        FluentValidation.IValidator<TicketUpdateDto> updateValidator,
-        INotificationClientService? notificationClient = null,
-        IServerNotificationDispatcher? notificationDispatcher = null) : ITicketService
+    public class TicketService : ITicketService
     {
+        private readonly IDbContextFactory<HSisDbContext> dbContextFactory;
+        private readonly IMapper mapper;
+        private readonly FluentValidation.IValidator<TicketCreateDto> createValidator;
+        private readonly FluentValidation.IValidator<TicketUpdateDto> updateValidator;
+        private readonly INotificadorTicket? notifier;
+        private readonly INotificationClientService? notificationClient;
+        private readonly IServerNotificationDispatcher? notificationDispatcher;
+
+        public TicketService(
+            IDbContextFactory<HSisDbContext> dbContextFactory,
+            IMapper mapper,
+            FluentValidation.IValidator<TicketCreateDto> createValidator,
+            FluentValidation.IValidator<TicketUpdateDto> updateValidator,
+            INotificadorTicket? notifier = null,
+            INotificationClientService? notificationClient = null,
+            IServerNotificationDispatcher? notificationDispatcher = null)
+        {
+            this.dbContextFactory = dbContextFactory;
+            this.mapper = mapper;
+            this.createValidator = createValidator;
+            this.updateValidator = updateValidator;
+            this.notifier = notifier ?? notificationDispatcher as INotificadorTicket ?? notificationClient;
+            this.notificationClient = notificationClient;
+            this.notificationDispatcher = notificationDispatcher;
+        }
+
         private static DateTime ObtenerLimiteSLA() => DateTime.Now.AddHours(-48);
 
         // Obtener todos los tickets - Async
@@ -21,8 +41,8 @@ namespace HSis.Logic.Services
         {
             using var db = dbContextFactory.CreateDbContext();
             return mapper.Map<List<TicketDto>>(await db.Tickets
-                .Include(t => t.IdUsuarioNavigation)
-                .Include(t => t.IdTecnicoNavigation)
+                .Include(t => t.Usuario)
+                .Include(t => t.Tecnico)
                 .ToListAsync());
         }
 
@@ -31,9 +51,9 @@ namespace HSis.Logic.Services
         {
             using var db = dbContextFactory.CreateDbContext();
             var ticket = await db.Tickets
-                .Include(t => t.IdUsuarioNavigation)
-                .ThenInclude(u => u.IdDepartamentoNavigation)
-                .Include(t => t.IdTecnicoNavigation)
+                .Include(t => t.Usuario)
+                .ThenInclude(u => u.Departamento)
+                .Include(t => t.Tecnico)
                 .FirstOrDefaultAsync(t => t.IdTicket == id);
             return ticket is null ? null : mapper.Map<TicketDto>(ticket);
         }
@@ -47,8 +67,8 @@ namespace HSis.Logic.Services
             var query = db.Tickets.ApplySlaFilter(esUrgente, fechaLimite);
 
             return mapper.Map<List<TicketDto>>(await query
-                .Include(t => t.IdUsuarioNavigation)
-                .Include(t => t.IdTecnicoNavigation)
+                .Include(t => t.Usuario)
+                .Include(t => t.Tecnico)
                 .ToListAsync());
         }
 
@@ -57,9 +77,9 @@ namespace HSis.Logic.Services
         {
             using var db = dbContextFactory.CreateDbContext();
             return mapper.Map<List<TicketDto>>(await db.Tickets
-                .Where(t => t.Status == estatus)
-                .Include(t => t.IdUsuarioNavigation)
-                .Include(t => t.IdTecnicoNavigation)
+                .Where(t => t.Estatus == estatus)
+                .Include(t => t.Usuario)
+                .Include(t => t.Tecnico)
                 .ToListAsync());
         }
 
@@ -76,7 +96,7 @@ namespace HSis.Logic.Services
         public async Task<int> ObtenerCountTicketsPorEstatusAsync(string estatus)
         {
             using var db = dbContextFactory.CreateDbContext();
-            return await db.Tickets.CountAsync(t => t.Status == estatus);
+            return await db.Tickets.CountAsync(t => t.Estatus == estatus);
         }
 
         // Obtener historial de cambios de un ticket - Async
@@ -84,13 +104,13 @@ namespace HSis.Logic.Services
         {
             using var db = dbContextFactory.CreateDbContext();
             return await db.HistorialCambiosTickets
-                .Include(h => h.IdUsuarioCambioNavigation)
+                .Include(h => h.UsuarioCambio)
                 .Where(h => h.IdTicket == idTicket)
                 .OrderByDescending(h => h.FechaMovimiento)
                 .Select(h => new HistorialCambiosDto
                 {
                     IdTicket = h.IdTicket,
-                    UsuarioCambio = h.IdUsuarioCambioNavigation.Nombre ?? "-",
+                    UsuarioCambio = h.UsuarioCambio.Nombre ?? "-",
                     FechaMovimiento = h.FechaMovimiento,
                     CampoModificado = h.CampoModificado,
                     ValorAnterior = h.ValorAnterior ?? "-",
@@ -110,18 +130,18 @@ namespace HSis.Logic.Services
             var ticketTracked = await db.Tickets.FindAsync(ticketDto.IdTicket)
                 ?? throw new KeyNotFoundException("El ticket no existe o ya fue eliminado.");
 
-            var estatusAnterior = ticketTracked.Status;
+            var estatusAnterior = ticketTracked.Estatus;
 
             mapper.Map(ticketDto, ticketTracked);
             await db.SaveChangesAsync();
 
             // Guardar notificación en base de datos si el estatus cambió
-            if (estatusAnterior != ticketTracked.Status)
+            if (estatusAnterior != ticketTracked.Estatus)
             {
                 var notificacion = new Notificacion
                 {
                     UsuarioDestinoId = ticketTracked.IdUsuario,
-                    Mensaje = $"El ticket TK-{ticketTracked.IdTicket:d6} ha cambiado al estatus: {ticketTracked.Status}.",
+                    Mensaje = $"El ticket TK-{ticketTracked.IdTicket:d6} ha cambiado al estatus: {ticketTracked.Estatus}.",
                     Tipo = "EstadoTicket",
                     FechaCreacion = DateTime.Now,
                     Leido = false
@@ -135,16 +155,16 @@ namespace HSis.Logic.Services
                         ticketTracked.IdUsuario,
                         ticketTracked.IdTicket,
                         ticketTracked.IdTicket.ToString("d6"),
-                        ticketTracked.Status ?? string.Empty
+                        ticketTracked.Estatus ?? string.Empty
                     );
                 }
                 else if (notificationClient != null)
                 {
-                    _ = notificationClient.NotifyTicketStatusChangedAsync(
+                    _ = notificationClient.NotificarCambioEstatusTicketAsync(
                         ticketTracked.IdUsuario,
                         ticketTracked.IdTicket,
                         ticketTracked.IdTicket.ToString("d6"),
-                        ticketTracked.Status ?? string.Empty
+                        ticketTracked.Estatus ?? string.Empty
                     );
                 }
             }
@@ -156,8 +176,8 @@ namespace HSis.Logic.Services
             using var db = dbContextFactory.CreateDbContext();
             return mapper.Map<List<TicketDto>>(await db.Tickets
                 .Where(t => t.IdUsuario == idUsuario)
-                .Include(t => t.IdTecnicoNavigation)
-                .OrderByDescending(t => t.Alta)
+                .Include(t => t.Tecnico)
+                .OrderByDescending(t => t.FechaAlta)
                 .ToListAsync());
         }
 
@@ -166,9 +186,9 @@ namespace HSis.Logic.Services
         {
             using var db = dbContextFactory.CreateDbContext();
             return mapper.Map<List<TicketDto>>(await db.Tickets
-                .Where(t => t.IdTecnico == idTecnico && t.Status != ConstantesEstatus.CERRADO)
-                .Include(t => t.IdUsuarioNavigation)
-                .OrderByDescending(t => t.Alta)
+                .Where(t => t.IdTecnico == idTecnico && t.Estatus != ConstantesEstatus.CERRADO)
+                .Include(t => t.Usuario)
+                .OrderByDescending(t => t.FechaAlta)
                 .ToListAsync());
         }
 
@@ -177,9 +197,9 @@ namespace HSis.Logic.Services
         {
             using var db = dbContextFactory.CreateDbContext();
             return mapper.Map<List<TicketDto>>(await db.Tickets
-                .Where(t => t.IdTecnico == idTecnico && t.Status == ConstantesEstatus.CERRADO)
-                .Include(t => t.IdUsuarioNavigation)
-                .OrderByDescending(t => t.Cierre)
+                .Where(t => t.IdTecnico == idTecnico && t.Estatus == ConstantesEstatus.CERRADO)
+                .Include(t => t.Usuario)
+                .OrderByDescending(t => t.FechaCierre)
                 .ToListAsync());
         }
 
@@ -188,9 +208,9 @@ namespace HSis.Logic.Services
         {
             using var db = dbContextFactory.CreateDbContext();
             return mapper.Map<List<TicketDto>>(await db.Tickets
-                .Where(t => t.Status == ConstantesEstatus.ABIERTO && t.IdTecnico == null)
-                .Include(t => t.IdUsuarioNavigation)
-                .OrderByDescending(t => t.Alta)
+                .Where(t => t.Estatus == ConstantesEstatus.ABIERTO && t.IdTecnico == null)
+                .Include(t => t.Usuario)
+                .OrderByDescending(t => t.FechaAlta)
                 .ToListAsync());
         }
 
@@ -203,34 +223,26 @@ namespace HSis.Logic.Services
             using var db = dbContextFactory.CreateDbContext();
 
             var nuevoTicket = mapper.Map<Ticket>(ticketDto);
-            nuevoTicket.Alta = DateTime.Now;
+            nuevoTicket.FechaAlta = DateTime.Now;
             if (nuevoTicket.IdTecnico.HasValue && nuevoTicket.IdTecnico.Value > 0)
             {
-                nuevoTicket.Status = ConstantesEstatus.EN_PROCESO;
-                nuevoTicket.Atención = DateTime.Now;
+                nuevoTicket.Estatus = ConstantesEstatus.EN_PROCESO;
+                nuevoTicket.FechaAtencion = DateTime.Now;
             }
             else
             {
-                nuevoTicket.Status = ConstantesEstatus.ABIERTO;
+                nuevoTicket.Estatus = ConstantesEstatus.ABIERTO;
             }
 
             db.Tickets.Add(nuevoTicket);
             await db.SaveChangesAsync();
 
-            if (notificationDispatcher != null)
+            if (notifier != null)
             {
-                _ = notificationDispatcher.NotifyTicketCreatedAsync(
+                _ = notifier.NotificarTicketCreadoAsync(
                     nuevoTicket.IdTicket,
                     nuevoTicket.IdTicket.ToString("d6"),
-                    nuevoTicket.Descripción ?? string.Empty
-                );
-            }
-            else if (notificationClient != null)
-            {
-                _ = notificationClient.NotifyTicketCreatedAsync(
-                    nuevoTicket.IdTicket,
-                    nuevoTicket.IdTicket.ToString("d6"),
-                    nuevoTicket.Descripción ?? string.Empty
+                    nuevoTicket.Descripcion ?? string.Empty
                 );
             }
 
@@ -260,11 +272,11 @@ namespace HSis.Logic.Services
         {
             using var db = dbContextFactory.CreateDbContext();
             var query = db.Tickets
-                .Include(t => t.IdUsuarioNavigation)
-                .Include(t => t.IdTecnicoNavigation)
+                .Include(t => t.Usuario)
+                .Include(t => t.Tecnico)
                 .ApplyFilters(filtros);
 
-            return mapper.Map<List<TicketDto>>(await query.OrderByDescending(t => t.Alta).ToListAsync());
+            return mapper.Map<List<TicketDto>>(await query.OrderByDescending(t => t.FechaAlta).ToListAsync());
         }
 
         // Obtener tickets filtrados y paginados dinámicamente - Async
@@ -272,12 +284,12 @@ namespace HSis.Logic.Services
         {
             using var db = dbContextFactory.CreateDbContext();
             var query = db.Tickets
-                .Include(t => t.IdUsuarioNavigation)
-                .Include(t => t.IdTecnicoNavigation)
+                .Include(t => t.Usuario)
+                .Include(t => t.Tecnico)
                 .ApplyFilters(filtros);
 
             var totalCount = await query.CountAsync();
-            var items = await query.OrderByDescending(t => t.Alta)
+            var items = await query.OrderByDescending(t => t.FechaAlta)
                                    .Skip((pageNumber - 1) * pageSize)
                                    .Take(pageSize)
                                    .ToListAsync();
@@ -299,19 +311,19 @@ namespace HSis.Logic.Services
             var inicioDelDia = inicio.Date;
 
             var tickets = await db.Tickets
-                .Include(t => t.IdUsuarioNavigation)
-                    .ThenInclude(u => u.IdDepartamentoNavigation)
-                .Include(t => t.IdTecnicoNavigation)
-                .Where(t => t.Alta >= inicioDelDia && t.Alta <= finDelDia)
+                .Include(t => t.Usuario)
+                    .ThenInclude(u => u.Departamento)
+                .Include(t => t.Tecnico)
+                .Where(t => t.FechaAlta >= inicioDelDia && t.FechaAlta <= finDelDia)
                 .ToListAsync();
 
             var totalCreados = tickets.Count;
-            var totalResueltos = tickets.Count(t => t.Status == ConstantesEstatus.CERRADO);
+            var totalResueltos = tickets.Count(t => t.Estatus == ConstantesEstatus.CERRADO);
             var tasaCierre = totalCreados > 0 ? (double)totalResueltos / totalCreados * 100 : 0;
 
-            var attendedTickets = tickets.Where(t => t.Atención.HasValue && t.Alta.HasValue).ToList();
+            var attendedTickets = tickets.Where(t => t.FechaAtencion.HasValue && t.FechaAlta.HasValue).ToList();
             double tiempoPromedio = attendedTickets.Count > 0
-                ? attendedTickets.Average(t => (t.Atención!.Value - t.Alta!.Value).TotalHours)
+                ? attendedTickets.Average(t => (t.FechaAtencion!.Value - t.FechaAlta!.Value).TotalHours)
                 : 0;
 
             // Productividad Técnica
@@ -319,9 +331,9 @@ namespace HSis.Logic.Services
                 .GroupBy(t => t.IdTecnico)
                 .Select(g =>
                 {
-                    var tecnicoNombre = g.First().IdTecnicoNavigation?.Nombre ?? "Sin Asignar";
+                    var tecnicoNombre = g.First().Tecnico?.Nombre ?? "Sin Asignar";
                     var asignados = g.Count();
-                    var resueltos = g.Count(t => t.Status == ConstantesEstatus.CERRADO);
+                    var resueltos = g.Count(t => t.Estatus == ConstantesEstatus.CERRADO);
                     return new PersonalProductividadDto
                     {
                         Tecnico = tecnicoNombre,
@@ -338,9 +350,9 @@ namespace HSis.Logic.Services
                 .GroupBy(t => t.IdUsuario)
                 .Select(g =>
                 {
-                    var usuarioNombre = g.First().IdUsuarioNavigation?.Nombre ?? "Desconocido";
+                    var usuarioNombre = g.First().Usuario?.Nombre ?? "Desconocido";
                     var creados = g.Count();
-                    var resueltos = g.Count(t => t.Status == ConstantesEstatus.CERRADO);
+                    var resueltos = g.Count(t => t.Estatus == ConstantesEstatus.CERRADO);
                     return new UsuarioDemandaDto
                     {
                         Usuario = usuarioNombre,
@@ -355,7 +367,7 @@ namespace HSis.Logic.Services
 
             // Demanda por Departamento
             var demandaDepartamentos = tickets
-                .GroupBy(t => t.IdUsuarioNavigation?.IdDepartamentoNavigation?.Nombre ?? "Sin Departamento")
+                .GroupBy(t => t.Usuario?.Departamento?.Nombre ?? "Sin Departamento")
                 .Select(g =>
                 {
                     var dptoNombre = g.Key;
@@ -375,8 +387,8 @@ namespace HSis.Logic.Services
             // Análisis Temporal
             var totalDias = (finDelDia - inicioDelDia).TotalDays;
             var groupedTemporal = totalDias <= 31
-                ? tickets.Where(t => t.Alta.HasValue).GroupBy(t => t.Alta!.Value.ToString("dd/MM/yyyy"))
-                : tickets.Where(t => t.Alta.HasValue).GroupBy(t => t.Alta!.Value.ToString("yyyy-MM (MMMM)"));
+                ? tickets.Where(t => t.FechaAlta.HasValue).GroupBy(t => t.FechaAlta!.Value.ToString("dd/MM/yyyy"))
+                : tickets.Where(t => t.FechaAlta.HasValue).GroupBy(t => t.FechaAlta!.Value.ToString("yyyy-MM (MMMM)"));
 
             var analisisTemporal = groupedTemporal
                 .Select(g => new AnalisisTemporalDto
@@ -410,12 +422,12 @@ namespace HSis.Logic.Services
             var ticket = await db.Tickets.FindAsync(idTicket);
             if (ticket == null) return false;
 
-            if (ticket.Status != ConstantesEstatus.CERRADO)
+            if (ticket.Estatus != ConstantesEstatus.CERRADO)
                 throw new InvalidOperationException("Solo se pueden calificar tickets que estén cerrados.");
 
             ticket.Calificacion = calificacion;
-            ticket.ComentarioFeedback = comentario;
-            ticket.FechaFeedback = DateTime.Now;
+            ticket.ComentarioEvaluacion = comentario;
+            ticket.FechaEvaluacion = DateTime.Now;
 
             // Notificar la calificación vía SignalR (a técnico si existe, o 0 para administradores)
             int idTecnicoNotif = ticket.IdTecnico ?? 0;
@@ -442,7 +454,7 @@ namespace HSis.Logic.Services
             }
             else if (notificationClient != null)
             {
-                _ = notificationClient.NotifyTicketRatedAsync(
+                _ = notificationClient.NotificarCalificacionTicketAsync(
                     idTecnicoNotif,
                     ticket.IdTicket,
                     ticket.IdTicket.ToString("d6"),
@@ -474,8 +486,8 @@ namespace HSis.Logic.Services
             using var db = dbContextFactory.CreateDbContext();
             return mapper.Map<List<TicketDto>>(await db.Tickets
                 .Where(t => t.IdTecnico == idTecnico && t.Calificacion.HasValue)
-                .Include(t => t.IdUsuarioNavigation)
-                .OrderByDescending(t => t.FechaFeedback)
+                .Include(t => t.Usuario)
+                .OrderByDescending(t => t.FechaEvaluacion)
                 .ToListAsync());
         }
     }

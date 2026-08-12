@@ -12,23 +12,23 @@ namespace HSis.Logic.Services
             // 1. Filtros de Texto / Identificadores
             if (!string.IsNullOrWhiteSpace(filtros.UsuarioEmisor))
             {
-                query = query.Where(t => t.IdUsuarioNavigation.Nombre != null && t.IdUsuarioNavigation.Nombre.Contains(filtros.UsuarioEmisor));
+                query = query.Where(t => t.Usuario.Nombre != null && t.Usuario.Nombre.Contains(filtros.UsuarioEmisor));
             }
             if (!string.IsNullOrWhiteSpace(filtros.Estatus))
             {
                 if (filtros.Estatus == "Nuevos")
                 {
                     var limite = DateTime.Now.AddHours(-48);
-                    query = query.Where(t => t.Status == ConstantesEstatus.ABIERTO && t.Alta >= limite);
+                    query = query.Where(t => t.Estatus == ConstantesEstatus.ABIERTO && t.FechaAlta >= limite);
                 }
                 else if (filtros.Estatus == "Urgentes")
                 {
                     var limite = DateTime.Now.AddHours(-48);
-                    query = query.Where(t => t.Status == ConstantesEstatus.ABIERTO && t.Alta < limite);
+                    query = query.Where(t => t.Estatus == ConstantesEstatus.ABIERTO && t.FechaAlta < limite);
                 }
                 else
                 {
-                    query = query.Where(t => t.Status == filtros.Estatus);
+                    query = query.Where(t => t.Estatus == filtros.Estatus);
                 }
             }
             if (filtros.IdTecnico.HasValue)
@@ -42,9 +42,9 @@ namespace HSis.Logic.Services
 
             // 2. Rangos de Fechas Explícitos
             if (filtros.FechaAltaInicio.HasValue)
-                query = query.Where(t => t.Alta >= filtros.FechaAltaInicio.Value);
+                query = query.Where(t => t.FechaAlta >= filtros.FechaAltaInicio.Value);
             if (filtros.FechaAltaFin.HasValue)
-                query = query.Where(t => t.Alta <= filtros.FechaAltaFin.Value);
+                query = query.Where(t => t.FechaAlta <= filtros.FechaAltaFin.Value);
 
             // 3. Vistas Temporales Rápidas (Día, Semana, Mes, Año)
             if (filtros.RangoTemporal.HasValue)
@@ -73,7 +73,7 @@ namespace HSis.Logic.Services
 
                 if (filtros.RangoTemporal.Value != VistaTemporal.Todos)
                 {
-                    query = query.Where(t => t.Alta >= inicio && t.Alta <= fin);
+                    query = query.Where(t => t.FechaAlta >= inicio && t.FechaAlta <= fin);
                 }
             }
 
@@ -83,8 +83,8 @@ namespace HSis.Logic.Services
         public static IQueryable<Ticket> ApplySlaFilter(this IQueryable<Ticket> query, bool esUrgente, DateTime fechaLimite)
         {
             return esUrgente
-                ? query.Where(t => t.Status == ConstantesEstatus.ABIERTO && t.Alta < fechaLimite)
-                : query.Where(t => t.Status == ConstantesEstatus.ABIERTO && t.Alta >= fechaLimite);
+                ? query.Where(t => t.Estatus == ConstantesEstatus.ABIERTO && t.FechaAlta < fechaLimite)
+                : query.Where(t => t.Estatus == ConstantesEstatus.ABIERTO && t.FechaAlta >= fechaLimite);
         }
     }
 }

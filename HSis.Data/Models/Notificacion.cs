@@ -14,5 +14,5 @@ public partial class Notificacion
 
     public DateTime FechaCreacion { get; set; }
 
-    public virtual Usuario UsuarioDestinoNavigation { get; set; } = null!;
+    public virtual Usuario UsuarioDestino { get; set; } = null!;
 }

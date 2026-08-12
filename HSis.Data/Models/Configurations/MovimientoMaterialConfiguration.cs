@@ -17,12 +17,12 @@ public class MovimientoMaterialConfiguration : IEntityTypeConfiguration<Movimien
         entity.Property(e => e.IdUsuario).HasColumnName("id_Usuario");
         entity.Property(e => e.Motivo).HasMaxLength(100).IsUnicode(false).HasColumnName("Motivo");
 
-        entity.HasOne(d => d.IdMaterialNavigation).WithMany(p => p.MovimientosMaterials)
+        entity.HasOne(d => d.Material).WithMany(p => p.MovimientosMaterials)
             .HasForeignKey(d => d.IdMaterial)
             .OnDelete(DeleteBehavior.ClientSetNull)
             .HasConstraintName("FK_Ingreso_Material");
 
-        entity.HasOne(d => d.IdUsuarioNavigation).WithMany(p => p.MovimientosMaterials)
+        entity.HasOne(d => d.Usuario).WithMany(p => p.MovimientosMaterials)
             .HasForeignKey(d => d.IdUsuario)
             .OnDelete(DeleteBehavior.ClientSetNull)
             .HasConstraintName("FK_Ingreso_Usuario");

@@ -10,6 +10,6 @@ public class RolUsuarioConfiguration : IEntityTypeConfiguration<RolUsuario>
         entity.HasKey(e => e.IdRol);
         entity.ToTable("Rol_Usuario");
         entity.Property(e => e.IdRol).HasColumnName("id_Rol");
-        entity.Property(e => e.Descripción).HasMaxLength(50).IsUnicode(false);
+        entity.Property(e => e.Descripcion).HasMaxLength(50).IsUnicode(false).HasColumnName("Descripcion");
     }
 }

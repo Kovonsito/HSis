@@ -1,4 +1,4 @@
-﻿namespace HSis.Data.Models;
+namespace HSis.Data.Models;
 
 public partial class DetTicket
 {
@@ -10,7 +10,7 @@ public partial class DetTicket
 
     public int Cantidad { get; set; }
 
-    public virtual Material IdMaterialNavigation { get; set; } = null!;
+    public virtual Material Material { get; set; } = null!;
 
-    public virtual Ticket IdTicketNavigation { get; set; } = null!;
+    public virtual Ticket Ticket { get; set; } = null!;
 }

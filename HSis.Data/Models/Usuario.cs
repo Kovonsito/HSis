@@ -18,17 +18,17 @@ public partial class Usuario
 
     public virtual ICollection<HistorialCambiosTicket> HistorialCambiosTickets { get; set; } = [];
 
-    public virtual Departamento? IdDepartamentoNavigation { get; set; }
+    public virtual Departamento? Departamento { get; set; }
 
-    public virtual Puesto? IdPuestoNavigation { get; set; }
+    public virtual Puesto? Puesto { get; set; }
 
-    public virtual RolUsuario? IdRolNavigation { get; set; }
+    public virtual RolUsuario? Rol { get; set; }
 
-    public virtual Sucursal? IdSucursalNavigation { get; set; }
+    public virtual Sucursal? Sucursal { get; set; }
 
     public virtual ICollection<MovimientoMaterial> MovimientosMaterials { get; set; } = [];
 
-    public virtual ICollection<Ticket> TicketIdTecnicoNavigations { get; set; } = [];
+    public virtual ICollection<Ticket> TicketsComoTecnico { get; set; } = [];
 
-    public virtual ICollection<Ticket> TicketIdUsuarioNavigations { get; set; } = [];
+    public virtual ICollection<Ticket> TicketsComoUsuario { get; set; } = [];
 }

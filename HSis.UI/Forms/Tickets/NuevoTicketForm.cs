@@ -184,9 +184,9 @@ namespace HSis.UI.Forms.Tickets
             try
             {
                 cmbPrioridad.Items.Clear();
-                cmbPrioridad.Items.Add(new ElementoCombo<string?>("Baja", "Baja"));
-                cmbPrioridad.Items.Add(new ElementoCombo<string?>("Media", "Media"));
-                cmbPrioridad.Items.Add(new ElementoCombo<string?>("Alta", "Alta"));
+                cmbPrioridad.Items.Add(new ElementoCombo<string?>(ConstantesPrioridad.BAJA, ConstantesPrioridad.BAJA));
+                cmbPrioridad.Items.Add(new ElementoCombo<string?>(ConstantesPrioridad.MEDIA, ConstantesPrioridad.MEDIA));
+                cmbPrioridad.Items.Add(new ElementoCombo<string?>(ConstantesPrioridad.ALTA, ConstantesPrioridad.ALTA));
                 cmbPrioridad.SelectedIndex = 0; // Prioridad Baja por defecto
 
                 var todosUsuarios = await _catalogoService.ObtenerTodosAsync<Usuario>();
@@ -197,9 +197,9 @@ namespace HSis.UI.Forms.Tickets
                 foreach (var u in clientes)
                 {
                     string label = string.IsNullOrWhiteSpace(u.Nombre) ? $"Usuario #{u.IdUsuario}" : u.Nombre;
-                    if (u.IdDepartamentoNavigation != null && !string.IsNullOrWhiteSpace(u.IdDepartamentoNavigation.Nombre))
+                    if (u.Departamento != null && !string.IsNullOrWhiteSpace(u.Departamento.Nombre))
                     {
-                        label += $" ({u.IdDepartamentoNavigation.Nombre})";
+                        label += $" ({u.Departamento.Nombre})";
                     }
                     cmbSolicitante.Items.Add(new ElementoCombo<int>(label, u.IdUsuario));
                 }

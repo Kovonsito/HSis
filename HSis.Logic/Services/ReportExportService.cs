@@ -155,14 +155,14 @@ namespace HSis.Logic.Services
                 wsTickets.Cell(tRowIdx, 3).Value = t.DepartamentoUsuario;
 
                 var cellStatus = wsTickets.Cell(tRowIdx, 4);
-                cellStatus.Value = t.Status ?? "N/A";
+                cellStatus.Value = t.Estatus ?? "N/A";
                 // Aplicar estilo condicional básico según el estatus
-                if (t.Status == "Cerrado")
+                if (t.Estatus == "Cerrado")
                 {
                     cellStatus.Style.Fill.SetBackgroundColor(XLColor.FromHtml("#D1FAE5"));
                     cellStatus.Style.Font.FontColor = XLColor.FromHtml("#065F46");
                 }
-                else if (t.Status == "Abierto" || t.Status == "Reabierto")
+                else if (t.Estatus == "Abierto" || t.Estatus == "Reabierto")
                 {
                     cellStatus.Style.Fill.SetBackgroundColor(XLColor.FromHtml("#FEE2E2"));
                     cellStatus.Style.Font.FontColor = XLColor.FromHtml("#991B1B");
@@ -178,22 +178,22 @@ namespace HSis.Logic.Services
                 wsTickets.Cell(tRowIdx, 5).Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
 
                 // Fechas
-                if (t.Alta.HasValue)
+                if (t.FechaAlta.HasValue)
                 {
                     var cell = wsTickets.Cell(tRowIdx, 6);
-                    cell.Value = t.Alta.Value;
+                    cell.Value = t.FechaAlta.Value;
                     cell.Style.NumberFormat.Format = "dd/MM/yyyy HH:mm";
                 }
-                if (t.Atencion.HasValue)
+                if (t.FechaAtencion.HasValue)
                 {
                     var cell = wsTickets.Cell(tRowIdx, 7);
-                    cell.Value = t.Atencion.Value;
+                    cell.Value = t.FechaAtencion.Value;
                     cell.Style.NumberFormat.Format = "dd/MM/yyyy HH:mm";
                 }
-                if (t.Cierre.HasValue)
+                if (t.FechaCierre.HasValue)
                 {
                     var cell = wsTickets.Cell(tRowIdx, 8);
-                    cell.Value = t.Cierre.Value;
+                    cell.Value = t.FechaCierre.Value;
                     cell.Style.NumberFormat.Format = "dd/MM/yyyy HH:mm";
                 }
 

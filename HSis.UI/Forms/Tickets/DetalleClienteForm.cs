@@ -42,17 +42,17 @@ namespace HSis.UI.Forms.Tickets
 
                 // Mostrar datos del ticket (solo lectura)
                 lblFolioValor.Text = $"TK{_ticketActual.IdTicket:D6}";
-                lblFechaAltaValor.Text = _ticketActual.Alta?.ToString("dd/MM/yyyy HH:mm") ?? "N/A";
-                lblEstatusValor.Text = _ticketActual.Status ?? "Desconocido";
+                lblFechaAltaValor.Text = _ticketActual.FechaAlta?.ToString("dd/MM/yyyy HH:mm") ?? "N/A";
+                lblEstatusValor.Text = _ticketActual.Estatus ?? "Desconocido";
                 lblTecnicoValor.Text = _ticketActual.NombreTecnico ?? "Sin asignar";
                 txtDescripcion.Text = _ticketActual.Descripcion ?? string.Empty;
                 txtSolucion.Text = _ticketActual.Solucion ?? string.Empty;
 
-                if (_ticketActual.Status == ConstantesEstatus.CERRADO)
+                if (_ticketActual.Estatus == ConstantesEstatus.CERRADO)
                 {
                     lblFechaCierre.Visible = true;
                     lblFechaCierreValor.Visible = true;
-                    lblFechaCierreValor.Text = _ticketActual.Cierre?.ToString("dd/MM/yyyy HH:mm") ?? "N/A";
+                    lblFechaCierreValor.Text = _ticketActual.FechaCierre?.ToString("dd/MM/yyyy HH:mm") ?? "N/A";
                 }
                 else
                 {
@@ -61,7 +61,7 @@ namespace HSis.UI.Forms.Tickets
                 }
 
                 // Aplicar estilo de color según el estatus
-                AplicarEstiloEstatus(_ticketActual.Status);
+                AplicarEstiloEstatus(_ticketActual.Estatus);
 
                 MostrarSeccionFeedback(_ticketActual);
             }
@@ -102,7 +102,7 @@ namespace HSis.UI.Forms.Tickets
             bool mostrarFdb = false;
             bool esEditable = false;
 
-            if (ticket.Status == ConstantesEstatus.CERRADO)
+            if (ticket.Estatus == ConstantesEstatus.CERRADO)
             {
                 mostrarFdb = true;
                 esEditable = !ticket.Calificacion.HasValue;
@@ -152,9 +152,9 @@ namespace HSis.UI.Forms.Tickets
 
                 string estrellasStr = new('⭐', ticket.Calificacion ?? 0);
                 lblResumen.Text = $"Calificación dada: {estrellasStr} ({ticket.Calificacion}/5)";
-                lblComentarioLectura.Text = string.IsNullOrEmpty(ticket.ComentarioFeedback)
+                lblComentarioLectura.Text = string.IsNullOrEmpty(ticket.ComentarioEvaluacion)
                     ? "No ingresaste comentarios."
-                    : $"Comentario: \"{ticket.ComentarioFeedback}\"";
+                    : $"Comentario: \"{ticket.ComentarioEvaluacion}\"";
             }
         }
 

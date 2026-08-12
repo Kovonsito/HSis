@@ -1,4 +1,4 @@
-﻿namespace HSis.Data.Models;
+namespace HSis.Data.Models;
 
 public partial class HistorialCambiosTicket
 {
@@ -16,7 +16,7 @@ public partial class HistorialCambiosTicket
 
     public string? ValorNuevo { get; set; }
 
-    public virtual Ticket IdTicketNavigation { get; set; } = null!;
+    public virtual Ticket Ticket { get; set; } = null!;
 
-    public virtual Usuario IdUsuarioCambioNavigation { get; set; } = null!;
+    public virtual Usuario UsuarioCambio { get; set; } = null!;
 }

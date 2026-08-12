@@ -8,12 +8,15 @@ using HSis.UI.Forms.Tickets;
 using HSis.UI.Helpers;
 using HSis.UI.Services;
 
+using HSis.UI.Presenters;
+
 namespace HSis.UI.Forms.Dashboards
 {
     [SupportedOSPlatform("windows")]
-    public partial class DashboardTecnicoForm : Form
+    public partial class DashboardTecnicoForm : Form, IDashboardTecnicoView
     {
         private readonly ITicketService _ticketService;
+        private readonly DashboardTecnicoPresenter? _presenter;
         private enum VistaDashboard
         {
             MisAsignados,
@@ -36,13 +39,16 @@ namespace HSis.UI.Forms.Dashboards
             ITicketService ticketService,
             AdministradorUINotificaciones uiManager,
             IFabricaFormularios formFactory,
-            ISessionCacheService sessionCache)
+            ISessionCacheService sessionCache,
+            DashboardTecnicoPresenter? presenter = null)
         {
             InitializeComponent();
             _ticketService = ticketService;
             _uiManager = uiManager;
             _formFactory = formFactory;
             _sessionCache = sessionCache;
+            _presenter = presenter;
+            _presenter?.SetView(this);
         }
 
         private async void frmDashboardTecnico_Load(object? sender, EventArgs e)
@@ -156,8 +162,8 @@ namespace HSis.UI.Forms.Dashboards
                 {
                     IdTicket = t.IdTicket,
                     Calificacion = new string('★', t.Calificacion ?? 0) + new string('☆', 5 - (t.Calificacion ?? 0)),
-                    Comentario = t.ComentarioFeedback ?? "Sin comentarios",
-                    Fecha = t.FechaFeedback
+                    Comentario = t.ComentarioEvaluacion ?? "Sin comentarios",
+                    Fecha = t.FechaEvaluacion
                 })];
 
                 PaginacionControl.PaginaActual = 1;
@@ -213,8 +219,8 @@ namespace HSis.UI.Forms.Dashboards
             _todosLosTickets = [.. tickets.Select(t => new TicketOperativoDto
             {
                 IdTicket = t.IdTicket,
-                FechaAlta = t.Alta,
-                Status = t.Status ?? "N/A",
+                FechaAlta = t.FechaAlta,
+                Status = t.Estatus ?? "N/A",
                 Usuario = t.NombreUsuario ?? "N/A",
                 Descripcion = !string.IsNullOrEmpty(t.Descripcion) && t.Descripcion.Length > 50 ? t.Descripcion[..50] + "..." : (t.Descripcion ?? ""),
                 Prioridad = t.Prioridad
@@ -359,7 +365,7 @@ namespace HSis.UI.Forms.Dashboards
             var campos = new List<HSis.UI.Controls.FiltroCampo>
             {
                 new() { NombrePropiedad = "Estatus", Etiqueta = "Estatus:", Tipo = HSis.UI.Controls.TipoFiltroControl.ComboSeleccion, ValoresCombo = ["Todos", "Abierto", "En Proceso", "Cerrado", "Reabierto"], Ancho = 130 },
-                new() { NombrePropiedad = "Prioridad", Etiqueta = "Prioridad:", Tipo = HSis.UI.Controls.TipoFiltroControl.ComboSeleccion, ValoresCombo = ["Todos", "Alta", "Media", "Baja", "Urgente"], Ancho = 130 },
+                new() { NombrePropiedad = "Prioridad", Etiqueta = "Prioridad:", Tipo = HSis.UI.Controls.TipoFiltroControl.ComboSeleccion, ValoresCombo = ["Todos", ConstantesPrioridad.ALTA, ConstantesPrioridad.MEDIA, ConstantesPrioridad.BAJA, ConstantesPrioridad.URGENTE], Ancho = 130 },
                 new() { NombrePropiedad = "Usuario", Etiqueta = "Usuario Emisor:", Tipo = HSis.UI.Controls.TipoFiltroControl.Texto, Ancho = 160 },
                 new() { NombrePropiedad = "FechaInicio", Etiqueta = "Desde:", Tipo = HSis.UI.Controls.TipoFiltroControl.Fecha, Ancho = 130, ValorDefecto = DateTime.Today.AddDays(-30) },
                 new() { NombrePropiedad = "FechaFin", Etiqueta = "Hasta:", Tipo = HSis.UI.Controls.TipoFiltroControl.Fecha, Ancho = 130, ValorDefecto = DateTime.Today.AddDays(1).AddTicks(-1) }
@@ -452,5 +458,40 @@ namespace HSis.UI.Forms.Dashboards
                 MessageBox.Show($"Ocurrió un error al abrir el formulario de registro de ticket: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
+        #region Implementación IDashboardTecnicoView (MVP)
+
+        public void MostrarTickets(List<TicketOperativoDto> tickets)
+        {
+            _todosLosTickets = tickets;
+            AplicarFiltrosMemoria();
+        }
+
+        public void MostrarFeedbacks(List<FeedbackTecnicoDto> feedbacks)
+        {
+            _todosLosFeedbacks = feedbacks;
+            AplicarFiltrosMemoria();
+        }
+
+        public void MostrarIndicadores(int asignados, int disponibles, int cerrados, double promedioCalificacion)
+        {
+            if (ucMisAsignados != null) ucMisAsignados.Cantidad = asignados.ToString();
+            if (ucDisponibles != null) ucDisponibles.Cantidad = disponibles.ToString();
+            if (ucCerrados != null) ucCerrados.Cantidad = cerrados.ToString();
+            if (ucCalificacion != null) ucCalificacion.Cantidad = $"{promedioCalificacion:F1} ⭐";
+        }
+
+        public void MostrarCargando(bool cargando)
+        {
+            Cursor = cargando ? Cursors.WaitCursor : Cursors.Default;
+        }
+
+        public void MostrarError(string mensaje)
+        {
+            MessageBox.Show(mensaje, "Error en Dashboard Técnico", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
+        #endregion
     }
 }
+
