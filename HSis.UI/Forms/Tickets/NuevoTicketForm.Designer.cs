@@ -2,6 +2,8 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 using HSis.UI.Controls;
+using HSis.UI.Services;
+using HSis.UI.Helpers;
 
 namespace HSis.UI.Forms.Tickets
 {
@@ -182,5 +184,127 @@ namespace HSis.UI.Forms.Tickets
         private System.Windows.Forms.Button btnGuardar;
         private System.Windows.Forms.Button btnCancelar;
         // rtbDescripcion será creado dinámicamente en el código del formulario
+        
+        private void InicializarLayoutNuevoTicket()
+        {
+            rtbDescripcion = new CajaTextoOrtograficaWpf();
+            bool esPerfilElevado = SesionSistema.EsAdmin || SesionSistema.EsTecnico;
+
+            var tblPrincipal = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                RowCount = esPerfilElevado ? 6 : 3,
+                ColumnCount = 1,
+                Padding = new Padding(15),
+                Name = "tblPrincipal"
+            };
+
+            var pnlRepresentacion = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                RowCount = 1,
+                ColumnCount = 2,
+                Margin = new Padding(0, 0, 0, 10)
+            };
+            pnlRepresentacion.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            pnlRepresentacion.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+
+            chkSolicitanteEnRepresentacion.Margin = new Padding(0, 5, 10, 0);
+            txtNombreSolicitante.Dock = DockStyle.Fill;
+            pnlRepresentacion.Controls.Add(chkSolicitanteEnRepresentacion, 0, 0);
+            pnlRepresentacion.Controls.Add(txtNombreSolicitante, 1, 0);
+
+            if (esPerfilElevado)
+            {
+                tblPrincipal.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+                tblPrincipal.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+                tblPrincipal.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+                tblPrincipal.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+                tblPrincipal.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+                tblPrincipal.RowStyles.Add(new RowStyle(SizeType.Absolute, 55F));
+            }
+            else
+            {
+                tblPrincipal.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+                tblPrincipal.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+                tblPrincipal.RowStyles.Add(new RowStyle(SizeType.Absolute, 55F));
+            }
+
+            var flpBotones = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                FlowDirection = FlowDirection.RightToLeft,
+                Margin = new Padding(0)
+            };
+            btnCancelar.Margin = new Padding(10, 10, 0, 10);
+            btnGuardar.Margin = new Padding(0, 10, 0, 10);
+            flpBotones.Controls.Add(btnCancelar);
+            flpBotones.Controls.Add(btnGuardar);
+
+            if (esPerfilElevado)
+            {
+                var pnlSolicitante = new TableLayoutPanel
+                {
+                    Dock = DockStyle.Fill,
+                    RowCount = 1,
+                    ColumnCount = 2,
+                    Margin = new Padding(0, 0, 0, 10)
+                };
+                pnlSolicitante.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+                pnlSolicitante.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+                lblSolicitante.Margin = new Padding(0, 5, 10, 0);
+                cmbSolicitante.Dock = DockStyle.Fill;
+                pnlSolicitante.Controls.Add(lblSolicitante, 0, 0);
+                pnlSolicitante.Controls.Add(cmbSolicitante, 1, 0);
+
+                var pnlCamposElevados = new TableLayoutPanel
+                {
+                    Dock = DockStyle.Fill,
+                    RowCount = 1,
+                    ColumnCount = 4,
+                    Margin = new Padding(0, 0, 0, 10)
+                };
+                pnlCamposElevados.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+                pnlCamposElevados.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 40F));
+                pnlCamposElevados.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+                pnlCamposElevados.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 60F));
+
+                lblPrioridad.Margin = new Padding(0, 5, 10, 0);
+                cmbPrioridad.Dock = DockStyle.Fill;
+                lblTecnico.Margin = new Padding(15, 5, 10, 0);
+                cmbTecnico.Dock = DockStyle.Fill;
+
+                pnlCamposElevados.Controls.Add(lblPrioridad, 0, 0);
+                pnlCamposElevados.Controls.Add(cmbPrioridad, 1, 0);
+                pnlCamposElevados.Controls.Add(lblTecnico, 2, 0);
+                pnlCamposElevados.Controls.Add(cmbTecnico, 3, 0);
+
+                lblDescripcion.Dock = DockStyle.Fill;
+                lblDescripcion.Margin = new Padding(0, 0, 0, 5);
+                rtbDescripcion.Dock = DockStyle.Fill;
+                rtbDescripcion.Margin = new Padding(0, 0, 0, 10);
+
+                tblPrincipal.Controls.Add(pnlSolicitante, 0, 0);
+                tblPrincipal.Controls.Add(pnlRepresentacion, 0, 1);
+                tblPrincipal.Controls.Add(pnlCamposElevados, 0, 2);
+                tblPrincipal.Controls.Add(lblDescripcion, 0, 3);
+                tblPrincipal.Controls.Add(rtbDescripcion, 0, 4);
+                tblPrincipal.Controls.Add(flpBotones, 0, 5);
+            }
+            else
+            {
+                lblDescripcion.Dock = DockStyle.Fill;
+                lblDescripcion.Margin = new Padding(0, 0, 0, 5);
+                rtbDescripcion.Dock = DockStyle.Fill;
+                rtbDescripcion.Margin = new Padding(0, 0, 0, 10);
+
+                tblPrincipal.Controls.Add(lblDescripcion, 0, 0);
+                tblPrincipal.Controls.Add(rtbDescripcion, 0, 1);
+                tblPrincipal.Controls.Add(flpBotones, 0, 2);
+            }
+
+            this.Controls.Clear();
+            this.Controls.Add(tblPrincipal);
+        }
     }
 }

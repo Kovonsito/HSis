@@ -114,5 +114,45 @@ namespace HSis.UI.Forms.Auth
         private TextBox txtUsuario;
         private TextBox txtContraseña;
         private Button btnIniciarSesion;
+        
+        private void InicializarLayoutLogin()
+        {
+            var tblPrincipal = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                RowCount = 5,
+                ColumnCount = 1,
+                Padding = new Padding(30, 20, 30, 20),
+                Name = "tblPrincipal"
+            };
+
+            for (int i = 0; i < 5; i++)
+            {
+                tblPrincipal.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            }
+
+            lblUsuario.Dock = DockStyle.Fill;
+            lblUsuario.Margin = new Padding(0, 0, 0, 5);
+            txtUsuario.Dock = DockStyle.Fill;
+            txtUsuario.Margin = new Padding(0, 0, 0, 15);
+
+            lblContraseña.Dock = DockStyle.Fill;
+            lblContraseña.Margin = new Padding(0, 0, 0, 5);
+            txtContraseña.Dock = DockStyle.Fill;
+            txtContraseña.Margin = new Padding(0, 0, 0, 20);
+
+            btnIniciarSesion.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+            btnIniciarSesion.Margin = new Padding(0);
+            btnIniciarSesion.Height = 35;
+
+            tblPrincipal.Controls.Add(lblUsuario, 0, 0);
+            tblPrincipal.Controls.Add(txtUsuario, 0, 1);
+            tblPrincipal.Controls.Add(lblContraseña, 0, 2);
+            tblPrincipal.Controls.Add(txtContraseña, 0, 3);
+            tblPrincipal.Controls.Add(btnIniciarSesion, 0, 4);
+
+            this.Controls.Clear();
+            this.Controls.Add(tblPrincipal);
+        }
     }
 }

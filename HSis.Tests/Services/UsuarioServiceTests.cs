@@ -16,7 +16,7 @@ namespace HSis.Tests.Services
         public UsuarioServiceTests()
         {
             var config = new TypeAdapterConfig();
-            new HSis.Logic.Profiles.TicketProfile().Register(config);
+            new Logic.Profiles.TicketProfile().Register(config);
             _mapper = new Mapper(config);
         }
 
@@ -28,7 +28,7 @@ namespace HSis.Tests.Services
         }
 
         [Fact]
-        public void HashPassword_ConPasswordValido_DebeGenerarHashBCrypt()
+        public void HashPasswordConPasswordValidoDebeGenerarHashBCrypt()
         {
             // Arrange
             string passwordOriginal = "Password123!";
@@ -43,7 +43,7 @@ namespace HSis.Tests.Services
         }
 
         [Fact]
-        public async Task AutenticarAsync_ConCredencialesCorrectas_DebeRetornarUsuarioDto()
+        public async Task AutenticarAsyncConCredencialesCorrectasDebeRetornarUsuarioDto()
         {
             // Arrange
             var options = new DbContextOptionsBuilder<HSisDbContext>()
@@ -74,7 +74,7 @@ namespace HSis.Tests.Services
         }
 
         [Fact]
-        public async Task AutenticarAsync_ConContraseñaIncorrecta_DebeRetornarNull()
+        public async Task AutenticarAsyncConContraseñaIncorrectaDebeRetornarNull()
         {
             // Arrange
             var options = new DbContextOptionsBuilder<HSisDbContext>()
@@ -103,7 +103,7 @@ namespace HSis.Tests.Services
         }
 
         [Fact]
-        public async Task ObtenerUsuariosPorRolAsync_DebeFiltrarPorRol()
+        public async Task ObtenerUsuariosPorRolAsyncDebeFiltrarPorRol()
         {
             // Arrange
             var options = new DbContextOptionsBuilder<HSisDbContext>()

@@ -516,5 +516,19 @@ namespace HSis.UI.Forms.Tickets
         private TabPage tbpHistorial;
         private TabPage tbpFeedback;
         // rtbSolucion y rtbDescripcion serán creados dinámicamente en el código del formulario
+        
+        private void InicializarLayoutDetalle()
+        {
+            rtbDescripcion = new CajaTextoOrtograficaWpf { Dock = DockStyle.Fill };
+            rtbSolucion = new CajaTextoOrtograficaWpf { Dock = DockStyle.Fill };
+            dgvMateriales = new DataGridView { Dock = DockStyle.Fill, ReadOnly = true };
+
+            tabDescripcionSolucion.Controls.Add(rtbDescripcion);
+            tabDescripcionSolucion.Controls.Add(rtbSolucion);
+
+            TabPage tbpMateriales = new TabPage("Materiales Utilizados");
+            tbpMateriales.Controls.Add(dgvMateriales);
+            tabControlTicket.TabPages.Add(tbpMateriales);
+        }
     }
 }

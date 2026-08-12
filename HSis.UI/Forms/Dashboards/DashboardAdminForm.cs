@@ -2,6 +2,7 @@
 using System.Data;
 using System.Runtime.Versioning;
 using HSis.Data.Models;
+using HSis.Logic.Constants;
 using HSis.Logic.DTOs;
 using HSis.Logic.Services;
 using HSis.UI.Controls;
@@ -21,7 +22,8 @@ namespace HSis.UI.Forms.Dashboards
         private readonly ITicketService _ticketService;
         private readonly ICatalogoService _catalogoService;
         private readonly IUsuarioService _usuarioService;
-        private readonly AdministradorUINotificaciones _uiManager;
+        private readonly NotificacionesPresenter _notificacionesPresenter;
+        private readonly IContextoSesion _contextoSesion;
         private readonly DashboardAdminPresenter? _presenter;
         private bool _estaCargando = true;
         private PaginacionControl PaginacionControl = null!;
@@ -35,7 +37,8 @@ namespace HSis.UI.Forms.Dashboards
             ITicketService ticketService,
             ICatalogoService catalogoService,
             IUsuarioService usuarioService,
-            AdministradorUINotificaciones uiManager,
+            NotificacionesPresenter notificacionesPresenter,
+            IContextoSesion contextoSesion,
             IFabricaFormularios fabricaFormularios,
             ISessionCacheService sessionCache,
             DashboardAdminPresenter? presenter = null)
@@ -44,7 +47,8 @@ namespace HSis.UI.Forms.Dashboards
             _ticketService = ticketService;
             _catalogoService = catalogoService;
             _usuarioService = usuarioService;
-            _uiManager = uiManager;
+            _notificacionesPresenter = notificacionesPresenter;
+            _contextoSesion = contextoSesion;
             _fabricaFormularios = fabricaFormularios;
             _sessionCache = sessionCache;
             _presenter = presenter;
@@ -56,10 +60,10 @@ namespace HSis.UI.Forms.Dashboards
             InicializarLayoutDashboard();
             SesionSistema.ConfigurarMenuSesion(this, _sessionCache);
 
-            if (tabMain != null)
-            {
-                _uiManager.Adjuntar(this, tabMain, () => Task.WhenAll(CargarKPIsAsync(), CargarGridCompletoAsync()));
-            }
+            var notifControl = new NotificacionesControl();
+            notifControl.Configurar(_notificacionesPresenter, _fabricaFormularios, _contextoSesion, () => Task.WhenAll(CargarKPIsAsync(), CargarGridCompletoAsync()));
+            this.Controls.Add(notifControl);
+            notifControl.BringToFront();
 
             ConfigurarFechasYFiltros();
 
@@ -72,81 +76,46 @@ namespace HSis.UI.Forms.Dashboards
             await ConfigurarTabsCatalogosAsync();
         }
 
-        private void InicializarLayoutDashboard()
-        {
-            // Instanciar control de paginación reutilizable
-            PaginacionControl = new PaginacionControl();
-            PaginacionControl.Dock = DockStyle.Fill;
-            PaginacionControl.PaginaCambiada += async (s, e) => { if (!_estaCargando) await FiltrarTicketsAsync(); };
-            PaginacionControl.Margin = new Padding(12, 0, 12, 6);
 
-            var tblPrincipal = AyudanteDisenoPanel.CrearPanelPrincipal(tabTickets.ClientSize, incluirFiltros: true);
-            tblPrincipal.Name = "tblPrincipalTickets";
-
-            _ucCalificacion = new IndicadorControl();
-            _ucCalificacion.IndicadorClic += UcCalificacion_Click;
-            var tblIndicadores = AyudanteDisenoPanel.CrearPanelIndicadores(
-                "tblIndicadoresAdmin",
-                6,
-                ucNuevos, ucUrgentes, ucEnProceso, ucCerrados, ucReabiertos, _ucCalificacion
-            );
-
-            // Configurar otros paneles accesorios
-            pnlFiltros.Dock = DockStyle.Fill;
-            pnlFiltros.Margin = new Padding(12, 5, 12, 5);
-
-            dgvTickets.Dock = DockStyle.Fill;
-            dgvTickets.Margin = new Padding(12, 10, 12, 12);
-
-            // Ensamblar el layout en el grid principal
-            tblPrincipal.Controls.Add(lblTitulo, 0, 0);
-            tblPrincipal.Controls.Add(tblIndicadores, 0, 1);
-            tblPrincipal.Controls.Add(pnlFiltros, 0, 2);
-            tblPrincipal.Controls.Add(dgvTickets, 0, 3);
-            tblPrincipal.Controls.Add(PaginacionControl, 0, 4);
-
-            // Reubicar controles desde el contenedor original al panel principal
-            AyudanteDisenoPanel.ReubicarControles(tabTickets, tblPrincipal, lblTitulo, ucNuevos, ucUrgentes, ucEnProceso, ucCerrados, ucReabiertos, pnlFiltros, dgvTickets);
-        }
 
         private void ConfigurarFechasYFiltros()
         {
             var campos = new List<HSis.UI.Controls.FiltroCampo>
             {
-                new() { NombrePropiedad = "Estatus", Etiqueta = "Estatus:", Tipo = HSis.UI.Controls.TipoFiltroControl.ComboSeleccion, ValoresCombo = ["Todos", "Nuevos", "Urgentes", "Abierto", "En Proceso", "Cerrado", "Reabierto"], Ancho = 130 },
-                new() { NombrePropiedad = "Prioridad", Etiqueta = "Prioridad:", Tipo = HSis.UI.Controls.TipoFiltroControl.ComboSeleccion, ValoresCombo = ["Todos", ConstantesPrioridad.ALTA, ConstantesPrioridad.MEDIA, ConstantesPrioridad.BAJA, ConstantesPrioridad.URGENTE], Ancho = 130 },
-                new() { NombrePropiedad = "Tecnico", Etiqueta = "Técnico:", Tipo = HSis.UI.Controls.TipoFiltroControl.ComboSeleccion, Ancho = 160 },
-                new() { NombrePropiedad = "Usuario", Etiqueta = "Usuario Emisor:", Tipo = HSis.UI.Controls.TipoFiltroControl.Texto, Ancho = 160 },
-                new() { NombrePropiedad = "Temporal", Etiqueta = "Vista Temporal:", Tipo = HSis.UI.Controls.TipoFiltroControl.ComboSeleccion, ValoresCombo = ["Todos", "Día", "Semana", "Mes", "Año"], Ancho = 130 },
-                new() { NombrePropiedad = "FechaInicio", Etiqueta = "Desde:", Tipo = HSis.UI.Controls.TipoFiltroControl.Fecha, Ancho = 130, ValorDefecto = DateTime.Today.AddDays(-30) },
-                new() { NombrePropiedad = "FechaFin", Etiqueta = "Hasta:", Tipo = HSis.UI.Controls.TipoFiltroControl.Fecha, Ancho = 130, ValorDefecto = DateTime.Today.AddDays(1).AddTicks(-1) }
+                new() { NombrePropiedad = "Estatus", Etiqueta = "Estatus:", Tipo = TipoFiltroControl.ComboSeleccion, ValoresCombo = ["Todos", "Nuevos", "Urgentes", "Abierto", "En Proceso", "Cerrado", "Reabierto"], Ancho = 130 },
+                new() { NombrePropiedad = "Prioridad", Etiqueta = "Prioridad:", Tipo = TipoFiltroControl.ComboSeleccion, ValoresCombo = ["Todos", ConstantesPrioridad.ALTA, ConstantesPrioridad.MEDIA, ConstantesPrioridad.BAJA, ConstantesPrioridad.URGENTE], Ancho = 130 },
+                new() { NombrePropiedad = "Tecnico", Etiqueta = "Técnico:", Tipo = TipoFiltroControl.ComboSeleccion, Ancho = 160 },
+                new() { NombrePropiedad = "Usuario", Etiqueta = "Usuario Emisor:", Tipo = TipoFiltroControl.Texto, Ancho = 160 },
+                new() { NombrePropiedad = "Temporal", Etiqueta = "Vista Temporal:", Tipo = TipoFiltroControl.ComboSeleccion, ValoresCombo = ["Todos", "Día", "Semana", "Mes", "Año"], Ancho = 130 },
+                new() { NombrePropiedad = "FechaInicio", Etiqueta = "Desde:", Tipo = TipoFiltroControl.Fecha, Ancho = 130, ValorDefecto = DateTime.Today.AddDays(-30) },
+                new() { NombrePropiedad = "FechaFin", Etiqueta = "Hasta:", Tipo = TipoFiltroControl.Fecha, Ancho = 130, ValorDefecto = DateTime.Today.AddDays(1).AddTicks(-1) }
             };
 
             filtroGenerico.InicializarFiltros(campos);
             filtroGenerico.FiltroCambiado += async (s, e) => { if (!_estaCargando) { PaginacionControl.PaginaActual = 1; await FiltrarTicketsAsync(); } };
         }
 
-        public void ucNuevos_ucIndicadorEvent(object sender, EventArgs e)
+        public void UcNuevosUcIndicadorEvent(object sender, EventArgs e)
         {
             filtroGenerico.EstablecerValorFiltro("Estatus", "Nuevos");
         }
 
-        private void ucUrgentes_ucIndicadorEvent(object sender, EventArgs e)
+        private void UcUrgentes_ucIndicadorEvent(object sender, EventArgs e)
         {
             filtroGenerico.EstablecerValorFiltro("Estatus", "Urgentes");
         }
 
-        private void ucEnProceso_ucIndicadorEvent(object sender, EventArgs e)
+        private void UcEnProceso_ucIndicadorEvent(object sender, EventArgs e)
         {
             filtroGenerico.EstablecerValorFiltro("Estatus", "En Proceso");
         }
 
-        private void ucCerrados_ucIndicadorEvent(object sender, EventArgs e)
+        private void UcCerrados_ucIndicadorEvent(object sender, EventArgs e)
         {
             filtroGenerico.EstablecerValorFiltro("Estatus", "Cerrado");
         }
 
-        private void ucReabiertos_ucIndicadorEvent(object sender, EventArgs e)
+        private void UcReabiertos_ucIndicadorEvent(object sender, EventArgs e)
         {
             filtroGenerico.EstablecerValorFiltro("Estatus", "Reabierto");
         }

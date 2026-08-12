@@ -22,15 +22,15 @@ public partial class HSisDbContext : DbContext
 
     public virtual DbSet<HistorialCambiosTicket> HistorialCambiosTickets { get; set; } = null!;
 
-    public virtual DbSet<MovimientoMaterial> MovimientosMaterials { get; set; } = null!;
+    public virtual DbSet<MovimientoMaterial> MovimientosMateriales { get; set; } = null!;
 
     public virtual DbSet<Material> Materials { get; set; } = null!;
 
     public virtual DbSet<Puesto> Puestos { get; set; } = null!;
 
-    public virtual DbSet<RolUsuario> RolUsuarios { get; set; } = null!;
+    public virtual DbSet<RolUsuario> RolesUsuarios { get; set; } = null!;
 
-    public virtual DbSet<Sucursal> Sucursals { get; set; } = null!;
+    public virtual DbSet<Sucursal> Sucursales { get; set; } = null!;
 
     public virtual DbSet<Ticket> Tickets { get; set; } = null!;
 

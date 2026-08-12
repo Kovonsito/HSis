@@ -26,7 +26,7 @@ public partial class Usuario
 
     public virtual Sucursal? Sucursal { get; set; }
 
-    public virtual ICollection<MovimientoMaterial> MovimientosMaterials { get; set; } = [];
+    public virtual ICollection<MovimientoMaterial> MovimientosMateriales { get; set; } = [];
 
     public virtual ICollection<Ticket> TicketsComoTecnico { get; set; } = [];
 

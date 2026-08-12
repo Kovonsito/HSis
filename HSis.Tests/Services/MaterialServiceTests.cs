@@ -17,7 +17,7 @@ namespace HSis.Tests.Services
         }
 
         [Fact]
-        public async Task ActualizarCostoMaterialAsync_ConIdValido_DebeActualizarCostoEnBD()
+        public async Task ActualizarCostoMaterialAsyncConIdValidoDebeActualizarCostoEnBD()
         {
             // Arrange
             var options = new DbContextOptionsBuilder<HSisDbContext>()
