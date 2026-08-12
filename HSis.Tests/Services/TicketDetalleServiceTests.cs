@@ -18,7 +18,7 @@ namespace HSis.Tests.Services
         }
 
         [Fact]
-        public async Task AgregarMaterialATicketAsync_DebeAplicarCostoUnitarioActualDelMaterial()
+        public async Task AgregarMaterialATicketAsyncDebeAplicarCostoUnitarioActualDelMaterial()
         {
             // Arrange
             var options = new DbContextOptionsBuilder<HSisDbContext>()
@@ -52,7 +52,7 @@ namespace HSis.Tests.Services
         }
 
         [Fact]
-        public async Task ObtenerCostoTotalMaterialesTicketAsync_DebeSumarCostosPorCantidad()
+        public async Task ObtenerCostoTotalMaterialesTicketAsyncDebeSumarCostosPorCantidad()
         {
             // Arrange
             var options = new DbContextOptionsBuilder<HSisDbContext>()
@@ -76,7 +76,7 @@ namespace HSis.Tests.Services
         }
 
         [Fact]
-        public async Task EliminarMaterialDeTicketAsync_DebeRemoverDetalle()
+        public async Task EliminarMaterialDeTicketAsyncDebeRemoverDetalle()
         {
             // Arrange
             var options = new DbContextOptionsBuilder<HSisDbContext>()

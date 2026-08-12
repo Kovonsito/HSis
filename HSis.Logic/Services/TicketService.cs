@@ -1,4 +1,5 @@
 using HSis.Data.Models;
+using HSis.Logic.Constants;
 using HSis.Logic.DTOs;
 using Mapster;
 using MapsterMapper;
@@ -226,7 +227,7 @@ namespace HSis.Logic.Services
             nuevoTicket.FechaAlta = DateTime.Now;
             if (nuevoTicket.IdTecnico.HasValue && nuevoTicket.IdTecnico.Value > 0)
             {
-                nuevoTicket.Estatus = ConstantesEstatus.EN_PROCESO;
+                nuevoTicket.Estatus = ConstantesEstatus.ENPROCESO;
                 nuevoTicket.FechaAtencion = DateTime.Now;
             }
             else
@@ -252,17 +253,17 @@ namespace HSis.Logic.Services
         // Lógica de dominio: Transiciones de estatus permitidas (SRP)
         public static List<string> ObtenerEstatusPermitidos(int idRolUsuario, string estatusActual)
         {
-            if (idRolUsuario == 1) // Admin
+            if (idRolUsuario == (int)RolUsuarioEnum.Administrador)
             {
-                return [ConstantesEstatus.ABIERTO, ConstantesEstatus.EN_PROCESO, ConstantesEstatus.CERRADO, ConstantesEstatus.REABIERTO];
+                return [ConstantesEstatus.ABIERTO, ConstantesEstatus.ENPROCESO, ConstantesEstatus.CERRADO, ConstantesEstatus.REABIERTO];
             }
 
             return estatusActual switch
             {
-                ConstantesEstatus.ABIERTO => [ConstantesEstatus.ABIERTO, ConstantesEstatus.EN_PROCESO],
-                ConstantesEstatus.EN_PROCESO => [ConstantesEstatus.EN_PROCESO, ConstantesEstatus.CERRADO],
+                ConstantesEstatus.ABIERTO => [ConstantesEstatus.ABIERTO, ConstantesEstatus.ENPROCESO],
+                ConstantesEstatus.ENPROCESO => [ConstantesEstatus.ENPROCESO, ConstantesEstatus.CERRADO],
                 ConstantesEstatus.CERRADO => [ConstantesEstatus.CERRADO],
-                ConstantesEstatus.REABIERTO => [ConstantesEstatus.REABIERTO, ConstantesEstatus.EN_PROCESO],
+                ConstantesEstatus.REABIERTO => [ConstantesEstatus.REABIERTO, ConstantesEstatus.ENPROCESO],
                 _ => [estatusActual]
             };
         }

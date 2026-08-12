@@ -39,7 +39,7 @@ namespace HSis.Logic.Services
             return await query.ToListAsync();
         }
 
-        public async Task<List<T>> ObtenerFiltradoAsync<T>(Expression<System.Func<T, bool>> predicado) where T : class
+        public async Task<List<T>> ObtenerFiltradoAsync<T>(Expression<Func<T, bool>> predicado) where T : class
         {
             using var db = dbContextFactory.CreateDbContext();
             IQueryable<T> query = db.Set<T>();
@@ -110,7 +110,7 @@ namespace HSis.Logic.Services
 
         // --- Métodos dinámicos por Tipo (Ocultan la reflexión del DbContext a la capa UI) ---
 
-        public async Task<List<object>> ObtenerTodosPorTipoAsync(System.Type tipoEntidad)
+        public async Task<List<object>> ObtenerTodosPorTipoAsync(Type tipoEntidad)
         {
             using var db = dbContextFactory.CreateDbContext();
 
@@ -128,7 +128,7 @@ namespace HSis.Logic.Services
                 if (toListAsyncMethod != null)
                 {
                     // ToListAsync devuelve Task<List<T>>. Esperamos dinámicamente.
-                    var task = (Task)toListAsyncMethod.Invoke(null, [dbSet, default(System.Threading.CancellationToken)])!;
+                    var task = (Task)toListAsyncMethod.Invoke(null, [dbSet, default(CancellationToken)])!;
                     await task;
 
                     // Extraemos el Result del Task
@@ -143,7 +143,7 @@ namespace HSis.Logic.Services
             return [];
         }
 
-        public async Task<int> ObtenerSiguienteIdAsync(System.Type tipoEntidad, string nombrePropiedadId)
+        public async Task<int> ObtenerSiguienteIdAsync(Type tipoEntidad, string nombrePropiedadId)
         {
             var registros = await ObtenerTodosPorTipoAsync(tipoEntidad);
             if (registros.Count > 0)

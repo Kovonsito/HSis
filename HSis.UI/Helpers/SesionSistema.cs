@@ -1,5 +1,6 @@
 #nullable enable
 using System.Runtime.Versioning;
+using HSis.Logic.Constants;
 using HSis.Logic.DTOs;
 using HSis.Logic.Services;
 
@@ -13,8 +14,8 @@ namespace HSis.UI.Helpers
         public static int IdUsuario => UsuarioActual?.IdUsuario ?? 0;
         public static string NombreUsuario => UsuarioActual?.Nombre ?? string.Empty;
         public static int IdRolUsuario => UsuarioActual?.IdRol ?? 0;
-        public static bool EsAdmin => IdRolUsuario == 1;
-        public static bool EsTecnico => IdRolUsuario == 2;
+        public static bool EsAdmin => IdRolUsuario == (int)RolUsuarioEnum.Administrador;
+        public static bool EsTecnico => IdRolUsuario == (int)RolUsuarioEnum.Tecnico;
 
         public static void ConfigurarMenuSesion(Form form, ISessionCacheService sessionCache)
         {
@@ -28,7 +29,7 @@ namespace HSis.UI.Helpers
             var itemPerfil = new ToolStripMenuItem("Mi Perfil");
             itemPerfil.Click += (s, e) =>
             {
-                string rol = IdRolUsuario == 1 ? "Administrador" : (IdRolUsuario == 2 ? "Técnico" : "Cliente");
+                string rol = IdRolUsuario == (int)RolUsuarioEnum.Administrador ? "Administrador" : (IdRolUsuario == (int)RolUsuarioEnum.Tecnico ? "Técnico" : "Cliente");
 
                 string depto = UsuarioActual?.DepartamentoNombre ?? "Sin Asignar";
                 string puesto = UsuarioActual?.PuestoNombre ?? "Sin Asignar";

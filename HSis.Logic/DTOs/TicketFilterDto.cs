@@ -1,15 +1,7 @@
+using HSis.Logic.Constants;
+
 namespace HSis.Logic.DTOs
-
 {
-    public enum VistaTemporal
-    {
-        Dia,
-        Semana,
-        Mes,
-        Ano,
-        Todos
-    }
-
     public class TicketFilterDto
     {
         public string? UsuarioEmisor { get; set; }
