@@ -26,6 +26,21 @@ namespace HSis.UI.Helpers
             }
         }
 
+        public static void ConfigurarColumnas(this DataGridView dgv, params (string NombrePropiedad, string Encabezado, int? Ancho)[] columnas)
+        {
+            foreach (var (nombre, encabezado, ancho) in columnas)
+            {
+                if (dgv.Columns[nombre] is DataGridViewColumn col)
+                {
+                    col.HeaderText = encabezado;
+                    if (ancho.HasValue)
+                    {
+                        col.Width = ancho.Value;
+                    }
+                }
+            }
+        }
+
         public static int? ObtenerIdSeleccionado(this DataGridView dgv, int indiceFila, string nombreColumna = "IdTicket")
         {
             if (indiceFila >= 0 && dgv.Rows[indiceFila].Cells[nombreColumna]?.Value is object val)

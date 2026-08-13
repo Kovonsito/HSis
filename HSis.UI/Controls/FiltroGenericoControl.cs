@@ -1,4 +1,6 @@
 #nullable enable
+using HSis.UI.Helpers;
+
 namespace HSis.UI.Controls
 {
     public partial class FiltroGenericoControl : UserControl

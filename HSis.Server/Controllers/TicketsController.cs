@@ -15,6 +15,7 @@ namespace HSis.Server.Controllers
             return Ok(await ticketService.ObtenerTicketsAsync());
         }
 
+
         [HttpGet("{id}")]
         public async Task<ActionResult<TicketDto>> ObtenerTicketPorId(int id)
         {
@@ -65,6 +66,7 @@ namespace HSis.Server.Controllers
             return Ok(await ticketService.ObtenerHistorialPorTicketAsync(id));
         }
 
+
         [HttpPost("{id}/calificar")]
         public async Task<IActionResult> CalificarTicket(int id, [FromBody] CalificarTicketRequest request)
         {
@@ -79,11 +81,13 @@ namespace HSis.Server.Controllers
             return Ok(await ticketService.ObtenerTicketsDisponiblesAsync());
         }
 
+
         [HttpGet("tecnico/{idTecnico}/cerrados")]
         public async Task<ActionResult<List<TicketDto>>> ObtenerTicketsCerradosPorTecnico(int idTecnico)
         {
             return Ok(await ticketService.ObtenerTicketsCerradosPorTecnicoAsync(idTecnico));
         }
+
 
         [HttpGet("tecnico/{idTecnico}/promedio-calificacion")]
         public async Task<ActionResult<double>> ObtenerPromedioCalificacionTecnico(int idTecnico)
@@ -91,11 +95,13 @@ namespace HSis.Server.Controllers
             return Ok(await ticketService.ObtenerPromedioCalificacionTecnicoAsync(idTecnico));
         }
 
+
         [HttpGet("tecnico/{idTecnico}/feedback")]
         public async Task<ActionResult<List<TicketDto>>> ObtenerFeedbackTecnico(int idTecnico)
         {
             return Ok(await ticketService.ObtenerFeedbackTecnicoAsync(idTecnico));
         }
+
 
         [HttpGet("sla")]
         public async Task<ActionResult<List<TicketDto>>> ObtenerTicketsPorSLA([FromQuery] bool esUrgente)
@@ -103,11 +109,13 @@ namespace HSis.Server.Controllers
             return Ok(await ticketService.ObtenerTicketsPorSLAAsync(esUrgente));
         }
 
+
         [HttpGet("sla/count")]
         public async Task<ActionResult<int>> ObtenerCountTicketsPorSLA([FromQuery] bool esUrgente)
         {
             return Ok(await ticketService.ObtenerCountTicketsPorSLAAsync(esUrgente));
         }
+
 
         [HttpGet("estatus/{estatus}")]
         public async Task<ActionResult<List<TicketDto>>> ObtenerTicketsPorEstatus(string estatus)
@@ -115,11 +123,13 @@ namespace HSis.Server.Controllers
             return Ok(await ticketService.ObtenerTicketsPorEstatusAsync(estatus));
         }
 
+
         [HttpGet("estatus/{estatus}/count")]
         public async Task<ActionResult<int>> ObtenerCountTicketsPorEstatus(string estatus)
         {
             return Ok(await ticketService.ObtenerCountTicketsPorEstatusAsync(estatus));
         }
+
 
         [HttpPost("filtrar/todos")]
         public async Task<ActionResult<List<TicketDto>>> ObtenerTicketsFiltrados([FromBody] TicketFilterDto filtros)
@@ -127,11 +137,13 @@ namespace HSis.Server.Controllers
             return Ok(await ticketService.ObtenerTicketsFiltradosAsync(filtros));
         }
 
+
         [HttpGet("kpis")]
         public async Task<ActionResult<ReporteKpisDto>> ObtenerReporteKpis([FromQuery] DateTime inicio, [FromQuery] DateTime fin)
         {
             return Ok(await ticketService.ObtenerReporteKpisAsync(inicio, fin));
         }
+
     }
 
     public class CalificarTicketRequest

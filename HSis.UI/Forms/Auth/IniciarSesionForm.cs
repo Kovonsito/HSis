@@ -4,7 +4,6 @@ using HSis.Logic.Constants;
 using HSis.Logic.DTOs;
 using HSis.UI.Factories;
 using HSis.UI.Forms.Dashboards;
-using HSis.UI.Helpers;
 using HSis.UI.Presenters;
 
 namespace HSis.UI.Forms.Auth
@@ -55,12 +54,12 @@ namespace HSis.UI.Forms.Auth
 
         public void NavegarADashboard(UsuarioDto usuario, string rolNombre)
         {
-            Form dashboardForm = (RolUsuarioEnum)(usuario.IdRol ?? (int)RolUsuarioEnum.Administrador) switch
+            Form dashboardForm = (RolUsuarioEnum)(usuario.IdRol ?? (int)RolUsuarioEnum.Cliente) switch
             {
-                RolUsuarioEnum.Administrador => (Form)_fabricaFormularios.Crear<DashboardAdminForm>(),
-                RolUsuarioEnum.Tecnico => (Form)_fabricaFormularios.Crear<DashboardTecnicoForm>(),
-                RolUsuarioEnum.Cliente => (Form)_fabricaFormularios.Crear<DashboardClienteForm>(),
-                _ => (Form)_fabricaFormularios.Crear<DashboardAdminForm>()
+                RolUsuarioEnum.Administrador => _fabricaFormularios.Crear<DashboardAdminForm>(),
+                RolUsuarioEnum.Tecnico => _fabricaFormularios.Crear<DashboardTecnicoForm>(),
+                RolUsuarioEnum.Cliente => _fabricaFormularios.Crear<DashboardClienteForm>(),
+                _ => _fabricaFormularios.Crear<DashboardClienteForm>()
             };
 
             dashboardForm.FormClosed += (s, closedArgs) => Application.Exit();
@@ -81,12 +80,12 @@ namespace HSis.UI.Forms.Auth
         #endregion
 
         #region Form Events
-        private async void btnIniciarSesion_Click(object? sender, EventArgs e)
+        private async void BtnIniciarSesion_Click(object? sender, EventArgs e)
         {
             await _presenter.IniciarSesionAsync();
         }
 
-        private void frmIniciarSesion_Load(object? sender, EventArgs e)
+        private void FrmIniciarSesion_Load(object? sender, EventArgs e)
         {
             _presenter.CargarCredencialesEnCache();
         }

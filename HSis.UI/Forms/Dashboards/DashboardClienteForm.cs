@@ -20,6 +20,7 @@ namespace HSis.UI.Forms.Dashboards
         private readonly DashboardClientePresenter? _presenter;
 
         private PaginacionControl PaginacionControl = null!;
+        private ControladorPaginacionGrid _controladorPaginacion = null!;
         private List<TicketClienteDto> _todosLosTickets = [];
 
         private IndicadorControl ucMisCerrados = null!;
@@ -58,12 +59,12 @@ namespace HSis.UI.Forms.Dashboards
         private async void frmDashboardCliente_Load(object? sender, EventArgs e)
         {
             InicializarLayoutDashboard();
+            _controladorPaginacion = new ControladorPaginacionGrid(PaginacionControl);
+            _controladorPaginacion.Vincular(MostrarPaginaActual);
+
             SesionSistema.ConfigurarMenuSesion(this, _sessionCache);
 
-            var notifControl = new NotificacionesControl();
-            notifControl.Configurar(_notificacionesPresenter, _formFactory, _contextoSesion, CargarDatosDashboardAsync);
-            this.Controls.Add(notifControl);
-            notifControl.BringToFront();
+            this.IntegrarNotificaciones(_notificacionesPresenter, _formFactory, _contextoSesion, CargarDatosDashboardAsync);
 
             // Cargamos la información una sola vez para evitar múltiples llamadas a la BD
             await CargarDatosDashboardAsync();
@@ -95,13 +96,13 @@ namespace HSis.UI.Forms.Dashboards
                 FechaAlta = t.FechaAlta,
                 Status = t.Estatus,
                 TecnicoAsignado = t.NombreTecnico ?? "Sin asignar",
-                Descripcion = !string.IsNullOrEmpty(t.Descripcion) && t.Descripcion.Length > 50 ? string.Concat(t.Descripcion.AsSpan(0, 50), "...") : (t.Descripcion ?? ""),
+                Descripcion = FormatoVisualHelper.TruncarTexto(t.Descripcion, 50),
                 Feedback = t.Estatus == ConstantesEstatus.CERRADO
-                    ? (t.Calificacion.HasValue ? $"Enviada ({new string('★', t.Calificacion.Value)}{new string('☆', 5 - t.Calificacion.Value)})" : "Pendiente")
+                    ? (t.Calificacion.HasValue ? $"Enviada ({FormatoVisualHelper.FormatearEstrellas(t.Calificacion.Value)})" : "Pendiente")
                     : "N/A"
             });
 
-            PaginacionControl.PaginaActual = 1;
+            _controladorPaginacion.ReiniciarAPrimeraPagina();
             MostrarPaginaActual();
         }
 
@@ -118,17 +119,15 @@ namespace HSis.UI.Forms.Dashboards
                 ticketsFiltrados = [.. _todosLosTickets.Where(t => t.Status == ConstantesEstatus.CERRADO)];
             }
 
-            PaginacionControl.TotalRegistros = ticketsFiltrados.Count;
-
             // 2. Segmentar la página actual
             var pageTickets = ticketsFiltrados
-                .Skip((PaginacionControl.PaginaActual - 1) * PaginacionControl.TamanoPagina)
-                .Take(PaginacionControl.TamanoPagina)
+                .Skip((_controladorPaginacion.PaginaActual - 1) * _controladorPaginacion.TamanoPagina)
+                .Take(_controladorPaginacion.TamanoPagina)
                 .ToList();
 
             dgvMisTickets.DataSource = new ListaVinculableOrdenable<TicketClienteDto>(pageTickets);
             PersonalizarColumnas();
-            PaginacionControl.ActualizarInterfaz();
+            _controladorPaginacion.Actualizar(ticketsFiltrados.Count);
         }
 
         private void PersonalizarColumnas()
@@ -138,37 +137,45 @@ namespace HSis.UI.Forms.Dashboards
                 dgvMisTickets.ConfigurarOcultarColumnas("IdTicket");
 
                 var colFolio = dgvMisTickets.Columns["Folio"];
-                if (colFolio != null) colFolio.HeaderText = "Folio";
-
-                var colFechaAlta = dgvMisTickets.Columns["FechaAlta"];
-                if (colFechaAlta != null)
+                if (colFolio != null)
                 {
-                    colFechaAlta.HeaderText = "Fecha de Alta";
-                    colFechaAlta.Width = 100;
+                    colFolio.HeaderText = "Folio";
+                    colFolio.Width = 80;
+                }
+
+                var colFecha = dgvMisTickets.Columns["FechaAlta"];
+                if (colFecha != null)
+                {
+                    colFecha.HeaderText = "Fecha de Creación";
+                    colFecha.Width = 140;
                 }
 
                 var colStatus = dgvMisTickets.Columns["Status"];
                 if (colStatus != null)
                 {
                     colStatus.HeaderText = "Estatus";
-                    colStatus.Width = 100;
+                    colStatus.Width = 110;
                 }
 
-                var colTecnicoAsignado = dgvMisTickets.Columns["TecnicoAsignado"];
-                if (colTecnicoAsignado != null)
+                var colTecnico = dgvMisTickets.Columns["TecnicoAsignado"];
+                if (colTecnico != null)
                 {
-                    colTecnicoAsignado.HeaderText = "Técnico Asignado";
-                    colTecnicoAsignado.Width = 120;
+                    colTecnico.HeaderText = "Técnico Asignado";
+                    colTecnico.Width = 160;
                 }
 
-                var colDescripcion = dgvMisTickets.Columns["Descripcion"];
-                if (colDescripcion != null) colDescripcion.HeaderText = "Descripción";
+                var colDesc = dgvMisTickets.Columns["Descripcion"];
+                if (colDesc != null)
+                {
+                    colDesc.HeaderText = "Descripción";
+                    colDesc.Width = 250;
+                }
 
                 var colFeedback = dgvMisTickets.Columns["Feedback"];
                 if (colFeedback != null)
                 {
-                    colFeedback.HeaderText = "Retroalimentación";
-                    colFeedback.Width = 140;
+                    colFeedback.HeaderText = "Calificación / Feedback";
+                    colFeedback.Width = 160;
                 }
 
                 dgvMisTickets.AutoajustarAnchosMinimos();
@@ -177,16 +184,16 @@ namespace HSis.UI.Forms.Dashboards
 
         private void ActualizarIndicador(List<TicketDto> tickets)
         {
-            var activos = tickets.FindAll(t => t.Estatus != ConstantesEstatus.CERRADO);
-            var cerrados = tickets.FindAll(t => t.Estatus == ConstantesEstatus.CERRADO);
+            var activos = tickets.Count(t => t.Estatus != ConstantesEstatus.CERRADO);
+            var cerrados = tickets.Count(t => t.Estatus == ConstantesEstatus.CERRADO);
 
-            ucMisActivos.Cantidad = activos.Count.ToString();
+            ucMisActivos.Cantidad = activos.ToString();
             ucMisActivos.Titulo = "Mis Tickets Activos";
-            ucMisActivos.ColorFondo = Color.FromArgb(41, 128, 185); // Azul
+            ucMisActivos.ColorFondo = Color.FromArgb(52, 152, 219); // Azul
 
             if (ucMisCerrados != null)
             {
-                ucMisCerrados.Cantidad = cerrados.Count.ToString();
+                ucMisCerrados.Cantidad = cerrados.ToString();
                 ucMisCerrados.Titulo = "Mis Tickets Cerrados";
                 ucMisCerrados.ColorFondo = Color.FromArgb(46, 204, 113); // Verde
             }
@@ -195,14 +202,14 @@ namespace HSis.UI.Forms.Dashboards
         private void UcMisActivos_Click(object? sender, EventArgs e)
         {
             _vistaActual = _vistaActual == VistaCliente.Activos ? VistaCliente.Todos : VistaCliente.Activos;
-            PaginacionControl.PaginaActual = 1;
+            _controladorPaginacion.ReiniciarAPrimeraPagina();
             MostrarPaginaActual();
         }
 
         private void UcMisCerrados_Click(object? sender, EventArgs e)
         {
             _vistaActual = _vistaActual == VistaCliente.Cerrados ? VistaCliente.Todos : VistaCliente.Cerrados;
-            PaginacionControl.PaginaActual = 1;
+            _controladorPaginacion.ReiniciarAPrimeraPagina();
             MostrarPaginaActual();
         }
 

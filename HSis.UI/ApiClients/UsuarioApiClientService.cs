@@ -14,6 +14,7 @@ namespace HSis.UI.ApiClients
             throw new NotImplementedException("No soportado en el cliente");
         }
 
+
         public async Task<UsuarioDto?> AutenticarAsync(string nombreUsuario, string contraseña)
         {
             var request = new { Username = nombreUsuario, Password = contraseña };
@@ -35,5 +36,6 @@ namespace HSis.UI.ApiClients
         {
             return await httpClient.GetFromJsonAsync<List<UsuarioDto>>($"api/Usuarios/rol/{idRol}") ?? [];
         }
+
     }
 }

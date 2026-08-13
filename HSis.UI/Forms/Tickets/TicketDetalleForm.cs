@@ -2,7 +2,6 @@ using System.Runtime.Versioning;
 using HSis.Data.Models;
 using HSis.Logic.Constants;
 using HSis.Logic.DTOs;
-using HSis.Logic.Services;
 using HSis.UI.Controls;
 using HSis.UI.Helpers;
 using HSis.UI.Presenters;
@@ -117,6 +116,7 @@ namespace HSis.UI.Forms.Tickets
             MessageBox.Show(mensaje, "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
+
         public void CerrarFormulario()
         {
             this.DialogResult = DialogResult.OK;
@@ -137,6 +137,7 @@ namespace HSis.UI.Forms.Tickets
         {
             await _presenter.CargarTicketDetallesAsync(_idTicket);
         }
+
 
         private void CmbEstatus_SelectedIndexChanged(object? sender, EventArgs e)
         {

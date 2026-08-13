@@ -87,5 +87,6 @@ namespace HSis.Logic.Services
                 ? query.Where(t => t.Estatus == ConstantesEstatus.ABIERTO && t.FechaAlta < fechaLimite)
                 : query.Where(t => t.Estatus == ConstantesEstatus.ABIERTO && t.FechaAlta >= fechaLimite);
         }
+
     }
 }

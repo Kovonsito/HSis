@@ -18,6 +18,7 @@ namespace HSis.UI.ApiClients
             return await httpClient.GetFromJsonAsync<TicketDetalleDto>($"api/TicketDetalle/ticket/{idTicket}/material/{idMaterial}");
         }
 
+
         public async Task AgregarMaterialATicketAsync(TicketDetalleDto detTicketDto)
         {
             var response = await httpClient.PostAsJsonAsync("api/TicketDetalle", detTicketDto);
@@ -40,5 +41,6 @@ namespace HSis.UI.ApiClients
         {
             return await httpClient.GetFromJsonAsync<decimal>($"api/TicketDetalle/ticket/{idTicket}/costo-total");
         }
+
     }
 }

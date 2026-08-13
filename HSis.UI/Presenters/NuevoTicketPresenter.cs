@@ -17,6 +17,7 @@ namespace HSis.UI.Presenters
             _view = view;
         }
 
+
         public async Task CargarCatalogosAsync()
         {
             if (_view == null) return;

@@ -29,6 +29,7 @@ namespace HSis.UI.Forms.Dashboards
         private readonly NotificacionesPresenter _notificacionesPresenter;
         private readonly IContextoSesion _contextoSesion;
         private PaginacionControl PaginacionControl = null!;
+        private ControladorPaginacionGrid _controladorPaginacion = null!;
         private List<TicketOperativoDto> _todosLosTickets = [];
         private List<TicketOperativoDto> _ticketsFiltrados = [];
         private List<FeedbackTecnicoDto> _todosLosFeedbacks = [];
@@ -58,13 +59,13 @@ namespace HSis.UI.Forms.Dashboards
         private async void frmDashboardTecnico_Load(object? sender, EventArgs e)
         {
             InicializarLayoutDashboard();
+            _controladorPaginacion = new ControladorPaginacionGrid(PaginacionControl);
+            _controladorPaginacion.Vincular(MostrarPaginaActual);
+
             ConfigurarFiltros();
             SesionSistema.ConfigurarMenuSesion(this, _sessionCache);
 
-            var notifControl = new NotificacionesControl();
-            notifControl.Configurar(_notificacionesPresenter, _formFactory, _contextoSesion, CargarDatosInicialesAsync);
-            this.Controls.Add(notifControl);
-            notifControl.BringToFront();
+            this.IntegrarNotificaciones(_notificacionesPresenter, _formFactory, _contextoSesion, CargarDatosInicialesAsync);
 
             // Cargamos indicadores y grid en paralelo
             await CargarDatosInicialesAsync();
@@ -164,12 +165,12 @@ namespace HSis.UI.Forms.Dashboards
                 _todosLosFeedbacks = [.. feedback.Select(t => new FeedbackTecnicoDto
                 {
                     IdTicket = t.IdTicket,
-                    Calificacion = new string('★', t.Calificacion ?? 0) + new string('☆', 5 - (t.Calificacion ?? 0)),
+                    Calificacion = FormatoVisualHelper.FormatearEstrellas(t.Calificacion),
                     Comentario = t.ComentarioEvaluacion ?? "Sin comentarios",
                     Fecha = t.FechaEvaluacion
                 })];
 
-                PaginacionControl.PaginaActual = 1;
+                _controladorPaginacion.ReiniciarAPrimeraPagina();
                 MostrarPaginaActual();
             }
             catch (Exception ex)
@@ -236,24 +237,23 @@ namespace HSis.UI.Forms.Dashboards
         {
             if (_vistaActual == VistaDashboard.Calificaciones)
             {
-                PaginacionControl.TotalRegistros = _todosLosFeedbacks.Count;
                 var pageFeedbacks = _todosLosFeedbacks
-                    .Skip((PaginacionControl.PaginaActual - 1) * PaginacionControl.TamanoPagina)
-                    .Take(PaginacionControl.TamanoPagina)
+                    .Skip((_controladorPaginacion.PaginaActual - 1) * _controladorPaginacion.TamanoPagina)
+                    .Take(_controladorPaginacion.TamanoPagina)
                     .ToList();
                 dgvTicketsOperativos.DataSource = new ListaVinculableOrdenable<FeedbackTecnicoDto>(pageFeedbacks);
+                _controladorPaginacion.Actualizar(_todosLosFeedbacks.Count);
             }
             else
             {
-                PaginacionControl.TotalRegistros = _ticketsFiltrados.Count;
                 var pageTickets = _ticketsFiltrados
-                    .Skip((PaginacionControl.PaginaActual - 1) * PaginacionControl.TamanoPagina)
-                    .Take(PaginacionControl.TamanoPagina)
+                    .Skip((_controladorPaginacion.PaginaActual - 1) * _controladorPaginacion.TamanoPagina)
+                    .Take(_controladorPaginacion.TamanoPagina)
                     .ToList();
                 dgvTicketsOperativos.DataSource = new ListaVinculableOrdenable<TicketOperativoDto>(pageTickets);
+                _controladorPaginacion.Actualizar(_ticketsFiltrados.Count);
             }
             PersonalizarColumnas();
-            PaginacionControl.ActualizarInterfaz();
         }
 
         private void PersonalizarColumnas()
@@ -264,56 +264,27 @@ namespace HSis.UI.Forms.Dashboards
 
                 if (dgvTicketsOperativos.DataSource is ListaVinculableOrdenable<FeedbackTecnicoDto>)
                 {
-                    if (dgvTicketsOperativos.Columns["Folio"] is DataGridViewColumn colFolio)
-                    {
-                        colFolio.HeaderText = "Folio";
-                        colFolio.Width = 80;
-                    }
-                    if (dgvTicketsOperativos.Columns["Calificacion"] is DataGridViewColumn colCal)
-                    {
-                        colCal.HeaderText = "Calificación";
-                        colCal.Width = 100;
-                    }
-                    if (dgvTicketsOperativos.Columns["Comentario"] is DataGridViewColumn colCom)
-                    {
-                        colCom.HeaderText = "Comentario del Cliente";
-                    }
-                    if (dgvTicketsOperativos.Columns["Fecha"] is DataGridViewColumn colFec)
-                    {
-                        colFec.HeaderText = "Fecha de Calificación";
-                        colFec.Width = 130;
-                    }
+                    dgvTicketsOperativos.ConfigurarColumnas(
+                        ("NombreUsuario", "Usuario Calificador", 180),
+                        ("Comentario", "Comentario de Retroalimentación", 320),
+                        ("FechaRegistro", "Fecha Calificación", 140),
+                        ("Puntuacion", "Calificación ⭐", 130)
+                    );
                 }
                 else
                 {
-                    if (dgvTicketsOperativos.Columns["FechaAlta"] is DataGridViewColumn colFechaAlta)
-                    {
-                        colFechaAlta.HeaderText = "Fecha de Alta";
-                        colFechaAlta.Width = 100;
-                    }
-                    if (dgvTicketsOperativos.Columns["Status"] is DataGridViewColumn colStatus)
-                    {
-                        colStatus.HeaderText = "Estatus";
-                        colStatus.Width = 100;
-                    }
-                    if (dgvTicketsOperativos.Columns["Usuario"] is DataGridViewColumn colUsuario)
-                    {
-                        colUsuario.HeaderText = "Usuario Reportó";
-                        colUsuario.Width = 120;
-                    }
-                    if (dgvTicketsOperativos.Columns["Descripcion"] is DataGridViewColumn colDesc)
-                    {
-                        colDesc.HeaderText = "Descripción";
-                    }
-                    if (dgvTicketsOperativos.Columns["Prioridad"] is DataGridViewColumn colPrioridad)
-                    {
-                        colPrioridad.HeaderText = "Prioridad";
-                        colPrioridad.Width = 80;
-                    }
+                    dgvTicketsOperativos.ConfigurarColumnas(
+                        ("Folio", "Folio", 80),
+                        ("Usuario", "Usuario Solicitante", 160),
+                        ("Status", "Estatus", 100),
+                        ("Prioridad", "Prioridad", 100),
+                        ("FechaAlta", "Fecha Alta", 130),
+                        ("Descripcion", "Descripción del Problema", 260),
+                        ("Solucion", "Solución Aplicada", 260)
+                    );
                 }
-
-                dgvTicketsOperativos.AutoajustarAnchosMinimos();
             }
+            dgvTicketsOperativos.AutoajustarAnchosMinimos();
         }
 
         private async void dgvTicketsOperativos_CellDoubleClick(object? sender, DataGridViewCellEventArgs e)
@@ -321,20 +292,9 @@ namespace HSis.UI.Forms.Dashboards
             await dgvTicketsOperativos.ManejarDetalleTicketAsync(e.RowIndex, _formFactory, () => Task.WhenAll(CargarIndicadoresAsync(), CargarTicketsSegunVistaAsync()));
         }
 
-
-
         private void ConfigurarFiltros()
         {
-            var campos = new List<HSis.UI.Controls.FiltroCampo>
-            {
-                new() { NombrePropiedad = "Estatus", Etiqueta = "Estatus:", Tipo = HSis.UI.Controls.TipoFiltroControl.ComboSeleccion, ValoresCombo = ["Todos", "Abierto", "En Proceso", "Cerrado", "Reabierto"], Ancho = 130 },
-                new() { NombrePropiedad = "Prioridad", Etiqueta = "Prioridad:", Tipo = HSis.UI.Controls.TipoFiltroControl.ComboSeleccion, ValoresCombo = ["Todos", ConstantesPrioridad.ALTA, ConstantesPrioridad.MEDIA, ConstantesPrioridad.BAJA, ConstantesPrioridad.URGENTE], Ancho = 130 },
-                new() { NombrePropiedad = "Usuario", Etiqueta = "Usuario Emisor:", Tipo = HSis.UI.Controls.TipoFiltroControl.Texto, Ancho = 160 },
-                new() { NombrePropiedad = "FechaInicio", Etiqueta = "Desde:", Tipo = HSis.UI.Controls.TipoFiltroControl.Fecha, Ancho = 130, ValorDefecto = DateTime.Today.AddDays(-30) },
-                new() { NombrePropiedad = "FechaFin", Etiqueta = "Hasta:", Tipo = HSis.UI.Controls.TipoFiltroControl.Fecha, Ancho = 130, ValorDefecto = DateTime.Today.AddDays(1).AddTicks(-1) }
-            };
-
-            filtroGenerico.InicializarFiltros(campos);
+            filtroGenerico.InicializarFiltros(ConfiguracionFiltrosTickets.ObtenerCamposTecnico());
             filtroGenerico.FiltroCambiado += (s, e) => { if (!_estaCargando) AplicarFiltrosMemoria(); };
         }
 
@@ -384,19 +344,14 @@ namespace HSis.UI.Forms.Dashboards
                 return true;
             }).ToList();
 
-            PaginacionControl.PaginaActual = 1;
+            _controladorPaginacion.ReiniciarAPrimeraPagina();
             MostrarPaginaActual();
         }
 
         private void btnLimpiarFiltros_Click(object? sender, EventArgs e)
         {
             _estaCargando = true;
-            var valoresDefecto = new Dictionary<string, object?>
-            {
-                { "FechaInicio", DateTime.Today.AddDays(-30) },
-                { "FechaFin", DateTime.Today.AddDays(1).AddTicks(-1) }
-            };
-            filtroGenerico.LimpiarFiltros(valoresDefecto);
+            filtroGenerico.LimpiarFiltros(ConfiguracionFiltrosTickets.ObtenerValoresDefecto());
             _estaCargando = false;
             AplicarFiltrosMemoria();
         }

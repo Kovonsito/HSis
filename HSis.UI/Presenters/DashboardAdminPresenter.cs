@@ -16,6 +16,7 @@ namespace HSis.UI.Presenters
             _view = view;
         }
 
+
         public async Task CargarKPIsAsync(DateTime inicio, DateTime fin)
         {
             if (_view == null) return;

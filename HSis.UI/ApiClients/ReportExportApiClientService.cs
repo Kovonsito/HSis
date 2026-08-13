@@ -13,9 +13,11 @@ namespace HSis.UI.ApiClients
             return _exportService.GenerarExcel(kpis, tickets, inicio, fin);
         }
 
+
         public byte[] GenerarPdf(ReporteKpisDto kpis, List<TicketDto> tickets, DateTime inicio, DateTime fin)
         {
             return _exportService.GenerarPdf(kpis, tickets, inicio, fin);
         }
+
     }
 }

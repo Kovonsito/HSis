@@ -10,7 +10,6 @@ using HSis.UI.Factories;
 using HSis.UI.Forms.Otros;
 using HSis.UI.Forms.Tickets;
 using HSis.UI.Helpers;
-using HSis.UI.Services;
 
 using HSis.UI.Presenters;
 
@@ -22,11 +21,10 @@ namespace HSis.UI.Forms.Dashboards
         private readonly ITicketService _ticketService;
         private readonly ICatalogoService _catalogoService;
         private readonly IUsuarioService _usuarioService;
-        private readonly NotificacionesPresenter _notificacionesPresenter;
-        private readonly IContextoSesion _contextoSesion;
         private readonly DashboardAdminPresenter? _presenter;
         private bool _estaCargando = true;
         private PaginacionControl PaginacionControl = null!;
+        private ControladorPaginacionGrid _controladorPaginacion = null!;
 
         private IndicadorControl? _ucCalificacion;
 
@@ -37,8 +35,6 @@ namespace HSis.UI.Forms.Dashboards
             ITicketService ticketService,
             ICatalogoService catalogoService,
             IUsuarioService usuarioService,
-            NotificacionesPresenter notificacionesPresenter,
-            IContextoSesion contextoSesion,
             IFabricaFormularios fabricaFormularios,
             ISessionCacheService sessionCache,
             DashboardAdminPresenter? presenter = null)
@@ -47,8 +43,6 @@ namespace HSis.UI.Forms.Dashboards
             _ticketService = ticketService;
             _catalogoService = catalogoService;
             _usuarioService = usuarioService;
-            _notificacionesPresenter = notificacionesPresenter;
-            _contextoSesion = contextoSesion;
             _fabricaFormularios = fabricaFormularios;
             _sessionCache = sessionCache;
             _presenter = presenter;
@@ -58,12 +52,10 @@ namespace HSis.UI.Forms.Dashboards
         private async void DashboardAdmin_Load(object sender, EventArgs e)
         {
             InicializarLayoutDashboard();
-            SesionSistema.ConfigurarMenuSesion(this, _sessionCache);
+            _controladorPaginacion = new ControladorPaginacionGrid(PaginacionControl);
+            _controladorPaginacion.Vincular(async () => { if (!_estaCargando) await FiltrarTicketsAsync(); });
 
-            var notifControl = new NotificacionesControl();
-            notifControl.Configurar(_notificacionesPresenter, _fabricaFormularios, _contextoSesion, () => Task.WhenAll(CargarKPIsAsync(), CargarGridCompletoAsync()));
-            this.Controls.Add(notifControl);
-            notifControl.BringToFront();
+            SesionSistema.ConfigurarMenuSesion(this, _sessionCache);
 
             ConfigurarFechasYFiltros();
 
@@ -76,23 +68,17 @@ namespace HSis.UI.Forms.Dashboards
             await ConfigurarTabsCatalogosAsync();
         }
 
-
-
         private void ConfigurarFechasYFiltros()
         {
-            var campos = new List<HSis.UI.Controls.FiltroCampo>
+            filtroGenerico.InicializarFiltros(ConfiguracionFiltrosTickets.ObtenerCamposAdmin());
+            filtroGenerico.FiltroCambiado += async (s, e) =>
             {
-                new() { NombrePropiedad = "Estatus", Etiqueta = "Estatus:", Tipo = TipoFiltroControl.ComboSeleccion, ValoresCombo = ["Todos", "Nuevos", "Urgentes", "Abierto", "En Proceso", "Cerrado", "Reabierto"], Ancho = 130 },
-                new() { NombrePropiedad = "Prioridad", Etiqueta = "Prioridad:", Tipo = TipoFiltroControl.ComboSeleccion, ValoresCombo = ["Todos", ConstantesPrioridad.ALTA, ConstantesPrioridad.MEDIA, ConstantesPrioridad.BAJA, ConstantesPrioridad.URGENTE], Ancho = 130 },
-                new() { NombrePropiedad = "Tecnico", Etiqueta = "Técnico:", Tipo = TipoFiltroControl.ComboSeleccion, Ancho = 160 },
-                new() { NombrePropiedad = "Usuario", Etiqueta = "Usuario Emisor:", Tipo = TipoFiltroControl.Texto, Ancho = 160 },
-                new() { NombrePropiedad = "Temporal", Etiqueta = "Vista Temporal:", Tipo = TipoFiltroControl.ComboSeleccion, ValoresCombo = ["Todos", "Día", "Semana", "Mes", "Año"], Ancho = 130 },
-                new() { NombrePropiedad = "FechaInicio", Etiqueta = "Desde:", Tipo = TipoFiltroControl.Fecha, Ancho = 130, ValorDefecto = DateTime.Today.AddDays(-30) },
-                new() { NombrePropiedad = "FechaFin", Etiqueta = "Hasta:", Tipo = TipoFiltroControl.Fecha, Ancho = 130, ValorDefecto = DateTime.Today.AddDays(1).AddTicks(-1) }
+                if (!_estaCargando)
+                {
+                    _controladorPaginacion.ReiniciarAPrimeraPagina();
+                    await FiltrarTicketsAsync();
+                }
             };
-
-            filtroGenerico.InicializarFiltros(campos);
-            filtroGenerico.FiltroCambiado += async (s, e) => { if (!_estaCargando) { PaginacionControl.PaginaActual = 1; await FiltrarTicketsAsync(); } };
         }
 
         public void UcNuevosUcIndicadorEvent(object sender, EventArgs e)
@@ -154,105 +140,18 @@ namespace HSis.UI.Forms.Dashboards
         {
             if (_estaCargando) return;
 
-            var filtros = new TicketFilterDto();
-            var vals = filtroGenerico.ObtenerValoresFiltros();
-
-            // 1. Estatus
-            if (vals.TryGetValue("Estatus", out var estVal) && estVal != null)
-            {
-                var est = estVal.ToString();
-                if (est != null && est != "Todos")
-                {
-                    filtros.Estatus = est;
-                }
-            }
-
-            // 2. Prioridad
-            if (vals.TryGetValue("Prioridad", out var priVal) && priVal != null)
-            {
-                var pri = priVal.ToString();
-                if (pri != null && pri != "Todos")
-                {
-                    filtros.Prioridad = pri;
-                }
-            }
-
-            // 3. Técnico
-            if (vals.TryGetValue("Tecnico", out var tecVal) && tecVal != null)
-            {
-                if (int.TryParse(tecVal.ToString(), out int idTecnico) && idTecnico > 0)
-                {
-                    filtros.IdTecnico = idTecnico;
-                }
-            }
-
-            // 4. Usuario Emisor
-            if (vals.TryGetValue("Usuario", out var usrVal) && usrVal != null)
-            {
-                string emisor = usrVal.ToString()!;
-                if (!string.IsNullOrWhiteSpace(emisor))
-                {
-                    filtros.UsuarioEmisor = emisor;
-                }
-            }
-
-            // 5. Vista Temporal
-            if (vals.TryGetValue("Temporal", out var tempVal) && tempVal != null)
-            {
-                string tempSel = tempVal.ToString()!;
-                if (tempSel != "Todos")
-                {
-                    filtros.RangoTemporal = tempSel switch
-                    {
-                        "Día" => VistaTemporal.Dia,
-                        "Semana" => VistaTemporal.Semana,
-                        "Mes" => VistaTemporal.Mes,
-                        "Año" => VistaTemporal.Ano,
-                        _ => VistaTemporal.Todos
-                    };
-                }
-                else
-                {
-                    filtros.RangoTemporal = VistaTemporal.Todos;
-                }
-            }
-            else
-            {
-                filtros.RangoTemporal = VistaTemporal.Todos;
-            }
-
-            // 6. Rango de Fechas
-            DateTime fi = DateTime.Today.AddDays(-30);
-            if (vals.TryGetValue("FechaInicio", out var fiVal) && fiVal is DateTime)
-            {
-                fi = (DateTime)fiVal;
-            }
-            filtros.FechaAltaInicio = fi.Date;
-
-            DateTime ff = DateTime.Today.AddDays(1).AddTicks(-1);
-            if (vals.TryGetValue("FechaFin", out var ffVal) && ffVal is DateTime)
-            {
-                ff = (DateTime)ffVal;
-            }
-            filtros.FechaAltaFin = ff.Date.AddDays(1).AddTicks(-1);
-
-            var resultadoPaginado = await _ticketService.ObtenerTicketsFiltradosPaginadosAsync(filtros, PaginacionControl.PaginaActual, PaginacionControl.TamanoPagina);
-            PaginacionControl.TotalRegistros = resultadoPaginado.TotalCount;
+            var filtros = ConfiguracionFiltrosTickets.MapearFiltrosAdmin(filtroGenerico.ObtenerValoresFiltros());
+            var resultadoPaginado = await _ticketService.ObtenerTicketsFiltradosPaginadosAsync(filtros, _controladorPaginacion.PaginaActual, _controladorPaginacion.TamanoPagina);
 
             ActualizarGrid(resultadoPaginado.Items);
-            PaginacionControl.ActualizarInterfaz();
+            _controladorPaginacion.Actualizar(resultadoPaginado.TotalCount);
         }
 
         private async void btnLimpiarFiltros_Click(object sender, EventArgs e)
         {
             _estaCargando = true;
-            var valoresDefecto = new Dictionary<string, object?>
-            {
-                { "FechaInicio", DateTime.Today.AddDays(-30) },
-                { "FechaFin", DateTime.Today.AddDays(1).AddTicks(-1) }
-            };
-            filtroGenerico.LimpiarFiltros(valoresDefecto);
-            PaginacionControl.PaginaActual = 1;
+            filtroGenerico.LimpiarFiltros(ConfiguracionFiltrosTickets.ObtenerValoresDefecto());
+            _controladorPaginacion.ReiniciarAPrimeraPagina();
             _estaCargando = false;
 
             await CargarGridCompletoAsync();
@@ -449,32 +348,32 @@ namespace HSis.UI.Forms.Dashboards
         private static void ConfigurarFormateoDeCeldas(DataGridView dgv, Type tipo)
         {
             dgv.CellFormatting += (s, e) =>
-            {
-                if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
+                                                                                                {
+                                                                                                    if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
 
-                var columnName = dgv.Columns[e.ColumnIndex].Name;
-                string idPk = "Id" + (tipo.Name == "RolUsuario" ? "Rol" : tipo.Name);
+                                                                                                    var columnName = dgv.Columns[e.ColumnIndex].Name;
+                                                                                                    string idPk = "Id" + (tipo.Name == "RolUsuario" ? "Rol" : tipo.Name);
 
-                if (columnName.StartsWith("Id") && columnName != idPk)
-                {
-                    var navPropName = columnName + "Navigation";
-                    var entidad = dgv.Rows[e.RowIndex].DataBoundItem;
-                    if (entidad != null)
-                    {
-                        var navProp = entidad.GetType().GetProperty(navPropName);
-                        var navObj = navProp?.GetValue(entidad);
-                        if (navObj != null)
-                        {
-                            var nombreProp = navObj.GetType().GetProperty("Nombre") ?? navObj.GetType().GetProperty("Descripcion");
-                            if (nombreProp != null)
-                            {
-                                e.Value = nombreProp.GetValue(navObj);
-                                e.FormattingApplied = true;
-                            }
-                        }
-                    }
-                }
-            };
+                                                                                                    if (columnName.StartsWith("Id") && columnName != idPk)
+                                                                                                    {
+                                                                                                        var navPropName = columnName + "Navigation";
+                                                                                                        var entidad = dgv.Rows[e.RowIndex].DataBoundItem;
+                                                                                                        if (entidad != null)
+                                                                                                        {
+                                                                                                            var navProp = entidad.GetType().GetProperty(navPropName);
+                                                                                                            var navObj = navProp?.GetValue(entidad);
+                                                                                                            if (navObj != null)
+                                                                                                            {
+                                                                                                                var nombreProp = navObj.GetType().GetProperty("Nombre") ?? navObj.GetType().GetProperty("Descripcion");
+                                                                                                                if (nombreProp != null)
+                                                                                                                {
+                                                                                                                    e.Value = nombreProp.GetValue(navObj);
+                                                                                                                    e.FormattingApplied = true;
+                                                                                                                }
+                                                                                                            }
+                                                                                                        }
+                                                                                                    }
+                                                                                                };
         }
 
         private async Task ManejarCreacionRegistro(Type tipo, DataGridView dgv)
@@ -667,12 +566,7 @@ namespace HSis.UI.Forms.Dashboards
             _estaCargando = true;
             try
             {
-                if (PaginacionControl != null)
-                {
-                    PaginacionControl.TotalRegistros = totalCount;
-                    PaginacionControl.TamanoPagina = pageSize;
-                    PaginacionControl.PaginaActual = pageNumber;
-                }
+                _controladorPaginacion?.Actualizar(totalCount, pageNumber, pageSize);
 
                 dgvTickets.DataSource = tickets.Select(t => new TicketGridDto
                 {

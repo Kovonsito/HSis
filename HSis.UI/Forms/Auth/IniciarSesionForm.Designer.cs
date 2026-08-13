@@ -83,7 +83,7 @@ namespace HSis.UI.Forms.Auth
             btnIniciarSesion.TabIndex = 5;
             btnIniciarSesion.Text = "Iniciar Sesión";
             btnIniciarSesion.UseVisualStyleBackColor = false;
-            btnIniciarSesion.Click += btnIniciarSesion_Click;
+            btnIniciarSesion.Click += BtnIniciarSesion_Click;
 
             // 
             // IniciarSesionForm
@@ -102,7 +102,7 @@ namespace HSis.UI.Forms.Auth
             Name = "IniciarSesionForm";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "Iniciar sesión";
-            Load += frmIniciarSesion_Load;
+            Load += FrmIniciarSesion_Load;
             ResumeLayout(false);
             PerformLayout();
         }
@@ -114,7 +114,7 @@ namespace HSis.UI.Forms.Auth
         private TextBox txtUsuario;
         private TextBox txtContraseña;
         private Button btnIniciarSesion;
-        
+
         private void InicializarLayoutLogin()
         {
             var tblPrincipal = new TableLayoutPanel

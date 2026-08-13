@@ -1,7 +1,6 @@
 using System.Runtime.Versioning;
 using HSis.Logic.Constants;
 using HSis.Logic.DTOs;
-using HSis.Logic.Services;
 using HSis.UI.Presenters;
 
 namespace HSis.UI.Forms.Tickets
@@ -67,6 +66,7 @@ namespace HSis.UI.Forms.Tickets
             this.Close();
         }
 
+
         public void MostrarCargando(bool cargando)
         {
             btnEnviar.Enabled = !cargando;
@@ -75,10 +75,11 @@ namespace HSis.UI.Forms.Tickets
         #endregion
 
         #region Form Events
-        private async void frmDetalleCliente_Load(object? sender, EventArgs e)
+        private async void FrmDetalleCliente_Load(object? sender, EventArgs e)
         {
             await _presenter.CargarTicketAsync(_idTicket);
         }
+
 
         private async void BtnEnviarFeedback_Click(object? sender, EventArgs e)
         {
@@ -112,6 +113,7 @@ namespace HSis.UI.Forms.Tickets
         {
             this.Close();
         }
+
 
         private void MostrarSeccionFeedback(TicketDto ticket)
         {
@@ -195,6 +197,7 @@ namespace HSis.UI.Forms.Tickets
         {
             ActualizarEstrellasVisuales(_calificacionSeleccionada);
         }
+
 
         private void ActualizarEstrellasVisuales(int score)
         {
