@@ -95,7 +95,11 @@ public class LocalFileNotificacionStorageService : INotificacionStorageService
         await Task.CompletedTask;
     }
 
-    public Task SincronizarDesdeBDAsync(int userId) => Task.CompletedTask;
+    public Task SincronizarDesdeBDAsync(int userId)
+    {
+        return Task.CompletedTask;
+    }
+
 
     private static async Task GuardarListaAsync(int userId, List<NotificacionLocal> list)
     {

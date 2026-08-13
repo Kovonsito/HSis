@@ -14,5 +14,6 @@ namespace HSis.Server.Controllers
         {
             return Ok(await usuarioService.ObtenerUsuariosPorRolAsync(idRol));
         }
+
     }
 }

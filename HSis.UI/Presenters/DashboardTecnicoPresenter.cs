@@ -14,6 +14,7 @@ namespace HSis.UI.Presenters
             _view = view;
         }
 
+
         public async Task CargarIndicadoresAsync(int idTecnico)
         {
             if (_view == null) return;
@@ -138,5 +139,6 @@ namespace HSis.UI.Presenters
                 Prioridad = t.Prioridad
             }).ToList();
         }
+
     }
 }

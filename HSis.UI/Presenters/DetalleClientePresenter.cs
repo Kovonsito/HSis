@@ -11,6 +11,7 @@ namespace HSis.UI.Presenters
             _view = view;
         }
 
+
         public async Task CargarTicketAsync(int idTicket)
         {
             if (_view == null) return;

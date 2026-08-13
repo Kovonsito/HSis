@@ -10,9 +10,11 @@ namespace HSis.Logic.Services
             OnNotificacionPublicada?.Invoke(this, new NotificacionEventArgs(ticketId, tipo, mensaje));
         }
 
+
         public void PublicarEstadoConexion(bool conectado, string? mensajeEstado = null)
         {
             OnEstadoConexionCambiado?.Invoke(this, new EstadoConexionEventArgs(conectado, mensajeEstado));
         }
+
     }
 }

@@ -51,6 +51,7 @@ namespace HSis.UI.Forms.Otros
             MessageBox.Show(mensaje, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
+
         public void MostrarCargando(bool cargando)
         {
             cbMaterial.Enabled = !cargando;
@@ -63,6 +64,7 @@ namespace HSis.UI.Forms.Otros
         {
             await _presenter.CargarMaterialesAsync();
         }
+
 
         private async void CbMaterial_SelectedIndexChanged(object? sender, EventArgs e)
         {

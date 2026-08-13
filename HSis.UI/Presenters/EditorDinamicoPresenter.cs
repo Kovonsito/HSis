@@ -11,6 +11,7 @@ namespace HSis.UI.Presenters
             _view = view;
         }
 
+
         public async Task<List<object>> ObtenerTodosPorTipoAsync(Type tipo)
         {
             try

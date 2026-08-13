@@ -17,6 +17,7 @@ namespace HSis.UI.Presenters
             _view = view;
         }
 
+
         public void CargarCredencialesEnCache()
         {
             if (_view == null) return;

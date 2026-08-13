@@ -1,8 +1,4 @@
 #nullable enable
-using System;
-using System.Drawing;
-using System.Linq;
-using System.Threading.Tasks;
 using HSis.Logic.Services;
 
 namespace HSis.UI.Presenters
@@ -38,6 +34,7 @@ namespace HSis.UI.Presenters
         {
             DesuscribirEventos();
         }
+
 
         private void SuscribirEventos()
         {
@@ -126,6 +123,7 @@ namespace HSis.UI.Presenters
             _view?.ActualizarEstadoConexion(false, "⚠️ Intentando reconectar con el servidor de notificaciones...", Color.FromArgb(230, 126, 34));
         }
 
+
         private void EnConectado()
         {
             _view?.ActualizarEstadoConexion(true, string.Empty, Color.Empty);
@@ -141,6 +139,7 @@ namespace HSis.UI.Presenters
         {
             EnNotificacionRecibida(e.Tipo, e.TicketId, e.Mensaje);
         }
+
 
         private void EnBusEstadoConexionCambiado(object? sender, EstadoConexionEventArgs e)
         {

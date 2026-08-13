@@ -42,6 +42,7 @@ namespace HSis.UI.Forms.Otros
             MessageBox.Show(mensaje, "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
+
         public void MostrarCargando(bool cargando)
         {
             btnExcel.Enabled = !cargando;

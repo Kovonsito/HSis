@@ -29,6 +29,7 @@ namespace HSis.UI.Forms.Otros
             MessageBox.Show(mensaje, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
+
         protected override async void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
@@ -146,12 +147,13 @@ namespace HSis.UI.Forms.Otros
         private List<PropertyInfo> ObtenerPropiedadesEditables()
         {
             return _entidad.GetType().GetProperties().Where(p =>
-                p.CanWrite &&
-                !(p.PropertyType.IsGenericType && p.PropertyType.GetGenericTypeDefinition() != typeof(Nullable<>)) &&
-                !p.Name.EndsWith("Navigation") &&
-                !(_entidad.GetType().Name == "Material" && (p.Name == "Costo" || p.Name == "Inventario"))
+                                                                                 p.CanWrite &&
+                                                                                 !(p.PropertyType.IsGenericType && p.PropertyType.GetGenericTypeDefinition() != typeof(Nullable<>)) &&
+                                                                                 !p.Name.EndsWith("Navigation") &&
+                                                                                 !(_entidad.GetType().Name == "Material" && (p.Name == "Costo" || p.Name == "Inventario"))
             ).ToList();
         }
+
 
         private async Task CrearControlParaPropiedadAsync(PropertyInfo prop, int y)
         {

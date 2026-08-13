@@ -35,9 +35,13 @@ namespace HSis.Logic.Services
             this.notificationDispatcher = notificationDispatcher;
         }
 
-        private static DateTime ObtenerLimiteSLA() => DateTime.Now.AddHours(-48);
+        private static DateTime ObtenerLimiteSLA()
+        {
+            return DateTime.Now.AddHours(-48);
+        }
 
         // Obtener todos los tickets - Async
+
         public async Task<List<TicketDto>> ObtenerTicketsAsync()
         {
             using var db = dbContextFactory.CreateDbContext();

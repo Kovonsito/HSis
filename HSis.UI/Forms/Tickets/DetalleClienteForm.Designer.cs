@@ -406,7 +406,7 @@ namespace HSis.UI.Forms.Tickets
             Name = "DetalleClienteForm";
             StartPosition = FormStartPosition.CenterParent;
             Text = "Detalle del Ticket - Solo Lectura";
-            Load += frmDetalleCliente_Load;
+            Load += FrmDetalleCliente_Load;
             grpFeedback.ResumeLayout(false);
             grpFeedback.PerformLayout();
             ResumeLayout(false);

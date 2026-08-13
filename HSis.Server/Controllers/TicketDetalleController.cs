@@ -15,6 +15,7 @@ namespace HSis.Server.Controllers
             return Ok(await ticketDetalleService.ObtenerDetallesTicketAsync(idTicket));
         }
 
+
         [HttpGet("ticket/{idTicket}/material/{idMaterial}")]
         public async Task<ActionResult<TicketDetalleDto>> ObtenerDetallePorId(int idTicket, int idMaterial)
         {
@@ -49,5 +50,6 @@ namespace HSis.Server.Controllers
         {
             return Ok(await ticketDetalleService.ObtenerCostoTotalMaterialesTicketAsync(idTicket));
         }
+
     }
 }

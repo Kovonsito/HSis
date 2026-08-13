@@ -9,5 +9,6 @@ namespace HSis.UI.Helpers
         {
             return Texto;
         }
+
     }
 }

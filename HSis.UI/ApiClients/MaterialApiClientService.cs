@@ -11,5 +11,6 @@ namespace HSis.UI.ApiClients
         {
             await httpClient.PutAsJsonAsync($"api/Materiales/{idMaterial}/costo", nuevoCosto);
         }
+
     }
 }
