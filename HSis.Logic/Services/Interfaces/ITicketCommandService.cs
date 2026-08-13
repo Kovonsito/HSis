@@ -9,3 +9,4 @@ namespace HSis.Logic.Services
         Task<bool> RegistrarCalificacionAsync(int idTicket, int calificacion, string? comentario);
     }
 }
+

@@ -5,3 +5,4 @@ namespace HSis.Logic.Services
         int GetCurrentUserId();
     }
 }
+

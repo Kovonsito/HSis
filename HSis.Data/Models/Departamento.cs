@@ -1,12 +1,14 @@
-namespace HSis.Data.Models;
-
-public partial class Departamento
+namespace HSis.Data.Models
 {
-    public int IdDepartamento { get; set; }
+    public partial class Departamento
+    {
+        public int IdDepartamento { get; set; }
 
-    public string? Nombre { get; set; }
+        public string? Nombre { get; set; }
 
-    public string? Descripcion { get; set; }
+        public string? Descripcion { get; set; }
 
-    public virtual ICollection<Usuario> Usuarios { get; set; } = [];
+        public virtual ICollection<Usuario> Usuarios { get; set; } = [];
+    }
 }
+

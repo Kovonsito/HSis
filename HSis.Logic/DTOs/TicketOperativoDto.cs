@@ -14,3 +14,4 @@ namespace HSis.Logic.DTOs
         public string? Status { get => Estatus; set => Estatus = value; }
     }
 }
+

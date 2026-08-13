@@ -15,3 +15,4 @@ namespace HSis.Logic.DTOs
         public string? SucursalNombre { get; set; }
     }
 }
+

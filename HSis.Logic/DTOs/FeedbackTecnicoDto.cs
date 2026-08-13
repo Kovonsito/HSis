@@ -1,6 +1,6 @@
 namespace HSis.Logic.DTOs
-
 {
+
     public class FeedbackTecnicoDto
     {
         public int IdTicket { get; set; }
@@ -10,3 +10,4 @@ namespace HSis.Logic.DTOs
         public DateTime? Fecha { get; set; }
     }
 }
+

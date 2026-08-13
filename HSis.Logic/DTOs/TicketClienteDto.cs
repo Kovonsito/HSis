@@ -15,3 +15,4 @@ namespace HSis.Logic.DTOs
         public string? Feedback { get => Evaluacion; set => Evaluacion = value; }
     }
 }
+

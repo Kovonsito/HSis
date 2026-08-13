@@ -18,3 +18,4 @@ namespace HSis.UI.Helpers
         public object? ValorDefecto { get; set; }                    // Valor por defecto opcional
     }
 }
+

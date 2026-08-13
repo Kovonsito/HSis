@@ -10,3 +10,4 @@ namespace HSis.Logic.DTOs
         public string? UnidadMedidaMaterial { get; set; }
     }
 }
+

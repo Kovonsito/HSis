@@ -2,157 +2,156 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace HSis.UI.Forms.Auth
+namespace HSis.UI.Forms.Auth;
+
+partial class IniciarSesionForm
 {
-    partial class IniciarSesionForm
+    /// <summary>
+    /// Required designer variable.
+    /// </summary>
+    private System.ComponentModel.IContainer components = null;
+
+    /// <summary>
+    /// Clean up any resources being used.
+    /// </summary>
+    /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+    protected override void Dispose(bool disposing)
     {
-        /// <summary>
-        /// Required designer variable.
-        /// </summary>
-        private System.ComponentModel.IContainer components = null;
-
-        /// <summary>
-        /// Clean up any resources being used.
-        /// </summary>
-        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
-        protected override void Dispose(bool disposing)
+        if (disposing && (components != null))
         {
-            if (disposing && (components != null))
-            {
-                components.Dispose();
-            }
-            base.Dispose(disposing);
+            components.Dispose();
+        }
+        base.Dispose(disposing);
+    }
+
+    #region Windows Form Designer generated code
+
+    /// <summary>
+    /// Required method for Designer support - do not modify
+    /// the contents of this method with the code editor.
+    /// </summary>
+    private void InitializeComponent()
+    {
+        lblUsuario = new Label();
+        lblContraseña = new Label();
+        txtUsuario = new TextBox();
+        txtContraseña = new TextBox();
+        btnIniciarSesion = new Button();
+        SuspendLayout();
+        // 
+        // lblUsuario
+        // 
+        lblUsuario.AutoSize = true;
+        lblUsuario.Location = new Point(62, 32);
+        lblUsuario.Name = "lblUsuario";
+        lblUsuario.Size = new Size(47, 15);
+        lblUsuario.TabIndex = 1;
+        lblUsuario.Text = "Usuario";
+        // 
+        // lblContraseña
+        // 
+        lblContraseña.AutoSize = true;
+        lblContraseña.Location = new Point(62, 113);
+        lblContraseña.Name = "lblContraseña";
+        lblContraseña.Size = new Size(67, 15);
+        lblContraseña.TabIndex = 2;
+        lblContraseña.Text = "Contraseña";
+        // 
+        // txtUsuario
+        // 
+        txtUsuario.Location = new Point(62, 50);
+        txtUsuario.Name = "txtUsuario";
+        txtUsuario.Size = new Size(184, 23);
+        txtUsuario.TabIndex = 3;
+        // 
+        // txtContraseña
+        // 
+        txtContraseña.Location = new Point(62, 131);
+        txtContraseña.Name = "txtContraseña";
+        txtContraseña.PasswordChar = '●';
+        txtContraseña.Size = new Size(184, 23);
+        txtContraseña.TabIndex = 4;
+        // 
+        // btnIniciarSesion
+        // 
+        btnIniciarSesion.BackColor = System.Drawing.Color.FromArgb(39, 174, 96);
+        btnIniciarSesion.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+        btnIniciarSesion.ForeColor = System.Drawing.Color.White;
+        btnIniciarSesion.Location = new Point(62, 190);
+        btnIniciarSesion.Name = "btnIniciarSesion";
+        btnIniciarSesion.Size = new Size(184, 30);
+        btnIniciarSesion.TabIndex = 5;
+        btnIniciarSesion.Text = "Iniciar Sesión";
+        btnIniciarSesion.UseVisualStyleBackColor = false;
+        btnIniciarSesion.Click += BtnIniciarSesion_Click;
+
+        // 
+        // IniciarSesionForm
+        // 
+        AutoScaleDimensions = new SizeF(7F, 15F);
+        AutoScaleMode = AutoScaleMode.Font;
+        ClientSize = new Size(298, 245);
+        FormBorderStyle = FormBorderStyle.FixedSingle;
+        MaximizeBox = false;
+        MinimizeBox = false;
+        Controls.Add(btnIniciarSesion);
+        Controls.Add(txtContraseña);
+        Controls.Add(txtUsuario);
+        Controls.Add(lblContraseña);
+        Controls.Add(lblUsuario);
+        Name = "IniciarSesionForm";
+        StartPosition = FormStartPosition.CenterScreen;
+        Text = "Iniciar sesión";
+        Load += FrmIniciarSesion_Load;
+        ResumeLayout(false);
+        PerformLayout();
+    }
+
+    #endregion
+
+    private Label lblUsuario;
+    private Label lblContraseña;
+    private TextBox txtUsuario;
+    private TextBox txtContraseña;
+    private Button btnIniciarSesion;
+
+    private void InicializarLayoutLogin()
+    {
+        var tblPrincipal = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            RowCount = 5,
+            ColumnCount = 1,
+            Padding = new Padding(30, 20, 30, 20),
+            Name = "tblPrincipal"
+        };
+
+        for (int i = 0; i < 5; i++)
+        {
+            tblPrincipal.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         }
 
-        #region Windows Form Designer generated code
+        lblUsuario.Dock = DockStyle.Fill;
+        lblUsuario.Margin = new Padding(0, 0, 0, 5);
+        txtUsuario.Dock = DockStyle.Fill;
+        txtUsuario.Margin = new Padding(0, 0, 0, 15);
 
-        /// <summary>
-        /// Required method for Designer support - do not modify
-        /// the contents of this method with the code editor.
-        /// </summary>
-        private void InitializeComponent()
-        {
-            lblUsuario = new Label();
-            lblContraseña = new Label();
-            txtUsuario = new TextBox();
-            txtContraseña = new TextBox();
-            btnIniciarSesion = new Button();
-            SuspendLayout();
-            // 
-            // lblUsuario
-            // 
-            lblUsuario.AutoSize = true;
-            lblUsuario.Location = new Point(62, 32);
-            lblUsuario.Name = "lblUsuario";
-            lblUsuario.Size = new Size(47, 15);
-            lblUsuario.TabIndex = 1;
-            lblUsuario.Text = "Usuario";
-            // 
-            // lblContraseña
-            // 
-            lblContraseña.AutoSize = true;
-            lblContraseña.Location = new Point(62, 113);
-            lblContraseña.Name = "lblContraseña";
-            lblContraseña.Size = new Size(67, 15);
-            lblContraseña.TabIndex = 2;
-            lblContraseña.Text = "Contraseña";
-            // 
-            // txtUsuario
-            // 
-            txtUsuario.Location = new Point(62, 50);
-            txtUsuario.Name = "txtUsuario";
-            txtUsuario.Size = new Size(184, 23);
-            txtUsuario.TabIndex = 3;
-            // 
-            // txtContraseña
-            // 
-            txtContraseña.Location = new Point(62, 131);
-            txtContraseña.Name = "txtContraseña";
-            txtContraseña.PasswordChar = '●';
-            txtContraseña.Size = new Size(184, 23);
-            txtContraseña.TabIndex = 4;
-            // 
-            // btnIniciarSesion
-            // 
-            btnIniciarSesion.BackColor = System.Drawing.Color.FromArgb(39, 174, 96);
-            btnIniciarSesion.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            btnIniciarSesion.ForeColor = System.Drawing.Color.White;
-            btnIniciarSesion.Location = new Point(62, 190);
-            btnIniciarSesion.Name = "btnIniciarSesion";
-            btnIniciarSesion.Size = new Size(184, 30);
-            btnIniciarSesion.TabIndex = 5;
-            btnIniciarSesion.Text = "Iniciar Sesión";
-            btnIniciarSesion.UseVisualStyleBackColor = false;
-            btnIniciarSesion.Click += BtnIniciarSesion_Click;
+        lblContraseña.Dock = DockStyle.Fill;
+        lblContraseña.Margin = new Padding(0, 0, 0, 5);
+        txtContraseña.Dock = DockStyle.Fill;
+        txtContraseña.Margin = new Padding(0, 0, 0, 20);
 
-            // 
-            // IniciarSesionForm
-            // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
-            AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(298, 245);
-            FormBorderStyle = FormBorderStyle.FixedSingle;
-            MaximizeBox = false;
-            MinimizeBox = false;
-            Controls.Add(btnIniciarSesion);
-            Controls.Add(txtContraseña);
-            Controls.Add(txtUsuario);
-            Controls.Add(lblContraseña);
-            Controls.Add(lblUsuario);
-            Name = "IniciarSesionForm";
-            StartPosition = FormStartPosition.CenterScreen;
-            Text = "Iniciar sesión";
-            Load += FrmIniciarSesion_Load;
-            ResumeLayout(false);
-            PerformLayout();
-        }
+        btnIniciarSesion.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+        btnIniciarSesion.Margin = new Padding(0);
+        btnIniciarSesion.Height = 35;
 
-        #endregion
+        tblPrincipal.Controls.Add(lblUsuario, 0, 0);
+        tblPrincipal.Controls.Add(txtUsuario, 0, 1);
+        tblPrincipal.Controls.Add(lblContraseña, 0, 2);
+        tblPrincipal.Controls.Add(txtContraseña, 0, 3);
+        tblPrincipal.Controls.Add(btnIniciarSesion, 0, 4);
 
-        private Label lblUsuario;
-        private Label lblContraseña;
-        private TextBox txtUsuario;
-        private TextBox txtContraseña;
-        private Button btnIniciarSesion;
-
-        private void InicializarLayoutLogin()
-        {
-            var tblPrincipal = new TableLayoutPanel
-            {
-                Dock = DockStyle.Fill,
-                RowCount = 5,
-                ColumnCount = 1,
-                Padding = new Padding(30, 20, 30, 20),
-                Name = "tblPrincipal"
-            };
-
-            for (int i = 0; i < 5; i++)
-            {
-                tblPrincipal.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-            }
-
-            lblUsuario.Dock = DockStyle.Fill;
-            lblUsuario.Margin = new Padding(0, 0, 0, 5);
-            txtUsuario.Dock = DockStyle.Fill;
-            txtUsuario.Margin = new Padding(0, 0, 0, 15);
-
-            lblContraseña.Dock = DockStyle.Fill;
-            lblContraseña.Margin = new Padding(0, 0, 0, 5);
-            txtContraseña.Dock = DockStyle.Fill;
-            txtContraseña.Margin = new Padding(0, 0, 0, 20);
-
-            btnIniciarSesion.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            btnIniciarSesion.Margin = new Padding(0);
-            btnIniciarSesion.Height = 35;
-
-            tblPrincipal.Controls.Add(lblUsuario, 0, 0);
-            tblPrincipal.Controls.Add(txtUsuario, 0, 1);
-            tblPrincipal.Controls.Add(lblContraseña, 0, 2);
-            tblPrincipal.Controls.Add(txtContraseña, 0, 3);
-            tblPrincipal.Controls.Add(btnIniciarSesion, 0, 4);
-
-            this.Controls.Clear();
-            this.Controls.Add(tblPrincipal);
-        }
+        this.Controls.Clear();
+        this.Controls.Add(tblPrincipal);
     }
 }

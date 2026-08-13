@@ -6,3 +6,4 @@ namespace HSis.Logic.DTOs
         public string Token { get; set; } = string.Empty;
     }
 }
+

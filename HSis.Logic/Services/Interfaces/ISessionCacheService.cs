@@ -1,6 +1,6 @@
 namespace HSis.Logic.Services
-
 {
+
     public interface ISessionCacheService
     {
         void SaveCredentials(string username, string password);
@@ -8,3 +8,4 @@ namespace HSis.Logic.Services
         void ClearCredentials();
     }
 }
+

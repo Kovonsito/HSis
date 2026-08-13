@@ -1,22 +1,23 @@
-namespace HSis.Data.Models;
-
-public partial class HistorialCambiosTicket
+namespace HSis.Data.Models
 {
-    public int IdHistorial { get; set; }
+    public partial class HistorialCambiosTicket
+    {
+        public int IdHistorial { get; set; }
 
-    public int IdTicket { get; set; }
+        public int IdTicket { get; set; }
 
-    public int IdUsuarioCambio { get; set; }
+        public int IdUsuarioCambio { get; set; }
 
-    public DateTime FechaMovimiento { get; set; }
+        public DateTime FechaMovimiento { get; set; }
 
-    public string CampoModificado { get; set; } = null!;
+        public string CampoModificado { get; set; } = null!;
 
-    public string? ValorAnterior { get; set; }
+        public string? ValorAnterior { get; set; }
 
-    public string? ValorNuevo { get; set; }
+        public string? ValorNuevo { get; set; }
 
-    public virtual Ticket Ticket { get; set; } = null!;
+        public virtual Ticket Ticket { get; set; } = null!;
 
-    public virtual Usuario UsuarioCambio { get; set; } = null!;
+        public virtual Usuario UsuarioCambio { get; set; } = null!;
+    }
 }

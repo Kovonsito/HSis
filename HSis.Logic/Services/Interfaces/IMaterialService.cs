@@ -6,3 +6,4 @@ namespace HSis.Logic.Services
         Task ActualizarCostoMaterialAsync(int idMaterial, decimal nuevoCosto);
     }
 }
+

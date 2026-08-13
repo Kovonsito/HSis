@@ -1,6 +1,8 @@
-namespace HSis.Logic.Services;
-
-public interface INotificadorTicket
+namespace HSis.Logic.Services
 {
-    Task NotificarTicketCreadoAsync(int idTicket, string folio, string descripcion);
+    public interface INotificadorTicket
+    {
+        Task NotificarTicketCreadoAsync(int idTicket, string folio, string descripcion);
+    }
 }
+

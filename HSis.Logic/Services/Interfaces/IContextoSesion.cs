@@ -15,3 +15,4 @@ namespace HSis.Logic.Services
         void CerrarSesion();
     }
 }
+

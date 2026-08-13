@@ -8,3 +8,4 @@ namespace HSis.Logic.Constants
         public const string URGENTE = "Urgente";
     }
 }
+

@@ -231,7 +231,7 @@ namespace HSis.Logic.Services
             nuevoTicket.FechaAlta = DateTime.Now;
             if (nuevoTicket.IdTecnico.HasValue && nuevoTicket.IdTecnico.Value > 0)
             {
-                nuevoTicket.Estatus = ConstantesEstatus.ENPROCESO;
+                nuevoTicket.Estatus = ConstantesEstatus.EN_PROCESO;
                 nuevoTicket.FechaAtencion = DateTime.Now;
             }
             else
@@ -259,15 +259,15 @@ namespace HSis.Logic.Services
         {
             if (idRolUsuario == (int)RolUsuarioEnum.Administrador)
             {
-                return [ConstantesEstatus.ABIERTO, ConstantesEstatus.ENPROCESO, ConstantesEstatus.CERRADO, ConstantesEstatus.REABIERTO];
+                return [ConstantesEstatus.ABIERTO, ConstantesEstatus.EN_PROCESO, ConstantesEstatus.CERRADO, ConstantesEstatus.REABIERTO];
             }
 
             return estatusActual switch
             {
-                ConstantesEstatus.ABIERTO => [ConstantesEstatus.ABIERTO, ConstantesEstatus.ENPROCESO],
-                ConstantesEstatus.ENPROCESO => [ConstantesEstatus.ENPROCESO, ConstantesEstatus.CERRADO],
+                ConstantesEstatus.ABIERTO => [ConstantesEstatus.ABIERTO, ConstantesEstatus.EN_PROCESO],
+                ConstantesEstatus.EN_PROCESO => [ConstantesEstatus.EN_PROCESO, ConstantesEstatus.CERRADO],
                 ConstantesEstatus.CERRADO => [ConstantesEstatus.CERRADO],
-                ConstantesEstatus.REABIERTO => [ConstantesEstatus.REABIERTO, ConstantesEstatus.ENPROCESO],
+                ConstantesEstatus.REABIERTO => [ConstantesEstatus.REABIERTO, ConstantesEstatus.EN_PROCESO],
                 _ => [estatusActual]
             };
         }
@@ -497,3 +497,4 @@ namespace HSis.Logic.Services
         }
     }
 }
+
