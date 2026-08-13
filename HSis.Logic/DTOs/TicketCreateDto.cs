@@ -8,3 +8,4 @@ namespace HSis.Logic.DTOs
         public string? Prioridad { get; set; }
     }
 }
+

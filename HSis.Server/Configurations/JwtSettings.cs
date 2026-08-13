@@ -8,3 +8,4 @@ namespace HSis.Server.Configurations
         public int ExpirationMinutes { get; set; } = 480;
     }
 }
+

@@ -14,7 +14,6 @@ namespace HSis.UI.Presenters
             _view = view;
         }
 
-
         public async Task CargarIndicadoresAsync(int idTecnico)
         {
             if (_view == null) return;
@@ -127,6 +126,19 @@ namespace HSis.UI.Presenters
             }
         }
 
+        public async Task<double> ObtenerPromedioCalificacionAsync(int idTecnico)
+        {
+            try
+            {
+                return await kpiService.ObtenerPromedioCalificacionTecnicoAsync(idTecnico);
+            }
+            catch (Exception ex)
+            {
+                _view?.MostrarError($"Error al obtener promedio de calificación: {ex.Message}");
+                return 0;
+            }
+        }
+
         private static List<TicketOperativoDto> MapearAOperativos(List<TicketDto> list)
         {
             return list.Select(t => new TicketOperativoDto
@@ -139,6 +151,6 @@ namespace HSis.UI.Presenters
                 Prioridad = t.Prioridad
             }).ToList();
         }
-
     }
 }
+

@@ -66,3 +66,4 @@ namespace HSis.UI.ApiClients
         }
     }
 }
+

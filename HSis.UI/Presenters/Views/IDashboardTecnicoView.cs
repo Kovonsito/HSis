@@ -11,3 +11,4 @@ namespace HSis.UI.Presenters
         void MostrarError(string mensaje);
     }
 }
+

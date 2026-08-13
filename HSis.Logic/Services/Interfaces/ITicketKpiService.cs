@@ -9,3 +9,4 @@ namespace HSis.Logic.Services
         Task<List<TicketDto>> ObtenerFeedbackTecnicoAsync(int idTecnico);
     }
 }
+

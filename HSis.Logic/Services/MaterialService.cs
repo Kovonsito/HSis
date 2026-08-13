@@ -23,5 +23,5 @@ namespace HSis.Logic.Services
             }
         }
     }
-}
 
+}

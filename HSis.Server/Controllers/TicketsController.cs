@@ -152,3 +152,4 @@ namespace HSis.Server.Controllers
         public string? Comentario { get; set; }
     }
 }
+

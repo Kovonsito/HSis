@@ -1,6 +1,6 @@
 namespace HSis.Logic.DTOs
-
 {
+
     public class ReporteKpisDto
     {
         public int TotalCreados { get; set; }
@@ -44,3 +44,4 @@ namespace HSis.Logic.DTOs
         public int Cantidad { get; set; }
     }
 }
+

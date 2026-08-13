@@ -11,3 +11,4 @@ namespace HSis.Logic.Services
         Task<List<UsuarioDto>> ObtenerUsuariosPorRolAsync(RolUsuarioEnum rol) => ObtenerUsuariosPorRolAsync((int)rol);
     }
 }
+

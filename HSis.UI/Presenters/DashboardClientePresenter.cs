@@ -1,6 +1,7 @@
 using HSis.Logic.Constants;
 using HSis.Logic.DTOs;
 using HSis.Logic.Services;
+using HSis.UI.Helpers;
 
 namespace HSis.UI.Presenters
 {
@@ -12,7 +13,6 @@ namespace HSis.UI.Presenters
         {
             _view = view;
         }
-
 
         public async Task CargarTicketsClienteAsync(int idUsuario)
         {
@@ -31,9 +31,11 @@ namespace HSis.UI.Presenters
                     IdTicket = t.IdTicket,
                     FechaAlta = t.FechaAlta,
                     Status = t.Estatus,
-                    TecnicoAsignado = t.NombreTecnico,
-                    Descripcion = t.Descripcion,
-                    Feedback = t.ComentarioEvaluacion
+                    TecnicoAsignado = t.NombreTecnico ?? "Sin asignar",
+                    Descripcion = FormatoVisualHelper.TruncarTexto(t.Descripcion, 50),
+                    Feedback = t.Estatus == ConstantesEstatus.CERRADO
+                        ? (t.Calificacion.HasValue ? $"Enviada ({FormatoVisualHelper.FormatearEstrellas(t.Calificacion.Value)})" : "Pendiente")
+                        : "N/A"
                 }).ToList();
 
                 _view.MostrarTickets(dtos);
@@ -49,3 +51,4 @@ namespace HSis.UI.Presenters
         }
     }
 }
+

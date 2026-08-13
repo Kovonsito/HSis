@@ -9,3 +9,4 @@ namespace HSis.UI.Presenters
         void MostrarCargando(bool cargando);
     }
 }
+

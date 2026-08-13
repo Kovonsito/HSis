@@ -11,3 +11,4 @@ namespace HSis.UI.Factories
         EditorDinamicoForm CrearEditorDinamico(object entidad, string titulo);
     }
 }
+

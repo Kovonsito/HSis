@@ -9,3 +9,4 @@ namespace HSis.Logic.Services
         void PublicarEstadoConexion(bool conectado, string? mensajeEstado = null);
     }
 }
+
