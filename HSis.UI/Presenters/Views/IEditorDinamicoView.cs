@@ -1,5 +1,3 @@
-using System.Reflection;
-
 namespace HSis.UI.Presenters
 {
     public interface IEditorDinamicoView

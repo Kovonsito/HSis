@@ -189,10 +189,11 @@ namespace HSis.UI.Forms.Dashboards
         private void InicializarLayoutDashboard()
         {
             // Instanciar control de paginación
-            PaginacionControl = new PaginacionControl();
-            PaginacionControl.Dock = DockStyle.Fill;
-            PaginacionControl.PaginaCambiada += (s, e) => MostrarPaginaActual();
-            PaginacionControl.Margin = new Padding(12, 0, 12, 6);
+            PaginacionControl = new PaginacionControl
+            {
+                Dock = DockStyle.Fill,
+                Margin = new Padding(12, 0, 12, 6)
+            };
 
             // Suscribir eventos de filtrado una sola vez aquí (hilo de UI garantizado)
             ucMisAsignados.IndicadorClic += UcMisAsignados_Click;

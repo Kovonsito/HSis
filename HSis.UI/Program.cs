@@ -10,7 +10,6 @@ using HSis.UI.Forms.Dashboards;
 using HSis.UI.Forms.Otros;
 using HSis.UI.Forms.Tickets;
 using HSis.UI.Helpers;
-using HSis.UI.Services;
 using Mapster;
 using MapsterMapper;
 using Microsoft.Extensions.Configuration;
@@ -213,10 +212,10 @@ namespace HSis.UI
 
                             startForm = (RolUsuarioEnum)SesionSistema.IdRolUsuario switch
                             {
-                                RolUsuarioEnum.Administrador => (Form)ServiceProvider.GetRequiredService<DashboardAdminForm>(),
-                                RolUsuarioEnum.Tecnico => (Form)ServiceProvider.GetRequiredService<DashboardTecnicoForm>(),
-                                RolUsuarioEnum.Cliente => (Form)ServiceProvider.GetRequiredService<DashboardClienteForm>(),
-                                _ => (Form)ServiceProvider.GetRequiredService<DashboardAdminForm>()
+                                RolUsuarioEnum.Administrador => ServiceProvider.GetRequiredService<DashboardAdminForm>(),
+                                RolUsuarioEnum.Tecnico => ServiceProvider.GetRequiredService<DashboardTecnicoForm>(),
+                                RolUsuarioEnum.Cliente => ServiceProvider.GetRequiredService<DashboardClienteForm>(),
+                                _ => ServiceProvider.GetRequiredService<DashboardAdminForm>()
                             };
                         }
                     }

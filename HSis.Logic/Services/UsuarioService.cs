@@ -74,5 +74,6 @@ namespace HSis.Logic.Services
         {
             return await ObtenerUsuariosPorRolAsync((int)rol);
         }
+
     }
 }

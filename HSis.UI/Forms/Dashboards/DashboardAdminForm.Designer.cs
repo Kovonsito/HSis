@@ -274,10 +274,9 @@ namespace HSis.UI.Forms.Dashboards
             // Instanciar control de paginación reutilizable
             PaginacionControl = new PaginacionControl
             {
-                Dock = DockStyle.Fill
+                Dock = DockStyle.Fill,
+                Margin = new Padding(12, 0, 12, 6)
             };
-            PaginacionControl.PaginaCambiada += async (s, e) => { if (!_estaCargando) await FiltrarTicketsAsync(); };
-            PaginacionControl.Margin = new Padding(12, 0, 12, 6);
 
             var tblPrincipal = AyudanteDisenoPanel.CrearPanelPrincipal(tabTickets.ClientSize, incluirFiltros: true);
             tblPrincipal.Name = "tblPrincipalTickets";

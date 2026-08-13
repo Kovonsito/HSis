@@ -1,5 +1,4 @@
 using HSis.Data.Models;
-using HSis.Logic.DTOs;
 
 namespace HSis.UI.Presenters
 {

@@ -218,19 +218,23 @@ public class NotificationClientService(
         await NotificarCambioTicketAsync(ticketId, "Creado", $"Nuevo ticket #{ticketFolio}: {titulo}");
     }
 
+
     public async Task NotificarCambioEstatusTicketAsync(int clientUserId, int ticketId, string ticketFolio, string newStatus)
     {
         await NotificarCambioEstatusAsync(ticketId, newStatus);
     }
+
 
     public async Task NotificarCalificacionTicketAsync(int technicianUserId, int ticketId, string ticketFolio, int rating, string comment)
     {
         await NotificarCambioTicketAsync(ticketId, "Calificado", $"Ticket #{ticketFolio} calificado con {rating} estrellas: {comment}");
     }
 
+
     private void EncolarNotificacion(Func<HubConnection, Task> action)
     {
         _pendingNotifications.Enqueue(action);
     }
+
 }
 

@@ -44,7 +44,11 @@ namespace HSis.UI.ApiClients
             await response.EnsureSuccessStatusCodeWithDetailsAsync();
         }
 
-        public Task<List<T>> ObtenerFiltradoAsync<T>(Expression<Func<T, bool>> predicado) where T : class => throw new NotImplementedException();
+        public Task<List<T>> ObtenerFiltradoAsync<T>(Expression<Func<T, bool>> predicado) where T : class
+        {
+            throw new NotImplementedException();
+        }
+
 
         public async Task<int> ObtenerSiguienteIdAsync(Type tipoEntidad, string nombrePropiedadId)
         {

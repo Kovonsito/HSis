@@ -92,6 +92,7 @@ namespace HSis.UI.Controls
             _cajaTextoWpf.Clear();
         }
 
+
         /// <summary>
         /// Evento que se dispara cuando el texto cambia.
         /// </summary>
