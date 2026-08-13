@@ -1,18 +1,19 @@
-namespace HSis.Data.Models;
-
-public partial class Empresa
+namespace HSis.Data.Models
 {
-    public int IdEmpresa { get; set; }
+    public partial class Empresa
+    {
+        public int IdEmpresa { get; set; }
 
-    public string? Nombre { get; set; }
+        public string? Nombre { get; set; }
 
-    public string? Calle { get; set; }
+        public string? Calle { get; set; }
 
-    public string? Numero { get; set; }
+        public string? Numero { get; set; }
 
-    public string? Colonia { get; set; }
+        public string? Colonia { get; set; }
 
-    public string? Telefono { get; set; }
+        public string? Telefono { get; set; }
 
-    public virtual ICollection<Sucursal> Sucursales { get; set; } = [];
+        public virtual ICollection<Sucursal> Sucursales { get; set; } = [];
+    }
 }

@@ -8,3 +8,4 @@ namespace HSis.Logic.Services
         byte[] GenerarPdf(ReporteKpisDto kpis, List<TicketDto> tickets, DateTime inicio, DateTime fin);
     }
 }
+

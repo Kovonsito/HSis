@@ -1,10 +1,12 @@
-namespace HSis.Data.Models;
-
-public partial class RolUsuario
+namespace HSis.Data.Models
 {
-    public int IdRol { get; set; }
+    public partial class RolUsuario
+    {
+        public int IdRol { get; set; }
 
-    public string? Descripcion { get; set; }
+        public string? Descripcion { get; set; }
 
-    public virtual ICollection<Usuario> Usuarios { get; set; } = [];
+        public virtual ICollection<Usuario> Usuarios { get; set; } = [];
+    }
 }
+

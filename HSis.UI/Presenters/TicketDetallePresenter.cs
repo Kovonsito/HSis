@@ -98,7 +98,7 @@ namespace HSis.UI.Presenters
                 {
                     updateDto.FechaCierre = null;
                 }
-                else if (updateDto.Estatus == ConstantesEstatus.ENPROCESO && updateDto.FechaAtencion == null)
+                else if (updateDto.Estatus == ConstantesEstatus.EN_PROCESO && updateDto.FechaAtencion == null)
                 {
                     updateDto.FechaAtencion = DateTime.Now;
                 }
@@ -172,3 +172,4 @@ namespace HSis.UI.Presenters
         }
     }
 }
+

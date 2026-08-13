@@ -10,3 +10,4 @@ namespace HSis.Logic.Constants
         Cliente = 3
     }
 }
+

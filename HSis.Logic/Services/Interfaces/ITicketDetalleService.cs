@@ -12,3 +12,4 @@ namespace HSis.Logic.Services
         Task<decimal> ObtenerCostoTotalMaterialesTicketAsync(int idTicket);
     }
 }
+

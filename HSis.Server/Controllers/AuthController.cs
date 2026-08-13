@@ -32,3 +32,4 @@ namespace HSis.Server.Controllers
         public string Password { get; set; } = string.Empty;
     }
 }
+

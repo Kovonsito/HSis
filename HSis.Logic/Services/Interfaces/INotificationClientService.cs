@@ -16,3 +16,4 @@ namespace HSis.Logic.Services
         Task NotificarCalificacionTicketAsync(int technicianUserId, int ticketId, string ticketFolio, int rating, string comment);
     }
 }
+

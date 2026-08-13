@@ -19,3 +19,4 @@ namespace HSis.Logic.Services
         Task<PaginatedResultDto<TicketDto>> ObtenerTicketsFiltradosPaginadosAsync(TicketFilterDto filtros, int pageNumber, int pageSize);
     }
 }
+

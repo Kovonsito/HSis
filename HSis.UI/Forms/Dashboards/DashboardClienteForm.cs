@@ -7,24 +7,25 @@ using HSis.UI.Controls;
 using HSis.UI.Factories;
 using HSis.UI.Forms.Tickets;
 using HSis.UI.Helpers;
-using HSis.UI.Services;
-
 using HSis.UI.Presenters;
+using HSis.UI.Services;
 
 namespace HSis.UI.Forms.Dashboards
 {
     [SupportedOSPlatform("windows")]
     public partial class DashboardClienteForm : Form, IDashboardClienteView
     {
-        private readonly ITicketService _ticketService;
-        private readonly DashboardClientePresenter? _presenter;
+        private readonly DashboardClientePresenter _presenter;
+        private readonly NotificacionesPresenter _notificacionesPresenter;
+        private readonly IContextoSesion _contextoSesion;
+        private readonly IFabricaFormularios _formFactory;
+        private readonly ISessionCacheService _sessionCache;
 
         private PaginacionControl PaginacionControl = null!;
         private ControladorPaginacionGrid _controladorPaginacion = null!;
         private List<TicketClienteDto> _todosLosTickets = [];
 
         private IndicadorControl ucMisCerrados = null!;
-        private readonly IFabricaFormularios _formFactory;
 
         private enum VistaCliente
         {
@@ -34,26 +35,20 @@ namespace HSis.UI.Forms.Dashboards
         }
         private VistaCliente _vistaActual = VistaCliente.Todos;
 
-        private readonly NotificacionesPresenter _notificacionesPresenter;
-        private readonly IContextoSesion _contextoSesion;
-        private readonly ISessionCacheService _sessionCache;
-
         public DashboardClienteForm(
-            ITicketService ticketService,
+            DashboardClientePresenter presenter,
             NotificacionesPresenter notificacionesPresenter,
             IContextoSesion contextoSesion,
             IFabricaFormularios formFactory,
-            ISessionCacheService sessionCache,
-            DashboardClientePresenter? presenter = null)
+            ISessionCacheService sessionCache)
         {
             InitializeComponent();
-            _ticketService = ticketService;
+            _presenter = presenter;
+            _presenter.SetView(this);
             _notificacionesPresenter = notificacionesPresenter;
             _contextoSesion = contextoSesion;
             _formFactory = formFactory;
             _sessionCache = sessionCache;
-            _presenter = presenter;
-            _presenter?.SetView(this);
         }
 
         private async void frmDashboardCliente_Load(object? sender, EventArgs e)
@@ -66,44 +61,12 @@ namespace HSis.UI.Forms.Dashboards
 
             this.IntegrarNotificaciones(_notificacionesPresenter, _formFactory, _contextoSesion, CargarDatosDashboardAsync);
 
-            // Cargamos la información una sola vez para evitar múltiples llamadas a la BD
             await CargarDatosDashboardAsync();
         }
 
         private async Task CargarDatosDashboardAsync()
         {
-            try
-            {
-                var tickets = await _ticketService.ObtenerTicketsPorUsuarioAsync(SesionSistema.IdUsuario);
-
-                // Actualizar Indicador
-                ActualizarIndicador(tickets);
-
-                // Actualizar Grid
-                ActualizarGridTickets(tickets);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error al cargar el dashboard: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        private void ActualizarGridTickets(List<TicketDto> tickets)
-        {
-            _todosLosTickets = tickets.ConvertAll(t => new TicketClienteDto
-            {
-                IdTicket = t.IdTicket,
-                FechaAlta = t.FechaAlta,
-                Status = t.Estatus,
-                TecnicoAsignado = t.NombreTecnico ?? "Sin asignar",
-                Descripcion = FormatoVisualHelper.TruncarTexto(t.Descripcion, 50),
-                Feedback = t.Estatus == ConstantesEstatus.CERRADO
-                    ? (t.Calificacion.HasValue ? $"Enviada ({FormatoVisualHelper.FormatearEstrellas(t.Calificacion.Value)})" : "Pendiente")
-                    : "N/A"
-            });
-
-            _controladorPaginacion.ReiniciarAPrimeraPagina();
-            MostrarPaginaActual();
+            await _presenter.CargarTicketsClienteAsync(SesionSistema.IdUsuario);
         }
 
         private void MostrarPaginaActual()
@@ -182,23 +145,6 @@ namespace HSis.UI.Forms.Dashboards
             }
         }
 
-        private void ActualizarIndicador(List<TicketDto> tickets)
-        {
-            var activos = tickets.Count(t => t.Estatus != ConstantesEstatus.CERRADO);
-            var cerrados = tickets.Count(t => t.Estatus == ConstantesEstatus.CERRADO);
-
-            ucMisActivos.Cantidad = activos.ToString();
-            ucMisActivos.Titulo = "Mis Tickets Activos";
-            ucMisActivos.ColorFondo = Color.FromArgb(52, 152, 219); // Azul
-
-            if (ucMisCerrados != null)
-            {
-                ucMisCerrados.Cantidad = cerrados.ToString();
-                ucMisCerrados.Titulo = "Mis Tickets Cerrados";
-                ucMisCerrados.ColorFondo = Color.FromArgb(46, 204, 113); // Verde
-            }
-        }
-
         private void UcMisActivos_Click(object? sender, EventArgs e)
         {
             _vistaActual = _vistaActual == VistaCliente.Activos ? VistaCliente.Todos : VistaCliente.Activos;
@@ -236,20 +182,30 @@ namespace HSis.UI.Forms.Dashboards
             }
         }
 
-
-
         #region Implementación IDashboardClienteView (MVP)
 
         public void MostrarTickets(List<TicketClienteDto> tickets)
         {
             _todosLosTickets = tickets;
+            _controladorPaginacion.ReiniciarAPrimeraPagina();
             MostrarPaginaActual();
         }
 
         public void MostrarIndicadores(int activos, int cerrados)
         {
-            if (ucMisActivos != null) ucMisActivos.Cantidad = activos.ToString();
-            if (ucMisCerrados != null) ucMisCerrados.Cantidad = cerrados.ToString();
+            if (ucMisActivos != null)
+            {
+                ucMisActivos.Cantidad = activos.ToString();
+                ucMisActivos.Titulo = "Mis Tickets Activos";
+                ucMisActivos.ColorFondo = Color.FromArgb(52, 152, 219); // Azul
+            }
+
+            if (ucMisCerrados != null)
+            {
+                ucMisCerrados.Cantidad = cerrados.ToString();
+                ucMisCerrados.Titulo = "Mis Tickets Cerrados";
+                ucMisCerrados.ColorFondo = Color.FromArgb(46, 204, 113); // Verde
+            }
         }
 
         public void MostrarCargando(bool cargando)

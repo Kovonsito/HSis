@@ -20,3 +20,4 @@ namespace HSis.Logic.DTOs
         public DateTime? FechaEvaluacion { get; set; }
     }
 }
+

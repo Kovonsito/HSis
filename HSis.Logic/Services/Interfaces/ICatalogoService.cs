@@ -13,3 +13,4 @@ namespace HSis.Logic.Services
         Task<int> ObtenerSiguienteIdAsync(Type tipoEntidad, string nombrePropiedadId);
     }
 }
+

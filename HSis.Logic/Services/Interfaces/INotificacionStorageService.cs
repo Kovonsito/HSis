@@ -1,6 +1,6 @@
 namespace HSis.Logic.Services
-
 {
+
     public interface INotificacionStorageService
     {
         Task<List<NotificacionLocal>> ObtenerNotificacionesAsync(int userId);
@@ -11,3 +11,4 @@ namespace HSis.Logic.Services
         Task SincronizarDesdeBDAsync(int userId);
     }
 }
+

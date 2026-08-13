@@ -13,3 +13,4 @@ namespace HSis.Logic.DTOs
         public VistaTemporal? RangoTemporal { get; set; }
     }
 }
+
