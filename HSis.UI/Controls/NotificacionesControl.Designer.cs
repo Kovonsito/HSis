@@ -15,43 +15,13 @@ partial class NotificacionesControl
 
     private void InitializeComponent()
     {
-        btnCampana = new System.Windows.Forms.Button();
-        pnlHistorial = new System.Windows.Forms.Panel();
         pnlHeader = new System.Windows.Forms.Panel();
         lblNotifTitle = new System.Windows.Forms.Label();
         btnMarcarTodas = new System.Windows.Forms.Button();
         btnLimpiar = new System.Windows.Forms.Button();
         flpNotificaciones = new System.Windows.Forms.FlowLayoutPanel();
-        pnlHistorial.SuspendLayout();
         pnlHeader.SuspendLayout();
         SuspendLayout();
-        // 
-        // btnCampana
-        // 
-        btnCampana.Dock = System.Windows.Forms.DockStyle.Right;
-        btnCampana.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-        btnCampana.FlatAppearance.BorderSize = 0;
-        btnCampana.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-        btnCampana.Location = new System.Drawing.Point(230, 0);
-        btnCampana.Name = "btnCampana";
-        btnCampana.Size = new System.Drawing.Size(100, 35);
-        btnCampana.TabIndex = 0;
-        btnCampana.Text = "🔔 (0)";
-        btnCampana.UseVisualStyleBackColor = true;
-        btnCampana.Click += BtnCampana_Click;
-        // 
-        // pnlHistorial
-        // 
-        pnlHistorial.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
-        pnlHistorial.BackColor = System.Drawing.Color.FromArgb(245, 247, 250);
-        pnlHistorial.Controls.Add(flpNotificaciones);
-        pnlHistorial.Controls.Add(pnlHeader);
-        pnlHistorial.Location = new System.Drawing.Point(0, 35);
-        pnlHistorial.Name = "pnlHistorial";
-        pnlHistorial.Padding = new System.Windows.Forms.Padding(10);
-        pnlHistorial.Size = new System.Drawing.Size(330, 350);
-        pnlHistorial.TabIndex = 1;
-        pnlHistorial.Visible = false;
         // 
         // pnlHeader
         // 
@@ -110,7 +80,7 @@ partial class NotificacionesControl
         flpNotificaciones.Location = new System.Drawing.Point(10, 75);
         flpNotificaciones.Name = "flpNotificaciones";
         flpNotificaciones.Padding = new System.Windows.Forms.Padding(0, 5, 0, 0);
-        flpNotificaciones.Size = new System.Drawing.Size(310, 265);
+        flpNotificaciones.Size = new System.Drawing.Size(310, 335);
         flpNotificaciones.TabIndex = 1;
         flpNotificaciones.WrapContents = false;
         // 
@@ -118,18 +88,17 @@ partial class NotificacionesControl
         // 
         AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
         AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-        Controls.Add(pnlHistorial);
-        Controls.Add(btnCampana);
+        BackColor = System.Drawing.Color.FromArgb(245, 247, 250);
+        Controls.Add(flpNotificaciones);
+        Controls.Add(pnlHeader);
         Name = "NotificacionesControl";
-        Size = new System.Drawing.Size(330, 385);
-        pnlHistorial.ResumeLayout(false);
+        Padding = new System.Windows.Forms.Padding(10);
+        Size = new System.Drawing.Size(330, 420);
         pnlHeader.ResumeLayout(false);
         pnlHeader.PerformLayout();
         ResumeLayout(false);
     }
 
-    private System.Windows.Forms.Button btnCampana;
-    private System.Windows.Forms.Panel pnlHistorial;
     private System.Windows.Forms.Panel pnlHeader;
     private System.Windows.Forms.Label lblNotifTitle;
     private System.Windows.Forms.Button btnMarcarTodas;

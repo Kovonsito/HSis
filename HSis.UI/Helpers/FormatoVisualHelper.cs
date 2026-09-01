@@ -24,5 +24,16 @@ namespace HSis.UI.Helpers
             return fecha.HasValue ? fecha.Value.ToString(formato) : "N/A";
         }
     }
+
+    public class ElementoCombo<T>(string texto, T valor)
+    {
+        public string Texto { get; set; } = texto;
+        public T Valor { get; set; } = valor;
+
+        public override string ToString()
+        {
+            return Texto;
+        }
+    }
 }
 
