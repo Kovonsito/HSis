@@ -3,7 +3,7 @@ using HSis.Logic.DTOs;
 
 namespace HSis.Logic.Services
 {
-    public class ContextoSesion : IContextoSesion
+    public class ContextoSesion : IContextoSesion, ICurrentUserService
     {
         public UsuarioDto? UsuarioActual { get; set; }
         public string TokenJWT { get; set; } = string.Empty;
@@ -12,6 +12,8 @@ namespace HSis.Logic.Services
         public int IdRolUsuario => UsuarioActual?.IdRol ?? 0;
         public bool EsAdmin => IdRolUsuario == (int)RolUsuarioEnum.Administrador;
         public bool EsTecnico => IdRolUsuario == (int)RolUsuarioEnum.Tecnico;
+
+        public int GetCurrentUserId() => IdUsuario;
 
         public void IniciarSesion(UsuarioDto usuario, string token)
         {

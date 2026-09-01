@@ -40,7 +40,7 @@ namespace HSis.UI
                 .Build();
 
             // 1. Configurar Serilog
-            Log.Logger = new Serilog.LoggerConfiguration()
+            Log.Logger = new LoggerConfiguration()
                 .ReadFrom.Configuration(configuration)
                 .Enrich.FromLogContext()
                 .WriteTo.File("Logs/hsis_log_.txt", rollingInterval: RollingInterval.Day)
@@ -117,7 +117,7 @@ namespace HSis.UI
                 services.AddScoped<IMapper, ServiceMapper>();
 
                 // Registrar FluentValidation
-                services.AddValidatorsFromAssemblyContaining<HSis.Logic.Validators.TicketCreateValidator>();
+                services.AddValidatorsFromAssemblyContaining<Logic.Validators.TicketCreateValidator>();
 
                 // Configurar ApiClients basados en HttpClient
                 var baseUrl = configuration.GetSection("ApiSettings")["BaseUrl"] ?? "http://localhost:5000";
@@ -129,9 +129,6 @@ namespace HSis.UI
                         .AddHttpMessageHandler<ApiClients.JwtAuthHeaderHandler>();
                 services.AddHttpClient<ITicketService, ApiClients.TicketApiClientService>(c => c.BaseAddress = new Uri(baseUrl))
                         .AddHttpMessageHandler<ApiClients.JwtAuthHeaderHandler>();
-                services.AddTransient<ITicketQueryService>(sp => sp.GetRequiredService<ITicketService>());
-                services.AddTransient<ITicketCommandService>(sp => sp.GetRequiredService<ITicketService>());
-                services.AddTransient<ITicketKpiService>(sp => sp.GetRequiredService<ITicketService>());
                 services.AddHttpClient<ICatalogoService, ApiClients.CatalogoApiClientService>(c => c.BaseAddress = new Uri(baseUrl))
                         .AddHttpMessageHandler<ApiClients.JwtAuthHeaderHandler>();
                 services.AddHttpClient<ITicketDetalleService, ApiClients.TicketDetalleApiClientService>(c => c.BaseAddress = new Uri(baseUrl))
@@ -146,7 +143,9 @@ namespace HSis.UI
                 services.AddSingleton<INotificationEventBus, NotificationEventBus>();
                 services.AddSingleton<INotificationClientService, NotificationClientService>();
                 services.AddSingleton<ISessionCacheService, SessionCacheService>();
-                services.AddSingleton<IContextoSesion, ContextoSesion>();
+                services.AddSingleton<ContextoSesion>();
+                services.AddSingleton<IContextoSesion>(sp => sp.GetRequiredService<ContextoSesion>());
+                services.AddSingleton<ICurrentUserService>(sp => sp.GetRequiredService<ContextoSesion>());
                 services.AddSingleton<IFabricaFormularios, FabricaFormularios>();
                 services.AddTransient<Presenters.NotificacionesPresenter>();
                 services.AddTransient<Presenters.DashboardAdminPresenter>();

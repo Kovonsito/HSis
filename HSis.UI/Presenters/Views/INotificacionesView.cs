@@ -6,7 +6,7 @@ namespace HSis.UI.Presenters
     {
         void ActualizarInsigniaCampana(int noLeidas);
         void MostrarNotificaciones(IEnumerable<NotificacionLocal> notificaciones);
-        void ActualizarEstadoConexion(bool conectado, string mensaje, System.Drawing.Color colorFondo);
+        void ActualizarEstadoConexion(bool conectado, string mensaje, Color colorFondo);
         Task RecargarDatosHostAsync();
         void AbrirDetalleTicket(int ticketId);
     }

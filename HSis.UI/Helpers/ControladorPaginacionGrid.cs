@@ -7,15 +7,10 @@ using HSis.UI.Controls;
 namespace HSis.UI.Helpers
 {
     [SupportedOSPlatform("windows")]
-    public class ControladorPaginacionGrid
+    public class ControladorPaginacionGrid(PaginacionControl control)
     {
-        private readonly PaginacionControl _control;
+        private readonly PaginacionControl _control = control ?? throw new ArgumentNullException(nameof(control));
         private bool _suspenderEventos = false;
-
-        public ControladorPaginacionGrid(PaginacionControl control)
-        {
-            _control = control ?? throw new ArgumentNullException(nameof(control));
-        }
 
         public int PaginaActual
         {
@@ -38,23 +33,23 @@ namespace HSis.UI.Helpers
         public void Vincular(Func<Task> alCambiarPagina)
         {
             _control.PaginaCambiada += async (s, e) =>
-                                                                     {
-                                                                         if (!_suspenderEventos)
-                                                                         {
-                                                                             await alCambiarPagina();
-                                                                         }
-                                                                     };
+            {
+                if (!_suspenderEventos)
+                {
+                    await alCambiarPagina();
+                }
+            };
         }
 
         public void Vincular(Action alCambiarPagina)
         {
             _control.PaginaCambiada += (s, e) =>
-                                                                 {
-                                                                     if (!_suspenderEventos)
-                                                                     {
-                                                                         alCambiarPagina();
-                                                                     }
-                                                                 };
+            {
+                if (!_suspenderEventos)
+                {
+                    alCambiarPagina();
+                }
+            };
         }
 
 

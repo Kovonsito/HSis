@@ -3,9 +3,7 @@ using HSis.Logic.Services;
 
 namespace HSis.UI.Presenters
 {
-    public class DashboardTecnicoPresenter(
-        ITicketQueryService queryService,
-        ITicketKpiService kpiService)
+    public class DashboardTecnicoPresenter(ITicketService ticketService)
     {
         private IDashboardTecnicoView? _view;
 
@@ -19,10 +17,10 @@ namespace HSis.UI.Presenters
             if (_view == null) return;
             try
             {
-                var taskAsignados = queryService.ObtenerTicketsAsignadosATecnicoAsync(idTecnico);
-                var taskDisponibles = queryService.ObtenerTicketsDisponiblesAsync();
-                var taskCerrados = queryService.ObtenerTicketsCerradosPorTecnicoAsync(idTecnico);
-                var taskPromedio = kpiService.ObtenerPromedioCalificacionTecnicoAsync(idTecnico);
+                var taskAsignados = ticketService.ObtenerTicketsAsignadosATecnicoAsync(idTecnico);
+                var taskDisponibles = ticketService.ObtenerTicketsDisponiblesAsync();
+                var taskCerrados = ticketService.ObtenerTicketsCerradosPorTecnicoAsync(idTecnico);
+                var taskPromedio = ticketService.ObtenerPromedioCalificacionTecnicoAsync(idTecnico);
 
                 await Task.WhenAll(taskAsignados, taskDisponibles, taskCerrados, taskPromedio);
 
@@ -45,7 +43,7 @@ namespace HSis.UI.Presenters
             try
             {
                 _view.MostrarCargando(true);
-                var list = await queryService.ObtenerTicketsAsignadosATecnicoAsync(idTecnico);
+                var list = await ticketService.ObtenerTicketsAsignadosATecnicoAsync(idTecnico);
                 var operativos = MapearAOperativos(list);
                 _view.MostrarTickets(operativos);
             }
@@ -65,7 +63,7 @@ namespace HSis.UI.Presenters
             try
             {
                 _view.MostrarCargando(true);
-                var list = await queryService.ObtenerTicketsDisponiblesAsync();
+                var list = await ticketService.ObtenerTicketsDisponiblesAsync();
                 var operativos = MapearAOperativos(list);
                 _view.MostrarTickets(operativos);
             }
@@ -85,7 +83,7 @@ namespace HSis.UI.Presenters
             try
             {
                 _view.MostrarCargando(true);
-                var list = await queryService.ObtenerTicketsCerradosPorTecnicoAsync(idTecnico);
+                var list = await ticketService.ObtenerTicketsCerradosPorTecnicoAsync(idTecnico);
                 var operativos = MapearAOperativos(list);
                 _view.MostrarTickets(operativos);
             }
@@ -105,7 +103,7 @@ namespace HSis.UI.Presenters
             try
             {
                 _view.MostrarCargando(true);
-                var feedbacks = await kpiService.ObtenerFeedbackTecnicoAsync(idTecnico);
+                var feedbacks = await ticketService.ObtenerFeedbackTecnicoAsync(idTecnico);
                 var dtos = feedbacks.Select(f => new FeedbackTecnicoDto
                 {
                     IdTicket = f.IdTicket,
@@ -130,7 +128,7 @@ namespace HSis.UI.Presenters
         {
             try
             {
-                return await kpiService.ObtenerPromedioCalificacionTecnicoAsync(idTecnico);
+                return await ticketService.ObtenerPromedioCalificacionTecnicoAsync(idTecnico);
             }
             catch (Exception ex)
             {

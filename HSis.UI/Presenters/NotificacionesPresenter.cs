@@ -3,26 +3,18 @@ using HSis.Logic.Services;
 
 namespace HSis.UI.Presenters
 {
-    public class NotificacionesPresenter
+    public class NotificacionesPresenter(
+        INotificationClientService clienteNotificaciones,
+        INotificacionStorageService servicioAlmacenamiento,
+        IContextoSesion contextoSesion,
+        INotificationEventBus? eventBus = null)
     {
-        private readonly INotificationClientService _clienteNotificaciones;
-        private readonly INotificacionStorageService _servicioAlmacenamiento;
-        private readonly IContextoSesion _contextoSesion;
-        private readonly INotificationEventBus? _eventBus;
+        private readonly INotificationClientService _clienteNotificaciones = clienteNotificaciones;
+        private readonly INotificacionStorageService _servicioAlmacenamiento = servicioAlmacenamiento;
+        private readonly IContextoSesion _contextoSesion = contextoSesion;
+        private readonly INotificationEventBus? _eventBus = eventBus;
 
         private INotificacionesView? _view;
-
-        public NotificacionesPresenter(
-            INotificationClientService clienteNotificaciones,
-            INotificacionStorageService servicioAlmacenamiento,
-            IContextoSesion contextoSesion,
-            INotificationEventBus? eventBus = null)
-        {
-            _clienteNotificaciones = clienteNotificaciones;
-            _servicioAlmacenamiento = servicioAlmacenamiento;
-            _contextoSesion = contextoSesion;
-            _eventBus = eventBus;
-        }
 
         public void SetView(INotificacionesView view)
         {
