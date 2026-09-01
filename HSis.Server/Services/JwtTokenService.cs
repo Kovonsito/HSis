@@ -13,14 +13,9 @@ namespace HSis.Server.Services
         string GenerarToken(UsuarioDto usuario);
     }
 
-    public class JwtTokenService : IJwtTokenService
+    public class JwtTokenService(IOptions<JwtSettings> jwtSettings) : IJwtTokenService
     {
-        private readonly JwtSettings _jwtSettings;
-
-        public JwtTokenService(IOptions<JwtSettings> jwtSettings)
-        {
-            _jwtSettings = jwtSettings.Value;
-        }
+        private readonly JwtSettings _jwtSettings = jwtSettings.Value;
 
         public string GenerarToken(UsuarioDto usuario)
         {

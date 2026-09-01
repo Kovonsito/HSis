@@ -7,33 +7,22 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HSis.Logic.Services
 {
-    public class TicketService : ITicketService
+    public class TicketService(
+        IDbContextFactory<HSisDbContext> dbContextFactory,
+        IMapper mapper,
+        FluentValidation.IValidator<TicketCreateDto> createValidator,
+        FluentValidation.IValidator<TicketUpdateDto> updateValidator,
+        INotificadorTicket? notifier = null,
+        INotificationClientService? notificationClient = null,
+        IServerNotificationDispatcher? notificationDispatcher = null) : ITicketService
     {
-        private readonly IDbContextFactory<HSisDbContext> dbContextFactory;
-        private readonly IMapper mapper;
-        private readonly FluentValidation.IValidator<TicketCreateDto> createValidator;
-        private readonly FluentValidation.IValidator<TicketUpdateDto> updateValidator;
-        private readonly INotificadorTicket? notifier;
-        private readonly INotificationClientService? notificationClient;
-        private readonly IServerNotificationDispatcher? notificationDispatcher;
-
-        public TicketService(
-            IDbContextFactory<HSisDbContext> dbContextFactory,
-            IMapper mapper,
-            FluentValidation.IValidator<TicketCreateDto> createValidator,
-            FluentValidation.IValidator<TicketUpdateDto> updateValidator,
-            INotificadorTicket? notifier = null,
-            INotificationClientService? notificationClient = null,
-            IServerNotificationDispatcher? notificationDispatcher = null)
-        {
-            this.dbContextFactory = dbContextFactory;
-            this.mapper = mapper;
-            this.createValidator = createValidator;
-            this.updateValidator = updateValidator;
-            this.notifier = notifier ?? notificationDispatcher as INotificadorTicket ?? notificationClient;
-            this.notificationClient = notificationClient;
-            this.notificationDispatcher = notificationDispatcher;
-        }
+        private readonly IDbContextFactory<HSisDbContext> dbContextFactory = dbContextFactory;
+        private readonly IMapper mapper = mapper;
+        private readonly FluentValidation.IValidator<TicketCreateDto> createValidator = createValidator;
+        private readonly FluentValidation.IValidator<TicketUpdateDto> updateValidator = updateValidator;
+        private readonly INotificadorTicket? notifier = notifier ?? notificationDispatcher as INotificadorTicket ?? notificationClient;
+        private readonly INotificationClientService? notificationClient = notificationClient;
+        private readonly IServerNotificationDispatcher? notificationDispatcher = notificationDispatcher;
 
         private static DateTime ObtenerLimiteSLA()
         {

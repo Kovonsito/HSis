@@ -5,7 +5,7 @@ using HSis.UI.Helpers;
 
 namespace HSis.UI.Presenters
 {
-    public class DashboardClientePresenter(ITicketQueryService queryService)
+    public class DashboardClientePresenter(ITicketService ticketService)
     {
         private IDashboardClienteView? _view;
 
@@ -20,7 +20,7 @@ namespace HSis.UI.Presenters
             try
             {
                 _view.MostrarCargando(true);
-                var tickets = await queryService.ObtenerTicketsPorUsuarioAsync(idUsuario);
+                var tickets = await ticketService.ObtenerTicketsPorUsuarioAsync(idUsuario);
 
                 int activos = tickets.Count(t => t.Estatus != ConstantesEstatus.CERRADO);
                 int cerrados = tickets.Count(t => t.Estatus == ConstantesEstatus.CERRADO);

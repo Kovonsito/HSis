@@ -13,6 +13,7 @@ namespace HSis.UI.Controls
         private IFabricaFormularios? _fabricaFormularios;
         private IContextoSesion? _contextoSesion;
         private Func<Task>? _callbackRecargaDatos;
+        private ToolStripMenuItem? _itemCampana;
 
         public NotificacionesControl()
         {
@@ -34,6 +35,27 @@ namespace HSis.UI.Controls
             _ = _presenter.CargarHistorialAsync();
         }
 
+        public void VincularItemMenu(ToolStripMenuItem itemCampana)
+        {
+            _itemCampana = itemCampana;
+            _itemCampana.Click += (s, e) => AlternarVisibilidad();
+        }
+
+        public void AlternarVisibilidad()
+        {
+            Visible = !Visible;
+            if (Visible)
+            {
+                BringToFront();
+            }
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            ControlPaint.DrawBorder(e.Graphics, ClientRectangle, Color.FromArgb(200, 205, 215), ButtonBorderStyle.Solid);
+        }
+
         public void ActualizarInsigniaCampana(int noLeidas)
         {
             if (InvokeRequired)
@@ -41,9 +63,13 @@ namespace HSis.UI.Controls
                 BeginInvoke(new Action(() => ActualizarInsigniaCampana(noLeidas)));
                 return;
             }
-            btnCampana.Text = noLeidas > 0 ? $"🔔 ({noLeidas}) 🔴" : $"🔔 ({noLeidas})";
-            btnCampana.ForeColor = noLeidas > 0 ? Color.Red : Color.Black;
-            btnCampana.Font = new Font("Segoe UI", 10F, noLeidas > 0 ? FontStyle.Bold : FontStyle.Regular);
+
+            if (_itemCampana != null)
+            {
+                _itemCampana.Text = noLeidas > 0 ? $"🔔 ({noLeidas}) 🔴" : $"🔔 ({noLeidas})";
+                _itemCampana.ForeColor = noLeidas > 0 ? Color.Red : Color.Black;
+                _itemCampana.Font = new Font("Segoe UI", 10F, noLeidas > 0 ? FontStyle.Bold : FontStyle.Regular);
+            }
         }
 
         public void MostrarNotificaciones(IEnumerable<NotificacionLocal> notificaciones)
@@ -137,15 +163,6 @@ namespace HSis.UI.Controls
             pnlItem.Controls.Add(lblMsg);
             pnlItem.Controls.Add(lblFecha);
             return pnlItem;
-        }
-
-        private void BtnCampana_Click(object sender, EventArgs e)
-        {
-            pnlHistorial.Visible = !pnlHistorial.Visible;
-            if (pnlHistorial.Visible)
-            {
-                pnlHistorial.BringToFront();
-            }
         }
 
         private async void BtnMarcarTodasLeidas_Click(object sender, EventArgs e)

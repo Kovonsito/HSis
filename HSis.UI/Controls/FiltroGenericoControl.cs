@@ -249,3 +249,23 @@ namespace HSis.UI.Controls
     }
 }
 
+namespace HSis.UI.Helpers
+{
+    public enum TipoFiltroControl
+    {
+        Texto,
+        ComboSeleccion,
+        Fecha
+    }
+
+    public class FiltroCampo
+    {
+        public string NombrePropiedad { get; set; } = string.Empty;
+        public string Etiqueta { get; set; } = string.Empty;
+        public TipoFiltroControl Tipo { get; set; }
+        public object[]? ValoresCombo { get; set; }
+        public int Ancho { get; set; } = 150;
+        public object? ValorDefecto { get; set; }
+    }
+}
+
