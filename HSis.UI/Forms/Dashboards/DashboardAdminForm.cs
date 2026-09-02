@@ -40,12 +40,12 @@ namespace HSis.UI.Forms.Dashboards
 
         private async void DashboardAdmin_Load(object sender, EventArgs e)
         {
+            dgvTickets.AplicarTemaModerno();
             InicializarLayoutDashboard();
             _controladorPaginacion = new ControladorPaginacionGrid(PaginacionControl);
             _controladorPaginacion.Vincular(async () => { if (!_estaCargando) await FiltrarTicketsAsync(); });
 
-            SesionSistema.ConfigurarMenuSesion(this, _sessionCache);
-
+            ConfigurarSidebar();
             ConfigurarFechasYFiltros();
 
             // Cargar los combos de filtros antes del grid
@@ -58,6 +58,59 @@ namespace HSis.UI.Forms.Dashboards
             );
 
             await ConfigurarTabsCatalogosAsync();
+        }
+
+        private void ConfigurarSidebar()
+        {
+            sidebarAdmin.ConfigurarSesion(_sessionCache);
+            sidebarAdmin.ConfigurarItems(new[]
+            {
+                new ItemSidebar { Clave = "tickets", Titulo = "Tickets", Icono = FontAwesome.Sharp.IconChar.TicketAlt },
+                new ItemSidebar { Clave = "inventario", Titulo = "Inventario", Icono = FontAwesome.Sharp.IconChar.BoxesStacked },
+                new ItemSidebar { Clave = "usuarios", Titulo = "Usuarios", Icono = FontAwesome.Sharp.IconChar.Users },
+                new ItemSidebar { Clave = "departamentos", Titulo = "Departamentos", Icono = FontAwesome.Sharp.IconChar.Building },
+                new ItemSidebar { Clave = "sucursales", Titulo = "Sucursales", Icono = FontAwesome.Sharp.IconChar.MapMarkerAlt },
+                new ItemSidebar { Clave = "empresas", Titulo = "Empresas", Icono = FontAwesome.Sharp.IconChar.Landmark },
+                new ItemSidebar { Clave = "puestos", Titulo = "Puestos", Icono = FontAwesome.Sharp.IconChar.Briefcase },
+                new ItemSidebar { Clave = "roles", Titulo = "Roles", Icono = FontAwesome.Sharp.IconChar.Key },
+                new ItemSidebar { Clave = "reportes", Titulo = "Reportes", Icono = FontAwesome.Sharp.IconChar.ChartBar }
+            }, "tickets");
+
+            sidebarAdmin.ItemSeleccionado += (s, clave) =>
+            {
+                if (clave == "reportes")
+                {
+                    btnAbrirReportes_Click(this, EventArgs.Empty);
+                    sidebarAdmin.SeleccionarItem("tickets");
+                    return;
+                }
+
+                string nombreTab = clave switch
+                {
+                    "tickets" => "Tickets",
+                    "inventario" => "Materiales",
+                    "usuarios" => "Usuarios",
+                    "departamentos" => "Departamentos",
+                    "sucursales" => "Sucursales",
+                    "empresas" => "Empresas",
+                    "puestos" => "Puestos",
+                    "roles" => "RolesUsuario",
+                    _ => "Tickets"
+                };
+
+                topBarAdmin.Titulo = nombreTab == "Tickets" ? "Panel de Control" : $"Catálogo: {nombreTab}";
+                topBarAdmin.Subtitulo = nombreTab == "Tickets" ? "Mesa de Servicio y Gestión Global" : $"Administración de registros de {nombreTab}";
+
+                foreach (TabPage tab in tabMain.TabPages)
+                {
+                    if (tab.Text.Equals(nombreTab, StringComparison.OrdinalIgnoreCase) ||
+                        tab.Name.Equals("tab" + nombreTab, StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabMain.SelectedTab = tab;
+                        break;
+                    }
+                }
+            };
         }
 
         private void ConfigurarFechasYFiltros()
@@ -180,10 +233,29 @@ namespace HSis.UI.Forms.Dashboards
                 ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize,
                 AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
             };
+            dgv.AplicarTemaModerno();
 
-            Panel panelTop = new() { Dock = DockStyle.Top, Height = 50 };
-            Button btnCrear = new() { Text = "Crear", Location = new Point(10, 10), Width = 100, Height = 30 };
-            Button btnEliminar = new() { Text = "Eliminar", Location = new Point(120, 10), Width = 100, Height = 30 };
+            Panel panelTop = new() { Dock = DockStyle.Top, Height = 56, BackColor = Color.White, Padding = new Padding(12, 10, 12, 10) };
+            BotonModerno btnCrear = new()
+            {
+                Text = "Nuevo Registro",
+                Icono = FontAwesome.Sharp.IconChar.PlusCircle,
+                IconoTamano = 14,
+                Location = new Point(12, 10),
+                Width = 150,
+                Height = 36,
+                Estilo = EstiloBotonModerno.Primario
+            };
+            BotonModerno btnEliminar = new()
+            {
+                Text = "Eliminar",
+                Icono = FontAwesome.Sharp.IconChar.TrashAlt,
+                IconoTamano = 14,
+                Location = new Point(170, 10),
+                Width = 115,
+                Height = 36,
+                Estilo = EstiloBotonModerno.Peligro
+            };
 
             panelTop.Controls.Add(btnCrear);
             panelTop.Controls.Add(btnEliminar);
@@ -207,8 +279,26 @@ namespace HSis.UI.Forms.Dashboards
 
         private void AgregarControlesInventario(Panel panelTop, DataGridView dgv)
         {
-            Button btnIngreso = new() { Text = "Nuevo Movimiento", Location = new Point(230, 10), Width = 150, Height = 30 };
-            Button btnKardex = new() { Text = "Ver Kardex", Location = new Point(390, 10), Width = 100, Height = 30 };
+            BotonModerno btnIngreso = new()
+            {
+                Text = "Nuevo Movimiento",
+                Icono = FontAwesome.Sharp.IconChar.Dolly,
+                IconoTamano = 14,
+                Location = new Point(295, 10),
+                Width = 175,
+                Height = 36,
+                Estilo = EstiloBotonModerno.Exito
+            };
+            BotonModerno btnKardex = new()
+            {
+                Text = "Ver Kardex",
+                Icono = FontAwesome.Sharp.IconChar.ClipboardList,
+                IconoTamano = 14,
+                Location = new Point(478, 10),
+                Width = 130,
+                Height = 36,
+                Estilo = EstiloBotonModerno.Secundario
+            };
 
             btnIngreso.Click += async (s, ev) =>
             {
@@ -439,33 +529,33 @@ namespace HSis.UI.Forms.Dashboards
         {
             ucNuevos.Titulo = "Nuevos";
             ucNuevos.Cantidad = nuevos.ToString();
-            ucNuevos.ColorFondo = Color.DodgerBlue;
+            ucNuevos.ColorFondo = TemaVisual.TicketNuevo;
             ucNuevos.ImagenFondo = Properties.Resources.Nuevo;
 
             ucUrgentes.Titulo = "Urgentes";
             ucUrgentes.Cantidad = urgentes.ToString();
-            ucUrgentes.ColorFondo = Color.Red;
+            ucUrgentes.ColorFondo = TemaVisual.TicketUrgente;
             ucUrgentes.ImagenFondo = Properties.Resources.Urgente;
 
             ucEnProceso.Titulo = "En proceso";
             ucEnProceso.Cantidad = enProceso.ToString();
-            ucEnProceso.ColorFondo = Color.Yellow;
+            ucEnProceso.ColorFondo = TemaVisual.TicketEnProceso;
             ucEnProceso.ImagenFondo = Properties.Resources.En_proceso;
 
             ucCerrados.Titulo = "Cerrados";
             ucCerrados.Cantidad = cerrados.ToString();
-            ucCerrados.ColorFondo = Color.LawnGreen;
+            ucCerrados.ColorFondo = TemaVisual.TicketCerrado;
             ucCerrados.ImagenFondo = Properties.Resources.Cerrado;
 
             ucReabiertos.Titulo = "Reabiertos";
             ucReabiertos.Cantidad = reabiertos.ToString();
-            ucReabiertos.ColorFondo = Color.Orange;
+            ucReabiertos.ColorFondo = TemaVisual.TicketReabierto;
 
             if (_ucCalificacion != null)
             {
                 _ucCalificacion.Titulo = "Mi Calificación";
                 _ucCalificacion.Cantidad = calificacion > 0 ? $"⭐ {calificacion:F1}" : "⭐ N/A";
-                _ucCalificacion.ColorFondo = Color.FromArgb(155, 89, 182);
+                _ucCalificacion.ColorFondo = Color.FromArgb(139, 92, 246);
             }
         }
 
@@ -508,17 +598,32 @@ namespace HSis.UI.Forms.Dashboards
 
         public void MostrarCargando(bool cargando)
         {
+            if (InvokeRequired)
+            {
+                Invoke(new Action(() => MostrarCargando(cargando)));
+                return;
+            }
             _estaCargando = cargando;
             Cursor = cargando ? Cursors.WaitCursor : Cursors.Default;
         }
 
         public void MostrarError(string mensaje)
         {
+            if (InvokeRequired)
+            {
+                Invoke(new Action(() => MostrarError(mensaje)));
+                return;
+            }
             MessageBox.Show(mensaje, "Error en Dashboard de Administración", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
         public void MostrarInformacion(string mensaje, string titulo)
         {
+            if (InvokeRequired)
+            {
+                Invoke(new Action(() => MostrarInformacion(mensaje, titulo)));
+                return;
+            }
             MessageBox.Show(mensaje, titulo, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 

@@ -69,11 +69,21 @@ namespace HSis.UI.Forms.Auth
 
         public void MostrarError(string mensaje)
         {
+            if (InvokeRequired)
+            {
+                Invoke(new Action(() => MostrarError(mensaje)));
+                return;
+            }
             MessageBox.Show(mensaje, "Error al iniciar sesión", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
 
         public void MostrarCargando(bool cargando)
         {
+            if (InvokeRequired)
+            {
+                Invoke(new Action(() => MostrarCargando(cargando)));
+                return;
+            }
             btnIniciarSesion.Enabled = !cargando;
             this.UseWaitCursor = cargando;
         }

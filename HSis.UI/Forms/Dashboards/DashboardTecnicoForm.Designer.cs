@@ -22,8 +22,11 @@ partial class DashboardTecnicoForm
 
     private void InitializeComponent()
     {
+        this.sidebarTecnico = new HSis.UI.Controls.SidebarControl();
+        this.topBarTecnico = new HSis.UI.Controls.TopBarControl();
+        this.pnlContenedorPrincipal = new Panel();
         this.lblTitulo = new Label();
-        this.btnNuevoTicket = new Button();
+        this.btnNuevoTicket = new HSis.UI.Controls.BotonModerno();
         this.ucMisAsignados = new HSis.UI.Controls.IndicadorControl();
         this.ucDisponibles = new HSis.UI.Controls.IndicadorControl();
         this.ucCerrados = new HSis.UI.Controls.IndicadorControl();
@@ -32,19 +35,46 @@ partial class DashboardTecnicoForm
         this.pnlFiltros = new Panel();
         this.lblFiltrosTitle = new Label();
         this.filtroGenerico = new HSis.UI.Controls.FiltroGenericoControl();
-        this.btnLimpiarFiltros = new Button();
-        this.btnRecargar = new Button();
+        this.btnLimpiarFiltros = new HSis.UI.Controls.BotonModerno();
+        this.btnRecargar = new HSis.UI.Controls.BotonModerno();
         ((System.ComponentModel.ISupportInitialize)(this.dgvTicketsOperativos)).BeginInit();
+        this.pnlFiltros.SuspendLayout();
+        this.pnlContenedorPrincipal.SuspendLayout();
         this.SuspendLayout();
+
+        // sidebarTecnico
+        this.sidebarTecnico.Dock = DockStyle.Left;
+        this.sidebarTecnico.Location = new Point(0, 0);
+        this.sidebarTecnico.Name = "sidebarTecnico";
+        this.sidebarTecnico.Size = new Size(240, 720);
+        this.sidebarTecnico.TabIndex = 0;
+
+        // topBarTecnico
+        this.topBarTecnico.Dock = DockStyle.Top;
+        this.topBarTecnico.Location = new Point(0, 0);
+        this.topBarTecnico.Name = "topBarTecnico";
+        this.topBarTecnico.Size = new Size(960, 64);
+        this.topBarTecnico.TabIndex = 0;
+        this.topBarTecnico.Titulo = "Panel de Control - Técnico";
+        this.topBarTecnico.Subtitulo = "Gestión de Tickets y Soporte Técnico";
+
+        // pnlContenedorPrincipal
+        this.pnlContenedorPrincipal.Controls.Add(this.topBarTecnico);
+        this.pnlContenedorPrincipal.Dock = DockStyle.Fill;
+        this.pnlContenedorPrincipal.Location = new Point(240, 0);
+        this.pnlContenedorPrincipal.Name = "pnlContenedorPrincipal";
+        this.pnlContenedorPrincipal.Size = new Size(960, 720);
+        this.pnlContenedorPrincipal.TabIndex = 1;
 
         // lblTitulo
         this.lblTitulo.AutoSize = true;
-        this.lblTitulo.Font = new Font("Segoe UI", 18F, FontStyle.Bold);
-        this.lblTitulo.Location = new Point(12, 9);
+        this.lblTitulo.Font = new Font("Segoe UI", 16F, FontStyle.Bold);
+        this.lblTitulo.ForeColor = Color.FromArgb(15, 23, 42);
+        this.lblTitulo.Location = new Point(12, 10);
         this.lblTitulo.Name = "lblTitulo";
-        this.lblTitulo.Size = new Size(362, 32);
+        this.lblTitulo.Size = new Size(320, 30);
         this.lblTitulo.TabIndex = 0;
-        this.lblTitulo.Text = "Panel de Control - Técnico";
+        this.lblTitulo.Text = "Bandeja Operativa de Tickets";
 
         // ucMisAsignados
         this.ucMisAsignados.Location = new Point(12, 50);
@@ -76,20 +106,17 @@ partial class DashboardTecnicoForm
         this.dgvTicketsOperativos.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
         this.dgvTicketsOperativos.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
         this.dgvTicketsOperativos.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-        this.dgvTicketsOperativos.Location = new Point(12, 170);
+        this.dgvTicketsOperativos.Location = new Point(12, 290);
         this.dgvTicketsOperativos.Name = "dgvTicketsOperativos";
         this.dgvTicketsOperativos.ReadOnly = true;
         this.dgvTicketsOperativos.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-        this.dgvTicketsOperativos.Size = new Size(824, 280);
+        this.dgvTicketsOperativos.Size = new Size(936, 300);
         this.dgvTicketsOperativos.TabIndex = 3;
         this.dgvTicketsOperativos.CellDoubleClick += new DataGridViewCellEventHandler(this.dgvTicketsOperativos_CellDoubleClick);
 
-        // 
         // pnlFiltros
-        // 
         this.pnlFiltros.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-        this.pnlFiltros.BorderStyle = BorderStyle.FixedSingle;
-        this.pnlFiltros.AutoScroll = true;
+        this.pnlFiltros.BackColor = Color.White;
         this.pnlFiltros.Controls.Add(this.lblFiltrosTitle);
         this.pnlFiltros.Controls.Add(this.filtroGenerico);
         this.pnlFiltros.Controls.Add(this.btnNuevoTicket);
@@ -97,82 +124,79 @@ partial class DashboardTecnicoForm
         this.pnlFiltros.Controls.Add(this.btnRecargar);
         this.pnlFiltros.Location = new Point(12, 145);
         this.pnlFiltros.Name = "pnlFiltros";
-        this.pnlFiltros.Size = new Size(1024, 115);
+        this.pnlFiltros.Size = new Size(936, 120);
         this.pnlFiltros.TabIndex = 6;
-        this.pnlFiltros.BackColor = Color.White;
 
-        // 
         // filtroGenerico
-        // 
         this.filtroGenerico.Location = new Point(10, 25);
         this.filtroGenerico.Name = "filtroGenerico";
-        this.filtroGenerico.Size = new Size(1004, 52);
+        this.filtroGenerico.Size = new Size(916, 48);
         this.filtroGenerico.TabIndex = 0;
         this.filtroGenerico.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 
-        // 
         // lblFiltrosTitle
-        // 
         this.lblFiltrosTitle.AutoSize = true;
-        this.lblFiltrosTitle.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold);
-        this.lblFiltrosTitle.ForeColor = Color.FromArgb(31, 41, 55);
+        this.lblFiltrosTitle.Font = new Font("Segoe UI Semibold", 9.5F, FontStyle.Bold);
+        this.lblFiltrosTitle.ForeColor = Color.FromArgb(71, 85, 105);
         this.lblFiltrosTitle.Location = new Point(10, 5);
         this.lblFiltrosTitle.Name = "lblFiltrosTitle";
-        this.lblFiltrosTitle.Size = new Size(180, 19);
+        this.lblFiltrosTitle.Size = new Size(165, 17);
         this.lblFiltrosTitle.Text = "Filtros de Búsqueda Rápida";
 
-        // 
         // btnNuevoTicket
-        // 
-        this.btnNuevoTicket.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold);
-        this.btnNuevoTicket.Location = new Point(430, 80);
+        this.btnNuevoTicket.Estilo = EstiloBotonModerno.Exito;
+        this.btnNuevoTicket.Icono = FontAwesome.Sharp.IconChar.Plus;
+        this.btnNuevoTicket.IconoTamano = 14;
+        this.btnNuevoTicket.Location = new Point(540, 75);
         this.btnNuevoTicket.Name = "btnNuevoTicket";
-        this.btnNuevoTicket.Size = new Size(130, 26);
-        this.btnNuevoTicket.Text = "+ Registrar Ticket";
-        this.btnNuevoTicket.UseVisualStyleBackColor = false;
+        this.btnNuevoTicket.Size = new Size(140, 34);
+        this.btnNuevoTicket.TabIndex = 1;
+        this.btnNuevoTicket.Text = "Nuevo Ticket";
         this.btnNuevoTicket.Click += new EventHandler(this.btnNuevoTicket_Click);
 
-        // 
-        // btnLimpiarFiltros
-        // 
-        this.btnLimpiarFiltros.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold);
-        this.btnLimpiarFiltros.Location = new Point(720, 80);
-        this.btnLimpiarFiltros.Name = "btnLimpiarFiltros";
-        this.btnLimpiarFiltros.Size = new Size(130, 26);
-        this.btnLimpiarFiltros.Text = "Limpiar Filtros";
-        this.btnLimpiarFiltros.Click += new EventHandler(this.btnLimpiarFiltros_Click);
-
-        // 
         // btnRecargar
-        // 
-        this.btnRecargar.Location = new Point(580, 80);
+        this.btnRecargar.Estilo = EstiloBotonModerno.Secundario;
+        this.btnRecargar.Icono = FontAwesome.Sharp.IconChar.RotateRight;
+        this.btnRecargar.IconoTamano = 14;
+        this.btnRecargar.Location = new Point(690, 75);
         this.btnRecargar.Name = "btnRecargar";
-        this.btnRecargar.Size = new Size(130, 26);
-        this.btnRecargar.Text = "Recargar tabla";
-        this.btnRecargar.UseVisualStyleBackColor = true;
+        this.btnRecargar.Size = new Size(120, 34);
+        this.btnRecargar.TabIndex = 2;
+        this.btnRecargar.Text = "Recargar";
         this.btnRecargar.Click += new EventHandler(this.btnRecargar_Click);
+
+        // btnLimpiarFiltros
+        this.btnLimpiarFiltros.Estilo = EstiloBotonModerno.Ghost;
+        this.btnLimpiarFiltros.Icono = FontAwesome.Sharp.IconChar.Eraser;
+        this.btnLimpiarFiltros.IconoTamano = 14;
+        this.btnLimpiarFiltros.Location = new Point(820, 75);
+        this.btnLimpiarFiltros.Name = "btnLimpiarFiltros";
+        this.btnLimpiarFiltros.Size = new Size(105, 34);
+        this.btnLimpiarFiltros.TabIndex = 3;
+        this.btnLimpiarFiltros.Text = "Limpiar";
+        this.btnLimpiarFiltros.Click += new EventHandler(this.btnLimpiarFiltros_Click);
 
         // DashboardTecnicoForm
         this.AutoScaleDimensions = new SizeF(7F, 15F);
         this.AutoScaleMode = AutoScaleMode.Font;
-        this.ClientSize = new Size(1100, 700);
-        this.MinimumSize = new Size(1030, 680);
-        this.Controls.Add(this.dgvTicketsOperativos);
-        this.Controls.Add(this.ucDisponibles);
-        this.Controls.Add(this.ucMisAsignados);
-        this.Controls.Add(this.ucCerrados);
-        this.Controls.Add(this.ucCalificacion);
-        this.Controls.Add(this.lblTitulo);
-        this.Controls.Add(this.pnlFiltros);
+        this.BackColor = Color.FromArgb(248, 250, 252);
+        this.ClientSize = new Size(1200, 720);
+        this.MinimumSize = new Size(1100, 700);
+        this.Controls.Add(this.pnlContenedorPrincipal);
+        this.Controls.Add(this.sidebarTecnico);
         this.Name = "DashboardTecnicoForm";
         this.StartPosition = FormStartPosition.CenterScreen;
-        this.Text = "Dashboard - Técnico";
+        this.Text = "HSis Support - Técnico";
         this.Load += new EventHandler(this.frmDashboardTecnico_Load);
         ((System.ComponentModel.ISupportInitialize)(this.dgvTicketsOperativos)).EndInit();
+        this.pnlFiltros.ResumeLayout(false);
+        this.pnlContenedorPrincipal.ResumeLayout(false);
         this.ResumeLayout(false);
-        this.PerformLayout();
     }
 
+    private HSis.UI.Controls.SidebarControl sidebarTecnico;
+    private HSis.UI.Controls.TopBarControl topBarTecnico;
+    private Panel pnlContenedorPrincipal;
     private Label lblTitulo;
     private HSis.UI.Controls.IndicadorControl ucMisAsignados;
     private HSis.UI.Controls.IndicadorControl ucDisponibles;
@@ -182,50 +206,43 @@ partial class DashboardTecnicoForm
     private Panel pnlFiltros;
     private Label lblFiltrosTitle;
     private HSis.UI.Controls.FiltroGenericoControl filtroGenerico;
-    private Button btnNuevoTicket;
-    private Button btnLimpiarFiltros;
-    private Button btnRecargar;
+    private HSis.UI.Controls.BotonModerno btnNuevoTicket;
+    private HSis.UI.Controls.BotonModerno btnLimpiarFiltros;
+    private HSis.UI.Controls.BotonModerno btnRecargar;
 
     private void InicializarLayoutDashboard()
     {
-        // Instanciar control de paginación
         PaginacionControl = new PaginacionControl
         {
             Dock = DockStyle.Fill,
-            Margin = new Padding(12, 0, 12, 6)
+            Margin = new Padding(0)
         };
 
-        // Suscribir eventos de filtrado una sola vez aquí (hilo de UI garantizado)
         ucMisAsignados.IndicadorClic += UcMisAsignados_Click;
         ucDisponibles.IndicadorClic += UcDisponibles_Click;
         ucCerrados.IndicadorClic += UcCerrados_Click;
         ucCalificacion.IndicadorClic += UcCalificacion_Click;
 
-        var tblPrincipal = AyudanteDisenoPanel.CrearPanelPrincipal(this.ClientSize, incluirFiltros: true);
         var tblIndicadores = AyudanteDisenoPanel.CrearPanelIndicadores(
-            "tblIndicadores",
+            "tblIndicadoresTecnico",
             4,
             ucMisAsignados, ucDisponibles, ucCerrados, ucCalificacion
         );
 
-        // Configurar el título y el grid principal para que se estiren
-        lblTitulo.Dock = DockStyle.Fill;
-        lblTitulo.Margin = new Padding(12, 10, 12, 10);
+        filtroGenerico.Dock = DockStyle.Fill;
+        filtroGenerico.Margin = new Padding(0, 4, 0, 4);
+        filtroGenerico.RecargarClic += (s, e) => _ = CargarDatosInicialesAsync();
+        filtroGenerico.LimpiarClic += (s, e) => AplicarFiltrosMemoria();
 
         dgvTicketsOperativos.Dock = DockStyle.Fill;
-        dgvTicketsOperativos.Margin = new Padding(12, 10, 12, 12);
+        dgvTicketsOperativos.Margin = new Padding(0, 4, 0, 6);
 
-        pnlFiltros.Dock = DockStyle.Fill;
-        pnlFiltros.Margin = new Padding(12, 5, 12, 5);
+        var tblPrincipal = AyudanteDisenoPanel.CrearPanelPrincipal(pnlContenedorPrincipal.ClientSize, incluirFiltros: true);
+        tblPrincipal.Controls.Add(tblIndicadores, 0, 0);
+        tblPrincipal.Controls.Add(filtroGenerico, 0, 1);
+        tblPrincipal.Controls.Add(dgvTicketsOperativos, 0, 2);
+        tblPrincipal.Controls.Add(PaginacionControl, 0, 3);
 
-        // Agregar componentes al TableLayoutPanel principal
-        tblPrincipal.Controls.Add(lblTitulo, 0, 0);
-        tblPrincipal.Controls.Add(tblIndicadores, 0, 1);
-        tblPrincipal.Controls.Add(pnlFiltros, 0, 2);
-        tblPrincipal.Controls.Add(dgvTicketsOperativos, 0, 3);
-        tblPrincipal.Controls.Add(PaginacionControl, 0, 4);
-
-        // Remover controles del formulario para agregarlos al grid principal
-        AyudanteDisenoPanel.ReubicarControles(this, tblPrincipal, lblTitulo, ucMisAsignados, ucDisponibles, ucCerrados, ucCalificacion, pnlFiltros, dgvTicketsOperativos);
+        AyudanteDisenoPanel.ReubicarControles(pnlContenedorPrincipal, tblPrincipal, lblTitulo, ucMisAsignados, ucDisponibles, ucCerrados, ucCalificacion, pnlFiltros, dgvTicketsOperativos);
     }
 }

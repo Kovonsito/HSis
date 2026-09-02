@@ -53,17 +53,75 @@ namespace HSis.UI.Forms.Dashboards
 
         private async void frmDashboardTecnico_Load(object? sender, EventArgs e)
         {
+            dgvTicketsOperativos.AplicarTemaModerno();
             InicializarLayoutDashboard();
             _controladorPaginacion = new ControladorPaginacionGrid(PaginacionControl);
             _controladorPaginacion.Vincular(MostrarPaginaActual);
 
+            ConfigurarSidebar();
             ConfigurarFiltros();
-            SesionSistema.ConfigurarMenuSesion(this, _sessionCache);
 
-            this.IntegrarNotificaciones(_notificacionesPresenter, _formFactory, _contextoSesion, CargarDatosInicialesAsync);
+            this.IntegrarNotificacionesModerno(topBarTecnico, _notificacionesPresenter, _formFactory, _contextoSesion, CargarDatosInicialesAsync);
 
             // Cargamos indicadores y grid en paralelo
             await CargarDatosInicialesAsync();
+        }
+
+        private void ConfigurarSidebar()
+        {
+            sidebarTecnico.ConfigurarSesion(_sessionCache);
+            sidebarTecnico.ConfigurarItems(new[]
+            {
+                new ItemSidebar { Clave = "asignados", Titulo = "Mis Asignados", Icono = FontAwesome.Sharp.IconChar.ClipboardCheck },
+                new ItemSidebar { Clave = "disponibles", Titulo = "Disponibles", Icono = FontAwesome.Sharp.IconChar.Inbox },
+                new ItemSidebar { Clave = "cerrados", Titulo = "Mis Cerrados", Icono = FontAwesome.Sharp.IconChar.CheckCircle },
+                new ItemSidebar { Clave = "calificaciones", Titulo = "Calificaciones", Icono = FontAwesome.Sharp.IconChar.Star },
+                new ItemSidebar { Clave = "kardex", Titulo = "Almacén / Kardex", Icono = FontAwesome.Sharp.IconChar.BoxesStacked }
+            }, "asignados");
+
+            sidebarTecnico.ItemSeleccionado += async (s, clave) =>
+            {
+                if (clave == "kardex")
+                {
+                    var frmK = _formFactory.Crear<Forms.Otros.KardexForm>();
+                    frmK.ShowDialog();
+                    sidebarTecnico.SeleccionarItem(_vistaActual switch
+                    {
+                        VistaDashboard.MisAsignados => "asignados",
+                        VistaDashboard.Disponibles => "disponibles",
+                        VistaDashboard.Cerrados => "cerrados",
+                        VistaDashboard.Calificaciones => "calificaciones",
+                        _ => "asignados"
+                    });
+                    return;
+                }
+
+                switch (clave)
+                {
+                    case "asignados":
+                        _vistaActual = VistaDashboard.MisAsignados;
+                        topBarTecnico.Titulo = "Mis Tickets Asignados";
+                        topBarTecnico.Subtitulo = "Tickets que tienes actualmente en proceso o abiertos";
+                        break;
+                    case "disponibles":
+                        _vistaActual = VistaDashboard.Disponibles;
+                        topBarTecnico.Titulo = "Tickets Disponibles en Cola";
+                        topBarTecnico.Subtitulo = "Tickets sin asignar listos para ser atendidos";
+                        break;
+                    case "cerrados":
+                        _vistaActual = VistaDashboard.Cerrados;
+                        topBarTecnico.Titulo = "Historial de Tickets Cerrados";
+                        topBarTecnico.Subtitulo = "Tickets resueltos y finalizados exitosamente";
+                        break;
+                    case "calificaciones":
+                        _vistaActual = VistaDashboard.Calificaciones;
+                        topBarTecnico.Titulo = "Mis Calificaciones";
+                        topBarTecnico.Subtitulo = "Evaluaciones y comentarios de los clientes";
+                        break;
+                }
+
+                await CargarTicketsSegunVistaAsync();
+            };
         }
 
         private async Task CargarDatosInicialesAsync()
@@ -87,24 +145,32 @@ namespace HSis.UI.Forms.Dashboards
         private async void UcMisAsignados_Click(object? sender, EventArgs e)
         {
             _vistaActual = VistaDashboard.MisAsignados;
+            sidebarTecnico.SeleccionarItem("asignados");
+            topBarTecnico.Titulo = "Mis Tickets Asignados";
             await CargarTicketsSegunVistaAsync();
         }
 
         private async void UcDisponibles_Click(object? sender, EventArgs e)
         {
             _vistaActual = VistaDashboard.Disponibles;
+            sidebarTecnico.SeleccionarItem("disponibles");
+            topBarTecnico.Titulo = "Tickets Disponibles en Cola";
             await CargarTicketsSegunVistaAsync();
         }
 
         private async void UcCerrados_Click(object? sender, EventArgs e)
         {
             _vistaActual = VistaDashboard.Cerrados;
+            sidebarTecnico.SeleccionarItem("cerrados");
+            topBarTecnico.Titulo = "Historial de Tickets Cerrados";
             await CargarTicketsSegunVistaAsync();
         }
 
         private async void UcCalificacion_Click(object? sender, EventArgs e)
         {
             _vistaActual = VistaDashboard.Calificaciones;
+            sidebarTecnico.SeleccionarItem("calificaciones");
+            topBarTecnico.Titulo = "Mis Calificaciones";
             await CargarTicketsSegunVistaAsync();
         }
 
@@ -177,44 +243,50 @@ namespace HSis.UI.Forms.Dashboards
         {
             var vals = filtroGenerico.ObtenerValoresFiltros();
 
-            string? estatus = null;
-            if (vals.TryGetValue("Estatus", out var estVal) && estVal != null)
+            string? texto = null;
+            if (vals.TryGetValue("Texto", out var txtVal) && txtVal != null)
             {
-                var estStr = estVal.ToString();
-                if (estStr != "Todos") estatus = estStr;
+                var txtStr = txtVal.ToString()?.Trim().ToLowerInvariant();
+                if (!string.IsNullOrWhiteSpace(txtStr)) texto = txtStr;
             }
 
             string? prioridad = null;
             if (vals.TryGetValue("Prioridad", out var priVal) && priVal != null)
             {
                 var priStr = priVal.ToString();
-                if (priStr != "Todos") prioridad = priStr;
+                if (!string.IsNullOrEmpty(priStr) && priStr != "Todos") prioridad = priStr;
             }
 
             string? usuario = null;
             if (vals.TryGetValue("Usuario", out var usrVal) && usrVal != null)
             {
-                var usrStr = usrVal.ToString();
-                if (!string.IsNullOrWhiteSpace(usrStr)) usuario = usrStr.ToLower();
+                var usrStr = usrVal.ToString()?.Trim().ToLowerInvariant();
+                if (!string.IsNullOrWhiteSpace(usrStr)) usuario = usrStr;
             }
 
             DateTime fechaInicio = DateTime.MinValue;
-            if (vals.TryGetValue("FechaInicio", out var fiVal) && fiVal is DateTime)
+            if (vals.TryGetValue("FechaInicio", out var fiVal) && fiVal is DateTime dtInicio)
             {
-                fechaInicio = ((DateTime)fiVal).Date;
+                fechaInicio = dtInicio.Date;
             }
 
             DateTime fechaFin = DateTime.MaxValue;
-            if (vals.TryGetValue("FechaFin", out var ffVal) && ffVal is DateTime)
+            if (vals.TryGetValue("FechaFin", out var ffVal) && ffVal is DateTime dtFin)
             {
-                fechaFin = ((DateTime)ffVal).Date.AddDays(1).AddTicks(-1);
+                fechaFin = dtFin.Date.AddDays(1).AddTicks(-1);
             }
 
             _ticketsFiltrados = _todosLosTickets.Where(t =>
             {
-                if (estatus != null && !string.Equals(t.Status, estatus, StringComparison.OrdinalIgnoreCase)) return false;
+                if (texto != null)
+                {
+                    bool matchTexto = (t.Folio?.ToLowerInvariant().Contains(texto) ?? false) ||
+                                     (t.Descripcion?.ToLowerInvariant().Contains(texto) ?? false) ||
+                                     (t.Usuario?.ToLowerInvariant().Contains(texto) ?? false);
+                    if (!matchTexto) return false;
+                }
                 if (prioridad != null && !string.Equals(t.Prioridad, prioridad, StringComparison.OrdinalIgnoreCase)) return false;
-                if (usuario != null && !(t.Usuario?.ToLower().Contains(usuario) ?? false)) return false;
+                if (usuario != null && !(t.Usuario?.ToLowerInvariant().Contains(usuario) ?? false)) return false;
                 if (t.FechaAlta < fechaInicio || t.FechaAlta > fechaFin) return false;
                 return true;
             }).ToList();
@@ -272,38 +344,48 @@ namespace HSis.UI.Forms.Dashboards
             {
                 ucMisAsignados.Cantidad = asignados.ToString();
                 ucMisAsignados.Titulo = "Mis Asignados";
-                ucMisAsignados.ColorFondo = Color.FromArgb(41, 128, 185);
+                ucMisAsignados.ColorFondo = TemaVisual.TicketNuevo;
             }
 
             if (ucDisponibles != null)
             {
                 ucDisponibles.Cantidad = disponibles.ToString();
                 ucDisponibles.Titulo = "Disponibles";
-                ucDisponibles.ColorFondo = Color.FromArgb(241, 196, 15);
+                ucDisponibles.ColorFondo = TemaVisual.TicketEnProceso;
             }
 
             if (ucCerrados != null)
             {
                 ucCerrados.Cantidad = cerrados.ToString();
                 ucCerrados.Titulo = "Mis Cerrados";
-                ucCerrados.ColorFondo = Color.FromArgb(46, 204, 113);
+                ucCerrados.ColorFondo = TemaVisual.TicketCerrado;
             }
 
             if (ucCalificacion != null)
             {
                 ucCalificacion.Cantidad = promedioCalificacion > 0 ? $"⭐ {promedioCalificacion:F1}" : "⭐ N/A";
                 ucCalificacion.Titulo = "Mi Calificación";
-                ucCalificacion.ColorFondo = Color.FromArgb(155, 89, 182);
+                ucCalificacion.ColorFondo = TemaVisual.TicketReabierto;
             }
         }
 
         public void MostrarCargando(bool cargando)
         {
+            if (InvokeRequired)
+            {
+                Invoke(new Action(() => MostrarCargando(cargando)));
+                return;
+            }
             Cursor = cargando ? Cursors.WaitCursor : Cursors.Default;
         }
 
         public void MostrarError(string mensaje)
         {
+            if (InvokeRequired)
+            {
+                Invoke(new Action(() => MostrarError(mensaje)));
+                return;
+            }
             MessageBox.Show(mensaje, "Error en Dashboard Técnico", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 

@@ -2,15 +2,8 @@ namespace HSis.UI.Controls;
 
 partial class IndicadorControl
 {
-    /// <summary> 
-    /// Variable del diseñador necesaria.
-    /// </summary>
     private System.ComponentModel.IContainer components = null;
 
-    /// <summary> 
-    /// Limpiar los recursos que se estén usando.
-    /// </summary>
-    /// <param name="disposing">true si los recursos administrados se deben desechar; false en caso contrario.</param>
     protected override void Dispose(bool disposing)
     {
         if (disposing && (components != null))
@@ -22,40 +15,21 @@ partial class IndicadorControl
 
     #region Código generado por el Diseñador de componentes
 
-    /// <summary> 
-    /// Método necesario para admitir el Diseñador. No se puede modificar
-    /// el contenido de este método con el editor de código.
-    /// </summary>
     private void InitializeComponent()
     {
-        pnlPrincipal = new Panel();
-        pbxIcono = new PictureBox();
-        lblCantidad = new Label();
-        lblTitulo = new Label();
-        pnlPrincipal.SuspendLayout();
+        pbxIcono = new System.Windows.Forms.PictureBox();
+        lblCantidad = new System.Windows.Forms.Label();
+        lblTitulo = new System.Windows.Forms.Label();
         ((System.ComponentModel.ISupportInitialize)pbxIcono).BeginInit();
         SuspendLayout();
         // 
-        // pnlPrincipal
-        // 
-        pnlPrincipal.BackColor = Color.DodgerBlue;
-        pnlPrincipal.Controls.Add(pbxIcono);
-        pnlPrincipal.Controls.Add(lblCantidad);
-        pnlPrincipal.Controls.Add(lblTitulo);
-        pnlPrincipal.Dock = DockStyle.Fill;
-        pnlPrincipal.Location = new Point(0, 0);
-        pnlPrincipal.Name = "pnlPrincipal";
-        pnlPrincipal.Size = new Size(200, 100);
-        pnlPrincipal.TabIndex = 0;
-        pnlPrincipal.Click += Indicador_Click;
-        // 
         // pbxIcono
         // 
-        pbxIcono.BackColor = Color.Transparent;
-        pbxIcono.Location = new Point(152, 57);
+        pbxIcono.BackColor = System.Drawing.Color.Transparent;
+        pbxIcono.Location = new System.Drawing.Point(150, 12);
         pbxIcono.Name = "pbxIcono";
-        pbxIcono.Size = new Size(45, 43);
-        pbxIcono.SizeMode = PictureBoxSizeMode.Zoom;
+        pbxIcono.Size = new System.Drawing.Size(34, 34);
+        pbxIcono.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
         pbxIcono.TabIndex = 2;
         pbxIcono.TabStop = false;
         pbxIcono.Click += Indicador_Click;
@@ -63,42 +37,49 @@ partial class IndicadorControl
         // lblCantidad
         // 
         lblCantidad.AutoSize = true;
-        lblCantidad.Font = new Font("Segoe UI", 24F, FontStyle.Bold, GraphicsUnit.Point, 0);
-        lblCantidad.Location = new Point(76, 31);
+        lblCantidad.BackColor = System.Drawing.Color.Transparent;
+        lblCantidad.Font = new System.Drawing.Font("Segoe UI", 20F, System.Drawing.FontStyle.Bold);
+        lblCantidad.ForeColor = System.Drawing.Color.FromArgb(15, 23, 42);
+        lblCantidad.Location = new System.Drawing.Point(14, 34);
         lblCantidad.Name = "lblCantidad";
-        lblCantidad.Size = new Size(38, 45);
+        lblCantidad.Size = new System.Drawing.Size(33, 37);
         lblCantidad.TabIndex = 1;
-        lblCantidad.Text = "1";
+        lblCantidad.Text = "0";
         lblCantidad.Click += Indicador_Click;
         // 
         // lblTitulo
         // 
         lblTitulo.AutoSize = true;
-        lblTitulo.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-        lblTitulo.Location = new Point(0, 0);
+        lblTitulo.BackColor = System.Drawing.Color.Transparent;
+        lblTitulo.Font = new System.Drawing.Font("Segoe UI Semibold", 8.5F, System.Drawing.FontStyle.Bold);
+        lblTitulo.ForeColor = System.Drawing.Color.FromArgb(100, 116, 139);
+        lblTitulo.Location = new System.Drawing.Point(14, 12);
         lblTitulo.Name = "lblTitulo";
-        lblTitulo.Size = new Size(114, 21);
+        lblTitulo.Size = new System.Drawing.Size(80, 15);
         lblTitulo.TabIndex = 0;
-        lblTitulo.Text = "Tickets Nuevos";
+        lblTitulo.Text = "INDICADOR";
         lblTitulo.Click += Indicador_Click;
         // 
         // IndicadorControl
         // 
-        AutoScaleDimensions = new SizeF(7F, 15F);
-        AutoScaleMode = AutoScaleMode.Font;
-        Controls.Add(pnlPrincipal);
+        AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+        AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+        BackColor = System.Drawing.Color.Transparent;
+        Controls.Add(pbxIcono);
+        Controls.Add(lblCantidad);
+        Controls.Add(lblTitulo);
+        Cursor = System.Windows.Forms.Cursors.Hand;
         Name = "IndicadorControl";
-        Size = new Size(200, 100);
-        pnlPrincipal.ResumeLayout(false);
-        pnlPrincipal.PerformLayout();
+        Size = new System.Drawing.Size(200, 85);
+        Click += Indicador_Click;
         ((System.ComponentModel.ISupportInitialize)pbxIcono).EndInit();
         ResumeLayout(false);
+        PerformLayout();
     }
 
     #endregion
 
-    private Panel pnlPrincipal;
-    private Label lblTitulo;
-    private Label lblCantidad;
-    private PictureBox pbxIcono;
+    private System.Windows.Forms.Label lblTitulo;
+    private System.Windows.Forms.Label lblCantidad;
+    private System.Windows.Forms.PictureBox pbxIcono;
 }

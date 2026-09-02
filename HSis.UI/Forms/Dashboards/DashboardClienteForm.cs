@@ -52,15 +52,56 @@ namespace HSis.UI.Forms.Dashboards
 
         private async void frmDashboardCliente_Load(object? sender, EventArgs e)
         {
+            dgvMisTickets.AplicarTemaModerno();
             InicializarLayoutDashboard();
             _controladorPaginacion = new ControladorPaginacionGrid(PaginacionControl);
             _controladorPaginacion.Vincular(MostrarPaginaActual);
 
-            SesionSistema.ConfigurarMenuSesion(this, _sessionCache);
+            ConfigurarSidebar();
+            ConfigurarFiltros();
 
-            this.IntegrarNotificaciones(_notificacionesPresenter, _formFactory, _contextoSesion, CargarDatosDashboardAsync);
+            this.IntegrarNotificacionesModerno(topBarCliente, _notificacionesPresenter, _formFactory, _contextoSesion, CargarDatosDashboardAsync);
 
             await CargarDatosDashboardAsync();
+        }
+
+        private void ConfigurarFiltros()
+        {
+            filtroCliente.InicializarFiltros(ConfiguracionFiltrosTickets.ObtenerCamposCliente());
+            filtroCliente.FiltroCambiado += (s, e) =>
+            {
+                _controladorPaginacion.ReiniciarAPrimeraPagina();
+                MostrarPaginaActual();
+            };
+        }
+
+        private void ConfigurarSidebar()
+        {
+            sidebarCliente.ConfigurarSesion(_sessionCache);
+            sidebarCliente.ConfigurarItems(new[]
+            {
+                new ItemSidebar { Clave = "activos", Titulo = "Mis Activos", Icono = FontAwesome.Sharp.IconChar.Ticket },
+                new ItemSidebar { Clave = "cerrados", Titulo = "Historial Cerrados", Icono = FontAwesome.Sharp.IconChar.ClockRotateLeft }
+            }, "activos");
+
+            sidebarCliente.ItemSeleccionado += (s, clave) =>
+            {
+                if (clave == "activos")
+                {
+                    _vistaActual = VistaCliente.Activos;
+                    topBarCliente.Titulo = "Mis Tickets Activos";
+                    topBarCliente.Subtitulo = "Solicitudes en proceso y pendientes de atención";
+                }
+                else if (clave == "cerrados")
+                {
+                    _vistaActual = VistaCliente.Cerrados;
+                    topBarCliente.Titulo = "Historial de Tickets Cerrados";
+                    topBarCliente.Subtitulo = "Solicitudes resueltas y cerradas";
+                }
+
+                _controladorPaginacion.ReiniciarAPrimeraPagina();
+                MostrarPaginaActual();
+            };
         }
 
         private async Task CargarDatosDashboardAsync()
@@ -70,18 +111,44 @@ namespace HSis.UI.Forms.Dashboards
 
         private void MostrarPaginaActual()
         {
-            // 1. Filtrar en memoria según la vista actual
-            var ticketsFiltrados = _todosLosTickets;
+            // 1. Filtrar en memoria según la vista del Sidebar
+            var query = _todosLosTickets.AsEnumerable();
             if (_vistaActual == VistaCliente.Activos)
             {
-                ticketsFiltrados = [.. _todosLosTickets.Where(t => t.Status != ConstantesEstatus.CERRADO)];
+                query = query.Where(t => t.Status != ConstantesEstatus.CERRADO);
             }
             else if (_vistaActual == VistaCliente.Cerrados)
             {
-                ticketsFiltrados = [.. _todosLosTickets.Where(t => t.Status == ConstantesEstatus.CERRADO)];
+                query = query.Where(t => t.Status == ConstantesEstatus.CERRADO);
             }
 
-            // 2. Segmentar la página actual
+            // 2. Aplicar filtros dinámicos (Texto de búsqueda y Rango de Fechas)
+            var vals = filtroCliente.ObtenerValoresFiltros();
+            if (vals.TryGetValue("Texto", out var txtVal) && txtVal != null)
+            {
+                var txt = txtVal.ToString()?.Trim().ToLowerInvariant();
+                if (!string.IsNullOrEmpty(txt))
+                {
+                    query = query.Where(t =>
+                        (t.Folio?.ToLowerInvariant().Contains(txt) ?? false) ||
+                        (t.Descripcion?.ToLowerInvariant().Contains(txt) ?? false) ||
+                        (t.TecnicoAsignado?.ToLowerInvariant().Contains(txt) ?? false));
+                }
+            }
+
+            if (vals.TryGetValue("FechaInicio", out var fiVal) && fiVal is DateTime dtInicio)
+            {
+                query = query.Where(t => t.FechaAlta >= dtInicio.Date);
+            }
+
+            if (vals.TryGetValue("FechaFin", out var ffVal) && fiVal is DateTime && ffVal is DateTime dtFin)
+            {
+                query = query.Where(t => t.FechaAlta <= dtFin.Date.AddDays(1).AddTicks(-1));
+            }
+
+            var ticketsFiltrados = query.ToList();
+
+            // 3. Segmentar la página actual
             var pageTickets = ticketsFiltrados
                 .Skip((_controladorPaginacion.PaginaActual - 1) * _controladorPaginacion.TamanoPagina)
                 .Take(_controladorPaginacion.TamanoPagina)
@@ -96,57 +163,64 @@ namespace HSis.UI.Forms.Dashboards
         {
             if (dgvMisTickets.Columns.Count > 0)
             {
-                dgvMisTickets.ConfigurarOcultarColumnas("IdTicket");
+                dgvMisTickets.ConfigurarOcultarColumnas("IdTicket", "Estatus", "Evaluacion");
 
                 var colFolio = dgvMisTickets.Columns["Folio"];
                 if (colFolio != null)
                 {
                     colFolio.HeaderText = "Folio";
-                    colFolio.Width = 80;
+                    colFolio.FillWeight = 45;
+                    colFolio.MinimumWidth = 80;
                 }
 
                 var colFecha = dgvMisTickets.Columns["FechaAlta"];
                 if (colFecha != null)
                 {
-                    colFecha.HeaderText = "Fecha de Creación";
-                    colFecha.Width = 140;
+                    colFecha.HeaderText = "Fecha de Solicitud";
+                    colFecha.DefaultCellStyle.Format = "dd/MM/yyyy HH:mm";
+                    colFecha.FillWeight = 70;
+                    colFecha.MinimumWidth = 120;
                 }
 
                 var colStatus = dgvMisTickets.Columns["Status"];
                 if (colStatus != null)
                 {
                     colStatus.HeaderText = "Estatus";
-                    colStatus.Width = 110;
+                    colStatus.FillWeight = 55;
+                    colStatus.MinimumWidth = 85;
                 }
 
                 var colTecnico = dgvMisTickets.Columns["TecnicoAsignado"];
                 if (colTecnico != null)
                 {
                     colTecnico.HeaderText = "Técnico Asignado";
-                    colTecnico.Width = 160;
+                    colTecnico.FillWeight = 75;
+                    colTecnico.MinimumWidth = 120;
                 }
 
                 var colDesc = dgvMisTickets.Columns["Descripcion"];
                 if (colDesc != null)
                 {
-                    colDesc.HeaderText = "Descripción";
-                    colDesc.Width = 250;
+                    colDesc.HeaderText = "Descripción del Problema";
+                    colDesc.FillWeight = 160;
+                    colDesc.MinimumWidth = 150;
                 }
 
                 var colFeedback = dgvMisTickets.Columns["Feedback"];
                 if (colFeedback != null)
                 {
                     colFeedback.HeaderText = "Calificación / Feedback";
-                    colFeedback.Width = 160;
+                    colFeedback.FillWeight = 75;
+                    colFeedback.MinimumWidth = 110;
                 }
-
-                dgvMisTickets.AutoajustarAnchosMinimos();
             }
         }
 
         private void UcMisActivos_Click(object? sender, EventArgs e)
         {
             _vistaActual = _vistaActual == VistaCliente.Activos ? VistaCliente.Todos : VistaCliente.Activos;
+            sidebarCliente.SeleccionarItem(_vistaActual == VistaCliente.Activos ? "activos" : "");
+            topBarCliente.Titulo = _vistaActual == VistaCliente.Activos ? "Mis Tickets Activos" : "Todos Mis Tickets";
             _controladorPaginacion.ReiniciarAPrimeraPagina();
             MostrarPaginaActual();
         }
@@ -154,6 +228,8 @@ namespace HSis.UI.Forms.Dashboards
         private void UcMisCerrados_Click(object? sender, EventArgs e)
         {
             _vistaActual = _vistaActual == VistaCliente.Cerrados ? VistaCliente.Todos : VistaCliente.Cerrados;
+            sidebarCliente.SeleccionarItem(_vistaActual == VistaCliente.Cerrados ? "cerrados" : "");
+            topBarCliente.Titulo = _vistaActual == VistaCliente.Cerrados ? "Historial de Tickets Cerrados" : "Todos Mis Tickets";
             _controladorPaginacion.ReiniciarAPrimeraPagina();
             MostrarPaginaActual();
         }
@@ -196,24 +272,34 @@ namespace HSis.UI.Forms.Dashboards
             {
                 ucMisActivos.Cantidad = activos.ToString();
                 ucMisActivos.Titulo = "Mis Tickets Activos";
-                ucMisActivos.ColorFondo = Color.FromArgb(52, 152, 219); // Azul
+                ucMisActivos.ColorFondo = TemaVisual.TicketNuevo;
             }
 
             if (ucMisCerrados != null)
             {
                 ucMisCerrados.Cantidad = cerrados.ToString();
                 ucMisCerrados.Titulo = "Mis Tickets Cerrados";
-                ucMisCerrados.ColorFondo = Color.FromArgb(46, 204, 113); // Verde
+                ucMisCerrados.ColorFondo = TemaVisual.TicketCerrado;
             }
         }
 
         public void MostrarCargando(bool cargando)
         {
+            if (InvokeRequired)
+            {
+                Invoke(new Action(() => MostrarCargando(cargando)));
+                return;
+            }
             Cursor = cargando ? Cursors.WaitCursor : Cursors.Default;
         }
 
         public void MostrarError(string mensaje)
         {
+            if (InvokeRequired)
+            {
+                Invoke(new Action(() => MostrarError(mensaje)));
+                return;
+            }
             MessageBox.Show(mensaje, "Error en Dashboard de Cliente", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 

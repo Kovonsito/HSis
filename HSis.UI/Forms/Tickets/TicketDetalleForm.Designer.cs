@@ -48,8 +48,8 @@ partial class TicketDetalleForm
         lblCierre = new Label();
         txtCierre = new TextBox();
         cmbAtendido = new ComboBox();
-        btnGuardar = new Button();
-        btnCancelar = new Button();
+        btnGuardar = new HSis.UI.Controls.BotonModerno();
+        btnCancelar = new HSis.UI.Controls.BotonModerno();
         dgvHistorial = new DataGridView();
         lblPrioridad = new Label();
         cmbPrioridad = new ComboBox();
@@ -60,7 +60,7 @@ partial class TicketDetalleForm
         cmbEstrellas = new ComboBox();
         lblComentario = new Label();
         txtComentario = new TextBox();
-        btnEnviar = new Button();
+        btnEnviar = new HSis.UI.Controls.BotonModerno();
         lblResumen = new Label();
         lblComentarioLectura = new Label();
         tabControlTicket = new TabControl();
@@ -210,29 +210,29 @@ partial class TicketDetalleForm
         // btnGuardar
         // 
         btnGuardar.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-        btnGuardar.BackColor = Color.FromArgb(39, 174, 96);
-        btnGuardar.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
-        btnGuardar.ForeColor = Color.White;
-        btnGuardar.Location = new Point(504, 490);
+        btnGuardar.Estilo = EstiloBotonModerno.Exito;
+        btnGuardar.Icono = FontAwesome.Sharp.IconChar.FloppyDisk;
+        btnGuardar.IconoTamano = 14;
+        btnGuardar.Font = new Font("Segoe UI Semibold", 9.5F, FontStyle.Bold);
+        btnGuardar.Location = new Point(470, 488);
         btnGuardar.Name = "btnGuardar";
-        btnGuardar.Size = new Size(95, 30);
+        btnGuardar.Size = new Size(140, 36);
         btnGuardar.TabIndex = 19;
         btnGuardar.Text = "Guardar";
-        btnGuardar.UseVisualStyleBackColor = false;
         btnGuardar.Click += btnGuardar_Click;
         // 
         // btnCancelar
         // 
         btnCancelar.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-        btnCancelar.BackColor = Color.FromArgb(231, 76, 60);
-        btnCancelar.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
-        btnCancelar.ForeColor = Color.White;
-        btnCancelar.Location = new Point(609, 490);
+        btnCancelar.Estilo = EstiloBotonModerno.Secundario;
+        btnCancelar.Icono = FontAwesome.Sharp.IconChar.Xmark;
+        btnCancelar.IconoTamano = 14;
+        btnCancelar.Font = new Font("Segoe UI Semibold", 9.5F, FontStyle.Bold);
+        btnCancelar.Location = new Point(620, 488);
         btnCancelar.Name = "btnCancelar";
-        btnCancelar.Size = new Size(95, 30);
+        btnCancelar.Size = new Size(110, 36);
         btnCancelar.TabIndex = 20;
         btnCancelar.Text = "Cancelar";
-        btnCancelar.UseVisualStyleBackColor = false;
         btnCancelar.Click += btnCancelar_Click;
         // 
         // dgvHistorial
@@ -343,17 +343,15 @@ partial class TicketDetalleForm
         // 
         // btnEnviar
         // 
-        btnEnviar.BackColor = Color.FromArgb(52, 152, 219);
-        btnEnviar.FlatAppearance.BorderSize = 0;
-        btnEnviar.FlatStyle = FlatStyle.Flat;
-        btnEnviar.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-        btnEnviar.ForeColor = Color.White;
-        btnEnviar.Location = new Point(540, 72);
+        btnEnviar.Estilo = EstiloBotonModerno.Primario;
+        btnEnviar.Icono = FontAwesome.Sharp.IconChar.Star;
+        btnEnviar.IconoTamano = 14;
+        btnEnviar.Font = new Font("Segoe UI Semibold", 9.5F, FontStyle.Bold);
+        btnEnviar.Location = new Point(530, 70);
         btnEnviar.Name = "btnEnviar";
-        btnEnviar.Size = new Size(130, 30);
+        btnEnviar.Size = new Size(150, 36);
         btnEnviar.TabIndex = 4;
-        btnEnviar.Text = "Enviar";
-        btnEnviar.UseVisualStyleBackColor = false;
+        btnEnviar.Text = "Enviar Feedback";
         btnEnviar.Click += btnEnviarFeedback_Click;
         // 
         // lblResumen
@@ -495,8 +493,8 @@ partial class TicketDetalleForm
     private Label lblCierre;
     private TextBox txtCierre;
     private ComboBox cmbAtendido;
-    private Button btnGuardar;
-    private Button btnCancelar;
+    private HSis.UI.Controls.BotonModerno btnGuardar;
+    private HSis.UI.Controls.BotonModerno btnCancelar;
     private DataGridView dgvHistorial;
     private Label lblPrioridad;
     private ComboBox cmbPrioridad;
@@ -507,7 +505,7 @@ partial class TicketDetalleForm
     private ComboBox cmbEstrellas;
     private Label lblComentario;
     private TextBox txtComentario;
-    private Button btnEnviar;
+    private HSis.UI.Controls.BotonModerno btnEnviar;
     private Label lblResumen;
     private Label lblComentarioLectura;
     private TabControl tabControlTicket;

@@ -4,7 +4,9 @@ using HSis.Logic.Services;
 
 namespace HSis.UI.ApiClients
 {
+#pragma warning disable CS9113 // Parameter is required by AddHttpClient DI registration
     public class ReportExportApiClientService(HttpClient httpClient) : IReportExportService
+#pragma warning restore CS9113
     {
         private readonly ReportExportService _exportService = new();
 
