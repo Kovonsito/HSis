@@ -35,7 +35,8 @@ namespace HSis.UI.Helpers
                     col.HeaderText = encabezado;
                     if (ancho.HasValue)
                     {
-                        col.Width = ancho.Value;
+                        col.FillWeight = ancho.Value;
+                        col.MinimumWidth = Math.Min(ancho.Value, 75);
                     }
                 }
             }

@@ -32,6 +32,7 @@ namespace HSis.UI.Forms.Otros
         public void CargarHistorialKardex(List<VHistorialInventario> historial)
         {
             dgvKardex.DataSource = new ListaVinculableOrdenable<VHistorialInventario>(historial);
+            dgvKardex.AplicarTemaModerno();
 
             var col1 = dgvKardex.Columns["IdMovimientoUnico"];
             if (col1 != null) col1.Visible = false;
@@ -48,12 +49,22 @@ namespace HSis.UI.Forms.Otros
 
         public void MostrarError(string mensaje)
         {
+            if (InvokeRequired)
+            {
+                Invoke(new Action(() => MostrarError(mensaje)));
+                return;
+            }
             MessageBox.Show(mensaje, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
 
         public void MostrarCargando(bool cargando)
         {
+            if (InvokeRequired)
+            {
+                Invoke(new Action(() => MostrarCargando(cargando)));
+                return;
+            }
             cbMaterial.Enabled = !cargando;
             this.UseWaitCursor = cargando;
         }

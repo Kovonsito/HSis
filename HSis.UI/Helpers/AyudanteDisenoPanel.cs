@@ -9,23 +9,23 @@ namespace HSis.UI.Helpers
             {
                 Dock = DockStyle.Fill,
                 Name = "tblPrincipal",
-                RowCount = incluirFiltros ? 5 : 4,
+                RowCount = incluirFiltros ? 4 : 3,
                 ColumnCount = 1,
-                Size = tamanoCliente
+                Padding = new Padding(16, 12, 16, 10),
+                BackColor = Color.Transparent
             };
 
-            tbl.RowStyles.Add(new RowStyle(SizeType.AutoSize));       // Fila 0: Título (lblTitulo)
-            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 120F)); // Fila 1: Indicadores
+            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 105F)); // Fila 0: Indicadores (KPI Cards)
             if (incluirFiltros)
             {
-                tbl.RowStyles.Add(new RowStyle(SizeType.AutoSize));       // Fila 2: Panel de Filtros
-                tbl.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));  // Fila 3: Grid
-                tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 50F));  // Fila 4: Paginación
+                tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 74F));  // Fila 1: Barra de Filtros
+                tbl.RowStyles.Add(new RowStyle(SizeType.Percent, 100F)); // Fila 2: Grid
+                tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 48F));  // Fila 3: Paginación
             }
             else
             {
-                tbl.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));  // Fila 2: Grid
-                tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 50F));  // Fila 3: Paginación
+                tbl.RowStyles.Add(new RowStyle(SizeType.Percent, 100F)); // Fila 1: Grid
+                tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 48F));  // Fila 2: Paginación
             }
 
             return tbl;
@@ -39,7 +39,8 @@ namespace HSis.UI.Helpers
                 Name = nombre,
                 RowCount = 1,
                 ColumnCount = columnas,
-                Margin = new Padding(7, 0, 7, 0)
+                Margin = new Padding(0, 0, 0, 8),
+                BackColor = Color.Transparent
             };
 
             float percent = 100f / columnas;
@@ -52,7 +53,7 @@ namespace HSis.UI.Helpers
             {
                 var ctrl = controles[i];
                 ctrl.Dock = DockStyle.Fill;
-                ctrl.Margin = new Padding(5);
+                ctrl.Margin = new Padding(i == 0 ? 0 : 6, 0, i == controles.Length - 1 ? 0 : 6, 0);
                 tbl.Controls.Add(ctrl, i, 0);
             }
 
@@ -69,6 +70,7 @@ namespace HSis.UI.Helpers
                 }
             }
             padre.Controls.Add(tblPrincipal);
+            tblPrincipal.BringToFront();
         }
     }
 }
