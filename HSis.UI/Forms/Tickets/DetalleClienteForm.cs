@@ -53,22 +53,42 @@ namespace HSis.UI.Forms.Tickets
 
         public void MostrarError(string mensaje)
         {
+            if (InvokeRequired)
+            {
+                Invoke(new Action(() => MostrarError(mensaje)));
+                return;
+            }
             MessageBox.Show(mensaje, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
         public void MostrarExito(string mensaje)
         {
+            if (InvokeRequired)
+            {
+                Invoke(new Action(() => MostrarExito(mensaje)));
+                return;
+            }
             MessageBox.Show(mensaje, "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         public void CerrarFormulario()
         {
+            if (InvokeRequired)
+            {
+                Invoke(new Action(CerrarFormulario));
+                return;
+            }
             this.Close();
         }
 
 
         public void MostrarCargando(bool cargando)
         {
+            if (InvokeRequired)
+            {
+                Invoke(new Action(() => MostrarCargando(cargando)));
+                return;
+            }
             btnEnviar.Enabled = !cargando;
             this.UseWaitCursor = cargando;
         }

@@ -108,23 +108,43 @@ namespace HSis.UI.Forms.Tickets
 
         public void MostrarError(string mensaje)
         {
+            if (InvokeRequired)
+            {
+                Invoke(new Action(() => MostrarError(mensaje)));
+                return;
+            }
             MessageBox.Show(mensaje, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
         public void MostrarExito(string mensaje)
         {
+            if (InvokeRequired)
+            {
+                Invoke(new Action(() => MostrarExito(mensaje)));
+                return;
+            }
             MessageBox.Show(mensaje, "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
 
         public void CerrarFormulario()
         {
+            if (InvokeRequired)
+            {
+                Invoke(new Action(CerrarFormulario));
+                return;
+            }
             this.DialogResult = DialogResult.OK;
             this.Close();
         }
 
         public void MostrarCargando(bool cargando)
         {
+            if (InvokeRequired)
+            {
+                Invoke(new Action(() => MostrarCargando(cargando)));
+                return;
+            }
             btnGuardar.Enabled = !cargando;
             this.UseWaitCursor = cargando;
         }
@@ -215,12 +235,14 @@ namespace HSis.UI.Forms.Tickets
         {
             dgvHistorial.AutoGenerateColumns = true;
             dgvHistorial.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvHistorial.AplicarTemaModerno();
         }
 
         private void ConfigurarEstilosGridMateriales()
         {
             dgvMateriales.AutoGenerateColumns = true;
             dgvMateriales.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvMateriales.AplicarTemaModerno();
         }
         #endregion
     }

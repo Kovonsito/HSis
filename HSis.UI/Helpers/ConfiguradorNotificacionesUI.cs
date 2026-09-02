@@ -10,6 +10,34 @@ namespace HSis.UI.Helpers
     [SupportedOSPlatform("windows")]
     public static class ConfiguradorNotificacionesUI
     {
+        public static NotificacionesControl IntegrarNotificacionesModerno(
+            this Form formulario,
+            TopBarControl topBar,
+            NotificacionesPresenter presenter,
+            IFabricaFormularios fabricaFormularios,
+            IContextoSesion contextoSesion,
+            Func<Task>? callbackRecargaDatos = null)
+        {
+            var notifControl = new NotificacionesControl
+            {
+                Visible = false,
+                Width = 330,
+                Height = Math.Max(380, formulario.ClientSize.Height - topBar.Height - 30),
+                Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right,
+                Location = new Point(formulario.ClientSize.Width - 340, topBar.Height + 5)
+            };
+
+            notifControl.VincularTopBar(topBar);
+            notifControl.Configurar(presenter, fabricaFormularios, contextoSesion, callbackRecargaDatos);
+            formulario.Controls.Add(notifControl);
+            notifControl.BringToFront();
+
+            ConfigurarOcultarAlHacerClicFuera(formulario, notifControl);
+            formulario.FormClosed += (s, e) => presenter.DesconectarEvents();
+
+            return notifControl;
+        }
+
         public static NotificacionesControl IntegrarNotificaciones(
             this Form formulario,
             NotificacionesPresenter presenter,

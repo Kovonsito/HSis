@@ -1,4 +1,9 @@
 #nullable enable
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Windows.Forms;
 using HSis.UI.Helpers;
 
 namespace HSis.UI.Controls
@@ -10,10 +15,41 @@ namespace HSis.UI.Controls
         private bool _suspenderEventos = false;
 
         public event EventHandler? FiltroCambiado;
+        public event EventHandler? RecargarClic;
+        public event EventHandler? LimpiarClic;
 
         public FiltroGenericoControl()
         {
             InitializeComponent();
+            DoubleBuffered = true;
+            SetStyle(ControlStyles.SupportsTransparentBackColor | ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint, true);
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            var g = e.Graphics;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+
+            // Limpiar fondo con el color del padre
+            Color colorPadre = Parent?.BackColor ?? Color.FromArgb(248, 250, 252);
+            using (var brushPadre = new SolidBrush(colorPadre))
+            {
+                g.FillRectangle(brushPadre, 0, 0, Width, Height);
+            }
+
+            var rect = new Rectangle(0, 0, Width - 1, Height - 1);
+            using var path = TemaVisual.CrearRectanguloRedondeado(rect, 8);
+
+            // Fondo blanco de tarjeta
+            using (var brushFondo = new SolidBrush(Color.White))
+            {
+                g.FillPath(brushFondo, path);
+            }
+
+            // Borde sutil
+            using var penBorde = new Pen(Color.FromArgb(226, 232, 240), 1f);
+            g.DrawPath(penBorde, path);
         }
 
         public void InicializarFiltros(List<FiltroCampo> campos)
@@ -30,17 +66,19 @@ namespace HSis.UI.Controls
                     FlowDirection = FlowDirection.TopDown,
                     WrapContents = false,
                     Width = campo.Ancho,
-                    Height = 52,
-                    Margin = new Padding(5, 2, 5, 2)
+                    Height = 48,
+                    Margin = new Padding(4, 1, 4, 1),
+                    BackColor = Color.Transparent
                 };
 
                 var lbl = new Label
                 {
                     Text = campo.Etiqueta,
                     AutoSize = true,
-                    Font = new Font("Segoe UI", 10F, FontStyle.Regular),
-                    ForeColor = Color.FromArgb(75, 85, 99), // Slate gray style
-                    Margin = new Padding(0, 0, 0, 3)
+                    Font = new Font("Segoe UI Semibold", 8F, FontStyle.Bold),
+                    ForeColor = Color.FromArgb(100, 116, 139),
+                    Margin = new Padding(0, 0, 0, 2),
+                    BackColor = Color.Transparent
                 };
 
                 Control input;
@@ -49,8 +87,8 @@ namespace HSis.UI.Controls
                     case TipoFiltroControl.Texto:
                         var txt = new TextBox
                         {
-                            Width = campo.Ancho - 10,
-                            Font = new Font("Segoe UI", 10F)
+                            Width = campo.Ancho - 6,
+                            Font = new Font("Segoe UI", 9F)
                         };
                         txt.TextChanged += (s, e) => LanzarFiltroCambiado();
                         input = txt;
@@ -60,8 +98,8 @@ namespace HSis.UI.Controls
                         var cmb = new ComboBox
                         {
                             DropDownStyle = ComboBoxStyle.DropDownList,
-                            Width = campo.Ancho - 10,
-                            Font = new Font("Segoe UI", 10F)
+                            Width = campo.Ancho - 6,
+                            Font = new Font("Segoe UI", 9F)
                         };
                         if (campo.ValoresCombo != null)
                         {
@@ -76,8 +114,8 @@ namespace HSis.UI.Controls
                         var dtp = new DateTimePicker
                         {
                             Format = DateTimePickerFormat.Short,
-                            Width = campo.Ancho - 10,
-                            Font = new Font("Segoe UI", 10F)
+                            Width = campo.Ancho - 6,
+                            Font = new Font("Segoe UI", 9F)
                         };
                         if (campo.ValorDefecto is DateTime dt)
                         {
@@ -100,6 +138,12 @@ namespace HSis.UI.Controls
             }
 
             _suspenderEventos = false;
+        }
+
+        private void Limpiar_Click()
+        {
+            LimpiarFiltros(ConfiguracionFiltrosTickets.ObtenerValoresDefecto());
+            LimpiarClic?.Invoke(this, EventArgs.Empty);
         }
 
         public void ActualizarCombo(string nombrePropiedad, object dataSource, string displayMember, string valueMember)

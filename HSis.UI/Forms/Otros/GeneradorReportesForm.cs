@@ -34,17 +34,32 @@ namespace HSis.UI.Forms.Otros
 
         public void MostrarError(string mensaje)
         {
+            if (InvokeRequired)
+            {
+                Invoke(new Action(() => MostrarError(mensaje)));
+                return;
+            }
             MessageBox.Show(mensaje, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
         public void MostrarExito(string mensaje)
         {
+            if (InvokeRequired)
+            {
+                Invoke(new Action(() => MostrarExito(mensaje)));
+                return;
+            }
             MessageBox.Show(mensaje, "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
 
         public void MostrarCargando(bool cargando)
         {
+            if (InvokeRequired)
+            {
+                Invoke(new Action(() => MostrarCargando(cargando)));
+                return;
+            }
             btnExcel.Enabled = !cargando;
             btnPdf.Enabled = !cargando;
             this.Cursor = cargando ? Cursors.WaitCursor : Cursors.Default;

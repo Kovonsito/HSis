@@ -21,21 +21,50 @@ partial class DashboardClienteForm
 
     private void InitializeComponent()
     {
+        this.sidebarCliente = new HSis.UI.Controls.SidebarControl();
+        this.topBarCliente = new HSis.UI.Controls.TopBarControl();
+        this.pnlContenedorPrincipal = new Panel();
         this.lblTitulo = new Label();
         this.ucMisActivos = new HSis.UI.Controls.IndicadorControl();
         this.dgvMisTickets = new DataGridView();
-        this.btnNuevoReporte = new Button();
+        this.btnNuevoReporte = new HSis.UI.Controls.BotonModerno();
         ((System.ComponentModel.ISupportInitialize)(this.dgvMisTickets)).BeginInit();
+        this.pnlContenedorPrincipal.SuspendLayout();
         this.SuspendLayout();
+
+        // sidebarCliente
+        this.sidebarCliente.Dock = DockStyle.Left;
+        this.sidebarCliente.Location = new Point(0, 0);
+        this.sidebarCliente.Name = "sidebarCliente";
+        this.sidebarCliente.Size = new Size(240, 720);
+        this.sidebarCliente.TabIndex = 0;
+
+        // topBarCliente
+        this.topBarCliente.Dock = DockStyle.Top;
+        this.topBarCliente.Location = new Point(0, 0);
+        this.topBarCliente.Name = "topBarCliente";
+        this.topBarCliente.Size = new Size(960, 64);
+        this.topBarCliente.TabIndex = 0;
+        this.topBarCliente.Titulo = "Mi Portal de Soporte";
+        this.topBarCliente.Subtitulo = "Seguimiento y Registro de Solicitudes";
+
+        // pnlContenedorPrincipal
+        this.pnlContenedorPrincipal.Controls.Add(this.topBarCliente);
+        this.pnlContenedorPrincipal.Dock = DockStyle.Fill;
+        this.pnlContenedorPrincipal.Location = new Point(240, 0);
+        this.pnlContenedorPrincipal.Name = "pnlContenedorPrincipal";
+        this.pnlContenedorPrincipal.Size = new Size(960, 720);
+        this.pnlContenedorPrincipal.TabIndex = 1;
 
         // lblTitulo
         this.lblTitulo.AutoSize = true;
-        this.lblTitulo.Font = new Font("Segoe UI", 18F, FontStyle.Bold);
-        this.lblTitulo.Location = new Point(12, 9);
+        this.lblTitulo.Font = new Font("Segoe UI", 16F, FontStyle.Bold);
+        this.lblTitulo.ForeColor = Color.FromArgb(15, 23, 42);
+        this.lblTitulo.Location = new Point(12, 10);
         this.lblTitulo.Name = "lblTitulo";
-        this.lblTitulo.Size = new Size(341, 32);
+        this.lblTitulo.Size = new Size(270, 30);
         this.lblTitulo.TabIndex = 0;
-        this.lblTitulo.Text = "Mi Panel - Mis Reportes";
+        this.lblTitulo.Text = "Mis Solicitudes y Tickets";
 
         // ucMisActivos
         this.ucMisActivos.Location = new Point(12, 50);
@@ -44,15 +73,15 @@ partial class DashboardClienteForm
         this.ucMisActivos.TabIndex = 1;
 
         // btnNuevoReporte
-        this.btnNuevoReporte.BackColor = Color.FromArgb(52, 152, 219);
-        this.btnNuevoReporte.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
-        this.btnNuevoReporte.ForeColor = Color.White;
-        this.btnNuevoReporte.Location = new Point(220, 70);
+        this.btnNuevoReporte.Estilo = EstiloBotonModerno.Primario;
+        this.btnNuevoReporte.Icono = FontAwesome.Sharp.IconChar.Plus;
+        this.btnNuevoReporte.IconoTamano = 16;
+        this.btnNuevoReporte.Font = new Font("Segoe UI Semibold", 10.5F, FontStyle.Bold);
+        this.btnNuevoReporte.Location = new Point(10, 25);
         this.btnNuevoReporte.Name = "btnNuevoReporte";
-        this.btnNuevoReporte.Size = new Size(150, 60);
+        this.btnNuevoReporte.Size = new Size(180, 48);
         this.btnNuevoReporte.TabIndex = 2;
-        this.btnNuevoReporte.Text = "+ Nuevo Reporte";
-        this.btnNuevoReporte.UseVisualStyleBackColor = false;
+        this.btnNuevoReporte.Text = "Nuevo Reporte";
         this.btnNuevoReporte.Click += new EventHandler(this.btnNuevoReporte_Click);
 
         // dgvMisTickets
@@ -64,75 +93,75 @@ partial class DashboardClienteForm
         this.dgvMisTickets.Location = new Point(12, 170);
         this.dgvMisTickets.Name = "dgvMisTickets";
         this.dgvMisTickets.ReadOnly = true;
-        dgvMisTickets.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-        this.dgvMisTickets.Size = new Size(760, 280);
+        this.dgvMisTickets.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+        this.dgvMisTickets.Size = new Size(936, 400);
         this.dgvMisTickets.TabIndex = 3;
         this.dgvMisTickets.CellDoubleClick += new DataGridViewCellEventHandler(this.dgvMisTickets_CellDoubleClick);
 
         // DashboardClienteForm
         this.AutoScaleDimensions = new SizeF(7F, 15F);
         this.AutoScaleMode = AutoScaleMode.Font;
-        this.ClientSize = new Size(1100, 700);
-        this.MinimumSize = new Size(1030, 680);
-        this.Controls.Add(this.dgvMisTickets);
-        this.Controls.Add(this.btnNuevoReporte);
-        this.Controls.Add(this.ucMisActivos);
-        this.Controls.Add(this.lblTitulo);
+        this.BackColor = Color.FromArgb(248, 250, 252);
+        this.ClientSize = new Size(1200, 720);
+        this.MinimumSize = new Size(1100, 700);
+        this.Controls.Add(this.pnlContenedorPrincipal);
+        this.Controls.Add(this.sidebarCliente);
         this.Name = "DashboardClienteForm";
         this.StartPosition = FormStartPosition.CenterScreen;
-        this.Text = "Dashboard - Cliente";
+        this.Text = "HSis Support - Mi Portal";
         this.Load += new EventHandler(this.frmDashboardCliente_Load);
         ((System.ComponentModel.ISupportInitialize)(this.dgvMisTickets)).EndInit();
+        this.pnlContenedorPrincipal.ResumeLayout(false);
         this.ResumeLayout(false);
-        this.PerformLayout();
     }
 
+    private HSis.UI.Controls.SidebarControl sidebarCliente;
+    private HSis.UI.Controls.TopBarControl topBarCliente;
+    private Panel pnlContenedorPrincipal;
     private Label lblTitulo;
     private HSis.UI.Controls.IndicadorControl ucMisActivos;
     private DataGridView dgvMisTickets;
-    private Button btnNuevoReporte;
+    private HSis.UI.Controls.BotonModerno btnNuevoReporte;
+    private HSis.UI.Controls.FiltroGenericoControl filtroCliente = null!;
 
     private void InicializarLayoutDashboard()
     {
-        // Instanciar control de paginación
         PaginacionControl = new PaginacionControl
-        {
-            Dock = DockStyle.Fill,
-            Margin = new Padding(12, 0, 12, 6)
-        };
-
-        // Instanciar indicador de cerrados
-        ucMisCerrados = new IndicadorControl();
-
-        // Suscribir eventos de filtrado
-        ucMisActivos.IndicadorClic += UcMisActivos_Click;
-        ucMisCerrados.IndicadorClic += UcMisCerrados_Click;
-
-        var tblPrincipal = AyudanteDisenoPanel.CrearPanelPrincipal(this.ClientSize, false);
-
-        // Panel contenedor para centrar verticalmente el botón
-        var pnlBoton = new Panel
         {
             Dock = DockStyle.Fill,
             Margin = new Padding(0)
         };
-        btnNuevoReporte.Location = new Point(10, 25);
-        pnlBoton.Controls.Add(btnNuevoReporte);
 
-        var tblIndicadores = AyudanteDisenoPanel.CrearPanelIndicadores("tblCabecera", 3, ucMisActivos, ucMisCerrados, pnlBoton);
+        ucMisCerrados = new IndicadorControl();
+        ucMisActivos.IndicadorClic += UcMisActivos_Click;
+        ucMisCerrados.IndicadorClic += UcMisCerrados_Click;
 
-        // Configurar el título y el grid principal para que se estiren
-        lblTitulo.Dock = DockStyle.Fill;
-        lblTitulo.Margin = new Padding(12, 10, 12, 10);
+        btnNuevoReporte.Dock = DockStyle.Fill;
+        btnNuevoReporte.Margin = new Padding(5, 0, 0, 0);
+
+        var tblIndicadores = AyudanteDisenoPanel.CrearPanelIndicadores("tblCabeceraCliente", 3, ucMisActivos, ucMisCerrados, btnNuevoReporte);
+
+        filtroCliente = new FiltroGenericoControl
+        {
+            Dock = DockStyle.Fill,
+            Margin = new Padding(0, 4, 0, 4)
+        };
+        filtroCliente.RecargarClic += (s, e) => _ = CargarDatosDashboardAsync();
+        filtroCliente.LimpiarClic += (s, e) =>
+        {
+            _controladorPaginacion.ReiniciarAPrimeraPagina();
+            MostrarPaginaActual();
+        };
 
         dgvMisTickets.Dock = DockStyle.Fill;
-        dgvMisTickets.Margin = new Padding(12, 10, 12, 12);
+        dgvMisTickets.Margin = new Padding(0, 4, 0, 6);
 
-        tblPrincipal.Controls.Add(lblTitulo, 0, 0);
-        tblPrincipal.Controls.Add(tblIndicadores, 0, 1);
+        var tblPrincipal = AyudanteDisenoPanel.CrearPanelPrincipal(pnlContenedorPrincipal.ClientSize, true);
+        tblPrincipal.Controls.Add(tblIndicadores, 0, 0);
+        tblPrincipal.Controls.Add(filtroCliente, 0, 1);
         tblPrincipal.Controls.Add(dgvMisTickets, 0, 2);
         tblPrincipal.Controls.Add(PaginacionControl, 0, 3);
 
-        AyudanteDisenoPanel.ReubicarControles(this, tblPrincipal, lblTitulo, ucMisActivos, btnNuevoReporte, dgvMisTickets);
+        AyudanteDisenoPanel.ReubicarControles(pnlContenedorPrincipal, tblPrincipal, lblTitulo, ucMisActivos, btnNuevoReporte, dgvMisTickets);
     }
 }

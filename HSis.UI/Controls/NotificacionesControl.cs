@@ -14,6 +14,7 @@ namespace HSis.UI.Controls
         private IContextoSesion? _contextoSesion;
         private Func<Task>? _callbackRecargaDatos;
         private ToolStripMenuItem? _itemCampana;
+        private TopBarControl? _topBar;
 
         public NotificacionesControl()
         {
@@ -33,6 +34,12 @@ namespace HSis.UI.Controls
 
             _presenter.SetView(this);
             _ = _presenter.CargarHistorialAsync();
+        }
+
+        public void VincularTopBar(TopBarControl topBar)
+        {
+            _topBar = topBar;
+            _topBar.NotificacionesClic += (s, e) => AlternarVisibilidad();
         }
 
         public void VincularItemMenu(ToolStripMenuItem itemCampana)
@@ -62,6 +69,11 @@ namespace HSis.UI.Controls
             {
                 BeginInvoke(new Action(() => ActualizarInsigniaCampana(noLeidas)));
                 return;
+            }
+
+            if (_topBar != null)
+            {
+                _topBar.NotificacionesNoLeidas = noLeidas;
             }
 
             if (_itemCampana != null)
@@ -97,7 +109,14 @@ namespace HSis.UI.Controls
         {
             if (_callbackRecargaDatos != null)
             {
-                await _callbackRecargaDatos();
+                if (InvokeRequired)
+                {
+                    await Task.Run(() => Invoke(new Action(async () => await _callbackRecargaDatos())));
+                }
+                else
+                {
+                    await _callbackRecargaDatos();
+                }
             }
         }
 

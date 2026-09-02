@@ -12,24 +12,32 @@ namespace HSis.UI.Helpers
         public static List<FiltroCampo> ObtenerCamposAdmin()
         {
             return [
-                new() { NombrePropiedad = "Estatus", Etiqueta = "Estatus:", Tipo = TipoFiltroControl.ComboSeleccion, ValoresCombo = ["Todos", "Nuevos", "Urgentes", "Abierto", "En Proceso", "Cerrado", "Reabierto"], Ancho = 130 },
-                new() { NombrePropiedad = "Prioridad", Etiqueta = "Prioridad:", Tipo = TipoFiltroControl.ComboSeleccion, ValoresCombo = ["Todos", ConstantesPrioridad.ALTA, ConstantesPrioridad.MEDIA, ConstantesPrioridad.BAJA, ConstantesPrioridad.URGENTE], Ancho = 130 },
-                new() { NombrePropiedad = "Tecnico", Etiqueta = "Técnico:", Tipo = TipoFiltroControl.ComboSeleccion, Ancho = 160 },
-                new() { NombrePropiedad = "Usuario", Etiqueta = "Usuario Emisor:", Tipo = TipoFiltroControl.Texto, Ancho = 160 },
-                new() { NombrePropiedad = "Temporal", Etiqueta = "Vista Temporal:", Tipo = TipoFiltroControl.ComboSeleccion, ValoresCombo = ["Todos", "Día", "Semana", "Mes", "Año"], Ancho = 130 },
-                new() { NombrePropiedad = "FechaInicio", Etiqueta = "Desde:", Tipo = TipoFiltroControl.Fecha, Ancho = 130, ValorDefecto = DateTime.Today.AddDays(-30) },
-                new() { NombrePropiedad = "FechaFin", Etiqueta = "Hasta:", Tipo = TipoFiltroControl.Fecha, Ancho = 130, ValorDefecto = DateTime.Today.AddDays(1).AddTicks(-1) }
+                new() { NombrePropiedad = "Estatus", Etiqueta = "Estatus:", Tipo = TipoFiltroControl.ComboSeleccion, ValoresCombo = ["Todos", "Nuevos", "Urgentes", "Abierto", "En Proceso", "Cerrado", "Reabierto"], Ancho = 115 },
+                new() { NombrePropiedad = "Prioridad", Etiqueta = "Prioridad:", Tipo = TipoFiltroControl.ComboSeleccion, ValoresCombo = ["Todos", ConstantesPrioridad.ALTA, ConstantesPrioridad.MEDIA, ConstantesPrioridad.BAJA, ConstantesPrioridad.URGENTE], Ancho = 110 },
+                new() { NombrePropiedad = "Tecnico", Etiqueta = "Técnico:", Tipo = TipoFiltroControl.ComboSeleccion, Ancho = 130 },
+                new() { NombrePropiedad = "Usuario", Etiqueta = "Solicitante:", Tipo = TipoFiltroControl.Texto, Ancho = 120 },
+                new() { NombrePropiedad = "FechaInicio", Etiqueta = "Desde:", Tipo = TipoFiltroControl.Fecha, Ancho = 110, ValorDefecto = DateTime.Today.AddDays(-30) },
+                new() { NombrePropiedad = "FechaFin", Etiqueta = "Hasta:", Tipo = TipoFiltroControl.Fecha, Ancho = 110, ValorDefecto = DateTime.Today.AddDays(1).AddTicks(-1) }
             ];
         }
 
         public static List<FiltroCampo> ObtenerCamposTecnico()
         {
             return [
-                new() { NombrePropiedad = "Estatus", Etiqueta = "Estatus:", Tipo = TipoFiltroControl.ComboSeleccion, ValoresCombo = ["Todos", "Abierto", "En Proceso", "Cerrado", "Reabierto"], Ancho = 130 },
-                new() { NombrePropiedad = "Prioridad", Etiqueta = "Prioridad:", Tipo = TipoFiltroControl.ComboSeleccion, ValoresCombo = ["Todos", ConstantesPrioridad.ALTA, ConstantesPrioridad.MEDIA, ConstantesPrioridad.BAJA, ConstantesPrioridad.URGENTE], Ancho = 130 },
-                new() { NombrePropiedad = "Usuario", Etiqueta = "Usuario Emisor:", Tipo = TipoFiltroControl.Texto, Ancho = 160 },
-                new() { NombrePropiedad = "FechaInicio", Etiqueta = "Desde:", Tipo = TipoFiltroControl.Fecha, Ancho = 130, ValorDefecto = DateTime.Today.AddDays(-30) },
-                new() { NombrePropiedad = "FechaFin", Etiqueta = "Hasta:", Tipo = TipoFiltroControl.Fecha, Ancho = 130, ValorDefecto = DateTime.Today.AddDays(1).AddTicks(-1) }
+                new() { NombrePropiedad = "Texto", Etiqueta = "Buscar (Folio/Asunto):", Tipo = TipoFiltroControl.Texto, Ancho = 160 },
+                new() { NombrePropiedad = "Prioridad", Etiqueta = "Prioridad:", Tipo = TipoFiltroControl.ComboSeleccion, ValoresCombo = ["Todos", ConstantesPrioridad.ALTA, ConstantesPrioridad.MEDIA, ConstantesPrioridad.BAJA, ConstantesPrioridad.URGENTE], Ancho = 110 },
+                new() { NombrePropiedad = "Usuario", Etiqueta = "Solicitante:", Tipo = TipoFiltroControl.Texto, Ancho = 130 },
+                new() { NombrePropiedad = "FechaInicio", Etiqueta = "Desde:", Tipo = TipoFiltroControl.Fecha, Ancho = 110, ValorDefecto = DateTime.Today.AddDays(-30) },
+                new() { NombrePropiedad = "FechaFin", Etiqueta = "Hasta:", Tipo = TipoFiltroControl.Fecha, Ancho = 110, ValorDefecto = DateTime.Today.AddDays(1).AddTicks(-1) }
+            ];
+        }
+
+        public static List<FiltroCampo> ObtenerCamposCliente()
+        {
+            return [
+                new() { NombrePropiedad = "Texto", Etiqueta = "Buscar (Folio/Problema):", Tipo = TipoFiltroControl.Texto, Ancho = 200 },
+                new() { NombrePropiedad = "FechaInicio", Etiqueta = "Desde:", Tipo = TipoFiltroControl.Fecha, Ancho = 115, ValorDefecto = DateTime.Today.AddDays(-60) },
+                new() { NombrePropiedad = "FechaFin", Etiqueta = "Hasta:", Tipo = TipoFiltroControl.Fecha, Ancho = 115, ValorDefecto = DateTime.Today.AddDays(1).AddTicks(-1) }
             ];
         }
 
@@ -37,6 +45,10 @@ namespace HSis.UI.Helpers
         {
             return new Dictionary<string, object?>
             {
+                { "Texto", string.Empty },
+                { "Estatus", "Todos" },
+                { "Prioridad", "Todos" },
+                { "Usuario", string.Empty },
                 { "FechaInicio", DateTime.Today.AddDays(-30) },
                 { "FechaFin", DateTime.Today.AddDays(1).AddTicks(-1) }
             };
