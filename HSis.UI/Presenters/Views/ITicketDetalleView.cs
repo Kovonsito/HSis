@@ -1,4 +1,3 @@
-using HSis.Data.Models;
 using HSis.Logic.DTOs;
 
 namespace HSis.UI.Presenters
@@ -6,7 +5,7 @@ namespace HSis.UI.Presenters
     public interface ITicketDetalleView
     {
         void MostrarTicket(TicketDto ticket);
-        void CargarTecnicos(List<Usuario> tecnicos, int? idTecnicoActual, bool esAdmin);
+        void CargarTecnicos(List<UsuarioDto> tecnicos, int? idTecnicoActual, bool esAdmin);
         void CargarEstatusPermitidos(List<string> estatusPermitidos, string estatusActual);
         void CargarHistorial(List<HistorialCambiosDto> historial);
         void CargarDetallesMaterial(List<TicketDetalleDto> detalles);
@@ -16,4 +15,3 @@ namespace HSis.UI.Presenters
         void MostrarCargando(bool cargando);
     }
 }
-

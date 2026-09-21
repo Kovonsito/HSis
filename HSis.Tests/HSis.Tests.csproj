@@ -26,6 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\HSis.Contracts\HSis.Contracts.csproj" />
     <ProjectReference Include="..\HSis.Data\HSis.Data.csproj" />
     <ProjectReference Include="..\HSis.Logic\HSis.Logic.csproj" />
   </ItemGroup>

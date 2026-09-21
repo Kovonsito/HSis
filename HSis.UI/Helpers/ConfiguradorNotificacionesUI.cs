@@ -18,14 +18,26 @@ namespace HSis.UI.Helpers
             IContextoSesion contextoSesion,
             Func<Task>? callbackRecargaDatos = null)
         {
+            int ancho = 360;
+            int alto = Math.Min(480, Math.Max(320, formulario.ClientSize.Height - topBar.Height - 40));
+
             var notifControl = new NotificacionesControl
             {
                 Visible = false,
-                Width = 330,
-                Height = Math.Max(380, formulario.ClientSize.Height - topBar.Height - 30),
-                Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right,
-                Location = new Point(formulario.ClientSize.Width - 340, topBar.Height + 5)
+                Width = ancho,
+                Height = alto,
+                Anchor = AnchorStyles.Top | AnchorStyles.Right,
+                Location = new Point(Math.Max(10, formulario.ClientSize.Width - ancho - 20), topBar.Height + 6)
             };
+
+            void Reposicionar()
+            {
+                notifControl.Location = new Point(Math.Max(10, formulario.ClientSize.Width - notifControl.Width - 20), topBar.Height + 6);
+                notifControl.BringToFront();
+            }
+
+            formulario.Resize += (s, e) => Reposicionar();
+            topBar.NotificacionesClic += (s, e) => Reposicionar();
 
             notifControl.VincularTopBar(topBar);
             notifControl.Configurar(presenter, fabricaFormularios, contextoSesion, callbackRecargaDatos);

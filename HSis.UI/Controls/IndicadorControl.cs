@@ -20,7 +20,7 @@ namespace HSis.UI.Controls
         {
             InitializeComponent();
             DoubleBuffered = true;
-            SetStyle(ControlStyles.SupportsTransparentBackColor | ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint, true);
+            SetStyle(ControlStyles.SupportsTransparentBackColor | ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.ResizeRedraw, true);
 
             MouseEnter += (s, e) => { _isHovered = true; Invalidate(); };
             MouseLeave += (s, e) => { _isHovered = false; Invalidate(); };
@@ -86,7 +86,9 @@ namespace HSis.UI.Controls
             g.SmoothingMode = SmoothingMode.AntiAlias;
 
             // Limpiar fondo con el color del padre
-            Color colorPadre = Parent?.BackColor ?? Color.FromArgb(248, 250, 252);
+            Color colorPadre = (Parent?.BackColor != null && Parent.BackColor != Color.Transparent && Parent.BackColor.A > 0)
+                ? Parent.BackColor
+                : TemaVisual.FondoApp;
             using (var brushPadre = new SolidBrush(colorPadre))
             {
                 g.FillRectangle(brushPadre, 0, 0, Width, Height);
@@ -131,18 +133,20 @@ namespace HSis.UI.Controls
             int height = ClientSize.Height;
             if (width <= 0 || height <= 0) return;
 
-            // 1. Título arriba a la izquierda
-            lblTitulo.Location = new Point(18, 14);
-            lblTitulo.MaximumSize = new Size(Math.Max(10, width - 68), 18);
-
-            // 2. Ícono arriba a la derecha
-            int iconSide = 36;
+            // 1. Ícono arriba a la derecha escalable
+            int iconSide = width < 140 ? 24 : (width < 180 ? 28 : 34);
             pbxIcono.Size = new Size(iconSide, iconSide);
-            pbxIcono.Location = new Point(width - iconSide - 16, 14);
+            pbxIcono.Location = new Point(Math.Max(10, width - iconSide - 12), 10);
 
-            // 3. Cantidad grande abajo a la izquierda
-            lblCantidad.Font = new Font("Segoe UI", 22F, FontStyle.Bold);
-            lblCantidad.Location = new Point(18, 40);
+            // 2. Título arriba a la izquierda
+            lblTitulo.Font = new Font("Segoe UI Semibold", width < 140 ? 7F : 8F, FontStyle.Bold);
+            lblTitulo.Location = new Point(14, 12);
+            lblTitulo.MaximumSize = new Size(Math.Max(10, width - iconSide - 24), 16);
+
+            // 3. Cantidad grande abajo a la izquierda escalable
+            float fontCant = width < 140 ? 15F : (width < 180 ? 18F : 22F);
+            lblCantidad.Font = new Font("Segoe UI", fontCant, FontStyle.Bold);
+            lblCantidad.Location = new Point(14, 34);
         }
 
         private void Indicador_Click(object? sender, EventArgs e)

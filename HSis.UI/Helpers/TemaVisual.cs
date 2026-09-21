@@ -100,7 +100,9 @@ namespace HSis.UI.Helpers
             // Fila de encabezado
             dgv.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
             dgv.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(241, 245, 249); // #F1F5F9
-            dgv.ColumnHeadersDefaultCellStyle.ForeColor = TextoSecundario;
+            dgv.ColumnHeadersDefaultCellStyle.ForeColor = Color.FromArgb(71, 85, 105);   // Slate-600
+            dgv.ColumnHeadersDefaultCellStyle.SelectionBackColor = Color.FromArgb(241, 245, 249);
+            dgv.ColumnHeadersDefaultCellStyle.SelectionForeColor = Color.FromArgb(71, 85, 105);
             dgv.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 9.5f, FontStyle.Bold);
             dgv.ColumnHeadersDefaultCellStyle.Padding = new Padding(12, 10, 12, 10);
             dgv.ColumnHeadersHeight = 44;
@@ -127,8 +129,24 @@ namespace HSis.UI.Helpers
 
         private static void Dgv_CellPainting(object? sender, DataGridViewCellPaintingEventArgs e)
         {
-            if (e.RowIndex < 0 || e.ColumnIndex < 0 || sender is not DataGridView dgv || e.Graphics == null)
+            if (e.ColumnIndex < 0 || sender is not DataGridView dgv || e.Graphics == null)
                 return;
+
+            // 1. Evitar resaltado estridente en encabezados de columna
+            if (e.RowIndex == -1)
+            {
+                using var brushH = new SolidBrush(Color.FromArgb(241, 245, 249));
+                e.Graphics.FillRectangle(brushH, e.CellBounds);
+
+                using var penBorder = new Pen(BordeSutil, 1f);
+                e.Graphics.DrawLine(penBorder, e.CellBounds.Left, e.CellBounds.Bottom - 1, e.CellBounds.Right, e.CellBounds.Bottom - 1);
+
+                e.Paint(e.CellBounds, DataGridViewPaintParts.ContentForeground | DataGridViewPaintParts.ContentBackground);
+                e.Handled = true;
+                return;
+            }
+
+            if (e.RowIndex < 0) return;
 
             string colName = dgv.Columns[e.ColumnIndex].Name.ToLowerInvariant();
             if (colName.Contains("estatus") || colName.Contains("prioridad") || colName.Contains("status"))

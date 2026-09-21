@@ -1,7 +1,10 @@
 #nullable enable
+using System.Drawing.Drawing2D;
 using System.Runtime.Versioning;
+using FontAwesome.Sharp;
 using HSis.Logic.Services;
 using HSis.UI.Factories;
+using HSis.UI.Helpers;
 using HSis.UI.Presenters;
 
 namespace HSis.UI.Controls
@@ -19,6 +22,7 @@ namespace HSis.UI.Controls
         public NotificacionesControl()
         {
             InitializeComponent();
+            SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.ResizeRedraw, true);
         }
 
         public void Configurar(
@@ -60,7 +64,16 @@ namespace HSis.UI.Controls
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
-            ControlPaint.DrawBorder(e.Graphics, ClientRectangle, Color.FromArgb(200, 205, 215), ButtonBorderStyle.Solid);
+            var g = e.Graphics;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+
+            // Borde exterior moderno tipo tarjeta elevada
+            using var penBorder = new Pen(Color.FromArgb(203, 213, 225), 1f);
+            g.DrawRectangle(penBorder, 0, 0, Width - 1, Height - 1);
+
+            // Línea divisoria bajo el header
+            using var penHeader = new Pen(Color.FromArgb(226, 232, 240), 1f);
+            g.DrawLine(penHeader, 0, pnlHeader.Height, Width, pnlHeader.Height);
         }
 
         public void ActualizarInsigniaCampana(int noLeidas)
@@ -76,11 +89,16 @@ namespace HSis.UI.Controls
                 _topBar.NotificacionesNoLeidas = noLeidas;
             }
 
+            if (lblBadgeCount != null)
+            {
+                lblBadgeCount.Visible = noLeidas > 0;
+                lblBadgeCount.Text = noLeidas > 99 ? "99+" : noLeidas.ToString();
+            }
+
             if (_itemCampana != null)
             {
-                _itemCampana.Text = noLeidas > 0 ? $"🔔 ({noLeidas}) 🔴" : $"🔔 ({noLeidas})";
-                _itemCampana.ForeColor = noLeidas > 0 ? Color.Red : Color.Black;
-                _itemCampana.Font = new Font("Segoe UI", 10F, noLeidas > 0 ? FontStyle.Bold : FontStyle.Regular);
+                _itemCampana.Text = noLeidas > 0 ? $"🔔 ({noLeidas})" : "🔔";
+                _itemCampana.ForeColor = noLeidas > 0 ? Color.FromArgb(220, 38, 38) : Color.FromArgb(71, 85, 105);
             }
         }
 
@@ -92,17 +110,66 @@ namespace HSis.UI.Controls
                 return;
             }
 
+            flpNotificaciones.SuspendLayout();
             flpNotificaciones.Controls.Clear();
-            foreach (var notif in notificaciones)
+
+            var lista = notificaciones.ToList();
+            if (lista.Count == 0)
             {
-                var pnlItem = CrearItemNotificacion(notif);
-                flpNotificaciones.Controls.Add(pnlItem);
+                var pnlVacio = new Panel
+                {
+                    Width = flpNotificaciones.ClientSize.Width - 24,
+                    Height = 220,
+                    BackColor = Color.Transparent
+                };
+
+                var picVacio = new PictureBox
+                {
+                    Image = IconChar.BellSlash.ToBitmap(Color.FromArgb(148, 163, 184), 36),
+                    SizeMode = PictureBoxSizeMode.CenterImage,
+                    Size = new Size(50, 50),
+                    Location = new Point((pnlVacio.Width - 50) / 2, 45)
+                };
+
+                var lblVacio = new Label
+                {
+                    Text = "No tienes notificaciones",
+                    Font = new Font("Segoe UI", 10F, FontStyle.Bold),
+                    ForeColor = Color.FromArgb(71, 85, 105),
+                    TextAlign = ContentAlignment.MiddleCenter,
+                    Location = new Point(10, 105),
+                    Size = new Size(pnlVacio.Width - 20, 24)
+                };
+
+                var lblSubVacio = new Label
+                {
+                    Text = "Te avisaremos cuando ocurran actualizaciones.",
+                    Font = new Font("Segoe UI", 8.5F, FontStyle.Regular),
+                    ForeColor = Color.FromArgb(148, 163, 184),
+                    TextAlign = ContentAlignment.MiddleCenter,
+                    Location = new Point(10, 130),
+                    Size = new Size(pnlVacio.Width - 20, 20)
+                };
+
+                pnlVacio.Controls.Add(picVacio);
+                pnlVacio.Controls.Add(lblVacio);
+                pnlVacio.Controls.Add(lblSubVacio);
+                flpNotificaciones.Controls.Add(pnlVacio);
             }
+            else
+            {
+                foreach (var notif in lista)
+                {
+                    var pnlItem = CrearItemNotificacion(notif);
+                    flpNotificaciones.Controls.Add(pnlItem);
+                }
+            }
+
+            flpNotificaciones.ResumeLayout();
         }
 
         public void ActualizarEstadoConexion(bool conectado, string mensaje, Color colorFondo)
         {
-            // Opcionalmente propagar al banner si está incrustado o delegate
         }
 
         public async Task RecargarDatosHostAsync()
@@ -136,51 +203,105 @@ namespace HSis.UI.Controls
 
         private Panel CrearItemNotificacion(NotificacionLocal notif)
         {
+            int itemW = Math.Max(flpNotificaciones.ClientSize.Width - 26, 300);
+            int itemH = 76;
+
             var pnlItem = new Panel
             {
-                Width = flpNotificaciones.ClientSize.Width - 10,
-                Height = 85,
-                BackColor = notif.Leido ? Color.White : Color.FromArgb(235, 245, 251),
-                Padding = new Padding(8),
+                Width = itemW,
+                Height = itemH,
+                BackColor = notif.Leido ? Color.White : Color.FromArgb(248, 250, 252),
                 Margin = new Padding(0, 0, 0, 8),
                 Cursor = Cursors.Hand
             };
 
+            bool isHovered = false;
+
             pnlItem.Paint += (s, e) =>
             {
-                ControlPaint.DrawBorder(e.Graphics, pnlItem.ClientRectangle, Color.FromArgb(220, 224, 230), ButtonBorderStyle.Solid);
+                var g = e.Graphics;
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+
+                // Borde redondeado sutil
+                var rect = new Rectangle(0, 0, pnlItem.Width - 1, pnlItem.Height - 1);
+                using var path = TemaVisual.CrearRectanguloRedondeado(rect, 8);
+
+                Color bg = isHovered
+                    ? Color.FromArgb(241, 245, 249)
+                    : (notif.Leido ? Color.White : Color.FromArgb(248, 250, 252));
+
+                using var brushBg = new SolidBrush(bg);
+                g.FillPath(brushBg, path);
+
+                using var penBorder = new Pen(notif.Leido ? Color.FromArgb(226, 232, 240) : Color.FromArgb(191, 219, 254), 1f);
+                g.DrawPath(penBorder, path);
+
+                // Barra de acento izquierda si no está leída
                 if (!notif.Leido)
                 {
-                    using var brush = new SolidBrush(Color.FromArgb(52, 152, 219));
-                    e.Graphics.FillEllipse(brush, pnlItem.Width - 15, 8, 8, 8);
+                    using var brushAccent = new SolidBrush(Color.FromArgb(37, 99, 235));
+                    g.FillRectangle(brushAccent, 0, 6, 4, pnlItem.Height - 12);
+
+                    // Indicador punto azul
+                    using var brushDot = new SolidBrush(Color.FromArgb(37, 99, 235));
+                    g.FillEllipse(brushDot, pnlItem.Width - 16, 12, 8, 8);
                 }
+            };
+
+            pnlItem.MouseEnter += (s, e) => { isHovered = true; pnlItem.Invalidate(); };
+            pnlItem.MouseLeave += (s, e) => { isHovered = false; pnlItem.Invalidate(); };
+
+            // Icono FontAwesome
+            var picIcon = new PictureBox
+            {
+                Size = new Size(24, 24),
+                Location = new Point(12, 14),
+                Image = IconChar.TicketAlt.ToBitmap(notif.Leido ? Color.FromArgb(148, 163, 184) : Color.FromArgb(37, 99, 235), 18),
+                SizeMode = PictureBoxSizeMode.CenterImage,
+                BackColor = Color.Transparent,
+                Cursor = Cursors.Hand
             };
 
             var lblMsg = new Label
             {
                 Text = notif.Mensaje,
-                Font = new Font("Segoe UI", 9.5F, notif.Leido ? FontStyle.Regular : FontStyle.Bold),
-                ForeColor = Color.FromArgb(44, 62, 80),
-                Location = new Point(8, 8),
-                Size = new Size(pnlItem.Width - 25, 50),
-                AutoEllipsis = true
+                Font = new Font("Segoe UI", 9F, notif.Leido ? FontStyle.Regular : FontStyle.Bold),
+                ForeColor = notif.Leido ? Color.FromArgb(71, 85, 105) : Color.FromArgb(15, 23, 42),
+                Location = new Point(42, 10),
+                Size = new Size(itemW - 68, 38),
+                AutoEllipsis = true,
+                BackColor = Color.Transparent,
+                Cursor = Cursors.Hand
             };
 
             var lblFecha = new Label
             {
-                Text = notif.Fecha.ToString("g"),
-                Font = new Font("Segoe UI", 8F, FontStyle.Italic),
-                ForeColor = Color.Gray,
-                Location = new Point(8, 60),
-                Size = new Size(pnlItem.Width - 20, 18)
+                Text = notif.Fecha.ToString("dd/MM/yyyy HH:mm"),
+                Font = new Font("Segoe UI", 7.8F, FontStyle.Regular),
+                ForeColor = Color.FromArgb(148, 163, 184),
+                Location = new Point(42, 50),
+                Size = new Size(itemW - 70, 18),
+                BackColor = Color.Transparent,
+                Cursor = Cursors.Hand
             };
 
-            lblMsg.Click += async (s, e) => await _presenter?.MarcarComoLeidaAsync(notif)!;
-            lblFecha.Click += async (s, e) => await _presenter?.MarcarComoLeidaAsync(notif)!;
-            pnlItem.Click += async (s, e) => await _presenter?.MarcarComoLeidaAsync(notif)!;
+            async void ClickAccion(object? s, EventArgs e)
+            {
+                if (_presenter != null)
+                {
+                    await _presenter.MarcarComoLeidaAsync(notif);
+                }
+            }
 
+            pnlItem.Click += ClickAccion;
+            picIcon.Click += ClickAccion;
+            lblMsg.Click += ClickAccion;
+            lblFecha.Click += ClickAccion;
+
+            pnlItem.Controls.Add(picIcon);
             pnlItem.Controls.Add(lblMsg);
             pnlItem.Controls.Add(lblFecha);
+
             return pnlItem;
         }
 
@@ -195,4 +316,3 @@ namespace HSis.UI.Controls
         }
     }
 }
-

@@ -1,9 +1,9 @@
-using HSis.Data.Models;
+using HSis.Logic.DTOs;
 using HSis.Logic.Services;
 
 namespace HSis.UI.Presenters
 {
-    public class KardexPresenter(ICatalogoService catalogoService)
+    public class KardexPresenter(IMaterialService materialService)
     {
         private IKardexView? _view;
 
@@ -12,14 +12,13 @@ namespace HSis.UI.Presenters
             _view = view;
         }
 
-
         public async Task CargarMaterialesAsync()
         {
             if (_view == null) return;
             try
             {
                 _view.MostrarCargando(true);
-                var materiales = await catalogoService.ObtenerTodosAsync<Material>();
+                var materiales = await materialService.ObtenerMaterialesAsync();
                 _view.CargarMateriales(materiales);
             }
             catch (Exception ex)
@@ -38,9 +37,8 @@ namespace HSis.UI.Presenters
             try
             {
                 _view.MostrarCargando(true);
-                var historialCompleto = await catalogoService.ObtenerFiltradoAsync<VHistorialInventario>(h => h.IdMaterial == idMaterial);
-                var historialFiltrado = historialCompleto.OrderByDescending(h => h.Fecha).ToList();
-                _view.CargarHistorialKardex(historialFiltrado);
+                var historial = await materialService.ObtenerKardexPorMaterialAsync(idMaterial);
+                _view.CargarHistorialKardex(historial);
             }
             catch (Exception ex)
             {
@@ -53,4 +51,3 @@ namespace HSis.UI.Presenters
         }
     }
 }
-

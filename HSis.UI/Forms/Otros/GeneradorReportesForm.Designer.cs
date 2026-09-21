@@ -1,7 +1,3 @@
-using System;
-using System.Drawing;
-using System.Windows.Forms;
-
 namespace HSis.UI.Forms.Otros;
 
 partial class GeneradorReportesForm
@@ -21,208 +17,235 @@ partial class GeneradorReportesForm
 
     private void InitializeComponent()
     {
-        this.dtpInicio = new System.Windows.Forms.DateTimePicker();
-        this.dtpFin = new System.Windows.Forms.DateTimePicker();
-        this.btnExcel = new System.Windows.Forms.Button();
-        this.btnPdf = new System.Windows.Forms.Button();
-        this.lblTitle = new System.Windows.Forms.Label();
-        this.lblInicio = new System.Windows.Forms.Label();
-        this.lblFin = new System.Windows.Forms.Label();
-        this.pnlBackground = new System.Windows.Forms.Panel();
-        this.pnlBackground.SuspendLayout();
-        this.SuspendLayout();
+        pnlHeader = new System.Windows.Forms.Panel();
+        picHeaderIcon = new System.Windows.Forms.PictureBox();
+        lblTitle = new System.Windows.Forms.Label();
+        lblSubtitle = new System.Windows.Forms.Label();
+        pnlBody = new System.Windows.Forms.Panel();
+        pnlCard = new System.Windows.Forms.Panel();
+        lblRangoTitle = new System.Windows.Forms.Label();
+        lblInicio = new System.Windows.Forms.Label();
+        dtpInicio = new System.Windows.Forms.DateTimePicker();
+        lblFin = new System.Windows.Forms.Label();
+        dtpFin = new System.Windows.Forms.DateTimePicker();
+        flpBotones = new System.Windows.Forms.FlowLayoutPanel();
+        btnExcel = new HSis.UI.Controls.BotonModerno();
+        btnPdf = new HSis.UI.Controls.BotonModerno();
+        pnlHeader.SuspendLayout();
+        ((System.ComponentModel.ISupportInitialize)picHeaderIcon).BeginInit();
+        pnlBody.SuspendLayout();
+        pnlCard.SuspendLayout();
+        flpBotones.SuspendLayout();
+        SuspendLayout();
         // 
-        // pnlBackground
+        // pnlHeader
         // 
-        this.pnlBackground.BackColor = System.Drawing.Color.White;
-        this.pnlBackground.Controls.Add(this.lblTitle);
-        this.pnlBackground.Controls.Add(this.lblInicio);
-        this.pnlBackground.Controls.Add(this.dtpInicio);
-        this.pnlBackground.Controls.Add(this.lblFin);
-        this.pnlBackground.Controls.Add(this.dtpFin);
-        this.pnlBackground.Controls.Add(this.btnExcel);
-        this.pnlBackground.Controls.Add(this.btnPdf);
-        this.pnlBackground.Dock = System.Windows.Forms.DockStyle.Fill;
-        this.pnlBackground.Location = new System.Drawing.Point(0, 0);
-        this.pnlBackground.Name = "pnlBackground";
-        this.pnlBackground.Size = new System.Drawing.Size(434, 261);
-        this.pnlBackground.TabIndex = 0;
+        pnlHeader.BackColor = System.Drawing.Color.White;
+        pnlHeader.Controls.Add(picHeaderIcon);
+        pnlHeader.Controls.Add(lblTitle);
+        pnlHeader.Controls.Add(lblSubtitle);
+        pnlHeader.Dock = System.Windows.Forms.DockStyle.Top;
+        pnlHeader.Location = new System.Drawing.Point(0, 0);
+        pnlHeader.Name = "pnlHeader";
+        pnlHeader.Size = new System.Drawing.Size(520, 72);
+        pnlHeader.TabIndex = 0;
+        pnlHeader.Paint += PnlHeader_Paint;
+        // 
+        // picHeaderIcon
+        // 
+        picHeaderIcon.Location = new System.Drawing.Point(18, 16);
+        picHeaderIcon.Name = "picHeaderIcon";
+        picHeaderIcon.Size = new System.Drawing.Size(40, 40);
+        picHeaderIcon.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
+        picHeaderIcon.TabIndex = 0;
+        picHeaderIcon.TabStop = false;
         // 
         // lblTitle
         // 
-        this.lblTitle.AutoSize = true;
-        this.lblTitle.Font = new System.Drawing.Font("Segoe UI Semibold", 14F, System.Drawing.FontStyle.Bold);
-        this.lblTitle.ForeColor = System.Drawing.Color.FromArgb(31, 41, 55);
-        this.lblTitle.Location = new System.Drawing.Point(24, 20);
-        this.lblTitle.Name = "lblTitle";
-        this.lblTitle.Size = new System.Drawing.Size(306, 25);
-        this.lblTitle.TabIndex = 0;
-        this.lblTitle.Text = "Generador de Reportes Ejecutivos";
+        lblTitle.AutoSize = true;
+        lblTitle.Font = new System.Drawing.Font("Segoe UI", 12.5F, System.Drawing.FontStyle.Bold);
+        lblTitle.ForeColor = System.Drawing.Color.FromArgb(15, 23, 42);
+        lblTitle.Location = new System.Drawing.Point(66, 15);
+        lblTitle.Name = "lblTitle";
+        lblTitle.Size = new System.Drawing.Size(284, 23);
+        lblTitle.TabIndex = 1;
+        lblTitle.Text = "Generador de Reportes Ejecutivos";
+        // 
+        // lblSubtitle
+        // 
+        lblSubtitle.AutoSize = true;
+        lblSubtitle.Font = new System.Drawing.Font("Segoe UI", 8.5F);
+        lblSubtitle.ForeColor = System.Drawing.Color.FromArgb(100, 116, 139);
+        lblSubtitle.Location = new System.Drawing.Point(68, 40);
+        lblSubtitle.Name = "lblSubtitle";
+        lblSubtitle.Size = new System.Drawing.Size(415, 15);
+        lblSubtitle.TabIndex = 2;
+        lblSubtitle.Text = "Filtra por período de fechas y exporta las métricas en formato Excel o PDF.";
+        // 
+        // pnlBody
+        // 
+        pnlBody.BackColor = System.Drawing.Color.FromArgb(248, 250, 252);
+        pnlBody.Controls.Add(pnlCard);
+        pnlBody.Dock = System.Windows.Forms.DockStyle.Fill;
+        pnlBody.Location = new System.Drawing.Point(0, 72);
+        pnlBody.Name = "pnlBody";
+        pnlBody.Padding = new System.Windows.Forms.Padding(20);
+        pnlBody.Size = new System.Drawing.Size(520, 298);
+        pnlBody.TabIndex = 1;
+        // 
+        // pnlCard
+        // 
+        pnlCard.BackColor = System.Drawing.Color.White;
+        pnlCard.Controls.Add(lblRangoTitle);
+        pnlCard.Controls.Add(lblInicio);
+        pnlCard.Controls.Add(dtpInicio);
+        pnlCard.Controls.Add(lblFin);
+        pnlCard.Controls.Add(dtpFin);
+        pnlCard.Controls.Add(flpBotones);
+        pnlCard.Dock = System.Windows.Forms.DockStyle.Fill;
+        pnlCard.Location = new System.Drawing.Point(20, 20);
+        pnlCard.Name = "pnlCard";
+        pnlCard.Padding = new System.Windows.Forms.Padding(24);
+        pnlCard.Size = new System.Drawing.Size(480, 258);
+        pnlCard.TabIndex = 0;
+        pnlCard.Paint += PnlCard_Paint;
+        // 
+        // lblRangoTitle
+        // 
+        lblRangoTitle.AutoSize = true;
+        lblRangoTitle.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+        lblRangoTitle.ForeColor = System.Drawing.Color.FromArgb(30, 41, 59);
+        lblRangoTitle.Location = new System.Drawing.Point(24, 20);
+        lblRangoTitle.Name = "lblRangoTitle";
+        lblRangoTitle.Size = new System.Drawing.Size(225, 19);
+        lblRangoTitle.TabIndex = 0;
+        lblRangoTitle.Text = "Período de Análisis de Tickets";
         // 
         // lblInicio
         // 
-        this.lblInicio.AutoSize = true;
-        this.lblInicio.Font = new System.Drawing.Font("Segoe UI", 10F);
-        this.lblInicio.ForeColor = System.Drawing.Color.FromArgb(75, 85, 99);
-        this.lblInicio.Location = new System.Drawing.Point(26, 68);
-        this.lblInicio.Name = "lblInicio";
-        this.lblInicio.Size = new System.Drawing.Size(83, 19);
-        this.lblInicio.TabIndex = 1;
-        this.lblInicio.Text = "Fecha Inicio:";
+        lblInicio.AutoSize = true;
+        lblInicio.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+        lblInicio.ForeColor = System.Drawing.Color.FromArgb(71, 85, 105);
+        lblInicio.Location = new System.Drawing.Point(24, 58);
+        lblInicio.Name = "lblInicio";
+        lblInicio.Size = new System.Drawing.Size(78, 15);
+        lblInicio.TabIndex = 1;
+        lblInicio.Text = "Fecha Inicial:";
         // 
         // dtpInicio
         // 
-        this.dtpInicio.Font = new System.Drawing.Font("Segoe UI", 10F);
-        this.dtpInicio.Format = System.Windows.Forms.DateTimePickerFormat.Short;
-        this.dtpInicio.Location = new System.Drawing.Point(120, 65);
-        this.dtpInicio.Name = "dtpInicio";
-        this.dtpInicio.Size = new System.Drawing.Size(280, 25);
-        this.dtpInicio.TabIndex = 2;
+        dtpInicio.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+        dtpInicio.Font = new System.Drawing.Font("Segoe UI", 10F);
+        dtpInicio.Format = System.Windows.Forms.DateTimePickerFormat.Short;
+        dtpInicio.Location = new System.Drawing.Point(24, 78);
+        dtpInicio.Name = "dtpInicio";
+        dtpInicio.Size = new System.Drawing.Size(430, 25);
+        dtpInicio.TabIndex = 2;
         // 
         // lblFin
         // 
-        this.lblFin.AutoSize = true;
-        this.lblFin.Font = new System.Drawing.Font("Segoe UI", 10F);
-        this.lblFin.ForeColor = System.Drawing.Color.FromArgb(75, 85, 99);
-        this.lblFin.Location = new System.Drawing.Point(26, 118);
-        this.lblFin.Name = "lblFin";
-        this.lblFin.Size = new System.Drawing.Size(69, 19);
-        this.lblFin.TabIndex = 3;
-        this.lblFin.Text = "Fecha Fin:";
+        lblFin.AutoSize = true;
+        lblFin.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+        lblFin.ForeColor = System.Drawing.Color.FromArgb(71, 85, 105);
+        lblFin.Location = new System.Drawing.Point(24, 118);
+        lblFin.Name = "lblFin";
+        lblFin.Size = new System.Drawing.Size(72, 15);
+        lblFin.TabIndex = 3;
+        lblFin.Text = "Fecha Final:";
         // 
         // dtpFin
         // 
-        this.dtpFin.Font = new System.Drawing.Font("Segoe UI", 10F);
-        this.dtpFin.Format = System.Windows.Forms.DateTimePickerFormat.Short;
-        this.dtpFin.Location = new System.Drawing.Point(120, 115);
-        this.dtpFin.Name = "dtpFin";
-        this.dtpFin.Size = new System.Drawing.Size(280, 25);
-        this.dtpFin.TabIndex = 4;
+        dtpFin.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+        dtpFin.Font = new System.Drawing.Font("Segoe UI", 10F);
+        dtpFin.Format = System.Windows.Forms.DateTimePickerFormat.Short;
+        dtpFin.Location = new System.Drawing.Point(24, 138);
+        dtpFin.Name = "dtpFin";
+        dtpFin.Size = new System.Drawing.Size(430, 25);
+        dtpFin.TabIndex = 4;
+        // 
+        // flpBotones
+        // 
+        flpBotones.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+        flpBotones.Controls.Add(btnExcel);
+        flpBotones.Controls.Add(btnPdf);
+        flpBotones.Location = new System.Drawing.Point(24, 185);
+        flpBotones.Name = "flpBotones";
+        flpBotones.Size = new System.Drawing.Size(430, 50);
+        flpBotones.TabIndex = 5;
         // 
         // btnExcel
         // 
-        this.btnExcel.BackColor = System.Drawing.Color.FromArgb(16, 185, 129);
-        this.btnExcel.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-        this.btnExcel.Font = new System.Drawing.Font("Segoe UI Semibold", 10F, System.Drawing.FontStyle.Bold);
-        this.btnExcel.ForeColor = System.Drawing.Color.White;
-        this.btnExcel.Location = new System.Drawing.Point(50, 180);
-        this.btnExcel.Name = "btnExcel";
-        this.btnExcel.Size = new System.Drawing.Size(160, 40);
-        this.btnExcel.TabIndex = 5;
-        this.btnExcel.Text = "Exportar a Excel";
-        this.btnExcel.UseVisualStyleBackColor = false;
-        this.btnExcel.Click += new System.EventHandler(this.btnExcel_Click);
+        btnExcel.Cursor = System.Windows.Forms.Cursors.Hand;
+        btnExcel.Estilo = HSis.UI.Controls.EstiloBotonModerno.Exito;
+        btnExcel.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold);
+        btnExcel.Icono = FontAwesome.Sharp.IconChar.FileExcel;
+        btnExcel.IconoTamano = 18;
+        btnExcel.Location = new System.Drawing.Point(0, 0);
+        btnExcel.Margin = new System.Windows.Forms.Padding(0, 0, 14, 0);
+        btnExcel.Name = "btnExcel";
+        btnExcel.RadioBorde = 8;
+        btnExcel.Size = new System.Drawing.Size(185, 44);
+        btnExcel.TabIndex = 0;
+        btnExcel.Text = "Exportar a Excel";
+        btnExcel.Click += btnExcel_Click;
         // 
         // btnPdf
         // 
-        this.btnPdf.BackColor = System.Drawing.Color.FromArgb(37, 99, 235);
-        this.btnPdf.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-        this.btnPdf.Font = new System.Drawing.Font("Segoe UI Semibold", 10F, System.Drawing.FontStyle.Bold);
-        this.btnPdf.ForeColor = System.Drawing.Color.White;
-        this.btnPdf.Location = new System.Drawing.Point(230, 180);
-        this.btnPdf.Name = "btnPdf";
-        this.btnPdf.Size = new System.Drawing.Size(160, 40);
-        this.btnPdf.TabIndex = 6;
-        this.btnPdf.Text = "Exportar a PDF";
-        this.btnPdf.UseVisualStyleBackColor = false;
-        this.btnPdf.Click += new System.EventHandler(this.btnPdf_Click);
+        btnPdf.Cursor = System.Windows.Forms.Cursors.Hand;
+        btnPdf.Estilo = HSis.UI.Controls.EstiloBotonModerno.Primario;
+        btnPdf.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold);
+        btnPdf.Icono = FontAwesome.Sharp.IconChar.FilePdf;
+        btnPdf.IconoTamano = 18;
+        btnPdf.Location = new System.Drawing.Point(199, 0);
+        btnPdf.Margin = new System.Windows.Forms.Padding(0);
+        btnPdf.Name = "btnPdf";
+        btnPdf.RadioBorde = 8;
+        btnPdf.Size = new System.Drawing.Size(185, 44);
+        btnPdf.TabIndex = 1;
+        btnPdf.Text = "Exportar a PDF";
+        btnPdf.Click += btnPdf_Click;
         // 
         // GeneradorReportesForm
         // 
-        this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-        this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-        this.ClientSize = new System.Drawing.Size(434, 261);
-        this.Controls.Add(this.pnlBackground);
-        this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-        this.MaximizeBox = false;
-        this.MinimizeBox = false;
-        this.Name = "GeneradorReportesForm";
-        this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-        this.Text = "Generar Reportes Especializados";
-        this.Load += new System.EventHandler(this.frmGeneradorReportes_Load);
-        this.pnlBackground.ResumeLayout(false);
-        this.pnlBackground.PerformLayout();
-        this.ResumeLayout(false);
-
+        AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+        AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+        BackColor = System.Drawing.Color.FromArgb(248, 250, 252);
+        ClientSize = new System.Drawing.Size(520, 370);
+        Controls.Add(pnlBody);
+        Controls.Add(pnlHeader);
+        Font = new System.Drawing.Font("Segoe UI", 9F);
+        FormBorderStyle = System.Windows.Forms.FormBorderStyle.Sizable;
+        MaximizeBox = true;
+        MinimizeBox = true;
+        MinimumSize = new System.Drawing.Size(520, 370);
+        Name = "GeneradorReportesForm";
+        StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
+        Text = "Generar Reportes Especializados";
+        Load += frmGeneradorReportes_Load;
+        pnlHeader.ResumeLayout(false);
+        pnlHeader.PerformLayout();
+        ((System.ComponentModel.ISupportInitialize)picHeaderIcon).EndInit();
+        pnlBody.ResumeLayout(false);
+        pnlCard.ResumeLayout(false);
+        pnlCard.PerformLayout();
+        flpBotones.ResumeLayout(false);
+        ResumeLayout(false);
     }
 
     #endregion
 
-    private System.Windows.Forms.DateTimePicker dtpInicio;
-    private System.Windows.Forms.DateTimePicker dtpFin;
-    private System.Windows.Forms.Button btnExcel;
-    private System.Windows.Forms.Button btnPdf;
+    private System.Windows.Forms.Panel pnlHeader;
+    private System.Windows.Forms.PictureBox picHeaderIcon;
     private System.Windows.Forms.Label lblTitle;
+    private System.Windows.Forms.Label lblSubtitle;
+    private System.Windows.Forms.Panel pnlBody;
+    private System.Windows.Forms.Panel pnlCard;
+    private System.Windows.Forms.Label lblRangoTitle;
     private System.Windows.Forms.Label lblInicio;
+    private System.Windows.Forms.DateTimePicker dtpInicio;
     private System.Windows.Forms.Label lblFin;
-    private System.Windows.Forms.Panel pnlBackground;
-
-    private void InicializarLayoutReportes()
-    {
-        var tblPrincipal = new TableLayoutPanel
-        {
-            Dock = DockStyle.Fill,
-            RowCount = 4,
-            ColumnCount = 1,
-            Padding = new Padding(20),
-            Name = "tblPrincipal",
-            BackColor = System.Drawing.Color.White
-        };
-        tblPrincipal.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        tblPrincipal.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-        tblPrincipal.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
-        tblPrincipal.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-
-        lblTitle.Dock = DockStyle.Fill;
-        lblTitle.Margin = new Padding(0, 0, 0, 15);
-
-        var tblFechas = new TableLayoutPanel
-        {
-            Dock = DockStyle.Fill,
-            RowCount = 2,
-            ColumnCount = 2,
-            Margin = new Padding(0),
-            BackColor = System.Drawing.Color.White
-        };
-        tblFechas.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 100F));
-        tblFechas.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-        tblFechas.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-        tblFechas.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-
-        lblInicio.Dock = DockStyle.Fill;
-        lblInicio.TextAlign = ContentAlignment.MiddleLeft;
-        dtpInicio.Dock = DockStyle.Fill;
-
-        lblFin.Dock = DockStyle.Fill;
-        lblFin.TextAlign = ContentAlignment.MiddleLeft;
-        dtpFin.Dock = DockStyle.Fill;
-
-        tblFechas.Controls.Add(lblInicio, 0, 0);
-        tblFechas.Controls.Add(dtpInicio, 1, 0);
-        tblFechas.Controls.Add(lblFin, 0, 1);
-        tblFechas.Controls.Add(dtpFin, 1, 1);
-
-        var flpBotones = new FlowLayoutPanel
-        {
-            Dock = DockStyle.Fill,
-            FlowDirection = FlowDirection.LeftToRight,
-            AutoSize = true,
-            Margin = new Padding(0),
-            BackColor = System.Drawing.Color.White
-        };
-        btnExcel.Margin = new Padding(0, 0, 15, 0);
-        btnExcel.Dock = DockStyle.None;
-        btnPdf.Margin = new Padding(0);
-        btnPdf.Dock = DockStyle.None;
-        flpBotones.Controls.Add(btnExcel);
-        flpBotones.Controls.Add(btnPdf);
-
-        tblPrincipal.Controls.Add(lblTitle, 0, 0);
-        tblPrincipal.Controls.Add(tblFechas, 0, 1);
-        tblPrincipal.Controls.Add(new Panel { Dock = DockStyle.Fill, Margin = new Padding(0), BackColor = System.Drawing.Color.White }, 0, 2);
-        tblPrincipal.Controls.Add(flpBotones, 0, 3);
-
-        this.Controls.Remove(pnlBackground);
-        this.Controls.Add(tblPrincipal);
-    }
+    private System.Windows.Forms.DateTimePicker dtpFin;
+    private System.Windows.Forms.FlowLayoutPanel flpBotones;
+    private HSis.UI.Controls.BotonModerno btnExcel;
+    private HSis.UI.Controls.BotonModerno btnPdf;
 }

@@ -22,7 +22,7 @@ namespace HSis.UI.Controls
         {
             InitializeComponent();
             DoubleBuffered = true;
-            SetStyle(ControlStyles.SupportsTransparentBackColor | ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint, true);
+            SetStyle(ControlStyles.SupportsTransparentBackColor | ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.ResizeRedraw, true);
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -32,7 +32,9 @@ namespace HSis.UI.Controls
             g.SmoothingMode = SmoothingMode.AntiAlias;
 
             // Limpiar fondo con el color del padre
-            Color colorPadre = Parent?.BackColor ?? Color.FromArgb(248, 250, 252);
+            Color colorPadre = (Parent?.BackColor != null && Parent.BackColor != Color.Transparent && Parent.BackColor.A > 0)
+                ? Parent.BackColor
+                : TemaVisual.FondoApp;
             using (var brushPadre = new SolidBrush(colorPadre))
             {
                 g.FillRectangle(brushPadre, 0, 0, Width, Height);
@@ -68,7 +70,7 @@ namespace HSis.UI.Controls
                     Width = campo.Ancho,
                     Height = 48,
                     Margin = new Padding(4, 1, 4, 1),
-                    BackColor = Color.Transparent
+                    BackColor = Color.White
                 };
 
                 var lbl = new Label
@@ -78,7 +80,7 @@ namespace HSis.UI.Controls
                     Font = new Font("Segoe UI Semibold", 8F, FontStyle.Bold),
                     ForeColor = Color.FromArgb(100, 116, 139),
                     Margin = new Padding(0, 0, 0, 2),
-                    BackColor = Color.Transparent
+                    BackColor = Color.White
                 };
 
                 Control input;

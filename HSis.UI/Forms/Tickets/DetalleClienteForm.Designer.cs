@@ -400,9 +400,10 @@ partial class DetalleClienteForm
         Controls.Add(lblFolioValor);
         Controls.Add(lblFolio);
         Font = new Font("Segoe UI", 11F);
-        FormBorderStyle = FormBorderStyle.FixedDialog;
-        MaximizeBox = false;
-        MinimizeBox = false;
+        FormBorderStyle = FormBorderStyle.Sizable;
+        MaximizeBox = true;
+        MinimizeBox = true;
+        MinimumSize = new Size(600, 520);
         Name = "DetalleClienteForm";
         StartPosition = FormStartPosition.CenterParent;
         Text = "Detalle del Ticket - Solo Lectura";
@@ -449,12 +450,12 @@ partial class DetalleClienteForm
         var tblPrincipal = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
-            AutoSize = true,
             RowCount = 7,
             ColumnCount = 1,
             Padding = new Padding(12),
             Name = "tblPrincipal"
         };
+        tblPrincipal.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
 
         // 2. Grid de Información
         var tblInfo = new TableLayoutPanel
@@ -516,11 +517,11 @@ partial class DetalleClienteForm
         var tblFeedback = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
-            AutoSize = true,
             RowCount = 3,
             ColumnCount = 1,
             Padding = new Padding(12)
         };
+        tblFeedback.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
         tblFeedback.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         tblFeedback.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         tblFeedback.RowStyles.Add(new RowStyle(SizeType.AutoSize));

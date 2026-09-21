@@ -152,7 +152,9 @@ namespace HSis.UI.Controls
             g.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
             // 1. Limpiar esquinas con el color del contenedor padre para evitar fondo negro
-            Color colorPadre = Parent?.BackColor ?? (BackColor != Color.Transparent ? BackColor : Color.White);
+            Color colorPadre = (Parent?.BackColor != null && Parent.BackColor != Color.Transparent && Parent.BackColor.A > 0)
+                ? Parent.BackColor
+                : (BackColor != Color.Transparent && BackColor.A > 0 ? BackColor : Color.White);
             using (var brushPadre = new SolidBrush(colorPadre))
             {
                 g.FillRectangle(brushPadre, 0, 0, Width, Height);

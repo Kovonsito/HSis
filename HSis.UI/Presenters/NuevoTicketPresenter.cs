@@ -1,14 +1,13 @@
-using HSis.Data.Models;
 using HSis.Logic.Constants;
 using HSis.Logic.DTOs;
 using HSis.Logic.Services;
-using HSis.UI.Helpers;
 
 namespace HSis.UI.Presenters
 {
     public class NuevoTicketPresenter(
         ITicketService ticketService,
-        ICatalogoService catalogoService)
+        IUsuarioService usuarioService,
+        IContextoSesion contextoSesion)
     {
         private INuevoTicketView? _view;
 
@@ -16,7 +15,6 @@ namespace HSis.UI.Presenters
         {
             _view = view;
         }
-
 
         public async Task CargarCatalogosAsync()
         {
@@ -26,12 +24,13 @@ namespace HSis.UI.Presenters
                 _view.MostrarCargando(true);
                 _view.CargarPrioridades();
 
-                var todosUsuarios = await catalogoService.ObtenerTodosAsync<Usuario>();
-                var clientes = todosUsuarios.Where(u => u.IdRol == (int)RolUsuarioEnum.Cliente).OrderBy(u => u.Nombre).ToList();
-                var tecnicos = todosUsuarios.Where(u => u.IdRol == (int)RolUsuarioEnum.Tecnico || u.IdRol == (int)RolUsuarioEnum.Administrador).OrderBy(u => u.Nombre).ToList();
+                var clientes = await usuarioService.ObtenerUsuariosPorRolAsync((int)RolUsuarioEnum.Cliente);
+                var tecnicos = await usuarioService.ObtenerUsuariosPorRolAsync((int)RolUsuarioEnum.Tecnico);
+                var admins = await usuarioService.ObtenerUsuariosPorRolAsync((int)RolUsuarioEnum.Administrador);
+                var personalAtencion = tecnicos.Concat(admins).OrderBy(u => u.Nombre).ToList();
 
-                _view.CargarClientes(clientes, SesionSistema.IdUsuario);
-                _view.CargarTecnicos(tecnicos, SesionSistema.EsTecnico, SesionSistema.IdUsuario);
+                _view.CargarClientes(clientes.OrderBy(u => u.Nombre).ToList(), contextoSesion.IdUsuario);
+                _view.CargarTecnicos(personalAtencion, contextoSesion.EsTecnico, contextoSesion.IdUsuario);
             }
             catch (Exception ex)
             {
@@ -63,11 +62,11 @@ namespace HSis.UI.Presenters
             {
                 _view.MostrarCargando(true);
 
-                int idUsuarioFinal = SesionSistema.IdUsuario;
+                int idUsuarioFinal = contextoSesion.IdUsuario;
                 int? idTecnicoFinal = null;
                 string? prioridadFinal = null;
 
-                if (SesionSistema.EsAdmin || SesionSistema.EsTecnico)
+                if (contextoSesion.EsAdmin || contextoSesion.EsTecnico)
                 {
                     if (!_view.EsEnRepresentacion)
                     {
@@ -111,4 +110,3 @@ namespace HSis.UI.Presenters
         }
     }
 }
-

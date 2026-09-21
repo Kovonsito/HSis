@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HSis.UI", "HSis.UI\HSis.UI.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HSis.Server", "HSis.Server\HSis.Server.csproj", "{EBD76C74-B880-4721-AE7B-57277353DC57}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HSis.Contracts", "HSis.Contracts\HSis.Contracts.csproj", "{DC143385-D592-49A0-B79D-900A9DB65D33}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -83,6 +85,18 @@ Global
 		{EBD76C74-B880-4721-AE7B-57277353DC57}.Release|x64.Build.0 = Release|Any CPU
 		{EBD76C74-B880-4721-AE7B-57277353DC57}.Release|x86.ActiveCfg = Release|Any CPU
 		{EBD76C74-B880-4721-AE7B-57277353DC57}.Release|x86.Build.0 = Release|Any CPU
+		{DC143385-D592-49A0-B79D-900A9DB65D33}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC143385-D592-49A0-B79D-900A9DB65D33}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC143385-D592-49A0-B79D-900A9DB65D33}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{DC143385-D592-49A0-B79D-900A9DB65D33}.Debug|x64.Build.0 = Debug|Any CPU
+		{DC143385-D592-49A0-B79D-900A9DB65D33}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{DC143385-D592-49A0-B79D-900A9DB65D33}.Debug|x86.Build.0 = Debug|Any CPU
+		{DC143385-D592-49A0-B79D-900A9DB65D33}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC143385-D592-49A0-B79D-900A9DB65D33}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC143385-D592-49A0-B79D-900A9DB65D33}.Release|x64.ActiveCfg = Release|Any CPU
+		{DC143385-D592-49A0-B79D-900A9DB65D33}.Release|x64.Build.0 = Release|Any CPU
+		{DC143385-D592-49A0-B79D-900A9DB65D33}.Release|x86.ActiveCfg = Release|Any CPU
+		{DC143385-D592-49A0-B79D-900A9DB65D33}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
