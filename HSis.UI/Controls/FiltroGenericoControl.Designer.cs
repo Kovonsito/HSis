@@ -28,18 +28,18 @@ partial class FiltroGenericoControl
             Dock = DockStyle.Fill,
             RowCount = 1,
             ColumnCount = 2,
-            BackColor = Color.Transparent,
+            BackColor = Color.White,
             Margin = new Padding(0),
             Padding = new Padding(12, 6, 12, 6)
         };
         tblLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
         tblLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-        tblLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 225F));
+        tblLayout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
 
         flowLayoutPanelMain = new FlowLayoutPanel
         {
-            AutoScroll = false,
-            BackColor = Color.Transparent,
+            AutoScroll = true,
+            BackColor = Color.White,
             Dock = DockStyle.Fill,
             Location = new Point(0, 0),
             Margin = new Padding(0),
@@ -48,27 +48,16 @@ partial class FiltroGenericoControl
             WrapContents = false
         };
 
-        var pnlBotones = new Panel
+        var pnlBotones = new FlowLayoutPanel
         {
-            BackColor = Color.Transparent,
+            BackColor = Color.White,
             Dock = DockStyle.Fill,
+            FlowDirection = FlowDirection.RightToLeft,
+            WrapContents = false,
+            AutoSize = true,
             Margin = new Padding(0),
-            Padding = new Padding(0)
+            Padding = new Padding(0, 10, 0, 0)
         };
-
-        btnRecargar = new BotonModerno
-        {
-            Estilo = EstiloBotonModerno.Secundario,
-            Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold),
-            Icono = IconChar.RotateRight,
-            IconoTamano = 13,
-            Location = new Point(4, 14),
-            Name = "btnRecargar",
-            Size = new Size(100, 34),
-            TabIndex = 0,
-            Text = "Recargar"
-        };
-        btnRecargar.Click += (s, e) => RecargarClic?.Invoke(this, EventArgs.Empty);
 
         btnLimpiar = new BotonModerno
         {
@@ -76,16 +65,30 @@ partial class FiltroGenericoControl
             Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold),
             Icono = IconChar.Eraser,
             IconoTamano = 13,
-            Location = new Point(110, 14),
             Name = "btnLimpiar",
             Size = new Size(95, 34),
+            Margin = new Padding(0, 0, 0, 0),
             TabIndex = 1,
             Text = "Limpiar"
         };
         btnLimpiar.Click += (s, e) => Limpiar_Click();
 
-        pnlBotones.Controls.Add(btnRecargar);
+        btnRecargar = new BotonModerno
+        {
+            Estilo = EstiloBotonModerno.Secundario,
+            Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold),
+            Icono = IconChar.RotateRight,
+            IconoTamano = 13,
+            Name = "btnRecargar",
+            Size = new Size(102, 34),
+            Margin = new Padding(0, 0, 8, 0),
+            TabIndex = 0,
+            Text = "Recargar"
+        };
+        btnRecargar.Click += (s, e) => RecargarClic?.Invoke(this, EventArgs.Empty);
+
         pnlBotones.Controls.Add(btnLimpiar);
+        pnlBotones.Controls.Add(btnRecargar);
 
         tblLayout.Controls.Add(flowLayoutPanelMain, 0, 0);
         tblLayout.Controls.Add(pnlBotones, 1, 0);

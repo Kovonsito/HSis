@@ -114,6 +114,7 @@ partial class IniciarSesionForm
         // 
         // txtUsuario
         // 
+        this.txtUsuario.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
         this.txtUsuario.Font = new Font("Segoe UI", 10.5F);
         this.txtUsuario.Location = new Point(37, 132);
         this.txtUsuario.Name = "txtUsuario";
@@ -135,6 +136,7 @@ partial class IniciarSesionForm
         // 
         // txtContraseña
         // 
+        this.txtContraseña.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
         this.txtContraseña.Font = new Font("Segoe UI", 10.5F);
         this.txtContraseña.Location = new Point(37, 202);
         this.txtContraseña.Name = "txtContraseña";
@@ -145,6 +147,7 @@ partial class IniciarSesionForm
         // 
         // btnIniciarSesion
         // 
+        this.btnIniciarSesion.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
         this.btnIniciarSesion.Estilo = EstiloBotonModerno.Primario;
         this.btnIniciarSesion.Icono = FontAwesome.Sharp.IconChar.RightToBracket;
         this.btnIniciarSesion.IconoTamano = 16;

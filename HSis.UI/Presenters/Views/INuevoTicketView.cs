@@ -1,4 +1,4 @@
-using HSis.Data.Models;
+using HSis.Logic.DTOs;
 
 namespace HSis.UI.Presenters
 {
@@ -8,8 +8,8 @@ namespace HSis.UI.Presenters
         string NombreSolicitanteTercero { get; set; }
         bool EsEnRepresentacion { get; set; }
 
-        void CargarClientes(List<Usuario> clientes, int idUsuarioSesion);
-        void CargarTecnicos(List<Usuario> tecnicos, bool esTecnicoSesion, int idUsuarioSesion);
+        void CargarClientes(List<UsuarioDto> clientes, int idUsuarioSesion);
+        void CargarTecnicos(List<UsuarioDto> tecnicos, bool esTecnicoSesion, int idUsuarioSesion);
         void CargarPrioridades();
         void MostrarError(string titulo, string mensaje);
         void MostrarExito(string mensaje);
@@ -17,4 +17,3 @@ namespace HSis.UI.Presenters
         void MostrarCargando(bool cargando);
     }
 }
-

@@ -1,13 +1,12 @@
-using HSis.Data.Models;
+using HSis.Logic.DTOs;
 
 namespace HSis.UI.Presenters
 {
     public interface IKardexView
     {
-        void CargarMateriales(List<Material> materiales);
-        void CargarHistorialKardex(List<VHistorialInventario> historial);
+        void CargarMateriales(List<MaterialDto> materiales);
+        void CargarHistorialKardex(List<KardexMovimientoDto> historial);
         void MostrarError(string mensaje);
         void MostrarCargando(bool cargando);
     }
 }
-

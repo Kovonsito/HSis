@@ -163,9 +163,10 @@ partial class NuevoTicketForm
         AutoScaleMode = AutoScaleMode.Font;
         BackColor = Color.FromArgb(248, 250, 252);
         ClientSize = new Size(620, 520);
-        FormBorderStyle = FormBorderStyle.FixedDialog;
-        MaximizeBox = false;
-        MinimizeBox = false;
+        FormBorderStyle = FormBorderStyle.Sizable;
+        MaximizeBox = true;
+        MinimizeBox = true;
+        MinimumSize = new Size(580, 480);
         Name = "NuevoTicketForm";
         StartPosition = FormStartPosition.CenterParent;
         Text = "HSis Support - Nuevo Ticket";
@@ -247,6 +248,8 @@ partial class NuevoTicketForm
             using var penDiv = new Pen(Color.FromArgb(226, 232, 240), 1f);
             e.Graphics.DrawLine(penDiv, 0, 0, pnlFooter.Width, 0);
         };
+        pnlHeader.Resize += (s, e) => pnlHeader.Invalidate();
+        pnlFooter.Resize += (s, e) => pnlFooter.Invalidate();
 
         var flpBotones = new FlowLayoutPanel
         {
@@ -275,6 +278,7 @@ partial class NuevoTicketForm
             RowCount = esPerfilElevado ? 5 : 3,
             ColumnCount = 1
         };
+        tblPrincipal.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
 
         if (esPerfilElevado)
         {

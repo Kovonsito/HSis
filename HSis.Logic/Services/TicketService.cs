@@ -12,16 +12,12 @@ namespace HSis.Logic.Services
         IMapper mapper,
         FluentValidation.IValidator<TicketCreateDto> createValidator,
         FluentValidation.IValidator<TicketUpdateDto> updateValidator,
-        INotificadorTicket? notifier = null,
-        INotificationClientService? notificationClient = null,
         IServerNotificationDispatcher? notificationDispatcher = null) : ITicketService
     {
         private readonly IDbContextFactory<HSisDbContext> dbContextFactory = dbContextFactory;
         private readonly IMapper mapper = mapper;
         private readonly FluentValidation.IValidator<TicketCreateDto> createValidator = createValidator;
         private readonly FluentValidation.IValidator<TicketUpdateDto> updateValidator = updateValidator;
-        private readonly INotificadorTicket? notifier = notifier ?? notificationDispatcher as INotificadorTicket ?? notificationClient;
-        private readonly INotificationClientService? notificationClient = notificationClient;
         private readonly IServerNotificationDispatcher? notificationDispatcher = notificationDispatcher;
 
         private static DateTime ObtenerLimiteSLA()
@@ -152,15 +148,6 @@ namespace HSis.Logic.Services
                         ticketTracked.Estatus ?? string.Empty
                     );
                 }
-                else if (notificationClient != null)
-                {
-                    _ = notificationClient.NotificarCambioEstatusTicketAsync(
-                        ticketTracked.IdUsuario,
-                        ticketTracked.IdTicket,
-                        ticketTracked.IdTicket.ToString("d6"),
-                        ticketTracked.Estatus ?? string.Empty
-                    );
-                }
             }
         }
 
@@ -231,9 +218,9 @@ namespace HSis.Logic.Services
             db.Tickets.Add(nuevoTicket);
             await db.SaveChangesAsync();
 
-            if (notifier != null)
+            if (notificationDispatcher != null)
             {
-                _ = notifier.NotificarTicketCreadoAsync(
+                _ = notificationDispatcher.NotifyTicketCreatedAsync(
                     nuevoTicket.IdTicket,
                     nuevoTicket.IdTicket.ToString("d6"),
                     nuevoTicket.Descripcion ?? string.Empty
@@ -245,21 +232,7 @@ namespace HSis.Logic.Services
 
         // Lógica de dominio: Transiciones de estatus permitidas (SRP)
         public static List<string> ObtenerEstatusPermitidos(int idRolUsuario, string estatusActual)
-        {
-            if (idRolUsuario == (int)RolUsuarioEnum.Administrador)
-            {
-                return [ConstantesEstatus.ABIERTO, ConstantesEstatus.EN_PROCESO, ConstantesEstatus.CERRADO, ConstantesEstatus.REABIERTO];
-            }
-
-            return estatusActual switch
-            {
-                ConstantesEstatus.ABIERTO => [ConstantesEstatus.ABIERTO, ConstantesEstatus.EN_PROCESO],
-                ConstantesEstatus.EN_PROCESO => [ConstantesEstatus.EN_PROCESO, ConstantesEstatus.CERRADO],
-                ConstantesEstatus.CERRADO => [ConstantesEstatus.CERRADO],
-                ConstantesEstatus.REABIERTO => [ConstantesEstatus.REABIERTO, ConstantesEstatus.EN_PROCESO],
-                _ => [estatusActual]
-            };
-        }
+            => ReglasEstatusTicket.ObtenerEstatusPermitidos(idRolUsuario, estatusActual);
 
         // Obtener tickets filtrados dinámicamente - Async
         public async Task<List<TicketDto>> ObtenerTicketsFiltradosAsync(TicketFilterDto filtros)
@@ -439,16 +412,6 @@ namespace HSis.Logic.Services
             if (notificationDispatcher != null)
             {
                 _ = notificationDispatcher.NotifyTicketRatedAsync(
-                    idTecnicoNotif,
-                    ticket.IdTicket,
-                    ticket.IdTicket.ToString("d6"),
-                    calificacion,
-                    comentario ?? string.Empty
-                );
-            }
-            else if (notificationClient != null)
-            {
-                _ = notificationClient.NotificarCalificacionTicketAsync(
                     idTecnicoNotif,
                     ticket.IdTicket,
                     ticket.IdTicket.ToString("d6"),

@@ -59,6 +59,7 @@ partial class DashboardTecnicoForm
         this.topBarTecnico.Subtitulo = "Gestión de Tickets y Soporte Técnico";
 
         // pnlContenedorPrincipal
+        this.pnlContenedorPrincipal.BackColor = Color.FromArgb(248, 250, 252);
         this.pnlContenedorPrincipal.Controls.Add(this.topBarTecnico);
         this.pnlContenedorPrincipal.Dock = DockStyle.Fill;
         this.pnlContenedorPrincipal.Location = new Point(240, 0);
@@ -181,7 +182,7 @@ partial class DashboardTecnicoForm
         this.AutoScaleMode = AutoScaleMode.Font;
         this.BackColor = Color.FromArgb(248, 250, 252);
         this.ClientSize = new Size(1200, 720);
-        this.MinimumSize = new Size(1100, 700);
+        this.MinimumSize = new Size(800, 500);
         this.Controls.Add(this.pnlContenedorPrincipal);
         this.Controls.Add(this.sidebarTecnico);
         this.Name = "DashboardTecnicoForm";

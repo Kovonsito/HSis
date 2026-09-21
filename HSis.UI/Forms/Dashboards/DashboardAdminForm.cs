@@ -1,7 +1,6 @@
 #nullable enable
 using System.Data;
 using System.Runtime.Versioning;
-using HSis.Data.Models;
 using HSis.Logic.Constants;
 using HSis.Logic.DTOs;
 using HSis.Logic.Services;
@@ -18,6 +17,8 @@ namespace HSis.UI.Forms.Dashboards
     public partial class DashboardAdminForm : Form, IDashboardAdminView
     {
         private readonly DashboardAdminPresenter _presenter;
+        private readonly NotificacionesPresenter _notificacionesPresenter;
+        private readonly IContextoSesion _contextoSesion;
         private readonly IFabricaFormularios _fabricaFormularios;
         private readonly ISessionCacheService _sessionCache;
 
@@ -28,12 +29,16 @@ namespace HSis.UI.Forms.Dashboards
 
         public DashboardAdminForm(
             DashboardAdminPresenter presenter,
+            NotificacionesPresenter notificacionesPresenter,
+            IContextoSesion contextoSesion,
             IFabricaFormularios fabricaFormularios,
             ISessionCacheService sessionCache)
         {
             InitializeComponent();
             _presenter = presenter;
             _presenter.SetView(this);
+            _notificacionesPresenter = notificacionesPresenter;
+            _contextoSesion = contextoSesion;
             _fabricaFormularios = fabricaFormularios;
             _sessionCache = sessionCache;
         }
@@ -48,8 +53,13 @@ namespace HSis.UI.Forms.Dashboards
             ConfigurarSidebar();
             ConfigurarFechasYFiltros();
 
+            this.IntegrarNotificacionesModerno(topBarAdmin, _notificacionesPresenter, _fabricaFormularios, _contextoSesion, () => Task.WhenAll(_presenter.CargarKPIsAsync(SesionSistema.IdUsuario), CargarGridCompletoAsync()));
+
             // Cargar los combos de filtros antes del grid
             await _presenter.CargarCombosFiltrosAsync();
+
+            // Desactivar bandera de carga para permitir consultas
+            _estaCargando = false;
 
             // Cargamos KPIs y Grid de tickets en paralelo
             await Task.WhenAll(
@@ -62,8 +72,7 @@ namespace HSis.UI.Forms.Dashboards
 
         private void ConfigurarSidebar()
         {
-            sidebarAdmin.ConfigurarSesion(_sessionCache);
-            sidebarAdmin.ConfigurarItems(new[]
+            var items = new[]
             {
                 new ItemSidebar { Clave = "tickets", Titulo = "Tickets", Icono = FontAwesome.Sharp.IconChar.TicketAlt },
                 new ItemSidebar { Clave = "inventario", Titulo = "Inventario", Icono = FontAwesome.Sharp.IconChar.BoxesStacked },
@@ -74,14 +83,18 @@ namespace HSis.UI.Forms.Dashboards
                 new ItemSidebar { Clave = "puestos", Titulo = "Puestos", Icono = FontAwesome.Sharp.IconChar.Briefcase },
                 new ItemSidebar { Clave = "roles", Titulo = "Roles", Icono = FontAwesome.Sharp.IconChar.Key },
                 new ItemSidebar { Clave = "reportes", Titulo = "Reportes", Icono = FontAwesome.Sharp.IconChar.ChartBar }
-            }, "tickets");
+            };
 
-            sidebarAdmin.ItemSeleccionado += (s, clave) =>
+            sidebarAdmin.ConfigurarSesion(_sessionCache);
+            sidebarAdmin.ConfigurarItems(items, "tickets");
+
+            void SeleccionarVista(string clave)
             {
                 if (clave == "reportes")
                 {
                     btnAbrirReportes_Click(this, EventArgs.Empty);
                     sidebarAdmin.SeleccionarItem("tickets");
+                    topBarAdmin.ActualizarItemActivo("tickets");
                     return;
                 }
 
@@ -110,7 +123,21 @@ namespace HSis.UI.Forms.Dashboards
                         break;
                     }
                 }
-            };
+
+                sidebarAdmin.SeleccionarItem(clave);
+                topBarAdmin.ActualizarItemActivo(clave);
+            }
+
+            sidebarAdmin.ItemSeleccionado += (s, clave) => SeleccionarVista(clave);
+
+            topBarAdmin.ConfigurarSesion(_sessionCache);
+            topBarAdmin.ConfigurarMenuHamburguesa(
+                items,
+                "tickets",
+                SeleccionarVista,
+                () => sidebarAdmin.Colapsado = !sidebarAdmin.Colapsado,
+                () => !sidebarAdmin.Colapsado
+            );
         }
 
         private void ConfigurarFechasYFiltros()
@@ -177,7 +204,7 @@ namespace HSis.UI.Forms.Dashboards
 
         private async Task CargarGridCompletoAsync()
         {
-            PaginacionControl.PaginaActual = 1;
+            _controladorPaginacion.ReiniciarAPrimeraPagina();
             await FiltrarTicketsAsync();
         }
 
@@ -195,13 +222,13 @@ namespace HSis.UI.Forms.Dashboards
         private async Task ConfigurarTabsCatalogosAsync()
         {
             var catalogos = new (string Nombre, Type Tipo)[] {
-                ("Usuarios", typeof(Usuario)),
-                ("Departamentos", typeof(Departamento)),
-                ("Empresas", typeof(Empresa)),
-                ("Materiales", typeof(Material)),
-                ("Puestos", typeof(Puesto)),
-                ("RolesUsuario", typeof(RolUsuario)),
-                ("Sucursales", typeof(Sucursal))
+                ("Usuarios", typeof(UsuarioDto)),
+                ("Departamentos", typeof(DepartamentoDto)),
+                ("Empresas", typeof(EmpresaDto)),
+                ("Materiales", typeof(MaterialDto)),
+                ("Puestos", typeof(PuestoDto)),
+                ("RolesUsuario", typeof(RolUsuarioDto)),
+                ("Sucursales", typeof(SucursalDto))
             };
 
             foreach (var (nombre, tipo) in catalogos)
@@ -219,7 +246,7 @@ namespace HSis.UI.Forms.Dashboards
 
         private async Task ConfigurarTabParaCatalogo(string nombre, Type tipo)
         {
-            TabPage tab = new(nombre);
+            TabPage tab = new(nombre) { BackColor = Color.FromArgb(248, 250, 252) };
 
             DataGridView dgv = new()
             {
@@ -236,6 +263,11 @@ namespace HSis.UI.Forms.Dashboards
             dgv.AplicarTemaModerno();
 
             Panel panelTop = new() { Dock = DockStyle.Top, Height = 56, BackColor = Color.White, Padding = new Padding(12, 10, 12, 10) };
+            panelTop.Paint += (s, e) =>
+            {
+                using var pen = new Pen(Color.FromArgb(226, 232, 240), 1f);
+                e.Graphics.DrawLine(pen, 0, panelTop.Height - 1, panelTop.Width, panelTop.Height - 1);
+            };
             BotonModerno btnCrear = new()
             {
                 Text = "Nuevo Registro",
@@ -260,7 +292,7 @@ namespace HSis.UI.Forms.Dashboards
             panelTop.Controls.Add(btnCrear);
             panelTop.Controls.Add(btnEliminar);
 
-            if (tipo == typeof(Material))
+            if (tipo == typeof(MaterialDto))
             {
                 AgregarControlesInventario(panelTop, dgv);
             }
@@ -302,19 +334,20 @@ namespace HSis.UI.Forms.Dashboards
 
             btnIngreso.Click += async (s, ev) =>
             {
-                var nuevoMovimiento = new MovimientoMaterial
+                var nuevoMovimiento = new KardexMovimientoDto
                 {
-                    IdUsuario = SesionSistema.IdUsuario,
-                    FechaMovimiento = DateTime.Now,
+                    IdUsuario = _contextoSesion.IdUsuario,
+                    Fecha = DateTime.Now,
                     Cantidad = 1,
-                    Motivo = "Ingreso por Compra"
+                    Motivo = "Ingreso por Compra",
+                    TipoMovimiento = "Entrada"
                 };
                 var frm = _fabricaFormularios.CrearEditorDinamico(nuevoMovimiento, "Nuevo Movimiento de Almacén");
                 if (frm.ShowDialog() == DialogResult.OK)
                 {
                     await _presenter.CrearMovimientoMaterialAsync(nuevoMovimiento);
                     MessageBox.Show("Movimiento registrado con éxito.", "Inventario", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    _ = CargarDatosCatalogo(typeof(Material), dgv);
+                    _ = CargarDatosCatalogo(typeof(MaterialDto), dgv);
                 }
             };
 
@@ -416,9 +449,9 @@ namespace HSis.UI.Forms.Dashboards
                 if (entidadExistente is null) return;
 
                 string? passwordHashOriginal = null;
-                if (tipo == typeof(Usuario))
+                if (tipo == typeof(UsuarioDto))
                 {
-                    var u = (Usuario)entidadExistente;
+                    var u = (UsuarioDto)entidadExistente;
                     passwordHashOriginal = u.Contraseña;
                     u.Contraseña = "";
                 }
@@ -444,14 +477,14 @@ namespace HSis.UI.Forms.Dashboards
                             MessageBox.Show($"Error al actualizar el registro: {realEx?.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         }
                         // Restaurar contraseña original si falló la actualización
-                        if (tipo == typeof(Usuario)) ((Usuario)entidadExistente).Contraseña = passwordHashOriginal;
+                        if (tipo == typeof(UsuarioDto)) ((UsuarioDto)entidadExistente).Contraseña = passwordHashOriginal;
                     }
                 }
                 else
                 {
-                    if (tipo == typeof(Usuario))
+                    if (tipo == typeof(UsuarioDto))
                     {
-                        var u = (Usuario)entidadExistente;
+                        var u = (UsuarioDto)entidadExistente;
                         u.Contraseña = passwordHashOriginal;
                     }
                 }

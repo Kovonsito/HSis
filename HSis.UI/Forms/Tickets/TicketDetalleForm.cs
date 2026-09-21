@@ -1,5 +1,4 @@
 using System.Runtime.Versioning;
-using HSis.Data.Models;
 using HSis.Logic.Constants;
 using HSis.Logic.DTOs;
 using HSis.UI.Controls;
@@ -79,7 +78,7 @@ namespace HSis.UI.Forms.Tickets
             cmbEstatus.SelectedIndexChanged += CmbEstatus_SelectedIndexChanged;
         }
 
-        public void CargarTecnicos(List<Usuario> tecnicos, int? idTecnicoActual, bool esAdmin)
+        public void CargarTecnicos(List<UsuarioDto> tecnicos, int? idTecnicoActual, bool esAdmin)
         {
             cmbAtendido.DisplayMember = "Nombre";
             cmbAtendido.ValueMember = "IdUsuario";

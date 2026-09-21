@@ -4,6 +4,7 @@ using AutoUpdaterDotNET;
 using FluentValidation;
 using HSis.Logic.Constants;
 using HSis.Logic.Services;
+using HSis.Logic.Validators;
 using HSis.UI.Factories;
 using HSis.UI.Forms.Auth;
 using HSis.UI.Forms.Dashboards;
@@ -117,7 +118,7 @@ namespace HSis.UI
                 services.AddScoped<IMapper, ServiceMapper>();
 
                 // Registrar FluentValidation
-                services.AddValidatorsFromAssemblyContaining<Logic.Validators.TicketCreateValidator>();
+                services.AddValidatorsFromAssemblyContaining<TicketCreateValidator>();
 
                 // Configurar ApiClients basados en HttpClient
                 var baseUrl = configuration.GetSection("ApiSettings")["BaseUrl"] ?? "http://localhost:5000";
@@ -144,7 +145,12 @@ namespace HSis.UI
                 services.AddSingleton<INotificationClientService, NotificationClientService>();
                 services.AddSingleton<ISessionCacheService, SessionCacheService>();
                 services.AddSingleton<ContextoSesion>();
-                services.AddSingleton<IContextoSesion>(sp => sp.GetRequiredService<ContextoSesion>());
+                services.AddSingleton<IContextoSesion>(sp =>
+                {
+                    var ctx = sp.GetRequiredService<ContextoSesion>();
+                    SesionSistema.Inicializar(ctx);
+                    return ctx;
+                });
                 services.AddSingleton<ICurrentUserService>(sp => sp.GetRequiredService<ContextoSesion>());
                 services.AddSingleton<IFabricaFormularios, FabricaFormularios>();
                 services.AddTransient<Presenters.NotificacionesPresenter>();

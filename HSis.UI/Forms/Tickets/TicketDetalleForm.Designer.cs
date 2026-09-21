@@ -2,6 +2,7 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 using HSis.UI.Controls;
+using HSis.UI.Helpers;
 
 namespace HSis.UI.Forms.Tickets;
 
@@ -88,11 +89,12 @@ partial class TicketDetalleForm
         // 
         // cmbEstatus
         // 
+        cmbEstatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
         cmbEstatus.FormattingEnabled = true;
         cmbEstatus.Items.AddRange(new object[] { "Abierto", "En proceso", "Cerrado", "Reabierto", "Abierto", "En proceso", "Cerrado", "Reabierto" });
         cmbEstatus.Location = new Point(134, 93);
         cmbEstatus.Name = "cmbEstatus";
-        cmbEstatus.Size = new Size(228, 23);
+        cmbEstatus.Size = new Size(540, 23);
         cmbEstatus.TabIndex = 2;
         cmbEstatus.SelectedIndexChanged += CmbEstatus_SelectedIndexChanged;
         // 
@@ -116,10 +118,11 @@ partial class TicketDetalleForm
         // 
         // txtUsuario
         // 
+        txtUsuario.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
         txtUsuario.Enabled = false;
         txtUsuario.Location = new Point(134, 35);
         txtUsuario.Name = "txtUsuario";
-        txtUsuario.Size = new Size(228, 23);
+        txtUsuario.Size = new Size(540, 23);
         txtUsuario.TabIndex = 7;
         // 
         // lblAlta
@@ -142,9 +145,10 @@ partial class TicketDetalleForm
         // 
         // txtAlta
         // 
+        txtAlta.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
         txtAlta.Location = new Point(134, 151);
         txtAlta.Name = "txtAlta";
-        txtAlta.Size = new Size(343, 23);
+        txtAlta.Size = new Size(540, 23);
         txtAlta.TabIndex = 10;
         txtAlta.ReadOnly = true;
         // 
@@ -177,9 +181,10 @@ partial class TicketDetalleForm
         // 
         // txtAtencion
         // 
+        txtAtencion.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
         txtAtencion.Location = new Point(134, 180);
         txtAtencion.Name = "txtAtencion";
-        txtAtencion.Size = new Size(343, 23);
+        txtAtencion.Size = new Size(540, 23);
         txtAtencion.TabIndex = 15;
         txtAtencion.ReadOnly = true;
         // 
@@ -194,17 +199,19 @@ partial class TicketDetalleForm
         // 
         // txtCierre
         // 
+        txtCierre.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
         txtCierre.Location = new Point(134, 209);
         txtCierre.Name = "txtCierre";
-        txtCierre.Size = new Size(343, 23);
+        txtCierre.Size = new Size(540, 23);
         txtCierre.TabIndex = 17;
         txtCierre.ReadOnly = true;
         // 
         // cmbAtendido
         // 
+        cmbAtendido.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
         cmbAtendido.Location = new Point(134, 238);
         cmbAtendido.Name = "cmbAtendido";
-        cmbAtendido.Size = new Size(121, 23);
+        cmbAtendido.Size = new Size(540, 23);
         cmbAtendido.TabIndex = 23;
         // 
         // btnGuardar
@@ -260,12 +267,13 @@ partial class TicketDetalleForm
         // 
         // cmbPrioridad
         // 
+        cmbPrioridad.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
         cmbPrioridad.DropDownStyle = ComboBoxStyle.DropDownList;
         cmbPrioridad.FormattingEnabled = true;
         cmbPrioridad.Items.AddRange(new object[] { "Alta", "Media", "Baja" });
         cmbPrioridad.Location = new Point(134, 122);
         cmbPrioridad.Name = "cmbPrioridad";
-        cmbPrioridad.Size = new Size(228, 23);
+        cmbPrioridad.Size = new Size(540, 23);
         cmbPrioridad.TabIndex = 26;
         // 
         // lblDepartamento
@@ -279,10 +287,11 @@ partial class TicketDetalleForm
         // 
         // txtDepartamento
         // 
+        txtDepartamento.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
         txtDepartamento.Enabled = false;
         txtDepartamento.Location = new Point(134, 64);
         txtDepartamento.Name = "txtDepartamento";
-        txtDepartamento.Size = new Size(228, 23);
+        txtDepartamento.Size = new Size(540, 23);
         txtDepartamento.TabIndex = 28;
         // 
         // grpFeedback
@@ -335,21 +344,23 @@ partial class TicketDetalleForm
         // 
         // txtComentario
         // 
+        txtComentario.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
         txtComentario.Font = new Font("Segoe UI", 9F);
         txtComentario.Location = new Point(15, 75);
         txtComentario.Name = "txtComentario";
-        txtComentario.Size = new Size(510, 23);
+        txtComentario.Size = new Size(500, 23);
         txtComentario.TabIndex = 3;
         // 
         // btnEnviar
         // 
+        btnEnviar.Anchor = AnchorStyles.Top | AnchorStyles.Right;
         btnEnviar.Estilo = EstiloBotonModerno.Primario;
         btnEnviar.Icono = FontAwesome.Sharp.IconChar.Star;
         btnEnviar.IconoTamano = 14;
         btnEnviar.Font = new Font("Segoe UI Semibold", 9.5F, FontStyle.Bold);
-        btnEnviar.Location = new Point(530, 70);
+        btnEnviar.Location = new Point(525, 70);
         btnEnviar.Name = "btnEnviar";
-        btnEnviar.Size = new Size(150, 36);
+        btnEnviar.Size = new Size(155, 36);
         btnEnviar.TabIndex = 4;
         btnEnviar.Text = "Enviar Feedback";
         btnEnviar.Click += btnEnviarFeedback_Click;
@@ -366,6 +377,7 @@ partial class TicketDetalleForm
         // 
         // lblComentarioLectura
         // 
+        lblComentarioLectura.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
         lblComentarioLectura.Font = new Font("Segoe UI", 9F, FontStyle.Italic);
         lblComentarioLectura.Location = new Point(15, 55);
         lblComentarioLectura.Name = "lblComentarioLectura";
@@ -517,12 +529,36 @@ partial class TicketDetalleForm
 
     private void InicializarLayoutDetalle()
     {
-        rtbDescripcion = new CajaTextoOrtograficaWpf { Dock = DockStyle.Fill };
-        rtbSolucion = new CajaTextoOrtograficaWpf { Dock = DockStyle.Fill };
-        dgvMateriales = new DataGridView { Dock = DockStyle.Fill, ReadOnly = true };
+        rtbDescripcion = new CajaTextoOrtograficaWpf { Dock = DockStyle.Fill, Margin = new Padding(0, 0, 0, 8) };
+        rtbSolucion = new CajaTextoOrtograficaWpf { Dock = DockStyle.Fill, Margin = new Padding(0) };
+        dgvMateriales = new DataGridView { Dock = DockStyle.Fill, ReadOnly = true, AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill };
+        dgvMateriales.AplicarTemaModerno();
 
-        tabDescripcionSolucion.Controls.Add(rtbDescripcion);
-        tabDescripcionSolucion.Controls.Add(rtbSolucion);
+        tabDescripcionSolucion.Controls.Clear();
+        var tblDescSol = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            RowCount = 4,
+            ColumnCount = 1,
+            Padding = new Padding(12),
+            BackColor = Color.Transparent
+        };
+        tblDescSol.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+        tblDescSol.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        tblDescSol.RowStyles.Add(new RowStyle(SizeType.Percent, 45F));
+        tblDescSol.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        tblDescSol.RowStyles.Add(new RowStyle(SizeType.Percent, 55F));
+
+        lblDescripcion.Dock = DockStyle.Fill;
+        lblDescripcion.Margin = new Padding(0, 0, 0, 4);
+        lblSolucion.Dock = DockStyle.Fill;
+        lblSolucion.Margin = new Padding(0, 8, 0, 4);
+
+        tblDescSol.Controls.Add(lblDescripcion, 0, 0);
+        tblDescSol.Controls.Add(rtbDescripcion, 0, 1);
+        tblDescSol.Controls.Add(lblSolucion, 0, 2);
+        tblDescSol.Controls.Add(rtbSolucion, 0, 3);
+        tabDescripcionSolucion.Controls.Add(tblDescSol);
 
         TabPage tbpMateriales = new TabPage("Materiales Utilizados");
         tbpMateriales.Controls.Add(dgvMateriales);

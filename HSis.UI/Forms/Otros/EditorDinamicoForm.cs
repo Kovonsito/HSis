@@ -1,6 +1,8 @@
 using System.ComponentModel;
 using System.Reflection;
 using System.Runtime.Versioning;
+using HSis.UI.Controls;
+using HSis.UI.Helpers;
 using HSis.UI.Presenters;
 
 namespace HSis.UI.Forms.Otros
@@ -38,6 +40,7 @@ namespace HSis.UI.Forms.Otros
 
         private async Task GenerarControlesAsync()
         {
+            this.BackColor = TemaVisual.FondoApp;
             int y = 30;
             this.AutoScroll = true;
             var props = ObtenerPropiedadesEditables();
@@ -48,37 +51,39 @@ namespace HSis.UI.Forms.Otros
                 y += 45;
             }
 
-            Button btnGuardar = new()
+            var btnGuardar = new BotonModerno
             {
                 Text = "Guardar",
-                Location = new Point(230, y + 20),
-                Width = 100,
-                Height = 35,
-                DialogResult = DialogResult.OK,
-                BackColor = Color.FromArgb(39, 174, 96),
-                Font = new Font("Segoe UI", 11F, FontStyle.Bold, GraphicsUnit.Point),
-                ForeColor = Color.White,
-                UseVisualStyleBackColor = false
+                Icono = FontAwesome.Sharp.IconChar.Check,
+                IconoTamano = 15,
+                Estilo = EstiloBotonModerno.Exito,
+                RadioBorde = 6,
+                Anchor = AnchorStyles.Top | AnchorStyles.Right,
+                Location = new Point(Math.Max(230, this.ClientSize.Width - 250), y + 20),
+                Width = 110,
+                Height = 38,
+                DialogResult = DialogResult.OK
             };
             btnGuardar.Click += BtnGuardar_Click;
 
-            Button btnCancelar = new()
+            var btnCancelar = new BotonModerno
             {
                 Text = "Cancelar",
-                Location = new Point(340, y + 20),
-                Width = 100,
-                Height = 35,
-                DialogResult = DialogResult.Cancel,
-                BackColor = Color.FromArgb(231, 76, 60),
-                Font = new Font("Segoe UI", 11F, FontStyle.Bold, GraphicsUnit.Point),
-                ForeColor = Color.White,
-                UseVisualStyleBackColor = false
+                Icono = FontAwesome.Sharp.IconChar.Times,
+                IconoTamano = 15,
+                Estilo = EstiloBotonModerno.Secundario,
+                RadioBorde = 6,
+                Anchor = AnchorStyles.Top | AnchorStyles.Right,
+                Location = new Point(Math.Max(350, this.ClientSize.Width - 130), y + 20),
+                Width = 110,
+                Height = 38,
+                DialogResult = DialogResult.Cancel
             };
 
             this.Controls.Add(btnGuardar);
             this.Controls.Add(btnCancelar);
 
-            this.Height = Math.Min(y + 150, 600);
+            this.Height = Math.Min(y + 150, 650);
             this.Width = 600;
         }
 
@@ -169,7 +174,14 @@ namespace HSis.UI.Forms.Otros
                     labelText = labelText.Substring(2);
             }
 
-            Label lbl = new() { Text = labelText, Location = new Point(30, y + 5), AutoSize = true };
+            Label lbl = new()
+            {
+                Text = labelText,
+                Location = new Point(30, y + 5),
+                AutoSize = true,
+                Font = new Font("Segoe UI Semibold", 9.5f, FontStyle.Bold),
+                ForeColor = TemaVisual.TextoPrincipal
+            };
 
             if (prop.Name == "Motivo")
             {
@@ -187,7 +199,14 @@ namespace HSis.UI.Forms.Otros
 
         private Task AgregarComboBoxDeMotivosAsync(PropertyInfo prop, Label lbl, int y)
         {
-            ComboBox cmb = new() { Name = prop.Name, Location = new Point(230, y), Width = 250, DropDownStyle = ComboBoxStyle.DropDownList };
+            ComboBox cmb = new()
+            {
+                Name = prop.Name,
+                Location = new Point(230, y),
+                Width = Math.Max(250, this.ClientSize.Width - 260),
+                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
+                DropDownStyle = ComboBoxStyle.DropDownList
+            };
 
             this.Controls.Add(lbl);
             this.Controls.Add(cmb);
@@ -216,7 +235,14 @@ namespace HSis.UI.Forms.Otros
 
         private async Task AgregarComboBoxAsync(PropertyInfo prop, PropertyInfo navProp, Label lbl, int y)
         {
-            ComboBox cmb = new() { Name = prop.Name, Location = new Point(230, y), Width = 250, DropDownStyle = ComboBoxStyle.DropDownList };
+            ComboBox cmb = new()
+            {
+                Name = prop.Name,
+                Location = new Point(230, y),
+                Width = Math.Max(250, this.ClientSize.Width - 260),
+                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
+                DropDownStyle = ComboBoxStyle.DropDownList
+            };
 
             this.Controls.Add(lbl);
             this.Controls.Add(cmb);
@@ -264,7 +290,13 @@ namespace HSis.UI.Forms.Otros
 
         private async Task AgregarTextBoxAsync(PropertyInfo prop, bool isId, Label lbl, int y)
         {
-            TextBox txt = new() { Name = prop.Name, Location = new Point(230, y), Width = 250 };
+            TextBox txt = new()
+            {
+                Name = prop.Name,
+                Location = new Point(230, y),
+                Width = Math.Max(250, this.ClientSize.Width - 260),
+                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
+            };
 
             if (isId || prop.Name == "FechaMovimiento")
             {

@@ -12,8 +12,10 @@ namespace HSis.UI.Helpers
                 RowCount = incluirFiltros ? 4 : 3,
                 ColumnCount = 1,
                 Padding = new Padding(16, 12, 16, 10),
-                BackColor = Color.Transparent
+                BackColor = TemaVisual.FondoApp
             };
+
+            tbl.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
 
             tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 105F)); // Fila 0: Indicadores (KPI Cards)
             if (incluirFiltros)
@@ -40,7 +42,7 @@ namespace HSis.UI.Helpers
                 RowCount = 1,
                 ColumnCount = columnas,
                 Margin = new Padding(0, 0, 0, 8),
-                BackColor = Color.Transparent
+                BackColor = TemaVisual.FondoApp
             };
 
             float percent = 100f / columnas;

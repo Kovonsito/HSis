@@ -1,15 +1,14 @@
-using HSis.Data.Models;
 using HSis.Logic.Constants;
 using HSis.Logic.DTOs;
 using HSis.Logic.Services;
-using HSis.UI.Helpers;
 
 namespace HSis.UI.Presenters
 {
     public class TicketDetallePresenter(
         ITicketService ticketService,
         ITicketDetalleService ticketDetalleService,
-        ICatalogoService catalogoService)
+        IUsuarioService usuarioService,
+        IContextoSesion contextoSesion)
     {
         private ITicketDetalleView? _view;
 
@@ -17,7 +16,6 @@ namespace HSis.UI.Presenters
         {
             _view = view;
         }
-
 
         public async Task CargarTicketDetallesAsync(int idTicket)
         {
@@ -36,12 +34,13 @@ namespace HSis.UI.Presenters
                 _view.MostrarTicket(ticket);
 
                 string estatusActual = ticket.Estatus ?? ConstantesEstatus.ABIERTO;
-                var estatusPermitidos = TicketService.ObtenerEstatusPermitidos(SesionSistema.IdRolUsuario, estatusActual);
+                var estatusPermitidos = ReglasEstatusTicket.ObtenerEstatusPermitidos(contextoSesion.IdRolUsuario, estatusActual);
                 _view.CargarEstatusPermitidos(estatusPermitidos, estatusActual);
 
-                var todosUsuarios = await catalogoService.ObtenerTodosAsync<Usuario>();
-                var tecnicos = todosUsuarios.Where(u => u.IdRol == (int)RolUsuarioEnum.Tecnico || u.IdRol == (int)RolUsuarioEnum.Administrador).OrderBy(u => u.Nombre).ToList();
-                _view.CargarTecnicos(tecnicos, ticket.IdTecnico, SesionSistema.EsAdmin);
+                var tecnicos = await usuarioService.ObtenerUsuariosPorRolAsync((int)RolUsuarioEnum.Tecnico);
+                var admins = await usuarioService.ObtenerUsuariosPorRolAsync((int)RolUsuarioEnum.Administrador);
+                var personalAtencion = tecnicos.Concat(admins).OrderBy(u => u.Nombre).ToList();
+                _view.CargarTecnicos(personalAtencion, ticket.IdTecnico, contextoSesion.EsAdmin);
 
                 await RecargarHistorialYMaterialesAsync(idTicket);
             }
@@ -172,4 +171,3 @@ namespace HSis.UI.Presenters
         }
     }
 }
-

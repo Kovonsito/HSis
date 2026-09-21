@@ -81,6 +81,7 @@ partial class DashboardAdminForm
         // 
         // pnlContenedorPrincipal
         // 
+        pnlContenedorPrincipal.BackColor = Color.FromArgb(248, 250, 252);
         pnlContenedorPrincipal.Controls.Add(tabMain);
         pnlContenedorPrincipal.Controls.Add(topBarAdmin);
         pnlContenedorPrincipal.Dock = DockStyle.Fill;
@@ -276,7 +277,7 @@ partial class DashboardAdminForm
         ClientSize = new Size(1200, 720);
         Controls.Add(pnlContenedorPrincipal);
         Controls.Add(sidebarAdmin);
-        MinimumSize = new Size(1100, 700);
+        MinimumSize = new Size(800, 500);
         Name = "DashboardAdminForm";
         StartPosition = FormStartPosition.CenterScreen;
         Text = "HSis Support - Administración";

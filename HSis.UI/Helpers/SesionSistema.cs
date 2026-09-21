@@ -9,13 +9,36 @@ namespace HSis.UI.Helpers
     [SupportedOSPlatform("windows")]
     public static class SesionSistema
     {
-        public static UsuarioDto? UsuarioActual { get; set; }
-        public static string TokenJWT { get; set; } = string.Empty;
-        public static int IdUsuario => UsuarioActual?.IdUsuario ?? 0;
-        public static string NombreUsuario => UsuarioActual?.Nombre ?? string.Empty;
-        public static int IdRolUsuario => UsuarioActual?.IdRol ?? 0;
-        public static bool EsAdmin => IdRolUsuario == (int)RolUsuarioEnum.Administrador;
-        public static bool EsTecnico => IdRolUsuario == (int)RolUsuarioEnum.Tecnico;
+        private static IContextoSesion? _contexto;
+
+        public static void Inicializar(IContextoSesion contexto)
+        {
+            _contexto = contexto;
+        }
+
+        public static UsuarioDto? UsuarioActual
+        {
+            get => _contexto?.UsuarioActual;
+            set
+            {
+                if (_contexto != null) _contexto.UsuarioActual = value;
+            }
+        }
+
+        public static string TokenJWT
+        {
+            get => _contexto?.TokenJWT ?? string.Empty;
+            set
+            {
+                if (_contexto != null) _contexto.TokenJWT = value;
+            }
+        }
+
+        public static int IdUsuario => _contexto?.IdUsuario ?? 0;
+        public static string NombreUsuario => _contexto?.NombreUsuario ?? string.Empty;
+        public static int IdRolUsuario => _contexto?.IdRolUsuario ?? 0;
+        public static bool EsAdmin => _contexto?.EsAdmin ?? false;
+        public static bool EsTecnico => _contexto?.EsTecnico ?? false;
 
         public static void ConfigurarMenuSesion(Form form, ISessionCacheService sessionCache)
         {
@@ -61,9 +84,8 @@ namespace HSis.UI.Helpers
                 var confirmResult = MessageBox.Show("¿Estás seguro de que deseas cerrar sesión?", "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                 if (confirmResult == DialogResult.Yes)
                 {
-                    // Limpiar credenciales guardadas en caché
                     sessionCache.ClearCredentials();
-
+                    _contexto?.CerrarSesion();
                     Application.Restart();
                 }
             };
