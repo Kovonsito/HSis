@@ -14,6 +14,12 @@ namespace HSis.Logic.Services
             QuestPDF.Settings.License = LicenseType.Community;
         }
 
+        public Task<byte[]> GenerarExcelAsync(ReporteKpisDto kpis, List<TicketDto> tickets, DateTime inicio, DateTime fin)
+            => Task.FromResult(GenerarExcel(kpis, tickets, inicio, fin));
+
+        public Task<byte[]> GenerarPdfAsync(ReporteKpisDto kpis, List<TicketDto> tickets, DateTime inicio, DateTime fin)
+            => Task.FromResult(GenerarPdf(kpis, tickets, inicio, fin));
+
         // Generar archivo Excel con ClosedXML
         public byte[] GenerarExcel(ReporteKpisDto kpis, List<TicketDto> tickets, DateTime inicio, DateTime fin)
         {

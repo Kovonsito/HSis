@@ -77,14 +77,16 @@ namespace HSis.UI.Forms.Dashboards
 
         private void ConfigurarSidebar()
         {
-            sidebarCliente.ConfigurarSesion(_sessionCache);
-            sidebarCliente.ConfigurarItems(new[]
+            var items = new[]
             {
                 new ItemSidebar { Clave = "activos", Titulo = "Mis Activos", Icono = FontAwesome.Sharp.IconChar.Ticket },
                 new ItemSidebar { Clave = "cerrados", Titulo = "Historial Cerrados", Icono = FontAwesome.Sharp.IconChar.ClockRotateLeft }
-            }, "activos");
+            };
 
-            sidebarCliente.ItemSeleccionado += (s, clave) =>
+            sidebarCliente.ConfigurarSesion(_sessionCache);
+            sidebarCliente.ConfigurarItems(items, "activos");
+
+            void SeleccionarVista(string clave)
             {
                 if (clave == "activos")
                 {
@@ -99,9 +101,22 @@ namespace HSis.UI.Forms.Dashboards
                     topBarCliente.Subtitulo = "Solicitudes resueltas y cerradas";
                 }
 
+                sidebarCliente.SeleccionarItem(clave);
+                topBarCliente.ActualizarItemActivo(clave);
                 _controladorPaginacion.ReiniciarAPrimeraPagina();
                 MostrarPaginaActual();
-            };
+            }
+
+            sidebarCliente.ItemSeleccionado += (s, clave) => SeleccionarVista(clave);
+
+            topBarCliente.ConfigurarSesion(_sessionCache);
+            topBarCliente.ConfigurarMenuHamburguesa(
+                items,
+                "activos",
+                SeleccionarVista,
+                () => sidebarCliente.Colapsado = !sidebarCliente.Colapsado,
+                () => !sidebarCliente.Colapsado
+            );
         }
 
         private async Task CargarDatosDashboardAsync()
@@ -210,16 +225,20 @@ namespace HSis.UI.Forms.Dashboards
                 if (colFeedback != null)
                 {
                     colFeedback.HeaderText = "Calificación / Feedback";
-                    colFeedback.FillWeight = 75;
-                    colFeedback.MinimumWidth = 110;
+                    colFeedback.FillWeight = 85;
+                    colFeedback.MinimumWidth = 140;
                 }
+
+                dgvMisTickets.AutoajustarAnchosMinimos();
             }
         }
 
         private void UcMisActivos_Click(object? sender, EventArgs e)
         {
             _vistaActual = _vistaActual == VistaCliente.Activos ? VistaCliente.Todos : VistaCliente.Activos;
-            sidebarCliente.SeleccionarItem(_vistaActual == VistaCliente.Activos ? "activos" : "");
+            string clave = _vistaActual == VistaCliente.Activos ? "activos" : "";
+            sidebarCliente.SeleccionarItem(clave);
+            topBarCliente.ActualizarItemActivo(clave);
             topBarCliente.Titulo = _vistaActual == VistaCliente.Activos ? "Mis Tickets Activos" : "Todos Mis Tickets";
             _controladorPaginacion.ReiniciarAPrimeraPagina();
             MostrarPaginaActual();
@@ -228,7 +247,9 @@ namespace HSis.UI.Forms.Dashboards
         private void UcMisCerrados_Click(object? sender, EventArgs e)
         {
             _vistaActual = _vistaActual == VistaCliente.Cerrados ? VistaCliente.Todos : VistaCliente.Cerrados;
-            sidebarCliente.SeleccionarItem(_vistaActual == VistaCliente.Cerrados ? "cerrados" : "");
+            string clave = _vistaActual == VistaCliente.Cerrados ? "cerrados" : "";
+            sidebarCliente.SeleccionarItem(clave);
+            topBarCliente.ActualizarItemActivo(clave);
             topBarCliente.Titulo = _vistaActual == VistaCliente.Cerrados ? "Historial de Tickets Cerrados" : "Todos Mis Tickets";
             _controladorPaginacion.ReiniciarAPrimeraPagina();
             MostrarPaginaActual();

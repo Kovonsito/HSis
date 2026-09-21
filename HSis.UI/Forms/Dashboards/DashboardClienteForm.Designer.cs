@@ -49,6 +49,7 @@ partial class DashboardClienteForm
         this.topBarCliente.Subtitulo = "Seguimiento y Registro de Solicitudes";
 
         // pnlContenedorPrincipal
+        this.pnlContenedorPrincipal.BackColor = Color.FromArgb(248, 250, 252);
         this.pnlContenedorPrincipal.Controls.Add(this.topBarCliente);
         this.pnlContenedorPrincipal.Dock = DockStyle.Fill;
         this.pnlContenedorPrincipal.Location = new Point(240, 0);
@@ -103,7 +104,7 @@ partial class DashboardClienteForm
         this.AutoScaleMode = AutoScaleMode.Font;
         this.BackColor = Color.FromArgb(248, 250, 252);
         this.ClientSize = new Size(1200, 720);
-        this.MinimumSize = new Size(1100, 700);
+        this.MinimumSize = new Size(800, 500);
         this.Controls.Add(this.pnlContenedorPrincipal);
         this.Controls.Add(this.sidebarCliente);
         this.Name = "DashboardClienteForm";

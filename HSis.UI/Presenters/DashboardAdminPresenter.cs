@@ -1,4 +1,3 @@
-using HSis.Data.Models;
 using HSis.Logic.Constants;
 using HSis.Logic.DTOs;
 using HSis.Logic.Services;
@@ -8,7 +7,9 @@ namespace HSis.UI.Presenters
     public class DashboardAdminPresenter(
         ITicketService ticketService,
         ICatalogoService catalogoService,
-        IUsuarioService usuarioService)
+        IUsuarioService usuarioService,
+        IMaterialService materialService,
+        IContextoSesion contextoSesion)
     {
         private IDashboardAdminView? _view;
 
@@ -17,17 +18,18 @@ namespace HSis.UI.Presenters
             _view = view;
         }
 
-        public async Task CargarKPIsAsync(int idUsuario)
+        public async Task CargarKPIsAsync(int? idUsuario = null)
         {
             if (_view == null) return;
             try
             {
+                int targetUser = idUsuario ?? contextoSesion.IdUsuario;
                 var taskNuevos = ticketService.ObtenerCountTicketsPorSLAAsync(false);
                 var taskUrgentes = ticketService.ObtenerCountTicketsPorSLAAsync(true);
                 var taskEnProceso = ticketService.ObtenerCountTicketsPorEstatusAsync(ConstantesEstatus.EN_PROCESO);
                 var taskCerrados = ticketService.ObtenerCountTicketsPorEstatusAsync(ConstantesEstatus.CERRADO);
                 var taskReabiertos = ticketService.ObtenerCountTicketsPorEstatusAsync(ConstantesEstatus.REABIERTO);
-                var taskCalificacion = ticketService.ObtenerPromedioCalificacionTecnicoAsync(idUsuario);
+                var taskCalificacion = ticketService.ObtenerPromedioCalificacionTecnicoAsync(targetUser);
 
                 await Task.WhenAll(taskNuevos, taskUrgentes, taskEnProceso, taskCerrados, taskReabiertos, taskCalificacion);
 
@@ -51,29 +53,28 @@ namespace HSis.UI.Presenters
             if (_view == null) return;
             try
             {
-                var admins = await usuarioService.ObtenerUsuariosPorRolAsync(1);
-                var tecnicos = await usuarioService.ObtenerUsuariosPorRolAsync(2);
+                var admins = await usuarioService.ObtenerUsuariosPorRolAsync((int)RolUsuarioEnum.Administrador);
+                var tecnicos = await usuarioService.ObtenerUsuariosPorRolAsync((int)RolUsuarioEnum.Tecnico);
                 _view.CargarCombosFiltros(admins, tecnicos);
             }
             catch (Exception ex)
             {
                 _view.MostrarError($"Error al cargar filtros de técnicos y administradores: {ex.Message}");
-                _view.CargarCombosFiltros([], []);
             }
         }
 
-        public async Task FiltrarTicketsAsync(TicketFilterDto filtros, int pagina, int tamanoPagina)
+        public async Task FiltrarTicketsAsync(TicketFilterDto filtro, int pagina, int tamanoPagina)
         {
             if (_view == null) return;
             try
             {
                 _view.MostrarCargando(true);
-                var resultado = await ticketService.ObtenerTicketsFiltradosPaginadosAsync(filtros, pagina, tamanoPagina);
+                var resultado = await ticketService.ObtenerTicketsFiltradosPaginadosAsync(filtro, pagina, tamanoPagina);
                 _view.MostrarTickets(resultado.Items, resultado.TotalCount);
             }
             catch (Exception ex)
             {
-                _view.MostrarError($"Error al obtener listado de tickets: {ex.Message}");
+                _view.MostrarError($"Error al filtrar tickets: {ex.Message}");
             }
             finally
             {
@@ -83,11 +84,11 @@ namespace HSis.UI.Presenters
 
         public async Task<object?> ObtenerDatosCatalogoAsync(Type tipoEntidad)
         {
-            var miMetodo = typeof(ICatalogoService).GetMethod(nameof(ICatalogoService.ObtenerTodosAsync))!.MakeGenericMethod(tipoEntidad);
-            Task task = (Task)miMetodo.Invoke(catalogoService, null)!;
-            await task;
-            var resultProp = task.GetType().GetProperty("Result");
-            return resultProp?.GetValue(task);
+            if (tipoEntidad == typeof(MaterialDto))
+            {
+                return await materialService.ObtenerMaterialesAsync();
+            }
+            return await catalogoService.ObtenerTodosPorTipoAsync(tipoEntidad);
         }
 
         public async Task CrearEntidadCatalogoAsync(Type tipo, object entidad)
@@ -111,15 +112,14 @@ namespace HSis.UI.Presenters
             await task;
         }
 
-        public async Task CrearMovimientoMaterialAsync(MovimientoMaterial mov)
+        public async Task CrearMovimientoMaterialAsync(KardexMovimientoDto mov)
         {
-            await catalogoService.CrearAsync(mov);
+            await materialService.RegistrarMovimientoAsync(mov);
         }
 
-        public async Task<double> ObtenerPromedioCalificacionAsync(int idUsuario)
+        public async Task<double> ObtenerPromedioCalificacionAsync(int? idUsuario = null)
         {
-            return await ticketService.ObtenerPromedioCalificacionTecnicoAsync(idUsuario);
+            return await ticketService.ObtenerPromedioCalificacionTecnicoAsync(idUsuario ?? contextoSesion.IdUsuario);
         }
     }
 }
-

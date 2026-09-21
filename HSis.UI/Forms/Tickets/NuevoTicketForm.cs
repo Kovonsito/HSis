@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.Runtime.Versioning;
-using HSis.Data.Models;
 using HSis.Logic.Constants;
+using HSis.Logic.DTOs;
 using HSis.UI.Controls;
 using HSis.UI.Helpers;
 using HSis.UI.Presenters;
@@ -47,15 +47,15 @@ namespace HSis.UI.Forms.Tickets
             set => chkSolicitanteEnRepresentacion.Checked = value;
         }
 
-        public void CargarClientes(List<Usuario> clientes, int idUsuarioSesion)
+        public void CargarClientes(List<UsuarioDto> clientes, int idUsuarioSesion)
         {
             cmbSolicitante.Items.Clear();
             foreach (var u in clientes)
             {
                 string label = string.IsNullOrWhiteSpace(u.Nombre) ? $"Usuario #{u.IdUsuario}" : u.Nombre;
-                if (u.Departamento != null && !string.IsNullOrWhiteSpace(u.Departamento.Nombre))
+                if (!string.IsNullOrWhiteSpace(u.DepartamentoNombre))
                 {
-                    label += $" ({u.Departamento.Nombre})";
+                    label += $" ({u.DepartamentoNombre})";
                 }
                 cmbSolicitante.Items.Add(new ElementoCombo<int>(label, u.IdUsuario));
             }
@@ -71,7 +71,7 @@ namespace HSis.UI.Forms.Tickets
             }
         }
 
-        public void CargarTecnicos(List<Usuario> tecnicos, bool esTecnicoSesion, int idUsuarioSesion)
+        public void CargarTecnicos(List<UsuarioDto> tecnicos, bool esTecnicoSesion, int idUsuarioSesion)
         {
             cmbTecnico.Items.Clear();
             cmbTecnico.Items.Add(new ElementoCombo<int?>("-- Sin Asignar --", null));

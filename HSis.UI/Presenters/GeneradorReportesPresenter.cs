@@ -35,7 +35,7 @@ namespace HSis.UI.Presenters
                 };
                 var tickets = await ticketService.ObtenerTicketsFiltradosAsync(filtro);
 
-                var bytes = reportExportService.GenerarExcel(kpis, tickets, inicio, fin);
+                var bytes = await reportExportService.GenerarExcelAsync(kpis, tickets, inicio, fin);
                 await File.WriteAllBytesAsync(rutaArchivo, bytes);
 
                 _view.MostrarExito("Reporte en Excel generado y guardado correctamente.");
@@ -69,7 +69,7 @@ namespace HSis.UI.Presenters
                 };
                 var tickets = await ticketService.ObtenerTicketsFiltradosAsync(filtro);
 
-                var bytes = reportExportService.GenerarPdf(kpis, tickets, inicio, fin);
+                var bytes = await reportExportService.GenerarPdfAsync(kpis, tickets, inicio, fin);
                 await File.WriteAllBytesAsync(rutaArchivo, bytes);
 
                 _view.MostrarExito("Reporte en PDF generado y guardado correctamente.");

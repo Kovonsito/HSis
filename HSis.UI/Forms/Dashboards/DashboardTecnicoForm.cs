@@ -69,30 +69,34 @@ namespace HSis.UI.Forms.Dashboards
 
         private void ConfigurarSidebar()
         {
-            sidebarTecnico.ConfigurarSesion(_sessionCache);
-            sidebarTecnico.ConfigurarItems(new[]
+            var items = new[]
             {
                 new ItemSidebar { Clave = "asignados", Titulo = "Mis Asignados", Icono = FontAwesome.Sharp.IconChar.ClipboardCheck },
                 new ItemSidebar { Clave = "disponibles", Titulo = "Disponibles", Icono = FontAwesome.Sharp.IconChar.Inbox },
                 new ItemSidebar { Clave = "cerrados", Titulo = "Mis Cerrados", Icono = FontAwesome.Sharp.IconChar.CheckCircle },
                 new ItemSidebar { Clave = "calificaciones", Titulo = "Calificaciones", Icono = FontAwesome.Sharp.IconChar.Star },
                 new ItemSidebar { Clave = "kardex", Titulo = "Almacén / Kardex", Icono = FontAwesome.Sharp.IconChar.BoxesStacked }
-            }, "asignados");
+            };
 
-            sidebarTecnico.ItemSeleccionado += async (s, clave) =>
+            sidebarTecnico.ConfigurarSesion(_sessionCache);
+            sidebarTecnico.ConfigurarItems(items, "asignados");
+
+            async void SeleccionarVista(string clave)
             {
                 if (clave == "kardex")
                 {
                     var frmK = _formFactory.Crear<Forms.Otros.KardexForm>();
                     frmK.ShowDialog();
-                    sidebarTecnico.SeleccionarItem(_vistaActual switch
+                    string claveActual = _vistaActual switch
                     {
                         VistaDashboard.MisAsignados => "asignados",
                         VistaDashboard.Disponibles => "disponibles",
                         VistaDashboard.Cerrados => "cerrados",
                         VistaDashboard.Calificaciones => "calificaciones",
                         _ => "asignados"
-                    });
+                    };
+                    sidebarTecnico.SeleccionarItem(claveActual);
+                    topBarTecnico.ActualizarItemActivo(claveActual);
                     return;
                 }
 
@@ -120,8 +124,21 @@ namespace HSis.UI.Forms.Dashboards
                         break;
                 }
 
+                sidebarTecnico.SeleccionarItem(clave);
+                topBarTecnico.ActualizarItemActivo(clave);
                 await CargarTicketsSegunVistaAsync();
-            };
+            }
+
+            sidebarTecnico.ItemSeleccionado += (s, clave) => SeleccionarVista(clave);
+
+            topBarTecnico.ConfigurarSesion(_sessionCache);
+            topBarTecnico.ConfigurarMenuHamburguesa(
+                items,
+                "asignados",
+                SeleccionarVista,
+                () => sidebarTecnico.Colapsado = !sidebarTecnico.Colapsado,
+                () => !sidebarTecnico.Colapsado
+            );
         }
 
         private async Task CargarDatosInicialesAsync()
@@ -146,6 +163,7 @@ namespace HSis.UI.Forms.Dashboards
         {
             _vistaActual = VistaDashboard.MisAsignados;
             sidebarTecnico.SeleccionarItem("asignados");
+            topBarTecnico.ActualizarItemActivo("asignados");
             topBarTecnico.Titulo = "Mis Tickets Asignados";
             await CargarTicketsSegunVistaAsync();
         }
@@ -154,6 +172,7 @@ namespace HSis.UI.Forms.Dashboards
         {
             _vistaActual = VistaDashboard.Disponibles;
             sidebarTecnico.SeleccionarItem("disponibles");
+            topBarTecnico.ActualizarItemActivo("disponibles");
             topBarTecnico.Titulo = "Tickets Disponibles en Cola";
             await CargarTicketsSegunVistaAsync();
         }
@@ -162,6 +181,7 @@ namespace HSis.UI.Forms.Dashboards
         {
             _vistaActual = VistaDashboard.Cerrados;
             sidebarTecnico.SeleccionarItem("cerrados");
+            topBarTecnico.ActualizarItemActivo("cerrados");
             topBarTecnico.Titulo = "Historial de Tickets Cerrados";
             await CargarTicketsSegunVistaAsync();
         }
@@ -170,6 +190,7 @@ namespace HSis.UI.Forms.Dashboards
         {
             _vistaActual = VistaDashboard.Calificaciones;
             sidebarTecnico.SeleccionarItem("calificaciones");
+            topBarTecnico.ActualizarItemActivo("calificaciones");
             topBarTecnico.Titulo = "Mis Calificaciones";
             await CargarTicketsSegunVistaAsync();
         }

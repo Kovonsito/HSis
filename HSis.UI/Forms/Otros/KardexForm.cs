@@ -1,6 +1,7 @@
 #nullable enable
 using System.Runtime.Versioning;
-using HSis.Data.Models;
+using FontAwesome.Sharp;
+using HSis.Logic.DTOs;
 using HSis.UI.Helpers;
 using HSis.UI.Presenters;
 
@@ -19,7 +20,7 @@ namespace HSis.UI.Forms.Otros
         }
 
         #region Propiedades de IKardexView
-        public void CargarMateriales(List<Material> materiales)
+        public void CargarMateriales(List<MaterialDto> materiales)
         {
             cbMaterial.SelectedIndexChanged -= CbMaterial_SelectedIndexChanged;
             cbMaterial.DataSource = materiales;
@@ -29,12 +30,12 @@ namespace HSis.UI.Forms.Otros
             cbMaterial.SelectedIndexChanged += CbMaterial_SelectedIndexChanged;
         }
 
-        public void CargarHistorialKardex(List<VHistorialInventario> historial)
+        public void CargarHistorialKardex(List<KardexMovimientoDto> historial)
         {
-            dgvKardex.DataSource = new ListaVinculableOrdenable<VHistorialInventario>(historial);
+            dgvKardex.DataSource = new ListaVinculableOrdenable<KardexMovimientoDto>(historial);
             dgvKardex.AplicarTemaModerno();
 
-            var col1 = dgvKardex.Columns["IdMovimientoUnico"];
+            var col1 = dgvKardex.Columns["IdMovimiento"];
             if (col1 != null) col1.Visible = false;
 
             var col2 = dgvKardex.Columns["IdMaterial"];
@@ -42,9 +43,6 @@ namespace HSis.UI.Forms.Otros
 
             var col3 = dgvKardex.Columns["CostoUnitario"];
             if (col3 != null) col3.DefaultCellStyle.Format = "C2";
-
-            var col4 = dgvKardex.Columns["ValorTotalMovimiento"];
-            if (col4 != null) col4.DefaultCellStyle.Format = "C2";
         }
 
         public void MostrarError(string mensaje)
@@ -73,9 +71,15 @@ namespace HSis.UI.Forms.Otros
         #region Form Events
         private async void FrmKardex_Load(object? sender, EventArgs e)
         {
+            picIcon.Image = FontAwesome.Sharp.IconChar.BoxesStacked.ToBitmap(Color.FromArgb(37, 99, 235), 24);
             await _presenter.CargarMaterialesAsync();
         }
 
+        private void PanelTop_Paint(object? sender, PaintEventArgs e)
+        {
+            using var pen = new Pen(Color.FromArgb(226, 232, 240), 1f);
+            e.Graphics.DrawLine(pen, 0, panelTop.Height - 1, panelTop.Width, panelTop.Height - 1);
+        }
 
         private async void CbMaterial_SelectedIndexChanged(object? sender, EventArgs e)
         {

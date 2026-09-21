@@ -1,4 +1,7 @@
 using System.ComponentModel;
+using System.Drawing.Drawing2D;
+using FontAwesome.Sharp;
+using HSis.UI.Helpers;
 using HSis.UI.Presenters;
 
 namespace HSis.UI.Forms.Otros
@@ -12,7 +15,6 @@ namespace HSis.UI.Forms.Otros
             InitializeComponent();
             _presenter = presenter;
             _presenter.SetView(this);
-            InicializarLayoutReportes();
         }
 
         #region Propiedades de IGeneradorReportesView
@@ -52,7 +54,6 @@ namespace HSis.UI.Forms.Otros
             MessageBox.Show(mensaje, "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
-
         public void MostrarCargando(bool cargando)
         {
             if (InvokeRequired)
@@ -62,7 +63,7 @@ namespace HSis.UI.Forms.Otros
             }
             btnExcel.Enabled = !cargando;
             btnPdf.Enabled = !cargando;
-            this.Cursor = cargando ? Cursors.WaitCursor : Cursors.Default;
+            Cursor = cargando ? Cursors.WaitCursor : Cursors.Default;
         }
         #endregion
 
@@ -71,6 +72,22 @@ namespace HSis.UI.Forms.Otros
         {
             dtpInicio.Value = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
             dtpFin.Value = DateTime.Today;
+            picHeaderIcon.Image = IconChar.ChartPie.ToBitmap(Color.FromArgb(37, 99, 235), 28);
+        }
+
+        private void PnlHeader_Paint(object? sender, PaintEventArgs e)
+        {
+            using var pen = new Pen(Color.FromArgb(226, 232, 240), 1f);
+            e.Graphics.DrawLine(pen, 0, pnlHeader.Height - 1, pnlHeader.Width, pnlHeader.Height - 1);
+        }
+
+        private void PnlCard_Paint(object? sender, PaintEventArgs e)
+        {
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            var rect = new Rectangle(0, 0, pnlCard.Width - 1, pnlCard.Height - 1);
+            using var path = TemaVisual.CrearRectanguloRedondeado(rect, 10);
+            using var pen = new Pen(Color.FromArgb(226, 232, 240), 1.5f);
+            e.Graphics.DrawPath(pen, path);
         }
 
         private async void btnExcel_Click(object sender, EventArgs e)
@@ -106,8 +123,6 @@ namespace HSis.UI.Forms.Otros
                 await _presenter.GenerarReportePdfAsync(sfd.FileName);
             }
         }
-
         #endregion
     }
 }
-
