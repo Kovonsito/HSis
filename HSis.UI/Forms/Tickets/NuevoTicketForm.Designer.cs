@@ -26,14 +26,14 @@ partial class NuevoTicketForm
     private void InitializeComponent()
     {
         lblSolicitante = new Label();
-        cmbSolicitante = new ComboBox();
+        cmbSolicitante = new HSis.UI.Controls.ComboModerno();
         lblPrioridad = new Label();
-        cmbPrioridad = new ComboBox();
+        cmbPrioridad = new HSis.UI.Controls.ComboModerno();
         lblTecnico = new Label();
-        cmbTecnico = new ComboBox();
+        cmbTecnico = new HSis.UI.Controls.ComboModerno();
         lblDescripcion = new Label();
-        chkSolicitanteEnRepresentacion = new CheckBox();
-        txtNombreSolicitante = new TextBox();
+        chkSolicitanteEnRepresentacion = new HSis.UI.Controls.CasillaModerna();
+        txtNombreSolicitante = new HSis.UI.Controls.CajaTextoModerna();
         btnGuardar = new BotonModerno();
         btnCancelar = new BotonModerno();
         SuspendLayout();
@@ -127,8 +127,8 @@ partial class NuevoTicketForm
         txtNombreSolicitante.Font = new Font("Segoe UI", 9.5F);
         txtNombreSolicitante.Location = new Point(0, 0);
         txtNombreSolicitante.Name = "txtNombreSolicitante";
-        txtNombreSolicitante.PlaceholderText = "Nombre del solicitante no registrado...";
-        txtNombreSolicitante.Size = new Size(200, 24);
+        txtNombreSolicitante.Placeholder = "Nombre del solicitante no registrado...";
+        txtNombreSolicitante.Size = new Size(200, 34);
         txtNombreSolicitante.TabIndex = 8;
         // 
         // btnGuardar
@@ -177,14 +177,14 @@ partial class NuevoTicketForm
     #endregion
 
     private Label lblSolicitante;
-    private ComboBox cmbSolicitante;
+    private HSis.UI.Controls.ComboModerno cmbSolicitante;
     private Label lblPrioridad;
-    private ComboBox cmbPrioridad;
+    private HSis.UI.Controls.ComboModerno cmbPrioridad;
     private Label lblTecnico;
-    private ComboBox cmbTecnico;
+    private HSis.UI.Controls.ComboModerno cmbTecnico;
     private Label lblDescripcion;
-    private CheckBox chkSolicitanteEnRepresentacion;
-    private TextBox txtNombreSolicitante;
+    private HSis.UI.Controls.CasillaModerna chkSolicitanteEnRepresentacion;
+    private HSis.UI.Controls.CajaTextoModerna txtNombreSolicitante;
     private BotonModerno btnGuardar;
     private BotonModerno btnCancelar;
 
@@ -210,7 +210,7 @@ partial class NuevoTicketForm
             g.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
             // Icono en círculo azul
-            using (var brushCircle = new SolidBrush(Color.FromArgb(37, 99, 235)))
+            using (var brushCircle = new SolidBrush(TemaVisual.Primario))
             {
                 g.FillEllipse(brushCircle, 18, 14, 36, 36);
             }
@@ -220,19 +220,19 @@ partial class NuevoTicketForm
                 g.DrawImage(bmpIcon, 27, 23);
             }
 
-            using (var brushTitle = new SolidBrush(Color.FromArgb(15, 23, 42)))
+            using (var brushTitle = new SolidBrush(TemaVisual.TextoPrincipal))
             using (var fontTitle = new Font("Segoe UI", 12.5f, FontStyle.Bold))
             {
                 g.DrawString("Crear Nuevo Ticket de Servicio", fontTitle, brushTitle, new PointF(62, 12));
             }
 
-            using (var brushSub = new SolidBrush(Color.FromArgb(100, 116, 139)))
+            using (var brushSub = new SolidBrush(TemaVisual.TextoSecundario))
             using (var fontSub = new Font("Segoe UI", 8.5f, FontStyle.Regular))
             {
                 g.DrawString("Describe tu solicitud o incidente para que el equipo de soporte pueda atenderlo.", fontSub, brushSub, new PointF(62, 34));
             }
 
-            using var penDiv = new Pen(Color.FromArgb(226, 232, 240), 1f);
+            using var penDiv = new Pen(TemaVisual.BordeSutil, 1f);
             g.DrawLine(penDiv, 0, pnlHeader.Height - 1, pnlHeader.Width, pnlHeader.Height - 1);
         };
 
@@ -245,7 +245,7 @@ partial class NuevoTicketForm
         };
         pnlFooter.Paint += (s, e) =>
         {
-            using var penDiv = new Pen(Color.FromArgb(226, 232, 240), 1f);
+            using var penDiv = new Pen(TemaVisual.BordeSutil, 1f);
             e.Graphics.DrawLine(penDiv, 0, 0, pnlFooter.Width, 0);
         };
         pnlHeader.Resize += (s, e) => pnlHeader.Invalidate();
@@ -269,7 +269,7 @@ partial class NuevoTicketForm
         {
             Dock = DockStyle.Fill,
             Padding = new Padding(18, 14, 18, 10),
-            BackColor = Color.FromArgb(248, 250, 252)
+            BackColor = TemaVisual.FondoApp
         };
 
         var tblPrincipal = new TableLayoutPanel

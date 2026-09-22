@@ -80,6 +80,10 @@ namespace HSis.UI.Helpers
             _control.PaginaActual = 1;
         }
 
+        public IEnumerable<T> ObtenerPagina<T>(IEnumerable<T> fuente)
+        {
+            return fuente.Skip((PaginaActual - 1) * TamanoPagina).Take(TamanoPagina);
+        }
     }
 }
 

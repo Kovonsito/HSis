@@ -25,9 +25,9 @@ partial class GeneradorReportesForm
         pnlCard = new System.Windows.Forms.Panel();
         lblRangoTitle = new System.Windows.Forms.Label();
         lblInicio = new System.Windows.Forms.Label();
-        dtpInicio = new System.Windows.Forms.DateTimePicker();
+        dtpInicio = new HSis.UI.Controls.SelectorFechaModerno();
         lblFin = new System.Windows.Forms.Label();
-        dtpFin = new System.Windows.Forms.DateTimePicker();
+        dtpFin = new HSis.UI.Controls.SelectorFechaModerno();
         flpBotones = new System.Windows.Forms.FlowLayoutPanel();
         btnExcel = new HSis.UI.Controls.BotonModerno();
         btnPdf = new HSis.UI.Controls.BotonModerno();
@@ -139,7 +139,7 @@ partial class GeneradorReportesForm
         dtpInicio.Format = System.Windows.Forms.DateTimePickerFormat.Short;
         dtpInicio.Location = new System.Drawing.Point(24, 78);
         dtpInicio.Name = "dtpInicio";
-        dtpInicio.Size = new System.Drawing.Size(430, 25);
+        dtpInicio.Size = new System.Drawing.Size(430, 34);
         dtpInicio.TabIndex = 2;
         // 
         // lblFin
@@ -147,7 +147,7 @@ partial class GeneradorReportesForm
         lblFin.AutoSize = true;
         lblFin.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
         lblFin.ForeColor = System.Drawing.Color.FromArgb(71, 85, 105);
-        lblFin.Location = new System.Drawing.Point(24, 118);
+        lblFin.Location = new System.Drawing.Point(24, 122);
         lblFin.Name = "lblFin";
         lblFin.Size = new System.Drawing.Size(72, 15);
         lblFin.TabIndex = 3;
@@ -158,9 +158,9 @@ partial class GeneradorReportesForm
         dtpFin.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
         dtpFin.Font = new System.Drawing.Font("Segoe UI", 10F);
         dtpFin.Format = System.Windows.Forms.DateTimePickerFormat.Short;
-        dtpFin.Location = new System.Drawing.Point(24, 138);
+        dtpFin.Location = new System.Drawing.Point(24, 142);
         dtpFin.Name = "dtpFin";
-        dtpFin.Size = new System.Drawing.Size(430, 25);
+        dtpFin.Size = new System.Drawing.Size(430, 34);
         dtpFin.TabIndex = 4;
         // 
         // flpBotones
@@ -242,9 +242,9 @@ partial class GeneradorReportesForm
     private System.Windows.Forms.Panel pnlCard;
     private System.Windows.Forms.Label lblRangoTitle;
     private System.Windows.Forms.Label lblInicio;
-    private System.Windows.Forms.DateTimePicker dtpInicio;
+    private HSis.UI.Controls.SelectorFechaModerno dtpInicio;
     private System.Windows.Forms.Label lblFin;
-    private System.Windows.Forms.DateTimePicker dtpFin;
+    private HSis.UI.Controls.SelectorFechaModerno dtpFin;
     private System.Windows.Forms.FlowLayoutPanel flpBotones;
     private HSis.UI.Controls.BotonModerno btnExcel;
     private HSis.UI.Controls.BotonModerno btnPdf;

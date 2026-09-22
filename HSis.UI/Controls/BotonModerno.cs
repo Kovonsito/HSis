@@ -171,40 +171,40 @@ namespace HSis.UI.Controls
             if (!Enabled)
             {
                 colorFondo = Color.FromArgb(241, 245, 249);
-                colorTexto = Color.FromArgb(148, 163, 184);
-                colorBorde = Color.FromArgb(226, 232, 240);
+                colorTexto = TemaVisual.TextoMuted;
+                colorBorde = TemaVisual.BordeSutil;
             }
             else
             {
                 switch (_estilo)
                 {
                     case EstiloBotonModerno.Primario:
-                        colorFondo = _isPressed ? Color.FromArgb(29, 78, 216) : (_isHovered ? Color.FromArgb(37, 99, 235) : Color.FromArgb(59, 130, 246));
+                        colorFondo = _isPressed ? TemaVisual.PrimarioHover : (_isHovered ? TemaVisual.Primario : TemaVisual.TicketNuevo);
                         break;
 
                     case EstiloBotonModerno.Secundario:
-                        colorFondo = _isPressed ? Color.FromArgb(241, 245, 249) : (_isHovered ? Color.FromArgb(248, 250, 252) : Color.White);
+                        colorFondo = _isPressed ? Color.FromArgb(241, 245, 249) : (_isHovered ? TemaVisual.FondoApp : TemaVisual.FondoTarjeta);
                         colorBorde = _isHovered ? TemaVisual.BordeHover : TemaVisual.BordeSutil;
                         break;
 
                     case EstiloBotonModerno.Exito:
-                        colorFondo = _isPressed ? Color.FromArgb(5, 150, 105) : (_isHovered ? Color.FromArgb(16, 185, 129) : Color.FromArgb(34, 197, 94));
+                        colorFondo = _isPressed ? Color.FromArgb(5, 150, 105) : (_isHovered ? TemaVisual.TicketCerrado : Color.FromArgb(34, 197, 94));
                         break;
 
                     case EstiloBotonModerno.Peligro:
-                        colorFondo = _isPressed ? Color.FromArgb(185, 28, 28) : (_isHovered ? Color.FromArgb(220, 38, 38) : Color.FromArgb(239, 68, 68));
+                        colorFondo = _isPressed ? Color.FromArgb(185, 28, 28) : (_isHovered ? Color.FromArgb(220, 38, 38) : TemaVisual.TicketUrgente);
                         break;
 
                     case EstiloBotonModerno.Advertencia:
-                        colorFondo = _isPressed ? Color.FromArgb(217, 119, 6) : (_isHovered ? Color.FromArgb(245, 158, 11) : Color.FromArgb(251, 191, 36));
+                        colorFondo = _isPressed ? Color.FromArgb(217, 119, 6) : (_isHovered ? TemaVisual.TicketEnProceso : Color.FromArgb(251, 191, 36));
                         break;
 
                     case EstiloBotonModerno.Ghost:
-                        colorFondo = _isPressed ? Color.FromArgb(226, 232, 240) : (_isHovered ? Color.FromArgb(241, 245, 249) : Color.Transparent);
+                        colorFondo = _isPressed ? TemaVisual.BordeSutil : (_isHovered ? Color.FromArgb(241, 245, 249) : Color.Transparent);
                         break;
 
                     default:
-                        colorFondo = Color.FromArgb(59, 130, 246);
+                        colorFondo = TemaVisual.Primario;
                         break;
                 }
             }

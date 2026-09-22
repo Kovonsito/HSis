@@ -39,9 +39,9 @@ partial class IniciarSesionForm
         this.lblBienvenida = new Label();
         this.lblSubBienvenida = new Label();
         this.lblUsuario = new Label();
-        this.txtUsuario = new TextBox();
+        this.txtUsuario = new HSis.UI.Controls.CajaTextoModerna();
         this.lblContraseña = new Label();
-        this.txtContraseña = new TextBox();
+        this.txtContraseña = new HSis.UI.Controls.CajaTextoModerna();
         this.btnIniciarSesion = new HSis.UI.Controls.BotonModerno();
         this.pnlFormulario.SuspendLayout();
         this.SuspendLayout();
@@ -115,10 +115,11 @@ partial class IniciarSesionForm
         // txtUsuario
         // 
         this.txtUsuario.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-        this.txtUsuario.Font = new Font("Segoe UI", 10.5F);
+        this.txtUsuario.Font = new Font("Segoe UI", 10F);
         this.txtUsuario.Location = new Point(37, 132);
         this.txtUsuario.Name = "txtUsuario";
-        this.txtUsuario.Size = new Size(320, 26);
+        this.txtUsuario.Placeholder = "Ej: juan.perez o 10045";
+        this.txtUsuario.Size = new Size(320, 36);
         this.txtUsuario.TabIndex = 3;
 
         // 
@@ -127,7 +128,7 @@ partial class IniciarSesionForm
         this.lblContraseña.AutoSize = true;
         this.lblContraseña.Font = new Font("Segoe UI Semibold", 9.5F, FontStyle.Bold);
         this.lblContraseña.ForeColor = Color.FromArgb(51, 65, 85);
-        this.lblContraseña.Location = new Point(37, 180);
+        this.lblContraseña.Location = new Point(37, 184);
         this.lblContraseña.Name = "lblContraseña";
         this.lblContraseña.Size = new Size(77, 17);
         this.lblContraseña.TabIndex = 4;
@@ -137,11 +138,12 @@ partial class IniciarSesionForm
         // txtContraseña
         // 
         this.txtContraseña.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-        this.txtContraseña.Font = new Font("Segoe UI", 10.5F);
-        this.txtContraseña.Location = new Point(37, 202);
+        this.txtContraseña.Font = new Font("Segoe UI", 10F);
+        this.txtContraseña.Location = new Point(37, 206);
         this.txtContraseña.Name = "txtContraseña";
         this.txtContraseña.PasswordChar = '●';
-        this.txtContraseña.Size = new Size(320, 26);
+        this.txtContraseña.Placeholder = "Ingresa tu contraseña";
+        this.txtContraseña.Size = new Size(320, 36);
         this.txtContraseña.TabIndex = 5;
 
         // 
@@ -189,8 +191,8 @@ partial class IniciarSesionForm
     private Label lblSubBienvenida = null!;
     private Label lblUsuario = null!;
     private Label lblContraseña = null!;
-    private TextBox txtUsuario = null!;
-    private TextBox txtContraseña = null!;
+    private HSis.UI.Controls.CajaTextoModerna txtUsuario = null!;
+    private HSis.UI.Controls.CajaTextoModerna txtContraseña = null!;
     private HSis.UI.Controls.BotonModerno btnIniciarSesion = null!;
 
     private void PnlBranding_Paint(object? sender, PaintEventArgs e)

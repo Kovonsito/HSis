@@ -28,8 +28,6 @@ namespace HSis.UI.Forms.Dashboards
             Calificaciones
         }
         private VistaDashboard _vistaActual = VistaDashboard.MisAsignados;
-        private PaginacionControl PaginacionControl = null!;
-        private ControladorPaginacionGrid _controladorPaginacion = null!;
         private List<TicketDto> _todosLosTickets = [];
         private List<TicketDto> _ticketsFiltrados = [];
         private List<FeedbackTecnicoDto> _todosLosFeedbacks = [];
@@ -52,95 +50,111 @@ namespace HSis.UI.Forms.Dashboards
 
         private async void frmDashboardTecnico_Load(object? sender, EventArgs e)
         {
-            dgvTicketsOperativos.AplicarTemaModerno();
-            InicializarLayoutDashboard();
-            _controladorPaginacion = new ControladorPaginacionGrid(PaginacionControl);
-            _controladorPaginacion.Vincular(MostrarPaginaActual);
+            // Conectar indicadores KPI
+            ucMisAsignados.IndicadorClic += UcMisAsignados_Click;
+            ucDisponibles.IndicadorClic  += UcDisponibles_Click;
+            ucCerrados.IndicadorClic     += UcCerrados_Click;
+            ucCalificacion.IndicadorClic += UcCalificacion_Click;
 
-            ConfigurarSidebar();
-            ConfigurarFiltros();
+            // ── Bloque 3: configuración centralizada de VistaTicketsDashboardControl ──
+            vistaTickets.ConfigurarComportamiento(new ConfiguracionVistaDashboard
+            {
+                Indicadores     = [ucMisAsignados, ucDisponibles, ucCerrados, ucCalificacion, btnNuevoTicket],
+                Filtros         = ConfiguracionFiltrosTickets.ObtenerCamposTecnico(),
+                AlMostrarPagina = () => { MostrarPaginaActual(); return Task.CompletedTask; },
+                AlRecargar      = CargarDatosInicialesAsync,
+                AlLimpiar       = () =>
+                {
+                    _estaCargando = true;
+                    vistaTickets.Filtro.LimpiarFiltros(ConfiguracionFiltrosTickets.ObtenerValoresDefecto());
+                    _estaCargando = false;
+                    AplicarFiltrosMemoria();
+                    return Task.CompletedTask;
+                },
+                AlDobleClicFila = async rowIndex =>
+                    await vistaTickets.Grid.ManejarDetalleTicketAsync(rowIndex, _formFactory, () => CargarDatosInicialesAsync())
+            });
+
+            // El evento FiltroCambiado del Bloque3 llama a MostrarPaginaActual en lugar de AplicarFiltrosMemoria;
+            // sobreescribimos para respetar la lógica de filtrado en memoria del técnico.
+            vistaTickets.FiltroCambiado += (_, _) => { if (!_estaCargando) AplicarFiltrosMemoria(); };
+
+            // ── Bloque 1: sidebar + topBar ────────────────────────────────────────────
+            var items = new[]
+            {
+                new ItemSidebar { Clave = "asignados",    Titulo = "Mis Asignados",   Icono = FontAwesome.Sharp.IconChar.ClipboardCheck },
+                new ItemSidebar { Clave = "disponibles",  Titulo = "Disponibles",      Icono = FontAwesome.Sharp.IconChar.Inbox },
+                new ItemSidebar { Clave = "cerrados",     Titulo = "Mis Cerrados",     Icono = FontAwesome.Sharp.IconChar.CheckCircle },
+                new ItemSidebar { Clave = "calificaciones",Titulo = "Calificaciones",  Icono = FontAwesome.Sharp.IconChar.Star },
+                new ItemSidebar { Clave = "kardex",       Titulo = "Almécn / Kardex",  Icono = FontAwesome.Sharp.IconChar.BoxesStacked }
+            };
+
+            ConfiguradorSidebarDashboard.Configurar(
+                sidebar:        sidebarTecnico,
+                topBar:         topBarTecnico,
+                sessionCache:   _sessionCache,
+                contextoSesion: _contextoSesion,
+                items:          items,
+                claveDefault:   "asignados",
+                alSeleccionar:  SeleccionarVista
+            );
 
             this.IntegrarNotificacionesModerno(topBarTecnico, _formFactory, _contextoSesion, _notificationClient, null, CargarDatosInicialesAsync);
 
             await CargarDatosInicialesAsync();
         }
 
-        private void ConfigurarSidebar()
+        // ── Selección de vista (lógica propia del rol Técnico) ──────────────────────────
+        private async void SeleccionarVista(string clave)
         {
-            var items = new[]
+            if (clave == "kardex")
             {
-                new ItemSidebar { Clave = "asignados", Titulo = "Mis Asignados", Icono = FontAwesome.Sharp.IconChar.ClipboardCheck },
-                new ItemSidebar { Clave = "disponibles", Titulo = "Disponibles", Icono = FontAwesome.Sharp.IconChar.Inbox },
-                new ItemSidebar { Clave = "cerrados", Titulo = "Mis Cerrados", Icono = FontAwesome.Sharp.IconChar.CheckCircle },
-                new ItemSidebar { Clave = "calificaciones", Titulo = "Calificaciones", Icono = FontAwesome.Sharp.IconChar.Star },
-                new ItemSidebar { Clave = "kardex", Titulo = "Almacén / Kardex", Icono = FontAwesome.Sharp.IconChar.BoxesStacked }
-            };
-
-            sidebarTecnico.ConfigurarSesion(_sessionCache);
-            sidebarTecnico.ConfigurarItems(items, "asignados");
-
-            async void SeleccionarVista(string clave)
-            {
-                if (clave == "kardex")
+                var frmK = _formFactory.Crear<Forms.Otros.KardexForm>();
+                frmK.ShowDialog();
+                string claveActual = _vistaActual switch
                 {
-                    var frmK = _formFactory.Crear<Forms.Otros.KardexForm>();
-                    frmK.ShowDialog();
-                    string claveActual = _vistaActual switch
-                    {
-                        VistaDashboard.MisAsignados => "asignados",
-                        VistaDashboard.Disponibles => "disponibles",
-                        VistaDashboard.Cerrados => "cerrados",
-                        VistaDashboard.Calificaciones => "calificaciones",
-                        _ => "asignados"
-                    };
-                    sidebarTecnico.SeleccionarItem(claveActual);
-                    topBarTecnico.ActualizarItemActivo(claveActual);
-                    return;
-                }
-
-                _vistaActual = clave switch
-                {
-                    "asignados" => VistaDashboard.MisAsignados,
-                    "disponibles" => VistaDashboard.Disponibles,
-                    "cerrados" => VistaDashboard.Cerrados,
-                    "calificaciones" => VistaDashboard.Calificaciones,
-                    _ => VistaDashboard.MisAsignados
+                    VistaDashboard.MisAsignados  => "asignados",
+                    VistaDashboard.Disponibles   => "disponibles",
+                    VistaDashboard.Cerrados      => "cerrados",
+                    VistaDashboard.Calificaciones=> "calificaciones",
+                    _ => "asignados"
                 };
-
-                sidebarTecnico.SeleccionarItem(clave);
-                topBarTecnico.ActualizarItemActivo(clave);
-
-                topBarTecnico.Titulo = _vistaActual switch
-                {
-                    VistaDashboard.MisAsignados => "Mis Tickets Asignados",
-                    VistaDashboard.Disponibles => "Tickets Disponibles en Cola",
-                    VistaDashboard.Cerrados => "Historial de Tickets Cerrados",
-                    VistaDashboard.Calificaciones => "Mis Calificaciones",
-                    _ => "Panel Técnico"
-                };
-
-                topBarTecnico.Subtitulo = _vistaActual switch
-                {
-                    VistaDashboard.MisAsignados => "Tickets activos bajo mi responsabilidad",
-                    VistaDashboard.Disponibles => "Tickets abiertos listos para ser tomados",
-                    VistaDashboard.Cerrados => "Tickets completados satisfactoriamente",
-                    VistaDashboard.Calificaciones => "Evaluaciones y comentarios de usuarios",
-                    _ => string.Empty
-                };
-
-                await CargarTicketsSegunVistaAsync();
+                sidebarTecnico.SeleccionarItem(claveActual);
+                topBarTecnico.ActualizarItemActivo(claveActual);
+                return;
             }
 
-            sidebarTecnico.ItemSeleccionado += (s, clave) => SeleccionarVista(clave);
+            _vistaActual = clave switch
+            {
+                "asignados"     => VistaDashboard.MisAsignados,
+                "disponibles"   => VistaDashboard.Disponibles,
+                "cerrados"      => VistaDashboard.Cerrados,
+                "calificaciones"=> VistaDashboard.Calificaciones,
+                _ => VistaDashboard.MisAsignados
+            };
 
-            topBarTecnico.ConfigurarSesion(_sessionCache, _contextoSesion);
-            topBarTecnico.ConfigurarMenuHamburguesa(
-                items,
-                "asignados",
-                SeleccionarVista,
-                () => sidebarTecnico.Colapsado = !sidebarTecnico.Colapsado,
-                () => !sidebarTecnico.Colapsado
-            );
+            sidebarTecnico.SeleccionarItem(clave);
+            topBarTecnico.ActualizarItemActivo(clave);
+
+            topBarTecnico.Titulo = _vistaActual switch
+            {
+                VistaDashboard.MisAsignados   => "Mis Tickets Asignados",
+                VistaDashboard.Disponibles    => "Tickets Disponibles en Cola",
+                VistaDashboard.Cerrados       => "Historial de Tickets Cerrados",
+                VistaDashboard.Calificaciones => "Mis Calificaciones",
+                _ => "Panel Técnico"
+            };
+
+            topBarTecnico.Subtitulo = _vistaActual switch
+            {
+                VistaDashboard.MisAsignados   => "Tickets activos bajo mi responsabilidad",
+                VistaDashboard.Disponibles    => "Tickets abiertos listos para ser tomados",
+                VistaDashboard.Cerrados       => "Tickets completados satisfactoriamente",
+                VistaDashboard.Calificaciones => "Evaluaciones y comentarios de usuarios",
+                _ => string.Empty
+            };
+
+            await CargarTicketsSegunVistaAsync();
         }
 
         private async Task CargarDatosInicialesAsync()
@@ -234,144 +248,6 @@ namespace HSis.UI.Forms.Dashboards
             await CargarTicketsSegunVistaAsync();
         }
 
-        private void MostrarPaginaActual()
-        {
-            if (_vistaActual == VistaDashboard.Calificaciones)
-            {
-                var pageFeedbacks = _todosLosFeedbacks
-                    .Skip((_controladorPaginacion.PaginaActual - 1) * _controladorPaginacion.TamanoPagina)
-                    .Take(_controladorPaginacion.TamanoPagina)
-                    .ToList();
-                dgvTicketsOperativos.DataSource = new ListaVinculableOrdenable<FeedbackTecnicoDto>(pageFeedbacks);
-                _controladorPaginacion.Actualizar(_todosLosFeedbacks.Count);
-            }
-            else
-            {
-                var pageTickets = _ticketsFiltrados
-                    .Skip((_controladorPaginacion.PaginaActual - 1) * _controladorPaginacion.TamanoPagina)
-                    .Take(_controladorPaginacion.TamanoPagina)
-                    .ToList();
-                dgvTicketsOperativos.DataSource = new ListaVinculableOrdenable<TicketDto>(pageTickets);
-                _controladorPaginacion.Actualizar(_ticketsFiltrados.Count);
-            }
-            PersonalizarColumnas();
-        }
-
-        private void PersonalizarColumnas()
-        {
-            if (dgvTicketsOperativos.Columns.Count > 0)
-            {
-                dgvTicketsOperativos.ConfigurarOcultarColumnas(
-                    "IdTicket", "IdUsuario", "NombreUsuario", "DepartamentoUsuario",
-                    "FechaAtencion", "FechaCierre", "Estatus", "IdTecnico", "NombreTecnico",
-                    "TecnicoAsignado", "Calificacion", "ComentarioEvaluacion", "FechaEvaluacion",
-                    "Evaluacion", "Feedback", "FolioFormato");
-
-                if (dgvTicketsOperativos.DataSource is ListaVinculableOrdenable<FeedbackTecnicoDto>)
-                {
-                    dgvTicketsOperativos.ConfigurarColumnas(
-                        ("NombreUsuario", "Usuario Calificador", 180),
-                        ("Comentario", "Comentario de Retroalimentación", 320),
-                        ("FechaRegistro", "Fecha Calificación", 140),
-                        ("Puntuacion", "Calificación ⭐", 130)
-                    );
-                }
-                else
-                {
-                    dgvTicketsOperativos.ConfigurarColumnas(
-                        ("Folio", "Folio", 80),
-                        ("Usuario", "Usuario Solicitante", 160),
-                        ("Status", "Estatus", 100),
-                        ("Prioridad", "Prioridad", 100),
-                        ("FechaAlta", "Fecha Alta", 130),
-                        ("Descripcion", "Descripción del Problema", 260),
-                        ("Solucion", "Solución Aplicada", 260)
-                    );
-                }
-            }
-            dgvTicketsOperativos.AutoajustarAnchosMinimos();
-        }
-
-        private async void dgvTicketsOperativos_CellDoubleClick(object? sender, DataGridViewCellEventArgs e)
-        {
-            await dgvTicketsOperativos.ManejarDetalleTicketAsync(e.RowIndex, _formFactory, () => CargarDatosInicialesAsync());
-        }
-
-        private void ConfigurarFiltros()
-        {
-            filtroGenerico.InicializarFiltros(ConfiguracionFiltrosTickets.ObtenerCamposTecnico());
-            filtroGenerico.FiltroCambiado += (s, e) => { if (!_estaCargando) AplicarFiltrosMemoria(); };
-        }
-
-        private void AplicarFiltrosMemoria()
-        {
-            var vals = filtroGenerico.ObtenerValoresFiltros();
-
-            string? texto = null;
-            if (vals.TryGetValue("Texto", out var txtVal) && txtVal != null)
-            {
-                var txtStr = txtVal.ToString()?.Trim().ToLowerInvariant();
-                if (!string.IsNullOrWhiteSpace(txtStr)) texto = txtStr;
-            }
-
-            string? prioridad = null;
-            if (vals.TryGetValue("Prioridad", out var priVal) && priVal != null)
-            {
-                var priStr = priVal.ToString();
-                if (!string.IsNullOrEmpty(priStr) && priStr != "Todos") prioridad = priStr;
-            }
-
-            string? usuario = null;
-            if (vals.TryGetValue("Usuario", out var usrVal) && usrVal != null)
-            {
-                var usrStr = usrVal.ToString()?.Trim().ToLowerInvariant();
-                if (!string.IsNullOrWhiteSpace(usrStr)) usuario = usrStr;
-            }
-
-            DateTime fechaInicio = DateTime.MinValue;
-            if (vals.TryGetValue("FechaInicio", out var fiVal) && fiVal is DateTime dtInicio)
-            {
-                fechaInicio = dtInicio.Date;
-            }
-
-            DateTime fechaFin = DateTime.MaxValue;
-            if (vals.TryGetValue("FechaFin", out var ffVal) && ffVal is DateTime dtFin)
-            {
-                fechaFin = dtFin.Date.AddDays(1).AddTicks(-1);
-            }
-
-            _ticketsFiltrados = _todosLosTickets.Where(t =>
-            {
-                if (texto != null)
-                {
-                    bool matchTexto = (t.Folio.ToString().Contains(texto) || t.FolioFormato.ToLowerInvariant().Contains(texto)) ||
-                                     (t.Descripcion?.ToLowerInvariant().Contains(texto) ?? false) ||
-                                     (t.Usuario?.ToLowerInvariant().Contains(texto) ?? false);
-                    if (!matchTexto) return false;
-                }
-                if (prioridad != null && !string.Equals(t.Prioridad, prioridad, StringComparison.OrdinalIgnoreCase)) return false;
-                if (usuario != null && !(t.Usuario?.ToLowerInvariant().Contains(usuario) ?? false)) return false;
-                if (t.FechaAlta < fechaInicio || t.FechaAlta > fechaFin) return false;
-                return true;
-            }).ToList();
-
-            _controladorPaginacion.ReiniciarAPrimeraPagina();
-            MostrarPaginaActual();
-        }
-
-        private void btnLimpiarFiltros_Click(object? sender, EventArgs e)
-        {
-            _estaCargando = true;
-            filtroGenerico.LimpiarFiltros(ConfiguracionFiltrosTickets.ObtenerValoresDefecto());
-            _estaCargando = false;
-            AplicarFiltrosMemoria();
-        }
-
-        private async void btnRecargar_Click(object? sender, EventArgs e)
-        {
-            await CargarDatosInicialesAsync();
-        }
-
         private async void btnNuevoTicket_Click(object? sender, EventArgs e)
         {
             try
@@ -388,35 +264,79 @@ namespace HSis.UI.Forms.Dashboards
             }
         }
 
+        private void MostrarPaginaActual()
+        {
+            var grid = vistaTickets.Grid;
+            var ctrl = vistaTickets.ControladorPaginacion;
+
+            if (_vistaActual == VistaDashboard.Calificaciones)
+            {
+                var pageFeedbacks = ctrl.ObtenerPagina(_todosLosFeedbacks).ToList();
+                grid.DataSource = new ListaVinculableOrdenable<FeedbackTecnicoDto>(pageFeedbacks);
+                ctrl.Actualizar(_todosLosFeedbacks.Count);
+            }
+            else
+            {
+                var pageTickets = ctrl.ObtenerPagina(_ticketsFiltrados).ToList();
+                grid.DataSource = new ListaVinculableOrdenable<TicketDto>(pageTickets);
+                ctrl.Actualizar(_ticketsFiltrados.Count);
+            }
+            PersonalizarColumnas();
+        }
+
+        // ── Bloque 2: perfiles de columnas centralizados ──────────────────────────────
+        private void PersonalizarColumnas()
+        {
+            if (_vistaActual == VistaDashboard.Calificaciones)
+                ConfiguracionColumnasDashboard.AplicarPerfilCalificaciones(vistaTickets.Grid);
+            else
+                ConfiguracionColumnasDashboard.AplicarPerfilTecnico(vistaTickets.Grid);
+        }
+
+        private void AplicarFiltrosMemoria()
+        {
+            var vals = vistaTickets.ObtenerValoresFiltros();
+
+            var (texto, fi, ff, prioridad, usuario) = vals.ExtraerFiltrosComunes();
+            DateTime fechaInicio = fi ?? DateTime.MinValue;
+            DateTime fechaFin = ff ?? DateTime.MaxValue;
+
+            _ticketsFiltrados = _todosLosTickets.Where(t =>
+            {
+                if (texto != null)
+                {
+                    bool matchTexto = (t.Folio.ToString().Contains(texto) || t.FolioFormato.ToLowerInvariant().Contains(texto)) ||
+                                     (t.Descripcion?.ToLowerInvariant().Contains(texto) ?? false) ||
+                                     (t.Usuario?.ToLowerInvariant().Contains(texto) ?? false);
+                    if (!matchTexto) return false;
+                }
+                if (prioridad != null && !string.Equals(t.Prioridad, prioridad, StringComparison.OrdinalIgnoreCase)) return false;
+                if (usuario != null && !(t.Usuario?.ToLowerInvariant().Contains(usuario) ?? false)) return false;
+                if (t.FechaAlta < fechaInicio || t.FechaAlta > fechaFin) return false;
+                return true;
+            }).ToList();
+
+            vistaTickets.ReiniciarAPrimeraPagina();
+            MostrarPaginaActual();
+        }
+
         public void MostrarIndicadores(int asignados, int disponibles, int cerrados, double promedioCalificacion)
         {
-            if (ucMisAsignados != null)
-            {
-                ucMisAsignados.Cantidad = asignados.ToString();
-                ucMisAsignados.Titulo = "Mis Asignados";
-                ucMisAsignados.ColorFondo = TemaVisual.TicketNuevo;
-            }
+            ucMisAsignados.Cantidad = asignados.ToString();
+            ucMisAsignados.Titulo = "Mis Asignados";
+            ucMisAsignados.ColorFondo = TemaVisual.TicketNuevo;
 
-            if (ucDisponibles != null)
-            {
-                ucDisponibles.Cantidad = disponibles.ToString();
-                ucDisponibles.Titulo = "Disponibles";
-                ucDisponibles.ColorFondo = TemaVisual.TicketEnProceso;
-            }
+            ucDisponibles.Cantidad = disponibles.ToString();
+            ucDisponibles.Titulo = "Disponibles";
+            ucDisponibles.ColorFondo = TemaVisual.TicketEnProceso;
 
-            if (ucCerrados != null)
-            {
-                ucCerrados.Cantidad = cerrados.ToString();
-                ucCerrados.Titulo = "Mis Cerrados";
-                ucCerrados.ColorFondo = TemaVisual.TicketCerrado;
-            }
+            ucCerrados.Cantidad = cerrados.ToString();
+            ucCerrados.Titulo = "Mis Cerrados";
+            ucCerrados.ColorFondo = TemaVisual.TicketCerrado;
 
-            if (ucCalificacion != null)
-            {
-                ucCalificacion.Cantidad = promedioCalificacion > 0 ? $"⭐ {promedioCalificacion:F1}" : "⭐ N/A";
-                ucCalificacion.Titulo = "Mi Calificación";
-                ucCalificacion.ColorFondo = TemaVisual.TicketReabierto;
-            }
+            ucCalificacion.Cantidad = promedioCalificacion > 0 ? $"⭐ {promedioCalificacion:F1}" : "⭐ N/A";
+            ucCalificacion.Titulo = "Mi Calificación";
+            ucCalificacion.ColorFondo = TemaVisual.TicketReabierto;
         }
     }
 }
