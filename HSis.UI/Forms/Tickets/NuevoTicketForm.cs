@@ -1,50 +1,34 @@
-using System.ComponentModel;
+#nullable enable
 using System.Runtime.Versioning;
 using HSis.Logic.Constants;
 using HSis.Logic.DTOs;
+using HSis.Logic.Services;
 using HSis.UI.Controls;
 using HSis.UI.Helpers;
-using HSis.UI.Presenters;
+
+using HSis.UI.Services.Coordinators;
 
 namespace HSis.UI.Forms.Tickets
 {
     [SupportedOSPlatform("windows")]
-    public partial class NuevoTicketForm : Form, INuevoTicketView
+    public partial class NuevoTicketForm : Form
     {
-        private readonly NuevoTicketPresenter _presenter;
+        private readonly ITicketService _ticketService;
+        private readonly IUsuarioService _usuarioService;
+        private readonly IContextoSesion _contextoSesion;
         private CajaTextoOrtograficaWpf rtbDescripcion = null!;
 
-        public NuevoTicketForm(NuevoTicketPresenter presenter)
+        public NuevoTicketForm(
+            ITicketService ticketService,
+            IUsuarioService usuarioService,
+            IUiSessionCoordinator sessionCoordinator)
         {
             InitializeComponent();
-            _presenter = presenter;
-            _presenter.SetView(this);
+            _ticketService = ticketService;
+            _usuarioService = usuarioService;
+            _contextoSesion = sessionCoordinator.ContextoSesion;
+
             InicializarLayoutNuevoTicket();
-        }
-
-        #region Propiedades de INuevoTicketView
-        [Browsable(false)]
-        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public string Descripcion
-        {
-            get => rtbDescripcion.Text;
-            set => rtbDescripcion.Text = value;
-        }
-
-        [Browsable(false)]
-        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public string NombreSolicitanteTercero
-        {
-            get => txtNombreSolicitante.Text;
-            set => txtNombreSolicitante.Text = value;
-        }
-
-        [Browsable(false)]
-        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public bool EsEnRepresentacion
-        {
-            get => chkSolicitanteEnRepresentacion.Checked;
-            set => chkSolicitanteEnRepresentacion.Checked = value;
         }
 
         public void CargarClientes(List<UsuarioDto> clientes, int idUsuarioSesion)
@@ -131,18 +115,6 @@ namespace HSis.UI.Forms.Tickets
             MessageBox.Show(mensaje, "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
-
-        public void CerrarExitoso()
-        {
-            if (InvokeRequired)
-            {
-                Invoke(new Action(CerrarExitoso));
-                return;
-            }
-            this.DialogResult = DialogResult.OK;
-            this.Close();
-        }
-
         public void MostrarCargando(bool cargando)
         {
             if (InvokeRequired)
@@ -153,10 +125,8 @@ namespace HSis.UI.Forms.Tickets
             btnGuardar.Enabled = !cargando;
             this.UseWaitCursor = cargando;
         }
-        #endregion
 
         #region UI Handlers
-
 
         private void chkSolicitanteEnRepresentacion_CheckedChanged(object? sender, EventArgs e)
         {
@@ -176,19 +146,107 @@ namespace HSis.UI.Forms.Tickets
         private async void frmNuevoTicket_Load(object? sender, EventArgs e)
         {
             rtbDescripcion.Limpiar();
-            if (SesionSistema.EsAdmin || SesionSistema.EsTecnico)
+            if (_contextoSesion.EsAdmin || _contextoSesion.EsTecnico)
             {
-                await _presenter.CargarCatalogosAsync();
+                await CargarCatalogosAsync();
+            }
+        }
+
+        private async Task CargarCatalogosAsync()
+        {
+            try
+            {
+                MostrarCargando(true);
+                CargarPrioridades();
+
+                var clientes = await _usuarioService.ObtenerUsuariosPorRolAsync((int)RolUsuarioEnum.Cliente);
+                var tecnicos = await _usuarioService.ObtenerUsuariosPorRolAsync((int)RolUsuarioEnum.Tecnico);
+                var admins = await _usuarioService.ObtenerUsuariosPorRolAsync((int)RolUsuarioEnum.Administrador);
+                var personalAtencion = tecnicos.Concat(admins).OrderBy(u => u.Nombre).ToList();
+
+                CargarClientes(clientes.OrderBy(u => u.Nombre).ToList(), _contextoSesion.IdUsuario);
+                CargarTecnicos(personalAtencion, _contextoSesion.EsTecnico, _contextoSesion.IdUsuario);
+            }
+            catch (Exception ex)
+            {
+                MostrarError("Error de Carga", $"Ocurrió un error al cargar catálogos: {ex.Message}");
+            }
+            finally
+            {
+                MostrarCargando(false);
             }
         }
 
         private async void btnGuardar_Click(object? sender, EventArgs e)
         {
-            int idSolicitante = cmbSolicitante.SelectedItem is ElementoCombo<int> selSolicitante ? selSolicitante.Valor : SesionSistema.IdUsuario;
-            int? idTecnico = cmbTecnico.SelectedItem is ElementoCombo<int?> selTecnico ? selTecnico.Valor : null;
-            string? prioridad = cmbPrioridad.SelectedItem is ElementoCombo<string?> selPrioridad ? selPrioridad.Valor : null;
+            if (chkSolicitanteEnRepresentacion.Checked && string.IsNullOrWhiteSpace(txtNombreSolicitante.Text))
+            {
+                MostrarError("Validación", "Por favor, ingrese el nombre de la persona que solicitó la atención.");
+                return;
+            }
 
-            await _presenter.GuardarTicketAsync(idSolicitante, idTecnico, prioridad);
+            if (string.IsNullOrWhiteSpace(rtbDescripcion.Text))
+            {
+                MostrarError("Validación", "Por favor, ingrese una descripción del problema.");
+                return;
+            }
+
+            try
+            {
+                MostrarCargando(true);
+
+                int idUsuarioFinal = _contextoSesion.IdUsuario;
+                int? idTecnicoFinal = null;
+                string? prioridadFinal = null;
+
+                if (_contextoSesion.EsAdmin || _contextoSesion.EsTecnico)
+                {
+                    if (!chkSolicitanteEnRepresentacion.Checked && cmbSolicitante.SelectedItem is ElementoCombo<int> selSolicitante)
+                    {
+                        idUsuarioFinal = selSolicitante.Valor;
+                    }
+                    if (cmbPrioridad.SelectedItem is ElementoCombo<string?> selPrioridad)
+                    {
+                        prioridadFinal = selPrioridad.Valor;
+                    }
+                    if (cmbTecnico.SelectedItem is ElementoCombo<int?> selTecnico)
+                    {
+                        idTecnicoFinal = selTecnico.Valor;
+                    }
+                }
+
+                string descripcionFinal = rtbDescripcion.Text.Trim();
+                if (chkSolicitanteEnRepresentacion.Checked && !string.IsNullOrWhiteSpace(txtNombreSolicitante.Text))
+                {
+                    descripcionFinal = $"[Solicitante no registrado: {txtNombreSolicitante.Text.Trim()}]\r\n\r\n{descripcionFinal}";
+                }
+
+                var nuevoTicketDto = new TicketCreateDto
+                {
+                    IdUsuario = idUsuarioFinal,
+                    Descripcion = descripcionFinal,
+                    IdTecnico = idTecnicoFinal,
+                    Prioridad = prioridadFinal
+                };
+
+                var ticketGuardado = await _ticketService.CrearTicketAsync(nuevoTicketDto);
+                MostrarExito($"Ticket registrado exitosamente con Folio: TK-{ticketGuardado.IdTicket:d6}");
+                this.DialogResult = DialogResult.OK;
+                this.Close();
+            }
+            catch (FluentValidation.ValidationException ex)
+            {
+                string errores = string.Join("\n", ex.Errors.Select(err => "- " + err.ErrorMessage));
+                MostrarError("Validación", $"Datos inválidos:\n{errores}");
+            }
+            catch (Exception ex)
+            {
+                MostrarError("Error", $"Error al registrar el ticket: {ex.Message}");
+            }
+            finally
+            {
+                MostrarCargando(false);
+            }
         }
 
         private void btnCancelar_Click(object? sender, EventArgs e)
@@ -199,4 +257,3 @@ namespace HSis.UI.Forms.Tickets
         #endregion
     }
 }
-

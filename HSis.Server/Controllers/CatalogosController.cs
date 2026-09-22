@@ -68,7 +68,10 @@ namespace HSis.Server.Controllers
         private static Type? ObtenerTipoEntidad(string entidad)
         {
             var assembly = typeof(Data.Models.Ticket).Assembly;
-            return assembly.GetTypes().FirstOrDefault(t => t.Name.Equals(entidad, StringComparison.OrdinalIgnoreCase));
+            var cleanName = entidad.EndsWith("Dto", StringComparison.OrdinalIgnoreCase)
+                ? entidad[..^3]
+                : entidad;
+            return assembly.GetTypes().FirstOrDefault(t => t.Name.Equals(cleanName, StringComparison.OrdinalIgnoreCase));
         }
     }
 }

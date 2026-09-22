@@ -2,24 +2,22 @@
 using System.Runtime.Versioning;
 using FontAwesome.Sharp;
 using HSis.Logic.DTOs;
+using HSis.Logic.Services;
 using HSis.UI.Helpers;
-using HSis.UI.Presenters;
 
 namespace HSis.UI.Forms.Otros
 {
     [SupportedOSPlatform("windows")]
-    public partial class KardexForm : Form, IKardexView
+    public partial class KardexForm : Form
     {
-        private readonly KardexPresenter _presenter;
+        private readonly IMaterialService _materialService;
 
-        public KardexForm(KardexPresenter presenter)
+        public KardexForm(IMaterialService materialService)
         {
             InitializeComponent();
-            _presenter = presenter;
-            _presenter.SetView(this);
+            _materialService = materialService;
         }
 
-        #region Propiedades de IKardexView
         public void CargarMateriales(List<MaterialDto> materiales)
         {
             cbMaterial.SelectedIndexChanged -= CbMaterial_SelectedIndexChanged;
@@ -55,7 +53,6 @@ namespace HSis.UI.Forms.Otros
             MessageBox.Show(mensaje, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
-
         public void MostrarCargando(bool cargando)
         {
             if (InvokeRequired)
@@ -66,13 +63,16 @@ namespace HSis.UI.Forms.Otros
             cbMaterial.Enabled = !cargando;
             this.UseWaitCursor = cargando;
         }
-        #endregion
 
         #region Form Events
         private async void FrmKardex_Load(object? sender, EventArgs e)
         {
             picIcon.Image = FontAwesome.Sharp.IconChar.BoxesStacked.ToBitmap(Color.FromArgb(37, 99, 235), 24);
-            await _presenter.CargarMaterialesAsync();
+            await this.EjecutarOperacionAsync(async () =>
+            {
+                var materiales = await _materialService.ObtenerMaterialesAsync();
+                CargarMateriales(materiales);
+            }, "Error al cargar materiales", cbMaterial);
         }
 
         private void PanelTop_Paint(object? sender, PaintEventArgs e)
@@ -85,7 +85,11 @@ namespace HSis.UI.Forms.Otros
         {
             if (cbMaterial.SelectedValue != null && cbMaterial.SelectedValue is int idMaterial)
             {
-                await _presenter.CargarKardexPorMaterialAsync(idMaterial);
+                await this.EjecutarOperacionAsync(async () =>
+                {
+                    var historial = await _materialService.ObtenerKardexPorMaterialAsync(idMaterial);
+                    CargarHistorialKardex(historial);
+                }, "Error al cargar Kardex", cbMaterial);
             }
             else
             {
@@ -95,4 +99,3 @@ namespace HSis.UI.Forms.Otros
         #endregion
     }
 }
-

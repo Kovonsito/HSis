@@ -118,6 +118,12 @@ namespace HSis.UI.ApiClients
             return await httpClient.GetFromJsonAsync<List<TicketDto>>($"api/Tickets/tecnico/{idTecnico}/feedback") ?? [];
         }
 
+        public async Task<DashboardResumenDto> ObtenerResumenDashboardAsync(int? idTecnico = null)
+        {
+            var url = idTecnico.HasValue ? $"api/Tickets/dashboard-resumen?idTecnico={idTecnico.Value}" : "api/Tickets/dashboard-resumen";
+            return await httpClient.GetFromJsonAsync<DashboardResumenDto>(url) ?? new DashboardResumenDto();
+        }
+
     }
 }
 

@@ -1,29 +1,28 @@
+#nullable enable
 using System.Runtime.Versioning;
 using HSis.Logic.Constants;
 using HSis.Logic.DTOs;
-using HSis.UI.Presenters;
+using HSis.Logic.Services;
 
 namespace HSis.UI.Forms.Tickets
 {
     [SupportedOSPlatform("windows")]
-    public partial class DetalleClienteForm : Form, IDetalleClienteView
+    public partial class DetalleClienteForm : Form
     {
         private readonly int _idTicket;
-        private readonly DetalleClientePresenter _presenter;
+        private readonly ITicketService _ticketService;
         private TicketDto? _ticketActual;
         private int _calificacionSeleccionada = 5;
 
-        public DetalleClienteForm(int idTicket, DetalleClientePresenter presenter)
+        public DetalleClienteForm(int idTicket, ITicketService ticketService)
         {
             InitializeComponent();
             _idTicket = idTicket;
-            _presenter = presenter;
-            _presenter.SetView(this);
+            _ticketService = ticketService;
 
             InicializarLayoutDetalleCliente();
         }
 
-        #region Propiedades de IDetalleClienteView
         public void MostrarTicket(TicketDto ticket)
         {
             _ticketActual = ticket;
@@ -71,17 +70,6 @@ namespace HSis.UI.Forms.Tickets
             MessageBox.Show(mensaje, "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
-        public void CerrarFormulario()
-        {
-            if (InvokeRequired)
-            {
-                Invoke(new Action(CerrarFormulario));
-                return;
-            }
-            this.Close();
-        }
-
-
         public void MostrarCargando(bool cargando)
         {
             if (InvokeRequired)
@@ -92,21 +80,47 @@ namespace HSis.UI.Forms.Tickets
             btnEnviar.Enabled = !cargando;
             this.UseWaitCursor = cargando;
         }
-        #endregion
 
         #region Form Events
         private async void FrmDetalleCliente_Load(object? sender, EventArgs e)
         {
-            await _presenter.CargarTicketAsync(_idTicket);
+            await CargarTicketAsync(_idTicket);
         }
 
+        private async Task CargarTicketAsync(int idTicket)
+        {
+            await this.EjecutarOperacionAsync(async () =>
+            {
+                var ticket = await _ticketService.ObtenerTicketPorIdAsync(idTicket);
+                if (ticket == null)
+                {
+                    MostrarError("Ticket no encontrado.");
+                    this.Close();
+                    return;
+                }
+
+                MostrarTicket(ticket);
+            }, "Error al cargar ticket");
+        }
 
         private async void BtnEnviarFeedback_Click(object? sender, EventArgs e)
         {
             int calificacion = _calificacionSeleccionada;
             string comentario = txtComentario.Text.Trim();
 
-            await _presenter.RegistrarCalificacionAsync(_idTicket, calificacion, comentario);
+            await this.EjecutarOperacionAsync(async () =>
+            {
+                bool exito = await _ticketService.RegistrarCalificacionAsync(_idTicket, calificacion, comentario);
+                if (exito)
+                {
+                    MostrarExito("¡Gracias por tu retroalimentación! La calificación fue registrada.");
+                    await CargarTicketAsync(_idTicket);
+                }
+                else
+                {
+                    MostrarError("No se pudo registrar la calificación.");
+                }
+            }, "Error al registrar calificación", btnEnviar);
         }
 
         /// <summary>
@@ -133,7 +147,6 @@ namespace HSis.UI.Forms.Tickets
         {
             this.Close();
         }
-
 
         private void MostrarSeccionFeedback(TicketDto ticket)
         {
@@ -218,7 +231,6 @@ namespace HSis.UI.Forms.Tickets
             ActualizarEstrellasVisuales(_calificacionSeleccionada);
         }
 
-
         private void ActualizarEstrellasVisuales(int score)
         {
             Label[] stars = [lblStar1, lblStar2, lblStar3, lblStar4, lblStar5];
@@ -239,4 +251,3 @@ namespace HSis.UI.Forms.Tickets
         #endregion
     }
 }
-
