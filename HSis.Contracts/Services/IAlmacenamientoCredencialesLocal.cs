@@ -1,11 +1,9 @@
-namespace HSis.Logic.Services
+namespace HSis.Contracts.Services
 {
-
-    public interface ISessionCacheService
+    public interface IAlmacenamientoCredencialesLocal
     {
         void SaveCredentials(string username, string password);
         (string Username, string Password)? GetCredentials();
         void ClearCredentials();
     }
 }
-

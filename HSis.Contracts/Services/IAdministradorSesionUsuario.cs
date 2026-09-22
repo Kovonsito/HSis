@@ -1,8 +1,8 @@
-using HSis.Logic.DTOs;
+using HSis.Contracts.DTOs;
 
-namespace HSis.Logic.Services
+namespace HSis.Contracts.Services
 {
-    public interface IContextoSesion
+    public interface IAdministradorSesionUsuario
     {
         UsuarioDto? UsuarioActual { get; set; }
         string TokenJWT { get; set; }
@@ -15,4 +15,3 @@ namespace HSis.Logic.Services
         void CerrarSesion();
     }
 }
-

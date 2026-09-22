@@ -1,6 +1,7 @@
+using HSis.Contracts.Services;
 using HSis.Data.Models;
-using HSis.Logic.Constants;
-using HSis.Logic.DTOs;
+using HSis.Contracts.Constants;
+using HSis.Contracts.DTOs;
 using Mapster;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
@@ -501,6 +502,37 @@ namespace HSis.Logic.Services
                 PromedioCalificacion = promedioCalificacion
             };
         }
+
+        public async Task<IndicadoresTecnicoDto> ObtenerIndicadoresTecnicoAsync(int idTecnico)
+        {
+            using var db = dbContextFactory.CreateDbContext();
+            var asignados = await db.Tickets.CountAsync(t => t.IdTecnico == idTecnico && t.Estatus != ConstantesEstatus.CERRADO);
+            var disponibles = await db.Tickets.CountAsync(t => t.Estatus == ConstantesEstatus.ABIERTO && t.IdTecnico == null);
+            var cerrados = await db.Tickets.CountAsync(t => t.IdTecnico == idTecnico && t.Estatus == ConstantesEstatus.CERRADO);
+
+            var calificaciones = await db.Tickets
+                .Where(t => t.IdTecnico == idTecnico && t.Calificacion.HasValue)
+                .Select(t => t.Calificacion!.Value)
+                .ToListAsync();
+            double promedio = calificaciones.Count > 0 ? Math.Round(calificaciones.Average(), 1) : 0.0;
+
+            return new IndicadoresTecnicoDto(asignados, disponibles, cerrados, promedio);
+        }
+
+        public async Task<ResumenClienteDto> ObtenerResumenClienteAsync(int idUsuario)
+        {
+            using var db = dbContextFactory.CreateDbContext();
+            var tickets = await db.Tickets
+                .Where(t => t.IdUsuario == idUsuario)
+                .Include(t => t.Usuario)
+                .OrderByDescending(t => t.FechaAlta)
+                .ToListAsync();
+
+            var ticketsDto = mapper.Map<List<TicketDto>>(tickets);
+            int activos = ticketsDto.Count(t => t.Estatus != ConstantesEstatus.CERRADO);
+            int cerrados = ticketsDto.Count(t => t.Estatus == ConstantesEstatus.CERRADO);
+
+            return new ResumenClienteDto(activos, cerrados, ticketsDto);
+        }
     }
 }
-

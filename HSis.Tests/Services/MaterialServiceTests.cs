@@ -1,5 +1,7 @@
 using FluentAssertions;
 using HSis.Data.Models;
+using HSis.Contracts.DTOs;
+using HSis.Contracts.Services;
 using HSis.Logic.Services;
 using Microsoft.EntityFrameworkCore;
 using Moq;
@@ -87,7 +89,7 @@ namespace HSis.Tests.Services
             var service = new MaterialService(CreateFactory(options));
 
             // Act
-            await service.RegistrarMovimientoAsync(new Logic.DTOs.KardexMovimientoDto
+            await service.RegistrarMovimientoAsync(new KardexMovimientoDto
             {
                 IdMaterial = 1,
                 Cantidad = 5,

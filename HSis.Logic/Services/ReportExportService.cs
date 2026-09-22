@@ -1,5 +1,6 @@
+using HSis.Contracts.Services;
 using ClosedXML.Excel;
-using HSis.Logic.DTOs;
+using HSis.Contracts.DTOs;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;

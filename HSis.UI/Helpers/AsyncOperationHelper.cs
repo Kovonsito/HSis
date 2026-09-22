@@ -1,6 +1,7 @@
 #nullable enable
 using System.Net.Http;
 using System.Runtime.Versioning;
+using FluentValidation;
 using Serilog;
 
 namespace HSis.UI.Helpers
@@ -48,6 +49,12 @@ namespace HSis.UI.Helpers
             {
                 AlternarEstado(true);
                 await accionAsync();
+            }
+            catch (ValidationException valEx)
+            {
+                Log.Warning("Validación fallida en {FormName}: {Errors}", form.Name, string.Join("; ", valEx.Errors.Select(e => e.ErrorMessage)));
+                string errores = string.Join("\n", valEx.Errors.Select(e => $"• {e.ErrorMessage}"));
+                DialogoUIHelper.MostrarAdvertencia($"Por favor corrija los siguientes datos:\n\n{errores}", "Validación de Datos");
             }
             catch (HttpRequestException httpEx)
             {

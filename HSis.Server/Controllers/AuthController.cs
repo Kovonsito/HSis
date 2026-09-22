@@ -1,5 +1,5 @@
-using HSis.Logic.DTOs;
-using HSis.Logic.Services;
+using HSis.Contracts.DTOs;
+using HSis.Contracts.Services;
 using HSis.Server.Services;
 using Microsoft.AspNetCore.Mvc;
 

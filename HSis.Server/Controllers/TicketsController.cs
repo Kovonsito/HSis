@@ -1,5 +1,5 @@
-using HSis.Logic.DTOs;
-using HSis.Logic.Services;
+using HSis.Contracts.DTOs;
+using HSis.Contracts.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HSis.Server.Controllers
@@ -150,6 +150,17 @@ namespace HSis.Server.Controllers
             return Ok(await ticketService.ObtenerResumenDashboardAsync(idTecnico));
         }
 
+        [HttpGet("tecnico/{idTecnico}/indicadores")]
+        public async Task<ActionResult<IndicadoresTecnicoDto>> ObtenerIndicadoresTecnico(int idTecnico)
+        {
+            return Ok(await ticketService.ObtenerIndicadoresTecnicoAsync(idTecnico));
+        }
+
+        [HttpGet("usuario/{idUsuario}/resumen")]
+        public async Task<ActionResult<ResumenClienteDto>> ObtenerResumenCliente(int idUsuario)
+        {
+            return Ok(await ticketService.ObtenerResumenClienteAsync(idUsuario));
+        }
     }
 
     public class CalificarTicketRequest

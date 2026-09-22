@@ -1,5 +1,5 @@
 using FluentAssertions;
-using HSis.Logic.Constants;
+using HSis.Contracts.Constants;
 using Xunit;
 
 namespace HSis.Tests.Services

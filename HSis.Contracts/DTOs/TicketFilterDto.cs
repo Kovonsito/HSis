@@ -1,6 +1,6 @@
-using HSis.Logic.Constants;
+using HSis.Contracts.Constants;
 
-namespace HSis.Logic.DTOs
+namespace HSis.Contracts.DTOs
 {
     public class TicketFilterDto
     {

@@ -1,6 +1,7 @@
+using HSis.Contracts.Services;
 using HSis.Data.Models;
-using HSis.Logic.Constants;
-using HSis.Logic.DTOs;
+using HSis.Contracts.Constants;
+using HSis.Contracts.DTOs;
 
 namespace HSis.Logic.Services
 {

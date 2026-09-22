@@ -1,12 +1,10 @@
 #nullable enable
 using System.Runtime.Versioning;
-using HSis.Logic.Constants;
-using HSis.Logic.DTOs;
-using HSis.Logic.Services;
+using HSis.Contracts.Constants;
+using HSis.Contracts.DTOs;
+using HSis.Contracts.Services;
 using HSis.UI.Controls;
 using HSis.UI.Helpers;
-
-using HSis.UI.Services.Coordinators;
 
 namespace HSis.UI.Forms.Tickets
 {
@@ -17,7 +15,7 @@ namespace HSis.UI.Forms.Tickets
         private readonly ITicketService _ticketService;
         private readonly ITicketDetalleService _ticketDetalleService;
         private readonly IUsuarioService _usuarioService;
-        private readonly IContextoSesion _contextoSesion;
+        private readonly IAdministradorSesionUsuario _contextoSesion;
 
         private TicketDto? _ticketActual;
         private CajaTextoOrtograficaWpf rtbDescripcion = null!;
@@ -29,14 +27,14 @@ namespace HSis.UI.Forms.Tickets
             ITicketService ticketService,
             ITicketDetalleService ticketDetalleService,
             IUsuarioService usuarioService,
-            IUiSessionCoordinator sessionCoordinator)
+            IAdministradorSesionUsuario contextoSesion)
         {
             InitializeComponent();
             _idTicket = idTicket;
             _ticketService = ticketService;
             _ticketDetalleService = ticketDetalleService;
             _usuarioService = usuarioService;
-            _contextoSesion = sessionCoordinator.ContextoSesion;
+            _contextoSesion = contextoSesion;
 
             InicializarLayoutDetalle();
         }
@@ -118,37 +116,6 @@ namespace HSis.UI.Forms.Tickets
             ConfigurarEstilosGridMateriales();
         }
 
-        public void MostrarError(string mensaje)
-        {
-            if (InvokeRequired)
-            {
-                Invoke(new Action(() => MostrarError(mensaje)));
-                return;
-            }
-            MessageBox.Show(mensaje, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-
-        public void MostrarExito(string mensaje)
-        {
-            if (InvokeRequired)
-            {
-                Invoke(new Action(() => MostrarExito(mensaje)));
-                return;
-            }
-            MessageBox.Show(mensaje, "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
-
-        public void MostrarCargando(bool cargando)
-        {
-            if (InvokeRequired)
-            {
-                Invoke(new Action(() => MostrarCargando(cargando)));
-                return;
-            }
-            btnGuardar.Enabled = !cargando;
-            this.UseWaitCursor = cargando;
-        }
-
         #region Form Handlers & Layout
 
         private async void FormularioTicket_Load(object? sender, EventArgs e)
@@ -158,13 +125,12 @@ namespace HSis.UI.Forms.Tickets
 
         private async Task CargarTicketDetallesAsync(int idTicket)
         {
-            try
+            await this.EjecutarOperacionAsync(async () =>
             {
-                MostrarCargando(true);
                 var ticket = await _ticketService.ObtenerTicketPorIdAsync(idTicket);
                 if (ticket == null)
                 {
-                    MostrarError("Ticket no encontrado.");
+                    DialogoUIHelper.MostrarAdvertencia("Ticket no encontrado.");
                     this.Close();
                     return;
                 }
@@ -181,31 +147,20 @@ namespace HSis.UI.Forms.Tickets
                 CargarTecnicos(personalAtencion, ticket.IdTecnico, _contextoSesion.EsAdmin);
 
                 await RecargarHistorialYMaterialesAsync(idTicket);
-            }
-            catch (Exception ex)
-            {
-                MostrarError($"Error al cargar ticket: {ex.Message}");
-            }
-            finally
-            {
-                MostrarCargando(false);
-            }
+            }, "Error al cargar ticket");
         }
 
         public async Task RecargarHistorialYMaterialesAsync(int idTicket)
         {
-            try
+            await this.EjecutarOperacionAsync(async () =>
             {
                 var historial = await _ticketService.ObtenerHistorialPorTicketAsync(idTicket);
                 CargarHistorial(historial);
 
                 var detalles = await _ticketDetalleService.ObtenerDetallesTicketAsync(idTicket);
                 CargarDetallesMaterial(detalles);
-            }
-            catch (Exception ex)
-            {
-                Serilog.Log.Error(ex, "Error al recargar historial y materiales del ticket {IdTicket}", idTicket);
-            }
+            },
+            mensajeErrorContexto: $"Error al recargar historial y materiales del ticket {idTicket}");
         }
 
         private void CmbEstatus_SelectedIndexChanged(object? sender, EventArgs e)
@@ -238,7 +193,7 @@ namespace HSis.UI.Forms.Tickets
 
             if (estatusSeleccionado == ConstantesEstatus.EN_PROCESO && string.IsNullOrWhiteSpace(prioridadSeleccionada))
             {
-                MessageBox.Show("Es necesario seleccionar una prioridad para el ticket para poder guardarlo y cambiarlo a estatus 'En Proceso'.", "Prioridad requerida", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                DialogoUIHelper.MostrarAdvertencia("Es necesario seleccionar una prioridad para el ticket para poder guardarlo y cambiarlo a estatus 'En Proceso'.", "Prioridad requerida");
                 cmbPrioridad.Focus();
                 return;
             }
@@ -255,9 +210,8 @@ namespace HSis.UI.Forms.Tickets
                 return;
             }
 
-            try
+            await this.EjecutarOperacionAsync(async () =>
             {
-                MostrarCargando(true);
                 var updateDto = new TicketUpdateDto
                 {
                     IdTicket = _ticketActual.IdTicket,
@@ -270,23 +224,12 @@ namespace HSis.UI.Forms.Tickets
                 };
 
                 await _ticketService.ActualizarTicketAsync(updateDto);
-                MostrarExito("Ticket actualizado correctamente.");
+                DialogoUIHelper.MostrarExito("Ticket actualizado correctamente.");
                 this.DialogResult = DialogResult.OK;
                 this.Close();
-            }
-            catch (FluentValidation.ValidationException ex)
-            {
-                string errores = string.Join("\n", ex.Errors.Select(err => "- " + err.ErrorMessage));
-                MostrarError($"Datos inválidos:\n{errores}");
-            }
-            catch (Exception ex)
-            {
-                MostrarError($"Error al actualizar ticket: {ex.Message}");
-            }
-            finally
-            {
-                MostrarCargando(false);
-            }
+            },
+            mensajeErrorContexto: "Error al actualizar ticket",
+            controlesADeshabilitar: [btnGuardar, btnCancelar]);
         }
 
         private void btnCancelar_Click(object? sender, EventArgs e)
@@ -322,35 +265,26 @@ namespace HSis.UI.Forms.Tickets
         {
             if (cmbEstrellas.SelectedIndex < 0)
             {
-                MostrarError("Por favor seleccione una calificación.");
+                DialogoUIHelper.MostrarAdvertencia("Por favor seleccione una calificación.", "Calificación requerida");
                 return;
             }
 
             int calificacion = cmbEstrellas.SelectedIndex + 1;
             string? comentario = string.IsNullOrWhiteSpace(txtComentario.Text) ? null : txtComentario.Text.Trim();
 
-            try
+            await this.EjecutarOperacionAsync(async () =>
             {
-                MostrarCargando(true);
                 bool exito = await _ticketService.RegistrarCalificacionAsync(_idTicket, calificacion, comentario);
                 if (exito)
                 {
-                    MostrarExito("¡Gracias por tu retroalimentación! La calificación fue registrada.");
+                    DialogoUIHelper.MostrarExito("¡Gracias por tu retroalimentación! La calificación fue registrada.");
                     await CargarTicketDetallesAsync(_idTicket);
                 }
                 else
                 {
-                    MostrarError("No se pudo registrar la calificación.");
+                    DialogoUIHelper.MostrarError("No se pudo registrar la calificación.");
                 }
-            }
-            catch (Exception ex)
-            {
-                MostrarError($"Error al enviar feedback: {ex.Message}");
-            }
-            finally
-            {
-                MostrarCargando(false);
-            }
+            }, "Error al enviar feedback", btnEnviar);
         }
 
         private void ConfigurarEstilosGridHistorial()

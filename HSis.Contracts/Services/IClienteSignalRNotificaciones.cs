@@ -1,6 +1,6 @@
-namespace HSis.Logic.Services
+namespace HSis.Contracts.Services
 {
-    public interface INotificationClientService : INotificadorTicket
+    public interface IClienteSignalRNotificaciones : INotificadorTicket
     {
         event Action<string, int, string>? OnNotificationReceived;
         event Action? OnConnected;
@@ -16,4 +16,3 @@ namespace HSis.Logic.Services
         Task NotificarCalificacionTicketAsync(int technicianUserId, int ticketId, string ticketFolio, int rating, string comment);
     }
 }
-

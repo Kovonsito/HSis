@@ -1,5 +1,6 @@
+using HSis.Contracts.Services;
 using HSis.Data.Models;
-using HSis.Logic.DTOs;
+using HSis.Contracts.DTOs;
 using Microsoft.EntityFrameworkCore;
 
 namespace HSis.Logic.Services
