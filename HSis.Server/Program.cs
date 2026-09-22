@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Text;
 using FluentValidation;
 using HSis.Data.Models;
+using HSis.Contracts.Services;
 using HSis.Logic.Interceptors;
 using HSis.Logic.Services;
 using HSis.Server.Configurations;
@@ -61,7 +62,7 @@ builder.Services.AddSingleton(config);
 builder.Services.AddScoped<IMapper, ServiceMapper>();
 
 // Registrar FluentValidation
-builder.Services.AddValidatorsFromAssemblyContaining<HSis.Logic.Validators.TicketCreateValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<HSis.Contracts.Validators.TicketCreateValidator>();
 
 // Registrar servicios JWT y HttpContextAccessor
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));

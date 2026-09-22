@@ -1,4 +1,4 @@
-using HSis.Logic.Services;
+using HSis.Contracts.Services;
 using HSis.Server.Hubs;
 using Microsoft.AspNetCore.SignalR;
 

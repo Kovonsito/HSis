@@ -1,5 +1,5 @@
 using HSis.Data.Models;
-using HSis.Logic.Services;
+using HSis.Contracts.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 

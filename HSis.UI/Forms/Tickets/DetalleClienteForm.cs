@@ -1,8 +1,9 @@
 #nullable enable
 using System.Runtime.Versioning;
-using HSis.Logic.Constants;
-using HSis.Logic.DTOs;
-using HSis.Logic.Services;
+using HSis.Contracts.Constants;
+using HSis.Contracts.DTOs;
+using HSis.Contracts.Services;
+using HSis.UI.Services;
 using HSis.UI.Helpers;
 
 namespace HSis.UI.Forms.Tickets
@@ -51,37 +52,6 @@ namespace HSis.UI.Forms.Tickets
             MostrarSeccionFeedback(ticket);
         }
 
-        public void MostrarError(string mensaje)
-        {
-            if (InvokeRequired)
-            {
-                Invoke(new Action(() => MostrarError(mensaje)));
-                return;
-            }
-            MessageBox.Show(mensaje, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-
-        public void MostrarExito(string mensaje)
-        {
-            if (InvokeRequired)
-            {
-                Invoke(new Action(() => MostrarExito(mensaje)));
-                return;
-            }
-            MessageBox.Show(mensaje, "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
-
-        public void MostrarCargando(bool cargando)
-        {
-            if (InvokeRequired)
-            {
-                Invoke(new Action(() => MostrarCargando(cargando)));
-                return;
-            }
-            btnEnviar.Enabled = !cargando;
-            this.UseWaitCursor = cargando;
-        }
-
         #region Form Events
         private async void FrmDetalleCliente_Load(object? sender, EventArgs e)
         {
@@ -95,7 +65,7 @@ namespace HSis.UI.Forms.Tickets
                 var ticket = await _ticketService.ObtenerTicketPorIdAsync(idTicket);
                 if (ticket == null)
                 {
-                    MostrarError("Ticket no encontrado.");
+                    DialogoUIHelper.MostrarAdvertencia("Ticket no encontrado.");
                     this.Close();
                     return;
                 }
@@ -114,12 +84,12 @@ namespace HSis.UI.Forms.Tickets
                 bool exito = await _ticketService.RegistrarCalificacionAsync(_idTicket, calificacion, comentario);
                 if (exito)
                 {
-                    MostrarExito("¡Gracias por tu retroalimentación! La calificación fue registrada.");
+                    DialogoUIHelper.MostrarExito("¡Gracias por tu retroalimentación! La calificación fue registrada.");
                     await CargarTicketAsync(_idTicket);
                 }
                 else
                 {
-                    MostrarError("No se pudo registrar la calificación.");
+                    DialogoUIHelper.MostrarError("No se pudo registrar la calificación.");
                 }
             }, "Error al registrar calificación", btnEnviar);
         }
@@ -171,30 +141,20 @@ namespace HSis.UI.Forms.Tickets
             if (esEditable)
             {
                 lblEstrellas.Visible = true;
-                lblStar1.Visible = true;
-                lblStar2.Visible = true;
-                lblStar3.Visible = true;
-                lblStar4.Visible = true;
-                lblStar5.Visible = true;
                 lblComentario.Visible = true;
                 txtComentario.Visible = true;
                 btnEnviar.Visible = true;
+                txtComentario.Clear();
 
                 lblResumen.Visible = false;
                 lblComentarioLectura.Visible = false;
 
                 _calificacionSeleccionada = 5;
                 ActualizarEstrellasVisuales(5);
-                txtComentario.Text = string.Empty;
             }
             else
             {
                 lblEstrellas.Visible = false;
-                lblStar1.Visible = false;
-                lblStar2.Visible = false;
-                lblStar3.Visible = false;
-                lblStar4.Visible = false;
-                lblStar5.Visible = false;
                 lblComentario.Visible = false;
                 txtComentario.Visible = false;
                 btnEnviar.Visible = false;

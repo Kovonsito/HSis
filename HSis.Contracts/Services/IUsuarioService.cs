@@ -1,7 +1,7 @@
-using HSis.Logic.Constants;
-using HSis.Logic.DTOs;
+using HSis.Contracts.Constants;
+using HSis.Contracts.DTOs;
 
-namespace HSis.Logic.Services
+namespace HSis.Contracts.Services
 {
     public interface IUsuarioService
     {

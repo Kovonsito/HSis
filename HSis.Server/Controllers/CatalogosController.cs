@@ -1,4 +1,4 @@
-using HSis.Logic.Services;
+using HSis.Contracts.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HSis.Server.Controllers

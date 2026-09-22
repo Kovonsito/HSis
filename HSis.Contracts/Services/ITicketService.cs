@@ -1,6 +1,6 @@
-using HSis.Logic.DTOs;
+using HSis.Contracts.DTOs;
 
-namespace HSis.Logic.Services
+namespace HSis.Contracts.Services
 {
     public interface ITicketService
     {
@@ -26,6 +26,8 @@ namespace HSis.Logic.Services
 
         // KPIs e Indicadores
         Task<DashboardResumenDto> ObtenerResumenDashboardAsync(int? idTecnico = null);
+        Task<IndicadoresTecnicoDto> ObtenerIndicadoresTecnicoAsync(int idTecnico);
+        Task<ResumenClienteDto> ObtenerResumenClienteAsync(int idUsuario);
         Task<ReporteKpisDto> ObtenerReporteKpisAsync(DateTime inicio, DateTime fin);
         Task<double> ObtenerPromedioCalificacionTecnicoAsync(int idTecnico);
         Task<List<TicketDto>> ObtenerFeedbackTecnicoAsync(int idTecnico);

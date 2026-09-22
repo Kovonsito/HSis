@@ -1,9 +1,10 @@
-using HSis.Logic.Constants;
-using HSis.Logic.DTOs;
+using HSis.Contracts.Services;
+using HSis.Contracts.Constants;
+using HSis.Contracts.DTOs;
 
-namespace HSis.Logic.Services
+namespace HSis.UI.Services
 {
-    public class ContextoSesion : IContextoSesion, ICurrentUserService
+    public class AdministradorSesionUsuario : IAdministradorSesionUsuario, ICurrentUserService
     {
         public UsuarioDto? UsuarioActual { get; set; }
         public string TokenJWT { get; set; } = string.Empty;
@@ -28,4 +29,3 @@ namespace HSis.Logic.Services
         }
     }
 }
-

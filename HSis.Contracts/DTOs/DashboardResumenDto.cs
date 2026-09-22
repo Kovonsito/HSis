@@ -1,4 +1,4 @@
-namespace HSis.Logic.DTOs
+namespace HSis.Contracts.DTOs
 {
     public class DashboardResumenDto
     {
@@ -16,4 +16,10 @@ namespace HSis.Logic.DTOs
         public int TicketsCerrados { get => TotalCerrados; set => TotalCerrados = value; }
         public int TicketsReabiertos { get => TotalReabiertos; set => TotalReabiertos = value; }
     }
+
+    public record IndicadoresTecnicoDto(int Asignados, int Disponibles, int Cerrados, double PromedioCalificacion);
+
+    public record ResumenClienteDto(int Activos, int Cerrados, List<TicketDto> Tickets);
+
+    public record ElementoOpcionCombo(int? Id, string Nombre);
 }

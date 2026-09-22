@@ -3,7 +3,8 @@ using System.ComponentModel;
 using System.Drawing.Drawing2D;
 using System.Runtime.Versioning;
 using FontAwesome.Sharp;
-using HSis.Logic.Services;
+using HSis.Contracts.Services;
+using HSis.UI.Services;
 using HSis.UI.Helpers;
 
 namespace HSis.UI.Controls
@@ -25,8 +26,8 @@ namespace HSis.UI.Controls
         private bool _hoverCampana = false;
         private bool _hoverUsuario = false;
         private bool _hoverSalir = false;
-
-        private ISessionCacheService? _sessionCache;
+        private IAlmacenamientoCredencialesLocal? _sessionCache;
+        private IAdministradorSesionUsuario? _sesionUsuario;
         private ContextMenuStrip? _menuHamburguesa;
         private readonly List<ItemSidebar> _itemsHamburguesa = new();
         private string _itemActivoClave = string.Empty;
@@ -61,7 +62,7 @@ namespace HSis.UI.Controls
         public TopBarControl()
         {
             Dock = DockStyle.Top;
-            Height = 64;
+            Height = 56;
             BackColor = Color.White;
             DoubleBuffered = true;
             SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.ResizeRedraw, true);
@@ -79,9 +80,13 @@ namespace HSis.UI.Controls
             MouseClick += TopBarControl_MouseClick;
         }
 
-        public void ConfigurarSesion(ISessionCacheService sessionCache)
+        public void ConfigurarSesion(IAlmacenamientoCredencialesLocal sessionCache, IAdministradorSesionUsuario? sesionUsuario = null)
         {
             _sessionCache = sessionCache;
+            if (sesionUsuario != null)
+            {
+                _sesionUsuario = sesionUsuario;
+            }
             Invalidate();
         }
 
@@ -245,12 +250,12 @@ namespace HSis.UI.Controls
 
         private void MostrarInfoUsuario()
         {
-            string rol = SesionSistema.EsAdmin ? "Administrador" : (SesionSistema.EsTecnico ? "Técnico" : "Cliente");
-            string depto = SesionSistema.UsuarioActual?.DepartamentoNombre ?? "Sin Asignar";
-            string puesto = SesionSistema.UsuarioActual?.PuestoNombre ?? "Sin Asignar";
-            string sucursal = SesionSistema.UsuarioActual?.SucursalNombre ?? "Sin Asignar";
+            string rol = (_sesionUsuario?.EsAdmin ?? false) ? "Administrador" : ((_sesionUsuario?.EsTecnico ?? false) ? "Técnico" : "Cliente");
+            string depto = _sesionUsuario?.UsuarioActual?.DepartamentoNombre ?? "Sin Asignar";
+            string puesto = _sesionUsuario?.UsuarioActual?.PuestoNombre ?? "Sin Asignar";
+            string sucursal = _sesionUsuario?.UsuarioActual?.SucursalNombre ?? "Sin Asignar";
 
-            string info = $"Usuario: {SesionSistema.NombreUsuario}\n" +
+            string info = $"Usuario: {_sesionUsuario?.NombreUsuario ?? "Desconocido"}\n" +
                           $"Rol asignado: {rol}\n\n" +
                           $"Departamento: {depto}\n" +
                           $"Puesto: {puesto}\n" +
@@ -376,7 +381,7 @@ namespace HSis.UI.Controls
             }
 
             // Círculo de Avatar con iniciales
-            string nombre = SesionSistema.NombreUsuario;
+            string nombre = _sesionUsuario?.NombreUsuario ?? string.Empty;
             string iniciales = string.IsNullOrWhiteSpace(nombre) ? "U" : (nombre.Length >= 2 ? nombre[..2].ToUpperInvariant() : nombre.ToUpperInvariant());
             var rectAvatar = new Rectangle(rectUser.X + 4, rectUser.Y + 4, 32, 32);
 
@@ -400,7 +405,7 @@ namespace HSis.UI.Controls
                 g.DrawString(nombreCorto, fontNom, brushNom, new PointF(rectUser.X + 40, rectUser.Y + 4));
             }
 
-            string rolTexto = SesionSistema.EsAdmin ? "Administrador" : (SesionSistema.EsTecnico ? "Técnico" : "Cliente");
+            string rolTexto = (_sesionUsuario?.EsAdmin ?? false) ? "Administrador" : ((_sesionUsuario?.EsTecnico ?? false) ? "Técnico" : "Cliente");
             using (var brushRol = new SolidBrush(TemaVisual.TextoSecundario))
             using (var fontRol = new Font("Segoe UI", 7.5f, FontStyle.Regular))
             {

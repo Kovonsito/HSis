@@ -1,4 +1,4 @@
-namespace HSis.Logic.DTOs
+namespace HSis.Contracts.DTOs
 {
 
     public class ReporteKpisDto

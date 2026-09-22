@@ -1,8 +1,8 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
-using HSis.Logic.Constants;
-using HSis.Logic.DTOs;
+using HSis.Contracts.Constants;
+using HSis.Contracts.DTOs;
 using HSis.UI.Controls;
 
 namespace HSis.UI.Helpers

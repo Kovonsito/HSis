@@ -2,7 +2,9 @@
 using System.Drawing.Drawing2D;
 using System.Runtime.Versioning;
 using FontAwesome.Sharp;
-using HSis.Logic.Services;
+using HSis.Contracts.DTOs;
+using HSis.Contracts.Services;
+using HSis.UI.Services;
 using HSis.UI.Factories;
 using HSis.UI.Helpers;
 
@@ -11,13 +13,12 @@ namespace HSis.UI.Controls
     [SupportedOSPlatform("windows")]
     public partial class NotificacionesControl : UserControl
     {
+        private readonly List<NotificacionLocal> _notificaciones = new();
         private IFabricaFormularios? _fabricaFormularios;
-        private IContextoSesion? _contextoSesion;
-        private INotificationClientService? _clienteNotificaciones;
-        private INotificacionStorageService? _servicioAlmacenamiento;
-        private INotificationEventBus? _eventBus;
+        private IAdministradorSesionUsuario? _contextoSesion;
+        private IClienteSignalRNotificaciones? _clienteNotificaciones;
+        private IBusEventosNotificaciones? _eventBus;
         private Func<Task>? _callbackRecargaDatos;
-        private ToolStripMenuItem? _itemCampana;
         private TopBarControl? _topBar;
 
         public NotificacionesControl()
@@ -28,21 +29,18 @@ namespace HSis.UI.Controls
 
         public void Configurar(
             IFabricaFormularios fabricaFormularios,
-            IContextoSesion contextoSesion,
-            INotificationClientService clienteNotificaciones,
-            INotificacionStorageService servicioAlmacenamiento,
-            INotificationEventBus? eventBus = null,
+            IAdministradorSesionUsuario contextoSesion,
+            IClienteSignalRNotificaciones clienteNotificaciones,
+            IBusEventosNotificaciones? eventBus = null,
             Func<Task>? callbackRecargaDatos = null)
         {
             _fabricaFormularios = fabricaFormularios;
             _contextoSesion = contextoSesion;
             _clienteNotificaciones = clienteNotificaciones;
-            _servicioAlmacenamiento = servicioAlmacenamiento;
             _eventBus = eventBus;
             _callbackRecargaDatos = callbackRecargaDatos;
 
             SuscribirEventos();
-            _ = CargarHistorialAsync();
         }
 
         public void DesconectarEvents()
@@ -78,55 +76,47 @@ namespace HSis.UI.Controls
             }
         }
 
-        public async Task CargarHistorialAsync()
+        public Task CargarHistorialAsync()
         {
-            if (_servicioAlmacenamiento == null || _contextoSesion == null) return;
-            try
-            {
-                await _servicioAlmacenamiento.SincronizarDesdeBDAsync(_contextoSesion.IdUsuario);
-            }
-            catch
-            {
-                // Ignorar errores durante la sincronización inicial
-            }
-
-            var list = (await _servicioAlmacenamiento.ObtenerNotificacionesAsync(_contextoSesion.IdUsuario)).ToList();
-            int noLeidas = list.Count(n => !n.Leido);
+            int noLeidas = _notificaciones.Count(n => !n.Leido);
             ActualizarInsigniaCampana(noLeidas);
-            MostrarNotificaciones(list);
+            MostrarNotificaciones(_notificaciones);
+            return Task.CompletedTask;
         }
 
-        public async Task MarcarComoLeidaAsync(NotificacionLocal notif)
+        public Task MarcarComoLeidaAsync(NotificacionLocal notif)
         {
-            if (_servicioAlmacenamiento == null || _contextoSesion == null) return;
-            if (!notif.Leido)
-            {
-                await _servicioAlmacenamiento.MarcarComoLeidaAsync(_contextoSesion.IdUsuario, notif.Id);
-                await CargarHistorialAsync();
-            }
+            notif.Leido = true;
+            _ = CargarHistorialAsync();
             AbrirDetalleTicket(notif.TicketId);
+            return Task.CompletedTask;
         }
 
-        public async Task MarcarTodasComoLeidasAsync()
+        public Task MarcarTodasComoLeidasAsync()
         {
-            if (_servicioAlmacenamiento == null || _contextoSesion == null) return;
-            await _servicioAlmacenamiento.MarcarTodasComoLeidasAsync(_contextoSesion.IdUsuario);
-            await CargarHistorialAsync();
+            foreach (var n in _notificaciones) n.Leido = true;
+            return CargarHistorialAsync();
         }
 
-        public async Task LimpiarTodasAsync()
+        public Task LimpiarTodasAsync()
         {
-            if (_servicioAlmacenamiento == null || _contextoSesion == null) return;
-            await _servicioAlmacenamiento.LimpiarTodasAsync(_contextoSesion.IdUsuario);
-            await CargarHistorialAsync();
+            _notificaciones.Clear();
+            return CargarHistorialAsync();
         }
 
         private async void EnNotificacionRecibida(string tipo, int ticketId, string mensaje)
         {
-            if (_servicioAlmacenamiento == null || _contextoSesion == null) return;
-            await _servicioAlmacenamiento.GuardarNotificacionAsync(_contextoSesion.IdUsuario, ticketId, mensaje);
-            await RecargarDatosHostAsync();
+            var notif = new NotificacionLocal
+            {
+                Id = Guid.NewGuid(),
+                TicketId = ticketId,
+                Mensaje = mensaje,
+                Fecha = DateTime.Now,
+                Leido = false
+            };
+            _notificaciones.Insert(0, notif);
             await CargarHistorialAsync();
+            await RecargarDatosHostAsync();
         }
 
         private void EnConectado()
@@ -151,12 +141,6 @@ namespace HSis.UI.Controls
         {
             _topBar = topBar;
             _topBar.NotificacionesClic += (s, e) => AlternarVisibilidad();
-        }
-
-        public void VincularItemMenu(ToolStripMenuItem itemCampana)
-        {
-            _itemCampana = itemCampana;
-            _itemCampana.Click += (s, e) => AlternarVisibilidad();
         }
 
         public void AlternarVisibilidad()
@@ -200,12 +184,6 @@ namespace HSis.UI.Controls
             {
                 lblBadgeCount.Visible = noLeidas > 0;
                 lblBadgeCount.Text = noLeidas > 99 ? "99+" : noLeidas.ToString();
-            }
-
-            if (_itemCampana != null)
-            {
-                _itemCampana.Text = noLeidas > 0 ? $"🔔 ({noLeidas})" : "🔔";
-                _itemCampana.ForeColor = noLeidas > 0 ? Color.FromArgb(220, 38, 38) : Color.FromArgb(71, 85, 105);
             }
         }
 
