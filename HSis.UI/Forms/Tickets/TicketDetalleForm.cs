@@ -238,7 +238,7 @@ namespace HSis.UI.Forms.Tickets
             this.Close();
         }
 
-        private void ConfigurarFecha(TextBox txt, DateTime? fecha)
+        private void ConfigurarFecha(CajaTextoModerna txt, DateTime? fecha)
         {
             if (fecha.HasValue)
             {

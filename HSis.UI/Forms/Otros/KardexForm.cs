@@ -47,7 +47,7 @@ namespace HSis.UI.Forms.Otros
         #region Form Events
         private async void FrmKardex_Load(object? sender, EventArgs e)
         {
-            picIcon.Image = FontAwesome.Sharp.IconChar.BoxesStacked.ToBitmap(Color.FromArgb(37, 99, 235), 24);
+            picIcon.Image = FontAwesome.Sharp.IconChar.BoxesStacked.ToBitmap(TemaVisual.Primario, 24);
             await this.EjecutarOperacionAsync(async () =>
             {
                 var materiales = await _materialService.ObtenerMaterialesAsync();
@@ -57,7 +57,7 @@ namespace HSis.UI.Forms.Otros
 
         private void PanelTop_Paint(object? sender, PaintEventArgs e)
         {
-            using var pen = new Pen(Color.FromArgb(226, 232, 240), 1f);
+            using var pen = new Pen(TemaVisual.BordeSutil, 1f);
             e.Graphics.DrawLine(pen, 0, panelTop.Height - 1, panelTop.Width, panelTop.Height - 1);
         }
 

@@ -102,21 +102,52 @@ namespace HSis.UI.Helpers
                 filtros.RangoTemporal = VistaTemporal.Todos;
             }
 
-            DateTime fi = DateTime.Today.AddDays(-30);
-            if (vals.TryGetValue("FechaInicio", out var fiVal) && fiVal is DateTime dtInicio)
-            {
-                fi = dtInicio;
-            }
-            filtros.FechaAltaInicio = fi.Date;
-
-            DateTime ff = DateTime.Today.AddDays(1).AddTicks(-1);
-            if (vals.TryGetValue("FechaFin", out var ffVal) && ffVal is DateTime dtFin)
-            {
-                ff = dtFin;
-            }
-            filtros.FechaAltaFin = ff.Date.AddDays(1).AddTicks(-1);
+            var (_, fechaInicio, fechaFin, _, _) = vals.ExtraerFiltrosComunes(DateTime.Today.AddDays(-30), DateTime.Today.AddDays(1).AddTicks(-1));
+            filtros.FechaAltaInicio = fechaInicio ?? DateTime.Today.AddDays(-30);
+            filtros.FechaAltaFin = fechaFin ?? DateTime.Today.AddDays(1).AddTicks(-1);
 
             return filtros;
+        }
+
+        public static (string? Texto, DateTime? FechaInicio, DateTime? FechaFin, string? Prioridad, string? Usuario) ExtraerFiltrosComunes(
+            this Dictionary<string, object?> vals,
+            DateTime? fechaInicioDefecto = null,
+            DateTime? fechaFinDefecto = null)
+        {
+            string? texto = null;
+            if (vals.TryGetValue("Texto", out var txtVal) && txtVal != null)
+            {
+                var txt = txtVal.ToString()?.Trim();
+                if (!string.IsNullOrWhiteSpace(txt)) texto = txt.ToLowerInvariant();
+            }
+
+            string? prioridad = null;
+            if (vals.TryGetValue("Prioridad", out var priVal) && priVal != null)
+            {
+                var priStr = priVal.ToString()?.Trim();
+                if (!string.IsNullOrEmpty(priStr) && priStr != "Todos") prioridad = priStr;
+            }
+
+            string? usuario = null;
+            if (vals.TryGetValue("Usuario", out var usrVal) && usrVal != null)
+            {
+                var usrStr = usrVal.ToString()?.Trim();
+                if (!string.IsNullOrWhiteSpace(usrStr)) usuario = usrStr.ToLowerInvariant();
+            }
+
+            DateTime? fi = fechaInicioDefecto?.Date;
+            if (vals.TryGetValue("FechaInicio", out var fiVal) && fiVal is DateTime dtInicio)
+            {
+                fi = dtInicio.Date;
+            }
+
+            DateTime? ff = fechaFinDefecto.HasValue ? fechaFinDefecto.Value.Date.AddDays(1).AddTicks(-1) : null;
+            if (vals.TryGetValue("FechaFin", out var ffVal) && ffVal is DateTime dtFin)
+            {
+                ff = dtFin.Date.AddDays(1).AddTicks(-1);
+            }
+
+            return (texto, fi, ff, prioridad, usuario);
         }
     }
 }

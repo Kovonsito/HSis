@@ -87,21 +87,22 @@ namespace HSis.UI.Controls
                 switch (campo.Tipo)
                 {
                     case TipoFiltroControl.Texto:
-                        var txt = new TextBox
+                        var txt = new CajaTextoModerna
                         {
                             Width = campo.Ancho - 6,
-                            Font = new Font("Segoe UI", 9F)
+                            Height = 32,
+                            Placeholder = campo.Etiqueta
                         };
                         txt.TextChanged += (s, e) => LanzarFiltroCambiado();
                         input = txt;
                         break;
 
                     case TipoFiltroControl.ComboSeleccion:
-                        var cmb = new ComboBox
+                        var cmb = new ComboModerno
                         {
                             DropDownStyle = ComboBoxStyle.DropDownList,
                             Width = campo.Ancho - 6,
-                            Font = new Font("Segoe UI", 9F)
+                            Height = 32
                         };
                         if (campo.ValoresCombo != null)
                         {
@@ -113,11 +114,11 @@ namespace HSis.UI.Controls
                         break;
 
                     case TipoFiltroControl.Fecha:
-                        var dtp = new DateTimePicker
+                        var dtp = new SelectorFechaModerno
                         {
                             Format = DateTimePickerFormat.Short,
                             Width = campo.Ancho - 6,
-                            Font = new Font("Segoe UI", 9F)
+                            Height = 32
                         };
                         if (campo.ValorDefecto is DateTime dt)
                         {
@@ -150,54 +151,101 @@ namespace HSis.UI.Controls
 
         public void ActualizarCombo(string nombrePropiedad, object dataSource, string displayMember, string valueMember)
         {
-            if (_controlesEntrada.TryGetValue(nombrePropiedad, out var control) && control is ComboBox cmb)
+            if (_controlesEntrada.TryGetValue(nombrePropiedad, out var control))
             {
                 _suspenderEventos = true;
-                cmb.DataSource = null;
-                cmb.Items.Clear();
-                cmb.DisplayMember = displayMember;
-                cmb.ValueMember = valueMember;
-                cmb.DataSource = dataSource;
-                if (cmb.Items.Count > 0) cmb.SelectedIndex = 0;
+                if (control is ComboModerno cmbModerno)
+                {
+                    cmbModerno.DataSource = null;
+                    cmbModerno.Items.Clear();
+                    cmbModerno.DisplayMember = displayMember;
+                    cmbModerno.ValueMember = valueMember;
+                    cmbModerno.DataSource = dataSource;
+                    if (cmbModerno.Items.Count > 0) cmbModerno.SelectedIndex = 0;
+                }
+                else if (control is ComboBox cmb)
+                {
+                    cmb.DataSource = null;
+                    cmb.Items.Clear();
+                    cmb.DisplayMember = displayMember;
+                    cmb.ValueMember = valueMember;
+                    cmb.DataSource = dataSource;
+                    if (cmb.Items.Count > 0) cmb.SelectedIndex = 0;
+                }
                 _suspenderEventos = false;
             }
         }
 
         public void ConfigurarOpcionesCombo(string nombrePropiedad, System.Collections.IEnumerable opciones)
         {
-            if (_controlesEntrada.TryGetValue(nombrePropiedad, out var control) && control is ComboBox cmb)
+            if (_controlesEntrada.TryGetValue(nombrePropiedad, out var control))
             {
                 _suspenderEventos = true;
-                cmb.DataSource = null;
-                cmb.Items.Clear();
-
-                if (opciones is System.Collections.IEnumerable lista)
+                if (control is ComboModerno cmbModerno)
                 {
-                    var enumerator = lista.GetEnumerator();
-                    if (enumerator.MoveNext() && enumerator.Current != null)
-                    {
-                        var primerElemento = enumerator.Current;
-                        var tipo = primerElemento.GetType();
-                        var propId = tipo.GetProperty("Id") ?? tipo.GetProperty("IdUsuario");
-                        var propNombre = tipo.GetProperty("Nombre") ?? tipo.GetProperty("Descripcion");
+                    cmbModerno.DataSource = null;
+                    cmbModerno.Items.Clear();
 
-                        if (propId != null && propNombre != null)
+                    if (opciones is System.Collections.IEnumerable lista)
+                    {
+                        var enumerator = lista.GetEnumerator();
+                        if (enumerator.MoveNext() && enumerator.Current != null)
                         {
-                            cmb.DisplayMember = propNombre.Name;
-                            cmb.ValueMember = propId.Name;
-                            cmb.DataSource = opciones;
-                            if (cmb.Items.Count > 0) cmb.SelectedIndex = 0;
-                            _suspenderEventos = false;
-                            return;
-                        }
-                    }
+                            var primerElemento = enumerator.Current;
+                            var tipo = primerElemento.GetType();
+                            var propId = tipo.GetProperty("Id") ?? tipo.GetProperty("IdUsuario");
+                            var propNombre = tipo.GetProperty("Nombre") ?? tipo.GetProperty("Descripcion");
 
-                    // Si son cadenas o tipos simples, agregamos directamente a Items
-                    foreach (var item in lista)
-                    {
-                        cmb.Items.Add(item);
+                            if (propId != null && propNombre != null)
+                            {
+                                cmbModerno.DisplayMember = propNombre.Name;
+                                cmbModerno.ValueMember = propId.Name;
+                                cmbModerno.DataSource = opciones;
+                                if (cmbModerno.Items.Count > 0) cmbModerno.SelectedIndex = 0;
+                                _suspenderEventos = false;
+                                return;
+                            }
+                        }
+
+                        foreach (var item in lista)
+                        {
+                            cmbModerno.Items.Add(item);
+                        }
+                        if (cmbModerno.Items.Count > 0) cmbModerno.SelectedIndex = 0;
                     }
-                    if (cmb.Items.Count > 0) cmb.SelectedIndex = 0;
+                }
+                else if (control is ComboBox cmb)
+                {
+                    cmb.DataSource = null;
+                    cmb.Items.Clear();
+
+                    if (opciones is System.Collections.IEnumerable lista)
+                    {
+                        var enumerator = lista.GetEnumerator();
+                        if (enumerator.MoveNext() && enumerator.Current != null)
+                        {
+                            var primerElemento = enumerator.Current;
+                            var tipo = primerElemento.GetType();
+                            var propId = tipo.GetProperty("Id") ?? tipo.GetProperty("IdUsuario");
+                            var propNombre = tipo.GetProperty("Nombre") ?? tipo.GetProperty("Descripcion");
+
+                            if (propId != null && propNombre != null)
+                            {
+                                cmb.DisplayMember = propNombre.Name;
+                                cmb.ValueMember = propId.Name;
+                                cmb.DataSource = opciones;
+                                if (cmb.Items.Count > 0) cmb.SelectedIndex = 0;
+                                _suspenderEventos = false;
+                                return;
+                            }
+                        }
+
+                        foreach (var item in lista)
+                        {
+                            cmb.Items.Add(item);
+                        }
+                        if (cmb.Items.Count > 0) cmb.SelectedIndex = 0;
+                    }
                 }
                 _suspenderEventos = false;
             }
@@ -219,15 +267,25 @@ namespace HSis.UI.Controls
                         break;
 
                     case TipoFiltroControl.ComboSeleccion:
-                        var cmb = (ComboBox)control;
-                        // For anonymous types or bound datasources, SelectedValue is correct.
-                        // For simple lists, SelectedItem is used if SelectedValue is null.
-                        valores[nombre] = cmb.SelectedValue ?? cmb.SelectedItem;
+                        if (control is ComboModerno cmbModerno)
+                        {
+                            valores[nombre] = cmbModerno.SelectedValue ?? cmbModerno.SelectedItem;
+                        }
+                        else if (control is ComboBox cmbLegacy)
+                        {
+                            valores[nombre] = cmbLegacy.SelectedValue ?? cmbLegacy.SelectedItem;
+                        }
                         break;
 
                     case TipoFiltroControl.Fecha:
-                        var dtp = (DateTimePicker)control;
-                        valores[nombre] = dtp.Value;
+                        if (control is SelectorFechaModerno sfm)
+                        {
+                            valores[nombre] = sfm.Value;
+                        }
+                        else if (control is DateTimePicker dtpLegacy)
+                        {
+                            valores[nombre] = dtpLegacy.Value;
+                        }
                         break;
                 }
             }
@@ -253,33 +311,53 @@ namespace HSis.UI.Controls
                         break;
 
                     case TipoFiltroControl.ComboSeleccion:
-                        var cmb = (ComboBox)control;
-                        if (valorDefecto != null)
+                        if (control is ComboModerno cmbModerno)
                         {
-                            if (cmb.DataSource != null)
+                            if (valorDefecto != null)
                             {
-                                cmb.SelectedValue = valorDefecto;
+                                if (cmbModerno.DataSource != null)
+                                {
+                                    cmbModerno.SelectedValue = valorDefecto;
+                                }
+                                else
+                                {
+                                    cmbModerno.SelectedItem = valorDefecto;
+                                }
                             }
                             else
                             {
-                                cmb.SelectedItem = valorDefecto;
+                                if (cmbModerno.Items.Count > 0) cmbModerno.SelectedIndex = 0;
                             }
                         }
-                        else
+                        else if (control is ComboBox cmb)
                         {
-                            if (cmb.Items.Count > 0) cmb.SelectedIndex = 0;
+                            if (valorDefecto != null)
+                            {
+                                if (cmb.DataSource != null)
+                                {
+                                    cmb.SelectedValue = valorDefecto;
+                                }
+                                else
+                                {
+                                    cmb.SelectedItem = valorDefecto;
+                                }
+                            }
+                            else
+                            {
+                                if (cmb.Items.Count > 0) cmb.SelectedIndex = 0;
+                            }
                         }
                         break;
 
                     case TipoFiltroControl.Fecha:
-                        var dtp = (DateTimePicker)control;
-                        if (valorDefecto is DateTime dt)
+                        var targetDate = (valorDefecto is DateTime dt) ? dt : DateTime.Today;
+                        if (control is SelectorFechaModerno sfm)
                         {
-                            dtp.Value = dt;
+                            sfm.Value = targetDate;
                         }
-                        else
+                        else if (control is DateTimePicker dtpLegacy)
                         {
-                            dtp.Value = DateTime.Today;
+                            dtpLegacy.Value = targetDate;
                         }
                         break;
                 }

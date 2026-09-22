@@ -101,17 +101,9 @@ namespace HSis.UI.Forms.Tickets
         {
             if (string.IsNullOrEmpty(estatus)) return;
 
-            (Color back, Color fore) = estatus switch
-            {
-                ConstantesEstatus.ABIERTO => (Color.LightBlue, Color.DarkBlue),
-                ConstantesEstatus.EN_PROCESO => (Color.LightYellow, Color.DarkGoldenrod),
-                ConstantesEstatus.CERRADO => (Color.LightGreen, Color.DarkGreen),
-                ConstantesEstatus.REABIERTO => (Color.FromArgb(153, 102, 204), Color.LightPink),
-                _ => (Color.Gray, Color.White)
-            };
-
-            lblEstatusValor.BackColor = back;
+            var (fore, back) = TemaVisual.ObtenerColoresBadge(estatus);
             lblEstatusValor.ForeColor = fore;
+            lblEstatusValor.BackColor = back;
         }
 
         private void BtnCerrar_Click(object? sender, EventArgs e)

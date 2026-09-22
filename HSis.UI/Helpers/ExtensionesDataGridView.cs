@@ -28,7 +28,12 @@ namespace HSis.UI.Helpers
 
         public static void ConfigurarColumnas(this DataGridView dgv, params (string NombrePropiedad, string Encabezado, int? Ancho)[] columnas)
         {
-            foreach (var (nombre, encabezado, ancho) in columnas)
+            dgv.ConfigurarColumnas(columnas.Select(c => (c.NombrePropiedad, c.Encabezado, c.Ancho, (string?)null)).ToArray());
+        }
+
+        public static void ConfigurarColumnas(this DataGridView dgv, params (string NombrePropiedad, string Encabezado, int? Ancho, string? Formato)[] columnas)
+        {
+            foreach (var (nombre, encabezado, ancho, formato) in columnas)
             {
                 if (dgv.Columns[nombre] is DataGridViewColumn col)
                 {
@@ -37,6 +42,10 @@ namespace HSis.UI.Helpers
                     {
                         col.FillWeight = ancho.Value;
                         col.MinimumWidth = Math.Min(ancho.Value, 75);
+                    }
+                    if (!string.IsNullOrEmpty(formato))
+                    {
+                        col.DefaultCellStyle.Format = formato;
                     }
                 }
             }

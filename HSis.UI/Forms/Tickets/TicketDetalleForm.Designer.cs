@@ -35,32 +35,32 @@ partial class TicketDetalleForm
     private void InitializeComponent()
     {
         lblFolio = new Label();
-        cmbEstatus = new ComboBox();
+        cmbEstatus = new HSis.UI.Controls.ComboModerno();
         lblUsuario = new Label();
         lblEstatus = new Label();
-        txtUsuario = new TextBox();
+        txtUsuario = new HSis.UI.Controls.CajaTextoModerna();
         lblAlta = new Label();
         lblDescripcion = new Label();
-        txtAlta = new TextBox();
+        txtAlta = new HSis.UI.Controls.CajaTextoModerna();
         lblSolucion = new Label();
         lblAtendido = new Label();
         lblAtencion = new Label();
-        txtAtencion = new TextBox();
+        txtAtencion = new HSis.UI.Controls.CajaTextoModerna();
         lblCierre = new Label();
-        txtCierre = new TextBox();
-        cmbAtendido = new ComboBox();
+        txtCierre = new HSis.UI.Controls.CajaTextoModerna();
+        cmbAtendido = new HSis.UI.Controls.ComboModerno();
         btnGuardar = new HSis.UI.Controls.BotonModerno();
         btnCancelar = new HSis.UI.Controls.BotonModerno();
         dgvHistorial = new DataGridView();
         lblPrioridad = new Label();
-        cmbPrioridad = new ComboBox();
+        cmbPrioridad = new HSis.UI.Controls.ComboModerno();
         lblDepartamento = new Label();
-        txtDepartamento = new TextBox();
-        grpFeedback = new GroupBox();
+        txtDepartamento = new HSis.UI.Controls.CajaTextoModerna();
+        grpFeedback = new HSis.UI.Controls.PanelCardModerno();
         lblEstrellas = new Label();
-        cmbEstrellas = new ComboBox();
+        cmbEstrellas = new HSis.UI.Controls.ComboModerno();
         lblComentario = new Label();
-        txtComentario = new TextBox();
+        txtComentario = new HSis.UI.Controls.CajaTextoModerna();
         btnEnviar = new HSis.UI.Controls.BotonModerno();
         lblResumen = new Label();
         lblComentarioLectura = new Label();
@@ -309,14 +309,14 @@ partial class TicketDetalleForm
         grpFeedback.Name = "grpFeedback";
         grpFeedback.Size = new Size(693, 438);
         grpFeedback.TabIndex = 0;
-        grpFeedback.TabStop = false;
-        grpFeedback.Text = "Retroalimentación de la Atención";
+        grpFeedback.Titulo = "Retroalimentación de la Atención";
+        grpFeedback.Icono = FontAwesome.Sharp.IconChar.Star;
         // 
         // lblEstrellas
         // 
         lblEstrellas.AutoSize = true;
         lblEstrellas.Font = new Font("Segoe UI", 9F);
-        lblEstrellas.Location = new Point(15, 25);
+        lblEstrellas.Location = new Point(15, 52);
         lblEstrellas.Name = "lblEstrellas";
         lblEstrellas.Size = new Size(110, 15);
         lblEstrellas.TabIndex = 0;
@@ -327,16 +327,16 @@ partial class TicketDetalleForm
         cmbEstrellas.DropDownStyle = ComboBoxStyle.DropDownList;
         cmbEstrellas.Font = new Font("Segoe UI", 9F);
         cmbEstrellas.Items.AddRange(new object[] { "1 - Muy Malo", "2 - Malo", "3 - Regular", "4 - Bueno", "5 - Excelente" });
-        cmbEstrellas.Location = new Point(140, 22);
+        cmbEstrellas.Location = new Point(140, 46);
         cmbEstrellas.Name = "cmbEstrellas";
-        cmbEstrellas.Size = new Size(80, 23);
+        cmbEstrellas.Size = new Size(140, 32);
         cmbEstrellas.TabIndex = 1;
         // 
         // lblComentario
         // 
         lblComentario.AutoSize = true;
         lblComentario.Font = new Font("Segoe UI", 9F);
-        lblComentario.Location = new Point(15, 55);
+        lblComentario.Location = new Point(15, 88);
         lblComentario.Name = "lblComentario";
         lblComentario.Size = new Size(132, 15);
         lblComentario.TabIndex = 2;
@@ -346,9 +346,10 @@ partial class TicketDetalleForm
         // 
         txtComentario.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
         txtComentario.Font = new Font("Segoe UI", 9F);
-        txtComentario.Location = new Point(15, 75);
+        txtComentario.Location = new Point(15, 108);
         txtComentario.Name = "txtComentario";
-        txtComentario.Size = new Size(500, 23);
+        txtComentario.Placeholder = "Escribe un comentario sobre la atención recibida...";
+        txtComentario.Size = new Size(500, 34);
         txtComentario.TabIndex = 3;
         // 
         // btnEnviar
@@ -466,6 +467,7 @@ partial class TicketDetalleForm
         // 
         AutoScaleDimensions = new SizeF(7F, 15F);
         AutoScaleMode = AutoScaleMode.Font;
+        BackColor = TemaVisual.FondoApp;
         ClientSize = new Size(709, 534);
         Controls.Add(tabControlTicket);
         Controls.Add(btnCancelar);
@@ -491,32 +493,32 @@ partial class TicketDetalleForm
     #endregion
 
     private Label lblFolio;
-    private ComboBox cmbEstatus;
+    private HSis.UI.Controls.ComboModerno cmbEstatus;
     private Label lblUsuario;
-    private TextBox txtUsuario;
+    private HSis.UI.Controls.CajaTextoModerna txtUsuario;
     private Label lblDescripcion;
     private Label lblAlta;
     private Label lblEstatus;
-    private TextBox txtAlta;
+    private HSis.UI.Controls.CajaTextoModerna txtAlta;
     private Label lblSolucion;
     private Label lblAtendido;
     private Label lblAtencion;
-    private TextBox txtAtencion;
+    private HSis.UI.Controls.CajaTextoModerna txtAtencion;
     private Label lblCierre;
-    private TextBox txtCierre;
-    private ComboBox cmbAtendido;
+    private HSis.UI.Controls.CajaTextoModerna txtCierre;
+    private HSis.UI.Controls.ComboModerno cmbAtendido;
     private HSis.UI.Controls.BotonModerno btnGuardar;
     private HSis.UI.Controls.BotonModerno btnCancelar;
     private DataGridView dgvHistorial;
     private Label lblPrioridad;
-    private ComboBox cmbPrioridad;
+    private HSis.UI.Controls.ComboModerno cmbPrioridad;
     private Label lblDepartamento;
-    private TextBox txtDepartamento;
-    private GroupBox grpFeedback;
+    private HSis.UI.Controls.CajaTextoModerna txtDepartamento;
+    private HSis.UI.Controls.PanelCardModerno grpFeedback;
     private Label lblEstrellas;
-    private ComboBox cmbEstrellas;
+    private HSis.UI.Controls.ComboModerno cmbEstrellas;
     private Label lblComentario;
-    private TextBox txtComentario;
+    private HSis.UI.Controls.CajaTextoModerna txtComentario;
     private HSis.UI.Controls.BotonModerno btnEnviar;
     private Label lblResumen;
     private Label lblComentarioLectura;

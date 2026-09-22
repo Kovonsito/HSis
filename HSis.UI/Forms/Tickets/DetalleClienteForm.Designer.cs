@@ -1,6 +1,8 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
+using HSis.UI.Controls;
+using HSis.UI.Helpers;
 
 namespace HSis.UI.Forms.Tickets;
 
@@ -41,13 +43,13 @@ partial class DetalleClienteForm
         lblTecnico = new Label();
         lblTecnicoValor = new Label();
         lblDescripcion = new Label();
-        txtDescripcion = new TextBox();
+        txtDescripcion = new HSis.UI.Controls.CajaTextoModerna();
         lblSolucion = new Label();
-        txtSolucion = new TextBox();
-        btnCerrar = new Button();
+        txtSolucion = new HSis.UI.Controls.CajaTextoModerna();
+        btnCerrar = new HSis.UI.Controls.BotonModerno();
         lblFechaCierre = new Label();
         lblFechaCierreValor = new Label();
-        grpFeedback = new GroupBox();
+        grpFeedback = new HSis.UI.Controls.PanelCardModerno();
         lblEstrellas = new Label();
         lblStar1 = new Label();
         lblStar2 = new Label();
@@ -55,8 +57,8 @@ partial class DetalleClienteForm
         lblStar4 = new Label();
         lblStar5 = new Label();
         lblComentario = new Label();
-        txtComentario = new TextBox();
-        btnEnviar = new Button();
+        txtComentario = new HSis.UI.Controls.CajaTextoModerna();
+        btnEnviar = new HSis.UI.Controls.BotonModerno();
         lblResumen = new Label();
         lblComentarioLectura = new Label();
         grpFeedback.SuspendLayout();
@@ -187,15 +189,9 @@ partial class DetalleClienteForm
         // 
         // btnCerrar
         // 
-        btnCerrar.BackColor = Color.FromArgb(231, 76, 60);
-        btnCerrar.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
-        btnCerrar.ForeColor = Color.White;
-        btnCerrar.Location = new Point(413, 590);
-        btnCerrar.Name = "btnCerrar";
-        btnCerrar.Size = new Size(95, 33);
-        btnCerrar.TabIndex = 12;
+        btnCerrar.Estilo = EstiloBotonModerno.Secundario;
         btnCerrar.Text = "Cerrar";
-        btnCerrar.UseVisualStyleBackColor = false;
+        btnCerrar.Size = new Size(110, 36);
         btnCerrar.Click += BtnCerrar_Click;
         // 
         // lblFechaCierre
@@ -236,10 +232,10 @@ partial class DetalleClienteForm
         grpFeedback.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
         grpFeedback.Location = new Point(12, 350);
         grpFeedback.Name = "grpFeedback";
-        grpFeedback.Size = new Size(496, 120);
+        grpFeedback.Size = new Size(496, 130);
         grpFeedback.TabIndex = 0;
-        grpFeedback.TabStop = false;
-        grpFeedback.Text = "Retroalimentación de la Atención";
+        grpFeedback.Titulo = "Retroalimentación de la Atención";
+        grpFeedback.Icono = FontAwesome.Sharp.IconChar.Star;
         grpFeedback.Visible = false;
         // 
         // lblEstrellas
@@ -342,22 +338,15 @@ partial class DetalleClienteForm
         txtComentario.Font = new Font("Segoe UI", 9F);
         txtComentario.Location = new Point(15, 70);
         txtComentario.Name = "txtComentario";
-        txtComentario.Size = new Size(330, 23);
+        txtComentario.Placeholder = "Escribe un comentario sobre la atención recibida...";
+        txtComentario.Size = new Size(330, 34);
         txtComentario.TabIndex = 7;
         // 
         // btnEnviar
         // 
-        btnEnviar.BackColor = Color.FromArgb(52, 152, 219);
-        btnEnviar.FlatAppearance.BorderSize = 0;
-        btnEnviar.FlatStyle = FlatStyle.Flat;
-        btnEnviar.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-        btnEnviar.ForeColor = Color.White;
-        btnEnviar.Location = new Point(365, 68);
-        btnEnviar.Name = "btnEnviar";
-        btnEnviar.Size = new Size(115, 30);
-        btnEnviar.TabIndex = 8;
-        btnEnviar.Text = "Enviar";
-        btnEnviar.UseVisualStyleBackColor = false;
+        btnEnviar.Estilo = EstiloBotonModerno.Primario;
+        btnEnviar.Text = "Enviar Calificación";
+        btnEnviar.Size = new Size(140, 32);
         btnEnviar.Click += BtnEnviarFeedback_Click;
         // 
         // lblResumen
@@ -425,13 +414,13 @@ partial class DetalleClienteForm
     private System.Windows.Forms.Label lblTecnico;
     private System.Windows.Forms.Label lblTecnicoValor;
     private System.Windows.Forms.Label lblDescripcion;
-    private System.Windows.Forms.TextBox txtDescripcion;
+    private HSis.UI.Controls.CajaTextoModerna txtDescripcion;
     private System.Windows.Forms.Label lblSolucion;
-    private System.Windows.Forms.TextBox txtSolucion;
-    private System.Windows.Forms.Button btnCerrar;
+    private HSis.UI.Controls.CajaTextoModerna txtSolucion;
+    private HSis.UI.Controls.BotonModerno btnCerrar;
     private System.Windows.Forms.Label lblFechaCierre;
     private System.Windows.Forms.Label lblFechaCierreValor;
-    private System.Windows.Forms.GroupBox grpFeedback;
+    private HSis.UI.Controls.PanelCardModerno grpFeedback;
     private System.Windows.Forms.Label lblEstrellas;
     private System.Windows.Forms.Label lblStar1;
     private System.Windows.Forms.Label lblStar2;
@@ -439,20 +428,23 @@ partial class DetalleClienteForm
     private System.Windows.Forms.Label lblStar4;
     private System.Windows.Forms.Label lblStar5;
     private System.Windows.Forms.Label lblComentario;
-    private System.Windows.Forms.TextBox txtComentario;
-    private System.Windows.Forms.Button btnEnviar;
+    private HSis.UI.Controls.CajaTextoModerna txtComentario;
+    private HSis.UI.Controls.BotonModerno btnEnviar;
     private System.Windows.Forms.Label lblResumen;
     private System.Windows.Forms.Label lblComentarioLectura;
 
     private void InicializarLayoutDetalleCliente()
     {
+        this.BackColor = TemaVisual.FondoApp;
+
         // 1. Crear el TableLayoutPanel principal
         var tblPrincipal = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
             RowCount = 7,
             ColumnCount = 1,
-            Padding = new Padding(12),
+            Padding = new Padding(16),
+            BackColor = TemaVisual.FondoApp,
             Name = "tblPrincipal"
         };
         tblPrincipal.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
