@@ -29,12 +29,12 @@ namespace HSis.UI.Forms.Otros
         {
             dtpInicio.Value = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
             dtpFin.Value = DateTime.Today;
-            picHeaderIcon.Image = IconChar.ChartPie.ToBitmap(Color.FromArgb(37, 99, 235), 28);
+            picHeaderIcon.Image = IconChar.ChartPie.ToBitmap(TemaVisual.Primario, 28);
         }
 
         private void PnlHeader_Paint(object? sender, PaintEventArgs e)
         {
-            using var pen = new Pen(Color.FromArgb(226, 232, 240), 1f);
+            using var pen = new Pen(TemaVisual.BordeSutil, 1f);
             e.Graphics.DrawLine(pen, 0, pnlHeader.Height - 1, pnlHeader.Width, pnlHeader.Height - 1);
         }
 
@@ -43,7 +43,7 @@ namespace HSis.UI.Forms.Otros
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
             var rect = new Rectangle(0, 0, pnlCard.Width - 1, pnlCard.Height - 1);
             using var path = TemaVisual.CrearRectanguloRedondeado(rect, 10);
-            using var pen = new Pen(Color.FromArgb(226, 232, 240), 1.5f);
+            using var pen = new Pen(TemaVisual.BordeSutil, 1.5f);
             e.Graphics.DrawPath(pen, path);
         }
 

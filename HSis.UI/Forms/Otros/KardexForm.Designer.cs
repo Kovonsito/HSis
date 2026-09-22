@@ -19,7 +19,7 @@ partial class KardexForm
         picIcon = new System.Windows.Forms.PictureBox();
         lblTituloHeader = new System.Windows.Forms.Label();
         lblMaterial = new System.Windows.Forms.Label();
-        cbMaterial = new System.Windows.Forms.ComboBox();
+        cbMaterial = new HSis.UI.Controls.ComboModerno();
         dgvKardex = new System.Windows.Forms.DataGridView();
         panelTop.SuspendLayout();
         ((System.ComponentModel.ISupportInitialize)picIcon).BeginInit();
@@ -75,9 +75,9 @@ partial class KardexForm
         cbMaterial.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
         cbMaterial.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
         cbMaterial.Font = new System.Drawing.Font("Segoe UI", 9.5F);
-        cbMaterial.Location = new System.Drawing.Point(525, 19);
+        cbMaterial.Location = new System.Drawing.Point(525, 16);
         cbMaterial.Name = "cbMaterial";
-        cbMaterial.Size = new System.Drawing.Size(275, 25);
+        cbMaterial.Size = new System.Drawing.Size(275, 32);
         cbMaterial.TabIndex = 3;
         cbMaterial.SelectedIndexChanged += CbMaterial_SelectedIndexChanged;
         // 
@@ -120,6 +120,6 @@ partial class KardexForm
     private System.Windows.Forms.PictureBox picIcon;
     private System.Windows.Forms.Label lblTituloHeader;
     private System.Windows.Forms.Label lblMaterial;
-    private System.Windows.Forms.ComboBox cbMaterial;
+    private HSis.UI.Controls.ComboModerno cbMaterial;
     private System.Windows.Forms.DataGridView dgvKardex;
 }
