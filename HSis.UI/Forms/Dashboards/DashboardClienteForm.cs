@@ -7,22 +7,21 @@ using HSis.UI.Controls;
 using HSis.UI.Factories;
 using HSis.UI.Forms.Tickets;
 using HSis.UI.Helpers;
-using HSis.UI.Presenters;
+
+using HSis.UI.Services.Coordinators;
 
 namespace HSis.UI.Forms.Dashboards
 {
     [SupportedOSPlatform("windows")]
-    public partial class DashboardClienteForm : Form, IDashboardClienteView
+    public partial class DashboardClienteForm : Form
     {
-        private readonly DashboardClientePresenter _presenter;
-        private readonly NotificacionesPresenter _notificacionesPresenter;
-        private readonly IContextoSesion _contextoSesion;
+        private readonly ITicketService _ticketService;
+        private readonly IUiSessionCoordinator _sessionCoordinator;
         private readonly IFabricaFormularios _formFactory;
-        private readonly ISessionCacheService _sessionCache;
 
         private PaginacionControl PaginacionControl = null!;
         private ControladorPaginacionGrid _controladorPaginacion = null!;
-        private List<TicketClienteDto> _todosLosTickets = [];
+        private List<TicketDto> _todosLosTickets = [];
 
         private IndicadorControl ucMisCerrados = null!;
 
@@ -35,19 +34,13 @@ namespace HSis.UI.Forms.Dashboards
         private VistaCliente _vistaActual = VistaCliente.Todos;
 
         public DashboardClienteForm(
-            DashboardClientePresenter presenter,
-            NotificacionesPresenter notificacionesPresenter,
-            IContextoSesion contextoSesion,
-            IFabricaFormularios formFactory,
-            ISessionCacheService sessionCache)
+            ITicketService ticketService,
+            IUiSessionCoordinator sessionCoordinator)
         {
             InitializeComponent();
-            _presenter = presenter;
-            _presenter.SetView(this);
-            _notificacionesPresenter = notificacionesPresenter;
-            _contextoSesion = contextoSesion;
-            _formFactory = formFactory;
-            _sessionCache = sessionCache;
+            _ticketService = ticketService;
+            _sessionCoordinator = sessionCoordinator;
+            _formFactory = sessionCoordinator.FabricaFormularios;
         }
 
         private async void frmDashboardCliente_Load(object? sender, EventArgs e)
@@ -60,7 +53,7 @@ namespace HSis.UI.Forms.Dashboards
             ConfigurarSidebar();
             ConfigurarFiltros();
 
-            this.IntegrarNotificacionesModerno(topBarCliente, _notificacionesPresenter, _formFactory, _contextoSesion, CargarDatosDashboardAsync);
+            this.IntegrarNotificacionesModerno(topBarCliente, _sessionCoordinator, CargarDatosDashboardAsync);
 
             await CargarDatosDashboardAsync();
         }
@@ -83,7 +76,7 @@ namespace HSis.UI.Forms.Dashboards
                 new ItemSidebar { Clave = "cerrados", Titulo = "Historial Cerrados", Icono = FontAwesome.Sharp.IconChar.ClockRotateLeft }
             };
 
-            sidebarCliente.ConfigurarSesion(_sessionCache);
+            sidebarCliente.ConfigurarSesion(_sessionCoordinator.SessionCache);
             sidebarCliente.ConfigurarItems(items, "activos");
 
             void SeleccionarVista(string clave)
@@ -109,7 +102,7 @@ namespace HSis.UI.Forms.Dashboards
 
             sidebarCliente.ItemSeleccionado += (s, clave) => SeleccionarVista(clave);
 
-            topBarCliente.ConfigurarSesion(_sessionCache);
+            topBarCliente.ConfigurarSesion(_sessionCoordinator.SessionCache);
             topBarCliente.ConfigurarMenuHamburguesa(
                 items,
                 "activos",
@@ -121,7 +114,18 @@ namespace HSis.UI.Forms.Dashboards
 
         private async Task CargarDatosDashboardAsync()
         {
-            await _presenter.CargarTicketsClienteAsync(SesionSistema.IdUsuario);
+            await this.EjecutarOperacionAsync(async () =>
+            {
+                var tickets = await _ticketService.ObtenerTicketsPorUsuarioAsync(SesionSistema.IdUsuario);
+
+                int activos = tickets.Count(t => t.Estatus != ConstantesEstatus.CERRADO);
+                int cerrados = tickets.Count(t => t.Estatus == ConstantesEstatus.CERRADO);
+                MostrarIndicadores(activos, cerrados);
+
+                _todosLosTickets = tickets;
+                _controladorPaginacion.ReiniciarAPrimeraPagina();
+                MostrarPaginaActual();
+            }, "Error al cargar tickets del cliente");
         }
 
         private void MostrarPaginaActual()
@@ -145,7 +149,7 @@ namespace HSis.UI.Forms.Dashboards
                 if (!string.IsNullOrEmpty(txt))
                 {
                     query = query.Where(t =>
-                        (t.Folio?.ToLowerInvariant().Contains(txt) ?? false) ||
+                        (t.Folio.ToString().Contains(txt) || t.FolioFormato.ToLowerInvariant().Contains(txt)) ||
                         (t.Descripcion?.ToLowerInvariant().Contains(txt) ?? false) ||
                         (t.TecnicoAsignado?.ToLowerInvariant().Contains(txt) ?? false));
                 }
@@ -169,7 +173,7 @@ namespace HSis.UI.Forms.Dashboards
                 .Take(_controladorPaginacion.TamanoPagina)
                 .ToList();
 
-            dgvMisTickets.DataSource = new ListaVinculableOrdenable<TicketClienteDto>(pageTickets);
+            dgvMisTickets.DataSource = new ListaVinculableOrdenable<TicketDto>(pageTickets);
             PersonalizarColumnas();
             _controladorPaginacion.Actualizar(ticketsFiltrados.Count);
         }
@@ -178,7 +182,11 @@ namespace HSis.UI.Forms.Dashboards
         {
             if (dgvMisTickets.Columns.Count > 0)
             {
-                dgvMisTickets.ConfigurarOcultarColumnas("IdTicket", "Estatus", "Evaluacion");
+                dgvMisTickets.ConfigurarOcultarColumnas(
+                    "IdTicket", "IdUsuario", "NombreUsuario", "Usuario", "DepartamentoUsuario",
+                    "FechaAtencion", "FechaCierre", "Estatus", "Solucion", "IdTecnico",
+                    "NombreTecnico", "Prioridad", "Calificacion", "ComentarioEvaluacion",
+                    "FechaEvaluacion", "Evaluacion", "FolioFormato");
 
                 var colFolio = dgvMisTickets.Columns["Folio"];
                 if (colFolio != null)
@@ -278,15 +286,6 @@ namespace HSis.UI.Forms.Dashboards
             }
         }
 
-        #region Implementación IDashboardClienteView (MVP)
-
-        public void MostrarTickets(List<TicketClienteDto> tickets)
-        {
-            _todosLosTickets = tickets;
-            _controladorPaginacion.ReiniciarAPrimeraPagina();
-            MostrarPaginaActual();
-        }
-
         public void MostrarIndicadores(int activos, int cerrados)
         {
             if (ucMisActivos != null)
@@ -323,8 +322,5 @@ namespace HSis.UI.Forms.Dashboards
             }
             MessageBox.Show(mensaje, "Error en Dashboard de Cliente", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
-
-        #endregion
     }
 }
-

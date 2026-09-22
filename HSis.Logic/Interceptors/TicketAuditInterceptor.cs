@@ -36,7 +36,7 @@ namespace HSis.Logic.Interceptors
 
             foreach (var entrada in entradasModificadas)
             {
-                var propiedadesA_Auditar = new[] { "Status", "IdTecnico", "Solución", "Prioridad" };
+                var propiedadesA_Auditar = new[] { nameof(Ticket.Estatus), nameof(Ticket.IdTecnico), nameof(Ticket.Solucion), nameof(Ticket.Prioridad) };
 
                 foreach (var propName in propiedadesA_Auditar)
                 {

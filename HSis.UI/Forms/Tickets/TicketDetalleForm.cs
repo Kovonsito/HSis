@@ -1,33 +1,46 @@
+#nullable enable
 using System.Runtime.Versioning;
 using HSis.Logic.Constants;
 using HSis.Logic.DTOs;
+using HSis.Logic.Services;
 using HSis.UI.Controls;
 using HSis.UI.Helpers;
-using HSis.UI.Presenters;
+
+using HSis.UI.Services.Coordinators;
 
 namespace HSis.UI.Forms.Tickets
 {
     [SupportedOSPlatform("windows")]
-    public partial class TicketDetalleForm : Form, ITicketDetalleView
+    public partial class TicketDetalleForm : Form
     {
         private readonly int _idTicket;
-        private readonly TicketDetallePresenter _presenter;
+        private readonly ITicketService _ticketService;
+        private readonly ITicketDetalleService _ticketDetalleService;
+        private readonly IUsuarioService _usuarioService;
+        private readonly IContextoSesion _contextoSesion;
+
         private TicketDto? _ticketActual;
         private CajaTextoOrtograficaWpf rtbDescripcion = null!;
         private CajaTextoOrtograficaWpf rtbSolucion = null!;
         private DataGridView dgvMateriales = null!;
 
-        public TicketDetalleForm(int idTicket, TicketDetallePresenter presenter)
+        public TicketDetalleForm(
+            int idTicket,
+            ITicketService ticketService,
+            ITicketDetalleService ticketDetalleService,
+            IUsuarioService usuarioService,
+            IUiSessionCoordinator sessionCoordinator)
         {
             InitializeComponent();
             _idTicket = idTicket;
-            _presenter = presenter;
-            _presenter.SetView(this);
+            _ticketService = ticketService;
+            _ticketDetalleService = ticketDetalleService;
+            _usuarioService = usuarioService;
+            _contextoSesion = sessionCoordinator.ContextoSesion;
 
             InicializarLayoutDetalle();
         }
 
-        #region Propiedades e Implementación de ITicketDetalleView
         public void MostrarTicket(TicketDto ticket)
         {
             _ticketActual = ticket;
@@ -47,8 +60,8 @@ namespace HSis.UI.Forms.Tickets
 
             cmbPrioridad.SelectedItem = ticket.Prioridad;
 
-            bool esAdmin = SesionSistema.EsAdmin;
-            bool esPropietario = ticket.IdTecnico == SesionSistema.IdUsuario;
+            bool esAdmin = _contextoSesion.EsAdmin;
+            bool esPropietario = ticket.IdTecnico == _contextoSesion.IdUsuario;
             string estatusActual = ticket.Estatus ?? ConstantesEstatus.ABIERTO;
 
             bool esSoloLectura = (!esAdmin && estatusActual == ConstantesEstatus.CERRADO) ||
@@ -125,18 +138,6 @@ namespace HSis.UI.Forms.Tickets
             MessageBox.Show(mensaje, "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
-
-        public void CerrarFormulario()
-        {
-            if (InvokeRequired)
-            {
-                Invoke(new Action(CerrarFormulario));
-                return;
-            }
-            this.DialogResult = DialogResult.OK;
-            this.Close();
-        }
-
         public void MostrarCargando(bool cargando)
         {
             if (InvokeRequired)
@@ -147,23 +148,72 @@ namespace HSis.UI.Forms.Tickets
             btnGuardar.Enabled = !cargando;
             this.UseWaitCursor = cargando;
         }
-        #endregion
 
         #region Form Handlers & Layout
 
-
         private async void FormularioTicket_Load(object? sender, EventArgs e)
         {
-            await _presenter.CargarTicketDetallesAsync(_idTicket);
+            await CargarTicketDetallesAsync(_idTicket);
         }
 
+        private async Task CargarTicketDetallesAsync(int idTicket)
+        {
+            try
+            {
+                MostrarCargando(true);
+                var ticket = await _ticketService.ObtenerTicketPorIdAsync(idTicket);
+                if (ticket == null)
+                {
+                    MostrarError("Ticket no encontrado.");
+                    this.Close();
+                    return;
+                }
+
+                MostrarTicket(ticket);
+
+                string estatusActual = ticket.Estatus ?? ConstantesEstatus.ABIERTO;
+                var estatusPermitidos = ReglasEstatusTicket.ObtenerEstatusPermitidos(_contextoSesion.IdRolUsuario, estatusActual);
+                CargarEstatusPermitidos(estatusPermitidos, estatusActual);
+
+                var tecnicos = await _usuarioService.ObtenerUsuariosPorRolAsync((int)RolUsuarioEnum.Tecnico);
+                var admins = await _usuarioService.ObtenerUsuariosPorRolAsync((int)RolUsuarioEnum.Administrador);
+                var personalAtencion = tecnicos.Concat(admins).OrderBy(u => u.Nombre).ToList();
+                CargarTecnicos(personalAtencion, ticket.IdTecnico, _contextoSesion.EsAdmin);
+
+                await RecargarHistorialYMaterialesAsync(idTicket);
+            }
+            catch (Exception ex)
+            {
+                MostrarError($"Error al cargar ticket: {ex.Message}");
+            }
+            finally
+            {
+                MostrarCargando(false);
+            }
+        }
+
+        public async Task RecargarHistorialYMaterialesAsync(int idTicket)
+        {
+            try
+            {
+                var historial = await _ticketService.ObtenerHistorialPorTicketAsync(idTicket);
+                CargarHistorial(historial);
+
+                var detalles = await _ticketDetalleService.ObtenerDetallesTicketAsync(idTicket);
+                CargarDetallesMaterial(detalles);
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, "Error al recargar historial y materiales del ticket {IdTicket}", idTicket);
+            }
+        }
 
         private void CmbEstatus_SelectedIndexChanged(object? sender, EventArgs e)
         {
             string? estatusSeleccionado = cmbEstatus.SelectedItem?.ToString();
             if (estatusSeleccionado == ConstantesEstatus.EN_PROCESO && cmbAtendido.SelectedIndex == -1)
             {
-                cmbAtendido.SelectedValue = SesionSistema.IdUsuario;
+                cmbAtendido.SelectedValue = _contextoSesion.IdUsuario;
             }
             else if (estatusSeleccionado == ConstantesEstatus.ABIERTO)
             {
@@ -180,7 +230,7 @@ namespace HSis.UI.Forms.Tickets
 
             if (estatusSeleccionado == ConstantesEstatus.EN_PROCESO && idTecnico == null)
             {
-                idTecnico = SesionSistema.IdUsuario;
+                idTecnico = _contextoSesion.IdUsuario;
             }
 
             string solucionIngresada = rtbSolucion.Text ?? string.Empty;
@@ -193,18 +243,56 @@ namespace HSis.UI.Forms.Tickets
                 return;
             }
 
-            await _presenter.ActualizarTicketAsync(_ticketActual, estatusSeleccionado, idTecnico, solucionIngresada, prioridadSeleccionada);
+            bool huboCambios = _ticketActual.Estatus != estatusSeleccionado ||
+                               _ticketActual.IdTecnico != idTecnico ||
+                               (_ticketActual.Solucion ?? string.Empty) != solucionIngresada ||
+                               (_ticketActual.Prioridad ?? string.Empty) != prioridadSeleccionada;
+
+            if (!huboCambios)
+            {
+                this.DialogResult = DialogResult.OK;
+                this.Close();
+                return;
+            }
+
+            try
+            {
+                MostrarCargando(true);
+                var updateDto = new TicketUpdateDto
+                {
+                    IdTicket = _ticketActual.IdTicket,
+                    Estatus = estatusSeleccionado,
+                    IdTecnico = idTecnico,
+                    Solucion = solucionIngresada,
+                    FechaAtencion = _ticketActual.FechaAtencion,
+                    FechaCierre = _ticketActual.FechaCierre,
+                    Prioridad = prioridadSeleccionada
+                };
+
+                await _ticketService.ActualizarTicketAsync(updateDto);
+                MostrarExito("Ticket actualizado correctamente.");
+                this.DialogResult = DialogResult.OK;
+                this.Close();
+            }
+            catch (FluentValidation.ValidationException ex)
+            {
+                string errores = string.Join("\n", ex.Errors.Select(err => "- " + err.ErrorMessage));
+                MostrarError($"Datos inválidos:\n{errores}");
+            }
+            catch (Exception ex)
+            {
+                MostrarError($"Error al actualizar ticket: {ex.Message}");
+            }
+            finally
+            {
+                MostrarCargando(false);
+            }
         }
 
         private void btnCancelar_Click(object? sender, EventArgs e)
         {
             this.DialogResult = DialogResult.Cancel;
             this.Close();
-        }
-
-        private void btnEnviarFeedback_Click(object? sender, EventArgs e)
-        {
-            // Evento derivado a la vista de cliente si aplica
         }
 
         private void ConfigurarFecha(TextBox txt, DateTime? fecha)
@@ -246,4 +334,3 @@ namespace HSis.UI.Forms.Tickets
         #endregion
     }
 }
-

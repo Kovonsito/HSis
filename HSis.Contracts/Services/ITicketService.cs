@@ -25,6 +25,7 @@ namespace HSis.Logic.Services
         Task<bool> RegistrarCalificacionAsync(int idTicket, int calificacion, string? comentario);
 
         // KPIs e Indicadores
+        Task<DashboardResumenDto> ObtenerResumenDashboardAsync(int? idTecnico = null);
         Task<ReporteKpisDto> ObtenerReporteKpisAsync(DateTime inicio, DateTime fin);
         Task<double> ObtenerPromedioCalificacionTecnicoAsync(int idTecnico);
         Task<List<TicketDto>> ObtenerFeedbackTecnicoAsync(int idTecnico);

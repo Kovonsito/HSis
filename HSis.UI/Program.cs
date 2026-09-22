@@ -126,17 +126,23 @@ namespace HSis.UI
                 // Registrar JwtAuthHeaderHandler para inyectar token JWT automáticamente
                 services.AddTransient<ApiClients.JwtAuthHeaderHandler>();
 
-                services.AddHttpClient<IUsuarioService, ApiClients.UsuarioApiClientService>(c => c.BaseAddress = new Uri(baseUrl))
+                void ConfigurarHttpClient(HttpClient c)
+                {
+                    c.BaseAddress = new Uri(baseUrl);
+                    c.Timeout = TimeSpan.FromSeconds(30);
+                }
+
+                services.AddHttpClient<IUsuarioService, ApiClients.UsuarioApiClientService>(ConfigurarHttpClient)
                         .AddHttpMessageHandler<ApiClients.JwtAuthHeaderHandler>();
-                services.AddHttpClient<ITicketService, ApiClients.TicketApiClientService>(c => c.BaseAddress = new Uri(baseUrl))
+                services.AddHttpClient<ITicketService, ApiClients.TicketApiClientService>(ConfigurarHttpClient)
                         .AddHttpMessageHandler<ApiClients.JwtAuthHeaderHandler>();
-                services.AddHttpClient<ICatalogoService, ApiClients.CatalogoApiClientService>(c => c.BaseAddress = new Uri(baseUrl))
+                services.AddHttpClient<ICatalogoService, ApiClients.CatalogoApiClientService>(ConfigurarHttpClient)
                         .AddHttpMessageHandler<ApiClients.JwtAuthHeaderHandler>();
-                services.AddHttpClient<ITicketDetalleService, ApiClients.TicketDetalleApiClientService>(c => c.BaseAddress = new Uri(baseUrl))
+                services.AddHttpClient<ITicketDetalleService, ApiClients.TicketDetalleApiClientService>(ConfigurarHttpClient)
                         .AddHttpMessageHandler<ApiClients.JwtAuthHeaderHandler>();
-                services.AddHttpClient<IMaterialService, ApiClients.MaterialApiClientService>(c => c.BaseAddress = new Uri(baseUrl))
+                services.AddHttpClient<IMaterialService, ApiClients.MaterialApiClientService>(ConfigurarHttpClient)
                         .AddHttpMessageHandler<ApiClients.JwtAuthHeaderHandler>();
-                services.AddHttpClient<IReportExportService, ApiClients.ReportExportApiClientService>(c => c.BaseAddress = new Uri(baseUrl))
+                services.AddHttpClient<IReportExportService, ApiClients.ReportExportApiClientService>(ConfigurarHttpClient)
                         .AddHttpMessageHandler<ApiClients.JwtAuthHeaderHandler>();
 
                 // Almacenamiento local persistente para notificaciones de la UI
@@ -153,19 +159,12 @@ namespace HSis.UI
                 });
                 services.AddSingleton<ICurrentUserService>(sp => sp.GetRequiredService<ContextoSesion>());
                 services.AddSingleton<IFabricaFormularios, FabricaFormularios>();
-                services.AddTransient<Presenters.NotificacionesPresenter>();
-                services.AddTransient<Presenters.DashboardAdminPresenter>();
-                services.AddTransient<Presenters.DashboardTecnicoPresenter>();
-                services.AddTransient<Presenters.DashboardClientePresenter>();
-                services.AddTransient<Presenters.IniciarSesionPresenter>();
-                services.AddTransient<Presenters.NuevoTicketPresenter>();
-                services.AddTransient<Presenters.TicketDetallePresenter>();
-                services.AddTransient<Presenters.DetalleClientePresenter>();
-                services.AddTransient<Presenters.GeneradorReportesPresenter>();
-                services.AddTransient<Presenters.EditorDinamicoPresenter>();
-                services.AddTransient<Presenters.KardexPresenter>();
 
-                // Registrar Formularios
+                // Coordinadores de UI (Desacoplamiento arquitectónico y reducción de dependencias en Forms)
+                services.AddSingleton<Services.Coordinators.IUiSessionCoordinator, Services.Coordinators.UiSessionCoordinator>();
+                services.AddTransient<HSis.Contracts.Coordinators.IAdminDashboardCoordinator, HSis.Contracts.Coordinators.AdminDashboardCoordinator>();
+
+                // Registrar Formularios con inyección directa de dependencias
                 services.AddTransient<IniciarSesionForm>();
                 services.AddTransient<DashboardAdminForm>();
                 services.AddTransient<DashboardClienteForm>();
@@ -173,6 +172,8 @@ namespace HSis.UI
                 services.AddTransient<GeneradorReportesForm>();
                 services.AddTransient<KardexForm>();
                 services.AddTransient<NuevoTicketForm>();
+                services.AddTransient<DetalleClienteForm>();
+                services.AddTransient<TicketDetalleForm>();
 
                 ServiceProvider = services.BuildServiceProvider();
 
