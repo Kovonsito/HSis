@@ -9,18 +9,18 @@ using HSis.UI.Factories;
 using HSis.UI.Forms.Otros;
 using HSis.UI.Forms.Tickets;
 using HSis.UI.Helpers;
-using HSis.UI.Presenters;
+
+using HSis.Contracts.Coordinators;
+using HSis.UI.Services.Coordinators;
 
 namespace HSis.UI.Forms.Dashboards
 {
     [SupportedOSPlatform("windows")]
-    public partial class DashboardAdminForm : Form, IDashboardAdminView
+    public partial class DashboardAdminForm : Form
     {
-        private readonly DashboardAdminPresenter _presenter;
-        private readonly NotificacionesPresenter _notificacionesPresenter;
-        private readonly IContextoSesion _contextoSesion;
+        private readonly IAdminDashboardCoordinator _coordinator;
+        private readonly IUiSessionCoordinator _sessionCoordinator;
         private readonly IFabricaFormularios _fabricaFormularios;
-        private readonly ISessionCacheService _sessionCache;
 
         private bool _estaCargando = true;
         private PaginacionControl PaginacionControl = null!;
@@ -28,19 +28,13 @@ namespace HSis.UI.Forms.Dashboards
         private IndicadorControl? _ucCalificacion;
 
         public DashboardAdminForm(
-            DashboardAdminPresenter presenter,
-            NotificacionesPresenter notificacionesPresenter,
-            IContextoSesion contextoSesion,
-            IFabricaFormularios fabricaFormularios,
-            ISessionCacheService sessionCache)
+            IAdminDashboardCoordinator coordinator,
+            IUiSessionCoordinator sessionCoordinator)
         {
             InitializeComponent();
-            _presenter = presenter;
-            _presenter.SetView(this);
-            _notificacionesPresenter = notificacionesPresenter;
-            _contextoSesion = contextoSesion;
-            _fabricaFormularios = fabricaFormularios;
-            _sessionCache = sessionCache;
+            _coordinator = coordinator;
+            _sessionCoordinator = sessionCoordinator;
+            _fabricaFormularios = sessionCoordinator.FabricaFormularios;
         }
 
         private async void DashboardAdmin_Load(object sender, EventArgs e)
@@ -53,17 +47,21 @@ namespace HSis.UI.Forms.Dashboards
             ConfigurarSidebar();
             ConfigurarFechasYFiltros();
 
-            this.IntegrarNotificacionesModerno(topBarAdmin, _notificacionesPresenter, _fabricaFormularios, _contextoSesion, () => Task.WhenAll(_presenter.CargarKPIsAsync(SesionSistema.IdUsuario), CargarGridCompletoAsync()));
+            this.IntegrarNotificacionesModerno(
+                topBarAdmin,
+                _sessionCoordinator,
+                () => Task.WhenAll(CargarKPIsAsync(SesionSistema.IdUsuario), CargarGridCompletoAsync())
+            );
 
             // Cargar los combos de filtros antes del grid
-            await _presenter.CargarCombosFiltrosAsync();
+            await CargarCombosFiltrosAsync();
 
             // Desactivar bandera de carga para permitir consultas
             _estaCargando = false;
 
             // Cargamos KPIs y Grid de tickets en paralelo
             await Task.WhenAll(
-                _presenter.CargarKPIsAsync(SesionSistema.IdUsuario),
+                CargarKPIsAsync(SesionSistema.IdUsuario),
                 CargarGridCompletoAsync()
             );
 
@@ -85,7 +83,7 @@ namespace HSis.UI.Forms.Dashboards
                 new ItemSidebar { Clave = "reportes", Titulo = "Reportes", Icono = FontAwesome.Sharp.IconChar.ChartBar }
             };
 
-            sidebarAdmin.ConfigurarSesion(_sessionCache);
+            sidebarAdmin.ConfigurarSesion(_sessionCoordinator.SessionCache);
             sidebarAdmin.ConfigurarItems(items, "tickets");
 
             void SeleccionarVista(string clave)
@@ -130,7 +128,7 @@ namespace HSis.UI.Forms.Dashboards
 
             sidebarAdmin.ItemSeleccionado += (s, clave) => SeleccionarVista(clave);
 
-            topBarAdmin.ConfigurarSesion(_sessionCache);
+            topBarAdmin.ConfigurarSesion(_sessionCoordinator.SessionCache);
             topBarAdmin.ConfigurarMenuHamburguesa(
                 items,
                 "tickets",
@@ -182,8 +180,12 @@ namespace HSis.UI.Forms.Dashboards
         {
             if (_estaCargando) return;
 
-            var filtros = ConfiguracionFiltrosTickets.MapearFiltrosAdmin(filtroGenerico.ObtenerValoresFiltros());
-            await _presenter.FiltrarTicketsAsync(filtros, _controladorPaginacion.PaginaActual, _controladorPaginacion.TamanoPagina);
+            await this.EjecutarOperacionAsync(async () =>
+            {
+                var filtros = ConfiguracionFiltrosTickets.MapearFiltrosAdmin(filtroGenerico.ObtenerValoresFiltros());
+                var resultado = await _coordinator.FiltrarTicketsPaginadosAsync(filtros, _controladorPaginacion.PaginaActual, _controladorPaginacion.TamanoPagina);
+                MostrarTickets(resultado.Items, resultado.TotalCount);
+            }, "Error al filtrar tickets");
         }
 
         private async void btnLimpiarFiltros_Click(object sender, EventArgs e)
@@ -211,12 +213,12 @@ namespace HSis.UI.Forms.Dashboards
         private async void btnRecargar_Click(object sender, EventArgs e)
         {
             await CargarGridCompletoAsync();
-            await _presenter.CargarKPIsAsync(SesionSistema.IdUsuario);
+            await CargarKPIsAsync(SesionSistema.IdUsuario);
         }
 
         private async void dgvTickets_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
-            await dgvTickets.ManejarDetalleTicketAsync(e.RowIndex, _fabricaFormularios, () => Task.WhenAll(_presenter.CargarKPIsAsync(SesionSistema.IdUsuario), CargarGridCompletoAsync()), "Folio");
+            await dgvTickets.ManejarDetalleTicketAsync(e.RowIndex, _fabricaFormularios, () => Task.WhenAll(CargarKPIsAsync(SesionSistema.IdUsuario), CargarGridCompletoAsync()), "Folio");
         }
 
         private async Task ConfigurarTabsCatalogosAsync()
@@ -268,29 +270,19 @@ namespace HSis.UI.Forms.Dashboards
                 using var pen = new Pen(Color.FromArgb(226, 232, 240), 1f);
                 e.Graphics.DrawLine(pen, 0, panelTop.Height - 1, panelTop.Width, panelTop.Height - 1);
             };
-            BotonModerno btnCrear = new()
+
+            BotonModerno btnActualizar = new()
             {
-                Text = "Nuevo Registro",
-                Icono = FontAwesome.Sharp.IconChar.PlusCircle,
+                Text = "Actualizar",
+                Icono = FontAwesome.Sharp.IconChar.Rotate,
                 IconoTamano = 14,
                 Location = new Point(12, 10),
-                Width = 150,
+                Width = 130,
                 Height = 36,
-                Estilo = EstiloBotonModerno.Primario
+                Estilo = EstiloBotonModerno.Secundario
             };
-            BotonModerno btnEliminar = new()
-            {
-                Text = "Eliminar",
-                Icono = FontAwesome.Sharp.IconChar.TrashAlt,
-                IconoTamano = 14,
-                Location = new Point(170, 10),
-                Width = 115,
-                Height = 36,
-                Estilo = EstiloBotonModerno.Peligro
-            };
-
-            panelTop.Controls.Add(btnCrear);
-            panelTop.Controls.Add(btnEliminar);
+            btnActualizar.Click += async (s, e) => await CargarDatosCatalogo(tipo, dgv);
+            panelTop.Controls.Add(btnActualizar);
 
             if (tipo == typeof(MaterialDto))
             {
@@ -303,52 +295,19 @@ namespace HSis.UI.Forms.Dashboards
 
             ConfigurarFormateoDeCeldas(dgv, tipo);
             await CargarDatosCatalogo(tipo, dgv);
-
-            btnCrear.Click += async (s, e) => await ManejarCreacionRegistro(tipo, dgv);
-            btnEliminar.Click += async (s, e) => await ManejarEliminacionRegistro(tipo, dgv);
-            dgv.CellDoubleClick += async (s, e) => await ManejarEdicionRegistro(e, tipo, dgv);
         }
 
         private void AgregarControlesInventario(Panel panelTop, DataGridView dgv)
         {
-            BotonModerno btnIngreso = new()
-            {
-                Text = "Nuevo Movimiento",
-                Icono = FontAwesome.Sharp.IconChar.Dolly,
-                IconoTamano = 14,
-                Location = new Point(295, 10),
-                Width = 175,
-                Height = 36,
-                Estilo = EstiloBotonModerno.Exito
-            };
             BotonModerno btnKardex = new()
             {
                 Text = "Ver Kardex",
                 Icono = FontAwesome.Sharp.IconChar.ClipboardList,
                 IconoTamano = 14,
-                Location = new Point(478, 10),
-                Width = 130,
+                Location = new Point(155, 10),
+                Width = 140,
                 Height = 36,
-                Estilo = EstiloBotonModerno.Secundario
-            };
-
-            btnIngreso.Click += async (s, ev) =>
-            {
-                var nuevoMovimiento = new KardexMovimientoDto
-                {
-                    IdUsuario = _contextoSesion.IdUsuario,
-                    Fecha = DateTime.Now,
-                    Cantidad = 1,
-                    Motivo = "Ingreso por Compra",
-                    TipoMovimiento = "Entrada"
-                };
-                var frm = _fabricaFormularios.CrearEditorDinamico(nuevoMovimiento, "Nuevo Movimiento de Almacén");
-                if (frm.ShowDialog() == DialogResult.OK)
-                {
-                    await _presenter.CrearMovimientoMaterialAsync(nuevoMovimiento);
-                    MessageBox.Show("Movimiento registrado con éxito.", "Inventario", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    _ = CargarDatosCatalogo(typeof(MaterialDto), dgv);
-                }
+                Estilo = EstiloBotonModerno.Primario
             };
 
             btnKardex.Click += (s, ev) =>
@@ -357,7 +316,6 @@ namespace HSis.UI.Forms.Dashboards
                 frmK.ShowDialog();
             };
 
-            panelTop.Controls.Add(btnIngreso);
             panelTop.Controls.Add(btnKardex);
         }
 
@@ -392,139 +350,47 @@ namespace HSis.UI.Forms.Dashboards
             };
         }
 
-        private async Task ManejarCreacionRegistro(Type tipo, DataGridView dgv)
+        private async Task CargarDatosCatalogo(Type tipoEntidad, DataGridView dgv)
         {
-            object nuevaEntidad = Activator.CreateInstance(tipo)!;
-            var frm = _fabricaFormularios.CrearEditorDinamico(nuevaEntidad, $"Crear {tipo.Name}");
-            if (frm.ShowDialog() == DialogResult.OK)
+            try
             {
-                try
+                var resultList = await _coordinator.CargarDatosCatalogoAsync(tipoEntidad);
+
+                if (resultList != null)
                 {
-                    await _presenter.CrearEntidadCatalogoAsync(tipo, nuevaEntidad);
-                    await CargarDatosCatalogo(tipo, dgv);
+                    var bindingListType = typeof(ListaVinculableOrdenable<>).MakeGenericType(tipoEntidad);
+                    var sortableList = Activator.CreateInstance(bindingListType, resultList);
+                    dgv.DataSource = sortableList;
                 }
-                catch (Exception ex)
+                else
                 {
-                    var realEx = ex is System.Reflection.TargetInvocationException ? ex.InnerException : ex;
-                    if (realEx is FluentValidation.ValidationException vex)
+                    dgv.DataSource = null;
+                }
+
+                // Ocultar columnas no deseadas y renombrar cabeceras
+                string idPk = "Id" + (tipoEntidad.Name == "RolUsuario" ? "Rol" : tipoEntidad.Name);
+
+                foreach (DataGridViewColumn col in dgv.Columns)
+                {
+                    if (col.Name.EndsWith("Navigation") || (col.ValueType?.IsGenericType == true && col.ValueType.GetGenericTypeDefinition() != typeof(Nullable<>)))
                     {
-                        string msg = string.Join("\n", vex.Errors.Select(e => "- " + e.ErrorMessage));
-                        MessageBox.Show($"Datos inválidos:\n{msg}", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        col.Visible = false;
                     }
                     else
                     {
-                        MessageBox.Show($"Error al crear el registro: {realEx?.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }
-            }
-        }
-
-        private async Task ManejarEliminacionRegistro(Type tipo, DataGridView dgv)
-        {
-            if (dgv.SelectedRows.Count > 0)
-            {
-                var row = dgv.SelectedRows[0];
-                string idName = "Id" + (tipo.Name == "RolUsuario" ? "Rol" : tipo.Name);
-                var idObj = row.Cells[idName]?.Value;
-                if (idObj != null && MessageBox.Show("¿Seguro que deseas eliminar el registro?", "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
-                {
-                    try
-                    {
-                        await _presenter.EliminarEntidadCatalogoAsync(tipo, idObj);
-                        await CargarDatosCatalogo(tipo, dgv);
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show("No se pudo eliminar el registro (probablemente esté en uso). " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }
-            }
-        }
-
-        private async Task ManejarEdicionRegistro(DataGridViewCellEventArgs e, Type tipo, DataGridView dgv)
-        {
-            if (e.RowIndex >= 0)
-            {
-                object? entidadExistente = dgv.Rows[e.RowIndex].DataBoundItem;
-                if (entidadExistente is null) return;
-
-                string? passwordHashOriginal = null;
-                if (tipo == typeof(UsuarioDto))
-                {
-                    var u = (UsuarioDto)entidadExistente;
-                    passwordHashOriginal = u.Contraseña;
-                    u.Contraseña = "";
-                }
-
-                var frm = _fabricaFormularios.CrearEditorDinamico(entidadExistente, $"Editar {tipo.Name}");
-                if (frm.ShowDialog() == DialogResult.OK)
-                {
-                    try
-                    {
-                        await _presenter.ActualizarEntidadCatalogoAsync(tipo, entidadExistente);
-                        await CargarDatosCatalogo(tipo, dgv);
-                    }
-                    catch (Exception ex)
-                    {
-                        var realEx = ex is System.Reflection.TargetInvocationException ? ex.InnerException : ex;
-                        if (realEx is FluentValidation.ValidationException vex)
+                        if (col.Name.StartsWith("Id") && col.Name != idPk)
                         {
-                            string msg = string.Join("\n", vex.Errors.Select(e => "- " + e.ErrorMessage));
-                            MessageBox.Show($"Datos inválidos:\n{msg}", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            col.HeaderText = col.Name[2..];
                         }
-                        else
-                        {
-                            MessageBox.Show($"Error al actualizar el registro: {realEx?.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        }
-                        // Restaurar contraseña original si falló la actualización
-                        if (tipo == typeof(UsuarioDto)) ((UsuarioDto)entidadExistente).Contraseña = passwordHashOriginal;
                     }
                 }
-                else
-                {
-                    if (tipo == typeof(UsuarioDto))
-                    {
-                        var u = (UsuarioDto)entidadExistente;
-                        u.Contraseña = passwordHashOriginal;
-                    }
-                }
+
+                dgv.AutoajustarAnchosMinimos();
             }
-        }
-
-        private async Task CargarDatosCatalogo(Type tipoEntidad, DataGridView dgv)
-        {
-            var resultList = await _presenter.ObtenerDatosCatalogoAsync(tipoEntidad);
-
-            if (resultList != null)
+            catch (Exception ex)
             {
-                var bindingListType = typeof(ListaVinculableOrdenable<>).MakeGenericType(tipoEntidad);
-                var sortableList = Activator.CreateInstance(bindingListType, resultList);
-                dgv.DataSource = sortableList;
+                Serilog.Log.Error(ex, "Error al cargar datos del catálogo '{Tipo}'.", tipoEntidad.Name);
             }
-            else
-            {
-                dgv.DataSource = null;
-            }
-
-            // Ocultar columnas no deseadas y renombrar cabeceras
-            string idPk = "Id" + (tipoEntidad.Name == "RolUsuario" ? "Rol" : tipoEntidad.Name);
-
-            foreach (DataGridViewColumn col in dgv.Columns)
-            {
-                if (col.Name.EndsWith("Navigation") || (col.ValueType?.IsGenericType == true && col.ValueType.GetGenericTypeDefinition() != typeof(Nullable<>)))
-                {
-                    col.Visible = false;
-                }
-                else
-                {
-                    if (col.Name.StartsWith("Id") && col.Name != idPk)
-                    {
-                        col.HeaderText = col.Name[2..];
-                    }
-                }
-            }
-
-            dgv.AutoajustarAnchosMinimos();
         }
 
         private async void btnNuevoTicket_Click(object sender, EventArgs e)
@@ -534,7 +400,7 @@ namespace HSis.UI.Forms.Dashboards
                 using var frm = _fabricaFormularios.Crear<NuevoTicketForm>();
                 if (frm.ShowDialog(this) == DialogResult.OK)
                 {
-                    await Task.WhenAll(_presenter.CargarKPIsAsync(SesionSistema.IdUsuario), CargarGridCompletoAsync());
+                    await Task.WhenAll(CargarKPIsAsync(SesionSistema.IdUsuario), CargarGridCompletoAsync());
                 }
             }
             catch (Exception ex)
@@ -547,7 +413,7 @@ namespace HSis.UI.Forms.Dashboards
         {
             try
             {
-                var promedio = await _presenter.ObtenerPromedioCalificacionAsync(SesionSistema.IdUsuario);
+                var promedio = await _coordinator.ObtenerCalificacionPromedioAsync(SesionSistema.IdUsuario);
                 MessageBox.Show($"Tu calificación promedio como Administrador resolviendo tickets es: {promedio:F1} de 5.0 ⭐", "Mi Calificación", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
@@ -556,7 +422,41 @@ namespace HSis.UI.Forms.Dashboards
             }
         }
 
-        #region Implementación IDashboardAdminView (MVP)
+        public async Task CargarKPIsAsync(int? idUsuario = null)
+        {
+            try
+            {
+                int targetUser = idUsuario ?? _sessionCoordinator.ContextoSesion.IdUsuario;
+                var resumen = await _coordinator.ObtenerResumenKPIsAsync(targetUser);
+                MostrarKPIs(
+                    resumen.TicketsNuevos,
+                    resumen.TicketsUrgentes,
+                    resumen.TicketsEnProceso,
+                    resumen.TicketsCerrados,
+                    resumen.TicketsReabiertos,
+                    resumen.PromedioCalificacion
+                );
+            }
+            catch (Exception ex)
+            {
+                MostrarError($"Error al cargar KPIs de administración: {ex.Message}");
+            }
+        }
+
+        public async Task CargarCombosFiltrosAsync()
+        {
+            try
+            {
+                var tecnicosYAdmins = await _coordinator.ObtenerTecnicosYAdminsAsync();
+                filtroGenerico.ConfigurarOpcionesCombo("Tecnico", tecnicosYAdmins);
+                filtroGenerico.ConfigurarOpcionesCombo("Estatus", new List<string> { "Todos", "Nuevos", "Urgentes", ConstantesEstatus.ABIERTO, ConstantesEstatus.EN_PROCESO, ConstantesEstatus.CERRADO, ConstantesEstatus.REABIERTO });
+                filtroGenerico.ConfigurarOpcionesCombo("Prioridad", new List<string> { "Todos", ConstantesPrioridad.ALTA, ConstantesPrioridad.MEDIA, ConstantesPrioridad.BAJA });
+            }
+            catch (Exception ex)
+            {
+                MostrarError($"Error al cargar filtros de técnicos y administradores: {ex.Message}");
+            }
+        }
 
         public void MostrarKPIs(int nuevos, int urgentes, int enProceso, int cerrados, int reabiertos, double calificacion)
         {
@@ -594,21 +494,32 @@ namespace HSis.UI.Forms.Dashboards
 
         public void MostrarTickets(List<TicketDto> tickets, int totalCount)
         {
-            var listaMapeada = tickets.Select(t => new TicketGridDto
-            {
-                Folio = t.IdTicket,
-                NombreUsuario = t.NombreUsuario,
-                Estatus = t.Estatus ?? "N/A",
-                Prioridad = t.Prioridad ?? "N/A",
-                FechaAlta = t.FechaAlta,
-                FechaAtencion = t.FechaAtencion,
-                FechaCierre = t.FechaCierre ?? DateTime.Now,
-                TecnicoAsignado = t.NombreTecnico,
-                Descripcion = t.Descripcion ?? "N/A",
-                Solucion = t.Solucion ?? "N/A"
-            }).ToList();
+            dgvTickets.DataSource = new ListaVinculableOrdenable<TicketDto>(tickets);
+            dgvTickets.ConfigurarOcultarColumnas(
+                "IdTicket", "IdUsuario", "DepartamentoUsuario", "Calificacion",
+                "ComentarioEvaluacion", "FechaEvaluacion", "Evaluacion", "Feedback", "FolioFormato");
 
-            dgvTickets.DataSource = new ListaVinculableOrdenable<TicketGridDto>(listaMapeada);
+            var colFolio = dgvTickets.Columns["Folio"];
+            if (colFolio != null) { colFolio.HeaderText = "Folio"; colFolio.FillWeight = 50; }
+            var colUsuario = dgvTickets.Columns["NombreUsuario"];
+            if (colUsuario != null) { colUsuario.HeaderText = "Usuario"; colUsuario.FillWeight = 110; }
+            var colStatus = dgvTickets.Columns["Estatus"];
+            if (colStatus != null) { colStatus.HeaderText = "Estatus"; colStatus.FillWeight = 70; }
+            var colPrioridad = dgvTickets.Columns["Prioridad"];
+            if (colPrioridad != null) { colPrioridad.HeaderText = "Prioridad"; colPrioridad.FillWeight = 70; }
+            var colFechaAlta = dgvTickets.Columns["FechaAlta"];
+            if (colFechaAlta != null) { colFechaAlta.HeaderText = "Fecha Alta"; colFechaAlta.DefaultCellStyle.Format = "dd/MM/yyyy HH:mm"; colFechaAlta.FillWeight = 85; }
+            var colFechaAtencion = dgvTickets.Columns["FechaAtencion"];
+            if (colFechaAtencion != null) { colFechaAtencion.HeaderText = "Fecha Atención"; colFechaAtencion.DefaultCellStyle.Format = "dd/MM/yyyy HH:mm"; colFechaAtencion.FillWeight = 85; }
+            var colFechaCierre = dgvTickets.Columns["FechaCierre"];
+            if (colFechaCierre != null) { colFechaCierre.HeaderText = "Fecha Cierre"; colFechaCierre.DefaultCellStyle.Format = "dd/MM/yyyy HH:mm"; colFechaCierre.FillWeight = 85; }
+            var colTecnico = dgvTickets.Columns["TecnicoAsignado"];
+            if (colTecnico != null) { colTecnico.HeaderText = "Técnico Asignado"; colTecnico.FillWeight = 100; }
+            var colDesc = dgvTickets.Columns["Descripcion"];
+            if (colDesc != null) { colDesc.HeaderText = "Descripción"; colDesc.FillWeight = 150; }
+            var colSol = dgvTickets.Columns["Solucion"];
+            if (colSol != null) { colSol.HeaderText = "Solución"; colSol.FillWeight = 150; }
+
             dgvTickets.AutoajustarAnchosMinimos();
             _controladorPaginacion.Actualizar(totalCount);
         }
@@ -626,18 +537,9 @@ namespace HSis.UI.Forms.Dashboards
                 listaTecnicos.Add(new { Id = (int?)t.IdUsuario, Nombre = $"Técnico - {t.Nombre}" });
             }
 
-            filtroGenerico.ActualizarCombo("Tecnico", listaTecnicos, "Nombre", "Id");
-        }
-
-        public void MostrarCargando(bool cargando)
-        {
-            if (InvokeRequired)
-            {
-                Invoke(new Action(() => MostrarCargando(cargando)));
-                return;
-            }
-            _estaCargando = cargando;
-            Cursor = cargando ? Cursors.WaitCursor : Cursors.Default;
+            filtroGenerico.ConfigurarOpcionesCombo("Tecnico", listaTecnicos);
+            filtroGenerico.ConfigurarOpcionesCombo("Estatus", new List<string> { "Todos", "Nuevos", "Urgentes", ConstantesEstatus.ABIERTO, ConstantesEstatus.EN_PROCESO, ConstantesEstatus.CERRADO, ConstantesEstatus.REABIERTO });
+            filtroGenerico.ConfigurarOpcionesCombo("Prioridad", new List<string> { "Todos", ConstantesPrioridad.ALTA, ConstantesPrioridad.MEDIA, ConstantesPrioridad.BAJA });
         }
 
         public void MostrarError(string mensaje)
@@ -650,17 +552,14 @@ namespace HSis.UI.Forms.Dashboards
             MessageBox.Show(mensaje, "Error en Dashboard de Administración", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
-        public void MostrarInformacion(string mensaje, string titulo)
+        public void MostrarCargando(bool cargando)
         {
             if (InvokeRequired)
             {
-                Invoke(new Action(() => MostrarInformacion(mensaje, titulo)));
+                Invoke(new Action(() => MostrarCargando(cargando)));
                 return;
             }
-            MessageBox.Show(mensaje, titulo, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            Cursor = cargando ? Cursors.WaitCursor : Cursors.Default;
         }
-
-        #endregion
     }
 }
-

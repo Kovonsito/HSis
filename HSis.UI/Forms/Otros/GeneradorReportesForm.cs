@@ -1,37 +1,26 @@
-using System.ComponentModel;
+#nullable enable
 using System.Drawing.Drawing2D;
+using System.IO;
 using FontAwesome.Sharp;
+using HSis.Logic.Constants;
+using HSis.Logic.DTOs;
+using HSis.Logic.Services;
 using HSis.UI.Helpers;
-using HSis.UI.Presenters;
 
 namespace HSis.UI.Forms.Otros
 {
-    public partial class GeneradorReportesForm : Form, IGeneradorReportesView
+    public partial class GeneradorReportesForm : Form
     {
-        private readonly GeneradorReportesPresenter _presenter;
+        private readonly ITicketService _ticketService;
+        private readonly IReportExportService _reportExportService;
 
-        public GeneradorReportesForm(GeneradorReportesPresenter presenter)
+        public GeneradorReportesForm(
+            ITicketService ticketService,
+            IReportExportService reportExportService)
         {
             InitializeComponent();
-            _presenter = presenter;
-            _presenter.SetView(this);
-        }
-
-        #region Propiedades de IGeneradorReportesView
-        [Browsable(false)]
-        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public DateTime FechaInicio
-        {
-            get => dtpInicio.Value;
-            set => dtpInicio.Value = value;
-        }
-
-        [Browsable(false)]
-        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public DateTime FechaFin
-        {
-            get => dtpFin.Value;
-            set => dtpFin.Value = value;
+            _ticketService = ticketService;
+            _reportExportService = reportExportService;
         }
 
         public void MostrarError(string mensaje)
@@ -65,7 +54,6 @@ namespace HSis.UI.Forms.Otros
             btnPdf.Enabled = !cargando;
             Cursor = cargando ? Cursors.WaitCursor : Cursors.Default;
         }
-        #endregion
 
         #region Form Events
         private void frmGeneradorReportes_Load(object sender, EventArgs e)
@@ -103,7 +91,20 @@ namespace HSis.UI.Forms.Otros
 
             if (sfd.ShowDialog() == DialogResult.OK)
             {
-                await _presenter.GenerarReporteExcelAsync(sfd.FileName);
+                await this.EjecutarOperacionAsync(async () =>
+                {
+                    var kpis = await _ticketService.ObtenerReporteKpisAsync(inicio, fin);
+                    var filtro = new TicketFilterDto
+                    {
+                        FechaAltaInicio = inicio,
+                        FechaAltaFin = fin.AddDays(1).AddTicks(-1),
+                        RangoTemporal = VistaTemporal.Todos
+                    };
+                    var tickets = await _ticketService.ObtenerTicketsFiltradosAsync(filtro);
+                    var bytes = await _reportExportService.GenerarExcelAsync(kpis, tickets, inicio, fin);
+                    await File.WriteAllBytesAsync(sfd.FileName, bytes);
+                    MostrarExito("Reporte en Excel generado y guardado correctamente.");
+                }, "Error al generar el reporte en Excel", btnExcel, btnPdf);
             }
         }
 
@@ -120,7 +121,20 @@ namespace HSis.UI.Forms.Otros
 
             if (sfd.ShowDialog() == DialogResult.OK)
             {
-                await _presenter.GenerarReportePdfAsync(sfd.FileName);
+                await this.EjecutarOperacionAsync(async () =>
+                {
+                    var kpis = await _ticketService.ObtenerReporteKpisAsync(inicio, fin);
+                    var filtro = new TicketFilterDto
+                    {
+                        FechaAltaInicio = inicio,
+                        FechaAltaFin = fin.AddDays(1).AddTicks(-1),
+                        RangoTemporal = VistaTemporal.Todos
+                    };
+                    var tickets = await _ticketService.ObtenerTicketsFiltradosAsync(filtro);
+                    var bytes = await _reportExportService.GenerarPdfAsync(kpis, tickets, inicio, fin);
+                    await File.WriteAllBytesAsync(sfd.FileName, bytes);
+                    MostrarExito("Reporte en PDF generado y guardado correctamente.");
+                }, "Error al generar el reporte en PDF", btnExcel, btnPdf);
             }
         }
         #endregion

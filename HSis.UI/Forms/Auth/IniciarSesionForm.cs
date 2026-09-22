@@ -1,43 +1,31 @@
-using System.ComponentModel;
+#nullable enable
 using System.Runtime.Versioning;
 using HSis.Logic.Constants;
 using HSis.Logic.DTOs;
+using HSis.Logic.Services;
 using HSis.UI.Factories;
 using HSis.UI.Forms.Dashboards;
-using HSis.UI.Presenters;
+using HSis.UI.Helpers;
+
+using HSis.UI.Services.Coordinators;
 
 namespace HSis.UI.Forms.Auth
 {
     [SupportedOSPlatform("windows")]
-    public partial class IniciarSesionForm : Form, IIniciarSesionView
+    public partial class IniciarSesionForm : Form
     {
-        private readonly IniciarSesionPresenter _presenter;
-        private readonly IFabricaFormularios _fabricaFormularios;
+        private readonly IUsuarioService _usuarioService;
+        private readonly IUiSessionCoordinator _sessionCoordinator;
 
-        public IniciarSesionForm(IniciarSesionPresenter presenter, IFabricaFormularios fabricaFormularios)
+        public IniciarSesionForm(
+            IUsuarioService usuarioService,
+            IUiSessionCoordinator sessionCoordinator)
         {
             InitializeComponent();
-            _presenter = presenter;
-            _fabricaFormularios = fabricaFormularios;
-            _presenter.SetView(this);
+            _usuarioService = usuarioService;
+            _sessionCoordinator = sessionCoordinator;
+
             InicializarLayoutLogin();
-        }
-
-        #region Propiedades de IIniciarSesionView
-        [Browsable(false)]
-        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public string NombreUsuario
-        {
-            get => txtUsuario.Text;
-            set => txtUsuario.Text = value;
-        }
-
-        [Browsable(false)]
-        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public string Contraseña
-        {
-            get => txtContraseña.Text;
-            set => txtContraseña.Text = value;
         }
 
         public void LimpiarCredenciales()
@@ -56,10 +44,10 @@ namespace HSis.UI.Forms.Auth
         {
             Form dashboardForm = (RolUsuarioEnum)(usuario.IdRol ?? (int)RolUsuarioEnum.Cliente) switch
             {
-                RolUsuarioEnum.Administrador => _fabricaFormularios.Crear<DashboardAdminForm>(),
-                RolUsuarioEnum.Tecnico => _fabricaFormularios.Crear<DashboardTecnicoForm>(),
-                RolUsuarioEnum.Cliente => _fabricaFormularios.Crear<DashboardClienteForm>(),
-                _ => _fabricaFormularios.Crear<DashboardClienteForm>()
+                RolUsuarioEnum.Administrador => _sessionCoordinator.FabricaFormularios.Crear<DashboardAdminForm>(),
+                RolUsuarioEnum.Tecnico => _sessionCoordinator.FabricaFormularios.Crear<DashboardTecnicoForm>(),
+                RolUsuarioEnum.Cliente => _sessionCoordinator.FabricaFormularios.Crear<DashboardClienteForm>(),
+                _ => _sessionCoordinator.FabricaFormularios.Crear<DashboardClienteForm>()
             };
 
             dashboardForm.FormClosed += (s, closedArgs) => Application.Exit();
@@ -87,21 +75,56 @@ namespace HSis.UI.Forms.Auth
             btnIniciarSesion.Enabled = !cargando;
             this.UseWaitCursor = cargando;
         }
-        #endregion
 
         #region Form Events
         private async void BtnIniciarSesion_Click(object? sender, EventArgs e)
         {
-            await _presenter.IniciarSesionAsync();
+            string usuarioInput = txtUsuario.Text;
+            string passwordInput = txtContraseña.Text;
+
+            if (string.IsNullOrWhiteSpace(usuarioInput) || string.IsNullOrWhiteSpace(passwordInput))
+            {
+                MostrarError("Por favor, ingrese usuario y contraseña.");
+                return;
+            }
+
+            await this.EjecutarOperacionAsync(async () =>
+            {
+                var usuario = await _usuarioService.AutenticarAsync(usuarioInput, passwordInput);
+                if (usuario != null)
+                {
+                    _sessionCoordinator.ContextoSesion.UsuarioActual = usuario;
+                    SesionSistema.UsuarioActual = usuario;
+                    _sessionCoordinator.SessionCache.SaveCredentials(usuario.Nombre ?? string.Empty, passwordInput);
+
+                    string roleName = (RolUsuarioEnum)SesionSistema.IdRolUsuario switch
+                    {
+                        RolUsuarioEnum.Administrador => "Administrador",
+                        RolUsuarioEnum.Tecnico => "Técnico",
+                        RolUsuarioEnum.Cliente => "Cliente",
+                        _ => "Usuario"
+                    };
+
+                    _ = _sessionCoordinator.NotificationClient.IniciarAsync(SesionSistema.IdUsuario, roleName);
+
+                    NavegarADashboard(usuario, roleName);
+                }
+                else
+                {
+                    MostrarError("Usuario o contraseña incorrectos");
+                    LimpiarCredenciales();
+                }
+            }, "Error al iniciar sesión", btnIniciarSesion);
         }
 
         private void FrmIniciarSesion_Load(object? sender, EventArgs e)
         {
-            _presenter.CargarCredencialesEnCache();
+            var cached = _sessionCoordinator.SessionCache.GetCredentials();
+            if (cached.HasValue)
+            {
+                CargarCredencialesGuardadas(cached.Value.Username, cached.Value.Password);
+            }
         }
-
-
         #endregion
     }
 }
-

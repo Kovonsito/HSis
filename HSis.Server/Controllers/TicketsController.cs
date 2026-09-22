@@ -144,6 +144,12 @@ namespace HSis.Server.Controllers
             return Ok(await ticketService.ObtenerReporteKpisAsync(inicio, fin));
         }
 
+        [HttpGet("dashboard-resumen")]
+        public async Task<ActionResult<DashboardResumenDto>> ObtenerResumenDashboard([FromQuery] int? idTecnico = null)
+        {
+            return Ok(await ticketService.ObtenerResumenDashboardAsync(idTecnico));
+        }
+
     }
 
     public class CalificarTicketRequest

@@ -3,7 +3,6 @@ using System.Runtime.Versioning;
 using HSis.Logic.Services;
 using HSis.UI.Controls;
 using HSis.UI.Factories;
-using HSis.UI.Presenters;
 
 namespace HSis.UI.Helpers
 {
@@ -13,9 +12,28 @@ namespace HSis.UI.Helpers
         public static NotificacionesControl IntegrarNotificacionesModerno(
             this Form formulario,
             TopBarControl topBar,
-            NotificacionesPresenter presenter,
+            Services.Coordinators.IUiSessionCoordinator sesionCoordinator,
+            Func<Task>? callbackRecargaDatos = null)
+        {
+            return formulario.IntegrarNotificacionesModerno(
+                topBar,
+                sesionCoordinator.FabricaFormularios,
+                sesionCoordinator.ContextoSesion,
+                sesionCoordinator.NotificationClient,
+                sesionCoordinator.NotificacionStorage,
+                sesionCoordinator.NotificationEventBus,
+                callbackRecargaDatos
+            );
+        }
+
+        public static NotificacionesControl IntegrarNotificacionesModerno(
+            this Form formulario,
+            TopBarControl topBar,
             IFabricaFormularios fabricaFormularios,
             IContextoSesion contextoSesion,
+            INotificationClientService clienteNotificaciones,
+            INotificacionStorageService servicioAlmacenamiento,
+            INotificationEventBus? eventBus = null,
             Func<Task>? callbackRecargaDatos = null)
         {
             int ancho = 360;
@@ -40,21 +58,23 @@ namespace HSis.UI.Helpers
             topBar.NotificacionesClic += (s, e) => Reposicionar();
 
             notifControl.VincularTopBar(topBar);
-            notifControl.Configurar(presenter, fabricaFormularios, contextoSesion, callbackRecargaDatos);
+            notifControl.Configurar(fabricaFormularios, contextoSesion, clienteNotificaciones, servicioAlmacenamiento, eventBus, callbackRecargaDatos);
             formulario.Controls.Add(notifControl);
             notifControl.BringToFront();
 
             ConfigurarOcultarAlHacerClicFuera(formulario, notifControl);
-            formulario.FormClosed += (s, e) => presenter.DesconectarEvents();
+            formulario.FormClosed += (s, e) => notifControl.DesconectarEvents();
 
             return notifControl;
         }
 
         public static NotificacionesControl IntegrarNotificaciones(
             this Form formulario,
-            NotificacionesPresenter presenter,
             IFabricaFormularios fabricaFormularios,
             IContextoSesion contextoSesion,
+            INotificationClientService clienteNotificaciones,
+            INotificacionStorageService servicioAlmacenamiento,
+            INotificationEventBus? eventBus = null,
             Func<Task>? callbackRecargaDatos = null)
         {
             var notifControl = new NotificacionesControl
@@ -89,13 +109,13 @@ namespace HSis.UI.Helpers
                 notifControl.Location = new Point(formulario.ClientSize.Width - 340, 30);
             }
 
-            notifControl.Configurar(presenter, fabricaFormularios, contextoSesion, callbackRecargaDatos);
+            notifControl.Configurar(fabricaFormularios, contextoSesion, clienteNotificaciones, servicioAlmacenamiento, eventBus, callbackRecargaDatos);
             formulario.Controls.Add(notifControl);
             notifControl.BringToFront();
 
             ConfigurarOcultarAlHacerClicFuera(formulario, notifControl);
 
-            formulario.FormClosed += (s, e) => presenter.DesconectarEvents();
+            formulario.FormClosed += (s, e) => notifControl.DesconectarEvents();
 
             return notifControl;
         }
@@ -127,5 +147,3 @@ namespace HSis.UI.Helpers
         }
     }
 }
-
-

@@ -18,6 +18,15 @@ namespace HSis.Logic.DTOs
         public int? Calificacion { get; set; }
         public string? ComentarioEvaluacion { get; set; }
         public DateTime? FechaEvaluacion { get; set; }
+
+        // Propiedades de conveniencia y compatibilidad unificada con Dashboards
+        public int Folio => IdTicket;
+        public string FolioFormato => $"TK-{IdTicket:D6}";
+        public string? Usuario => NombreUsuario;
+        public string? TecnicoAsignado => NombreTecnico;
+        public string? Status { get => Estatus; set => Estatus = value; }
+        public string? Evaluacion => Calificacion.HasValue ? $"{Calificacion} ★" : (Estatus == "Cerrado" ? "Pendiente" : "N/A");
+        public string? Feedback { get => Evaluacion; }
     }
 }
 

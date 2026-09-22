@@ -5,16 +5,17 @@ using FontAwesome.Sharp;
 using HSis.Logic.Services;
 using HSis.UI.Factories;
 using HSis.UI.Helpers;
-using HSis.UI.Presenters;
 
 namespace HSis.UI.Controls
 {
     [SupportedOSPlatform("windows")]
-    public partial class NotificacionesControl : UserControl, INotificacionesView
+    public partial class NotificacionesControl : UserControl
     {
-        private NotificacionesPresenter? _presenter;
         private IFabricaFormularios? _fabricaFormularios;
         private IContextoSesion? _contextoSesion;
+        private INotificationClientService? _clienteNotificaciones;
+        private INotificacionStorageService? _servicioAlmacenamiento;
+        private INotificationEventBus? _eventBus;
         private Func<Task>? _callbackRecargaDatos;
         private ToolStripMenuItem? _itemCampana;
         private TopBarControl? _topBar;
@@ -26,18 +27,124 @@ namespace HSis.UI.Controls
         }
 
         public void Configurar(
-            NotificacionesPresenter presenter,
             IFabricaFormularios fabricaFormularios,
             IContextoSesion contextoSesion,
+            INotificationClientService clienteNotificaciones,
+            INotificacionStorageService servicioAlmacenamiento,
+            INotificationEventBus? eventBus = null,
             Func<Task>? callbackRecargaDatos = null)
         {
-            _presenter = presenter;
             _fabricaFormularios = fabricaFormularios;
             _contextoSesion = contextoSesion;
+            _clienteNotificaciones = clienteNotificaciones;
+            _servicioAlmacenamiento = servicioAlmacenamiento;
+            _eventBus = eventBus;
             _callbackRecargaDatos = callbackRecargaDatos;
 
-            _presenter.SetView(this);
-            _ = _presenter.CargarHistorialAsync();
+            SuscribirEventos();
+            _ = CargarHistorialAsync();
+        }
+
+        public void DesconectarEvents()
+        {
+            DesuscribirEventos();
+        }
+
+        private void SuscribirEventos()
+        {
+            if (_eventBus != null)
+            {
+                _eventBus.OnNotificacionPublicada += EnBusNotificacionPublicada;
+                _eventBus.OnEstadoConexionCambiado += EnBusEstadoConexionCambiado;
+            }
+            else if (_clienteNotificaciones != null)
+            {
+                _clienteNotificaciones.OnNotificationReceived += EnNotificacionRecibida;
+                _clienteNotificaciones.OnConnected += EnConectado;
+            }
+        }
+
+        private void DesuscribirEventos()
+        {
+            if (_eventBus != null)
+            {
+                _eventBus.OnNotificacionPublicada -= EnBusNotificacionPublicada;
+                _eventBus.OnEstadoConexionCambiado -= EnBusEstadoConexionCambiado;
+            }
+            else if (_clienteNotificaciones != null)
+            {
+                _clienteNotificaciones.OnNotificationReceived -= EnNotificacionRecibida;
+                _clienteNotificaciones.OnConnected -= EnConectado;
+            }
+        }
+
+        public async Task CargarHistorialAsync()
+        {
+            if (_servicioAlmacenamiento == null || _contextoSesion == null) return;
+            try
+            {
+                await _servicioAlmacenamiento.SincronizarDesdeBDAsync(_contextoSesion.IdUsuario);
+            }
+            catch
+            {
+                // Ignorar errores durante la sincronización inicial
+            }
+
+            var list = (await _servicioAlmacenamiento.ObtenerNotificacionesAsync(_contextoSesion.IdUsuario)).ToList();
+            int noLeidas = list.Count(n => !n.Leido);
+            ActualizarInsigniaCampana(noLeidas);
+            MostrarNotificaciones(list);
+        }
+
+        public async Task MarcarComoLeidaAsync(NotificacionLocal notif)
+        {
+            if (_servicioAlmacenamiento == null || _contextoSesion == null) return;
+            if (!notif.Leido)
+            {
+                await _servicioAlmacenamiento.MarcarComoLeidaAsync(_contextoSesion.IdUsuario, notif.Id);
+                await CargarHistorialAsync();
+            }
+            AbrirDetalleTicket(notif.TicketId);
+        }
+
+        public async Task MarcarTodasComoLeidasAsync()
+        {
+            if (_servicioAlmacenamiento == null || _contextoSesion == null) return;
+            await _servicioAlmacenamiento.MarcarTodasComoLeidasAsync(_contextoSesion.IdUsuario);
+            await CargarHistorialAsync();
+        }
+
+        public async Task LimpiarTodasAsync()
+        {
+            if (_servicioAlmacenamiento == null || _contextoSesion == null) return;
+            await _servicioAlmacenamiento.LimpiarTodasAsync(_contextoSesion.IdUsuario);
+            await CargarHistorialAsync();
+        }
+
+        private async void EnNotificacionRecibida(string tipo, int ticketId, string mensaje)
+        {
+            if (_servicioAlmacenamiento == null || _contextoSesion == null) return;
+            await _servicioAlmacenamiento.GuardarNotificacionAsync(_contextoSesion.IdUsuario, ticketId, mensaje);
+            await RecargarDatosHostAsync();
+            await CargarHistorialAsync();
+        }
+
+        private void EnConectado()
+        {
+            _ = RecargarDatosHostAsync();
+        }
+
+        private void EnBusNotificacionPublicada(object? sender, NotificacionEventArgs e)
+        {
+            EnNotificacionRecibida(e.Tipo, e.TicketId, e.Mensaje);
+        }
+
+        private void EnBusEstadoConexionCambiado(object? sender, EstadoConexionEventArgs e)
+        {
+            if (e.Conectado)
+            {
+                _ = RecargarDatosHostAsync();
+            }
         }
 
         public void VincularTopBar(TopBarControl topBar)
@@ -168,10 +275,6 @@ namespace HSis.UI.Controls
             flpNotificaciones.ResumeLayout();
         }
 
-        public void ActualizarEstadoConexion(bool conectado, string mensaje, Color colorFondo)
-        {
-        }
-
         public async Task RecargarDatosHostAsync()
         {
             if (_callbackRecargaDatos != null)
@@ -222,7 +325,6 @@ namespace HSis.UI.Controls
                 var g = e.Graphics;
                 g.SmoothingMode = SmoothingMode.AntiAlias;
 
-                // Borde redondeado sutil
                 var rect = new Rectangle(0, 0, pnlItem.Width - 1, pnlItem.Height - 1);
                 using var path = TemaVisual.CrearRectanguloRedondeado(rect, 8);
 
@@ -236,13 +338,11 @@ namespace HSis.UI.Controls
                 using var penBorder = new Pen(notif.Leido ? Color.FromArgb(226, 232, 240) : Color.FromArgb(191, 219, 254), 1f);
                 g.DrawPath(penBorder, path);
 
-                // Barra de acento izquierda si no está leída
                 if (!notif.Leido)
                 {
                     using var brushAccent = new SolidBrush(Color.FromArgb(37, 99, 235));
                     g.FillRectangle(brushAccent, 0, 6, 4, pnlItem.Height - 12);
 
-                    // Indicador punto azul
                     using var brushDot = new SolidBrush(Color.FromArgb(37, 99, 235));
                     g.FillEllipse(brushDot, pnlItem.Width - 16, 12, 8, 8);
                 }
@@ -251,7 +351,6 @@ namespace HSis.UI.Controls
             pnlItem.MouseEnter += (s, e) => { isHovered = true; pnlItem.Invalidate(); };
             pnlItem.MouseLeave += (s, e) => { isHovered = false; pnlItem.Invalidate(); };
 
-            // Icono FontAwesome
             var picIcon = new PictureBox
             {
                 Size = new Size(24, 24),
@@ -287,10 +386,7 @@ namespace HSis.UI.Controls
 
             async void ClickAccion(object? s, EventArgs e)
             {
-                if (_presenter != null)
-                {
-                    await _presenter.MarcarComoLeidaAsync(notif);
-                }
+                await MarcarComoLeidaAsync(notif);
             }
 
             pnlItem.Click += ClickAccion;
@@ -307,12 +403,12 @@ namespace HSis.UI.Controls
 
         private async void BtnMarcarTodasLeidas_Click(object sender, EventArgs e)
         {
-            if (_presenter != null) await _presenter.MarcarTodasComoLeidasAsync();
+            await MarcarTodasComoLeidasAsync();
         }
 
         private async void BtnLimpiar_Click(object sender, EventArgs e)
         {
-            if (_presenter != null) await _presenter.LimpiarTodasAsync();
+            await LimpiarTodasAsync();
         }
     }
 }

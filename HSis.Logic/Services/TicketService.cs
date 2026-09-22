@@ -122,6 +122,24 @@ namespace HSis.Logic.Services
 
             var estatusAnterior = ticketTracked.Estatus;
 
+            if (ticketDto.Estatus == ConstantesEstatus.REABIERTO)
+            {
+                ticketDto.FechaCierre = null;
+            }
+            else if (ticketDto.Estatus == ConstantesEstatus.EN_PROCESO && ticketTracked.FechaAtencion == null && ticketDto.FechaAtencion == null)
+            {
+                ticketDto.FechaAtencion = DateTime.Now;
+            }
+            else if (ticketDto.Estatus == ConstantesEstatus.CERRADO && ticketDto.FechaCierre == null)
+            {
+                ticketDto.FechaCierre = DateTime.Now;
+            }
+            else if (ticketDto.Estatus == ConstantesEstatus.ABIERTO)
+            {
+                ticketDto.FechaAtencion = null;
+                ticketDto.FechaCierre = null;
+            }
+
             mapper.Map(ticketDto, ticketTracked);
             await db.SaveChangesAsync();
 
@@ -446,6 +464,42 @@ namespace HSis.Logic.Services
                 .Include(t => t.Usuario)
                 .OrderByDescending(t => t.FechaEvaluacion)
                 .ToListAsync());
+        }
+
+        // Obtener resumen consolidado de métricas para el Dashboard
+        public async Task<DashboardResumenDto> ObtenerResumenDashboardAsync(int? idTecnico = null)
+        {
+            using var db = dbContextFactory.CreateDbContext();
+            var query = db.Tickets.AsNoTracking();
+            if (idTecnico.HasValue && idTecnico.Value > 0)
+            {
+                query = query.Where(t => t.IdTecnico == idTecnico.Value);
+            }
+
+            var fechaLimiteSla = ObtenerLimiteSLA();
+
+            var tickets = await query
+                .Select(t => new { t.Estatus, t.FechaAlta, t.Calificacion, t.IdTecnico })
+                .ToListAsync();
+
+            var nuevos = tickets.Count(t => t.Estatus == ConstantesEstatus.ABIERTO && t.FechaAlta >= fechaLimiteSla);
+            var urgentes = tickets.Count(t => t.Estatus == ConstantesEstatus.ABIERTO && t.FechaAlta < fechaLimiteSla);
+            var enProceso = tickets.Count(t => t.Estatus == ConstantesEstatus.EN_PROCESO);
+            var cerrados = tickets.Count(t => t.Estatus == ConstantesEstatus.CERRADO);
+            var reabiertos = tickets.Count(t => t.Estatus == ConstantesEstatus.REABIERTO);
+
+            var calificaciones = tickets.Where(t => t.Calificacion.HasValue).Select(t => t.Calificacion!.Value).ToList();
+            double promedioCalificacion = calificaciones.Count > 0 ? Math.Round(calificaciones.Average(), 1) : 0.0;
+
+            return new DashboardResumenDto
+            {
+                TotalNuevos = nuevos,
+                TotalUrgentes = urgentes,
+                TotalEnProceso = enProceso,
+                TotalCerrados = cerrados,
+                TotalReabiertos = reabiertos,
+                PromedioCalificacion = promedioCalificacion
+            };
         }
     }
 }
