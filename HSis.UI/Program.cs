@@ -1,4 +1,5 @@
 #nullable enable
+using System.Net.Http;
 using System.Runtime.Versioning;
 using AutoUpdaterDotNET;
 using FluentValidation;

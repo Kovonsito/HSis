@@ -318,6 +318,41 @@ namespace HSis.UI.Forms.Tickets
             }
         }
 
+        private async void btnEnviarFeedback_Click(object? sender, EventArgs e)
+        {
+            if (cmbEstrellas.SelectedIndex < 0)
+            {
+                MostrarError("Por favor seleccione una calificación.");
+                return;
+            }
+
+            int calificacion = cmbEstrellas.SelectedIndex + 1;
+            string? comentario = string.IsNullOrWhiteSpace(txtComentario.Text) ? null : txtComentario.Text.Trim();
+
+            try
+            {
+                MostrarCargando(true);
+                bool exito = await _ticketService.RegistrarCalificacionAsync(_idTicket, calificacion, comentario);
+                if (exito)
+                {
+                    MostrarExito("¡Gracias por tu retroalimentación! La calificación fue registrada.");
+                    await CargarTicketDetallesAsync(_idTicket);
+                }
+                else
+                {
+                    MostrarError("No se pudo registrar la calificación.");
+                }
+            }
+            catch (Exception ex)
+            {
+                MostrarError($"Error al enviar feedback: {ex.Message}");
+            }
+            finally
+            {
+                MostrarCargando(false);
+            }
+        }
+
         private void ConfigurarEstilosGridHistorial()
         {
             dgvHistorial.AutoGenerateColumns = true;
