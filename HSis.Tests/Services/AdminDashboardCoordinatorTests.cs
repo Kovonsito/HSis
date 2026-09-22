@@ -119,7 +119,7 @@ namespace HSis.Tests.Services
             var resultadoPaginado = new PaginatedResultDto<TicketDto>
             {
                 TotalCount = 1,
-                Items = [new TicketDto { IdTicket = 99, Folio = "TK-99", Prioridad = "Alta" }]
+                Items = [new TicketDto { IdTicket = 99, Prioridad = "Alta" }]
             };
 
             _mockTicketService
@@ -132,7 +132,7 @@ namespace HSis.Tests.Services
             // Assert
             resultado.Should().NotBeNull();
             resultado.TotalCount.Should().Be(1);
-            resultado.Items.Should().ContainSingle(t => t.Folio == "TK-99");
+            resultado.Items.Should().ContainSingle(t => t.IdTicket == 99);
             _mockTicketService.Verify(s => s.ObtenerTicketsFiltradosPaginadosAsync(filtros, 1, 20), Times.Once);
         }
 
@@ -142,7 +142,7 @@ namespace HSis.Tests.Services
             // Arrange
             var listaMateriales = new List<MaterialDto>
             {
-                new() { IdMaterial = 1, Codigo = "MAT-01", Nombre = "Cable UTP" }
+                new() { IdMaterial = 1, Nombre = "Cable UTP" }
             };
 
             _mockMaterialService
@@ -162,9 +162,9 @@ namespace HSis.Tests.Services
         public async Task CargarDatosCatalogoAsync_ConOtroTipo_DebeLlamarACatalogoService()
         {
             // Arrange
-            var listaDepartamentos = new List<DepartamentoDto>
+            var listaDepartamentos = new List<object>
             {
-                new() { IdDepartamento = 5, Nombre = "Sistemas" }
+                new DepartamentoDto { IdDepartamento = 5, Nombre = "Sistemas" }
             };
 
             _mockCatalogoService

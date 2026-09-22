@@ -163,6 +163,46 @@ namespace HSis.UI.Controls
             }
         }
 
+        public void ConfigurarOpcionesCombo(string nombrePropiedad, System.Collections.IEnumerable opciones)
+        {
+            if (_controlesEntrada.TryGetValue(nombrePropiedad, out var control) && control is ComboBox cmb)
+            {
+                _suspenderEventos = true;
+                cmb.DataSource = null;
+                cmb.Items.Clear();
+
+                if (opciones is System.Collections.IEnumerable lista)
+                {
+                    var enumerator = lista.GetEnumerator();
+                    if (enumerator.MoveNext() && enumerator.Current != null)
+                    {
+                        var primerElemento = enumerator.Current;
+                        var tipo = primerElemento.GetType();
+                        var propId = tipo.GetProperty("Id") ?? tipo.GetProperty("IdUsuario");
+                        var propNombre = tipo.GetProperty("Nombre") ?? tipo.GetProperty("Descripcion");
+
+                        if (propId != null && propNombre != null)
+                        {
+                            cmb.DisplayMember = propNombre.Name;
+                            cmb.ValueMember = propId.Name;
+                            cmb.DataSource = opciones;
+                            if (cmb.Items.Count > 0) cmb.SelectedIndex = 0;
+                            _suspenderEventos = false;
+                            return;
+                        }
+                    }
+
+                    // Si son cadenas o tipos simples, agregamos directamente a Items
+                    foreach (var item in lista)
+                    {
+                        cmb.Items.Add(item);
+                    }
+                    if (cmb.Items.Count > 0) cmb.SelectedIndex = 0;
+                }
+                _suspenderEventos = false;
+            }
+        }
+
         public Dictionary<string, object?> ObtenerValoresFiltros()
         {
             var valores = new Dictionary<string, object?>();
