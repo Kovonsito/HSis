@@ -1,4 +1,4 @@
-namespace HSis.Logic.Services
+namespace HSis.Contracts.Services
 {
 
     public interface INotificacionStorageService

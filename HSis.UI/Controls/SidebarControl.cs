@@ -3,7 +3,8 @@ using System.ComponentModel;
 using System.Drawing.Drawing2D;
 using System.Runtime.Versioning;
 using FontAwesome.Sharp;
-using HSis.Logic.Services;
+using HSis.Contracts.Services;
+using HSis.UI.Services;
 using HSis.UI.Helpers;
 
 namespace HSis.UI.Controls
@@ -26,7 +27,7 @@ namespace HSis.UI.Controls
         private int _hoveredIndex = -1;
         private bool _hoverColapsar = false;
         private bool _colapsado = false;
-        private ISessionCacheService? _sessionCache;
+        private IAlmacenamientoCredencialesLocal? _sessionCache;
 
         [Browsable(false)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -60,7 +61,7 @@ namespace HSis.UI.Controls
             MouseClick += SidebarControl_MouseClick;
         }
 
-        public void ConfigurarSesion(ISessionCacheService sessionCache)
+        public void ConfigurarSesion(IAlmacenamientoCredencialesLocal sessionCache)
         {
             _sessionCache = sessionCache;
             Invalidate();

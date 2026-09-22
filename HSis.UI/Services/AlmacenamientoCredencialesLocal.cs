@@ -1,11 +1,13 @@
+using HSis.Contracts.Services;
+using HSis.Contracts.DTOs;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace HSis.Logic.Services
+namespace HSis.UI.Services
 {
     [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-    public class SessionCacheService : ISessionCacheService
+    public class AlmacenamientoCredencialesLocal : IAlmacenamientoCredencialesLocal
     {
         private readonly string CacheFilePath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -84,4 +86,3 @@ namespace HSis.Logic.Services
         }
     }
 }
-

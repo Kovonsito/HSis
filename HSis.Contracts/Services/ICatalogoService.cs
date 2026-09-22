@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 
-namespace HSis.Logic.Services
+namespace HSis.Contracts.Services
 {
     public interface ICatalogoService
     {

@@ -1,5 +1,5 @@
 using HSis.Data.Models;
-using HSis.Logic.DTOs;
+using HSis.Contracts.DTOs;
 using Mapster;
 
 namespace HSis.Logic.Profiles

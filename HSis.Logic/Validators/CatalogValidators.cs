@@ -1,6 +1,6 @@
 using FluentValidation;
 using HSis.Data.Models;
-using HSis.Logic.DTOs;
+using HSis.Contracts.DTOs;
 
 namespace HSis.Logic.Validators
 {

@@ -1,8 +1,9 @@
 #nullable enable
 using System.Runtime.Versioning;
 using FontAwesome.Sharp;
-using HSis.Logic.DTOs;
-using HSis.Logic.Services;
+using HSis.Contracts.DTOs;
+using HSis.Contracts.Services;
+using HSis.UI.Services;
 using HSis.UI.Helpers;
 
 namespace HSis.UI.Forms.Otros
@@ -41,27 +42,6 @@ namespace HSis.UI.Forms.Otros
 
             var col3 = dgvKardex.Columns["CostoUnitario"];
             if (col3 != null) col3.DefaultCellStyle.Format = "C2";
-        }
-
-        public void MostrarError(string mensaje)
-        {
-            if (InvokeRequired)
-            {
-                Invoke(new Action(() => MostrarError(mensaje)));
-                return;
-            }
-            MessageBox.Show(mensaje, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-
-        public void MostrarCargando(bool cargando)
-        {
-            if (InvokeRequired)
-            {
-                Invoke(new Action(() => MostrarCargando(cargando)));
-                return;
-            }
-            cbMaterial.Enabled = !cargando;
-            this.UseWaitCursor = cargando;
         }
 
         #region Form Events

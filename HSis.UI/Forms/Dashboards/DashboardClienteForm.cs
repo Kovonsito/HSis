@@ -1,14 +1,13 @@
 #nullable enable
 using System.Runtime.Versioning;
-using HSis.Logic.Constants;
-using HSis.Logic.DTOs;
-using HSis.Logic.Services;
+using HSis.Contracts.Constants;
+using HSis.Contracts.DTOs;
+using HSis.Contracts.Services;
 using HSis.UI.Controls;
 using HSis.UI.Factories;
 using HSis.UI.Forms.Tickets;
 using HSis.UI.Helpers;
-
-using HSis.UI.Services.Coordinators;
+using HSis.UI.Services;
 
 namespace HSis.UI.Forms.Dashboards
 {
@@ -16,8 +15,10 @@ namespace HSis.UI.Forms.Dashboards
     public partial class DashboardClienteForm : Form
     {
         private readonly ITicketService _ticketService;
-        private readonly IUiSessionCoordinator _sessionCoordinator;
+        private readonly IAdministradorSesionUsuario _contextoSesion;
+        private readonly IAlmacenamientoCredencialesLocal _sessionCache;
         private readonly IFabricaFormularios _formFactory;
+        private readonly IClienteSignalRNotificaciones _notificationClient;
 
         private PaginacionControl PaginacionControl = null!;
         private ControladorPaginacionGrid _controladorPaginacion = null!;
@@ -35,12 +36,17 @@ namespace HSis.UI.Forms.Dashboards
 
         public DashboardClienteForm(
             ITicketService ticketService,
-            IUiSessionCoordinator sessionCoordinator)
+            IAdministradorSesionUsuario contextoSesion,
+            IAlmacenamientoCredencialesLocal sessionCache,
+            IFabricaFormularios formFactory,
+            IClienteSignalRNotificaciones notificationClient)
         {
             InitializeComponent();
             _ticketService = ticketService;
-            _sessionCoordinator = sessionCoordinator;
-            _formFactory = sessionCoordinator.FabricaFormularios;
+            _contextoSesion = contextoSesion;
+            _sessionCache = sessionCache;
+            _formFactory = formFactory;
+            _notificationClient = notificationClient;
         }
 
         private async void frmDashboardCliente_Load(object? sender, EventArgs e)
@@ -53,7 +59,7 @@ namespace HSis.UI.Forms.Dashboards
             ConfigurarSidebar();
             ConfigurarFiltros();
 
-            this.IntegrarNotificacionesModerno(topBarCliente, _sessionCoordinator, CargarDatosDashboardAsync);
+            this.IntegrarNotificacionesModerno(topBarCliente, _formFactory, _contextoSesion, _notificationClient, null, CargarDatosDashboardAsync);
 
             await CargarDatosDashboardAsync();
         }
@@ -76,7 +82,7 @@ namespace HSis.UI.Forms.Dashboards
                 new ItemSidebar { Clave = "cerrados", Titulo = "Historial Cerrados", Icono = FontAwesome.Sharp.IconChar.ClockRotateLeft }
             };
 
-            sidebarCliente.ConfigurarSesion(_sessionCoordinator.SessionCache);
+            sidebarCliente.ConfigurarSesion(_sessionCache);
             sidebarCliente.ConfigurarItems(items, "activos");
 
             void SeleccionarVista(string clave)
@@ -102,7 +108,7 @@ namespace HSis.UI.Forms.Dashboards
 
             sidebarCliente.ItemSeleccionado += (s, clave) => SeleccionarVista(clave);
 
-            topBarCliente.ConfigurarSesion(_sessionCoordinator.SessionCache);
+            topBarCliente.ConfigurarSesion(_sessionCache, _contextoSesion);
             topBarCliente.ConfigurarMenuHamburguesa(
                 items,
                 "activos",
@@ -116,13 +122,11 @@ namespace HSis.UI.Forms.Dashboards
         {
             await this.EjecutarOperacionAsync(async () =>
             {
-                var tickets = await _ticketService.ObtenerTicketsPorUsuarioAsync(SesionSistema.IdUsuario);
+                var resumen = await _ticketService.ObtenerResumenClienteAsync(_contextoSesion.IdUsuario);
 
-                int activos = tickets.Count(t => t.Estatus != ConstantesEstatus.CERRADO);
-                int cerrados = tickets.Count(t => t.Estatus == ConstantesEstatus.CERRADO);
-                MostrarIndicadores(activos, cerrados);
+                MostrarIndicadores(resumen.Activos, resumen.Cerrados);
 
-                _todosLosTickets = tickets;
+                _todosLosTickets = resumen.Tickets;
                 _controladorPaginacion.ReiniciarAPrimeraPagina();
                 MostrarPaginaActual();
             }, "Error al cargar tickets del cliente");
@@ -301,26 +305,6 @@ namespace HSis.UI.Forms.Dashboards
                 ucMisCerrados.Titulo = "Mis Tickets Cerrados";
                 ucMisCerrados.ColorFondo = TemaVisual.TicketCerrado;
             }
-        }
-
-        public void MostrarCargando(bool cargando)
-        {
-            if (InvokeRequired)
-            {
-                Invoke(new Action(() => MostrarCargando(cargando)));
-                return;
-            }
-            Cursor = cargando ? Cursors.WaitCursor : Cursors.Default;
-        }
-
-        public void MostrarError(string mensaje)
-        {
-            if (InvokeRequired)
-            {
-                Invoke(new Action(() => MostrarError(mensaje)));
-                return;
-            }
-            MessageBox.Show(mensaje, "Error en Dashboard de Cliente", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 }

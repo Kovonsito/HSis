@@ -333,7 +333,7 @@ partial class DashboardAdminForm
         filtroGenerico.RecargarClic += async (s, e) =>
         {
             await CargarGridCompletoAsync();
-            await CargarKPIsAsync(SesionSistema.IdUsuario);
+            await CargarKPIsAsync(_contextoSesion.IdUsuario);
         };
         filtroGenerico.LimpiarClic += async (s, e) =>
         {

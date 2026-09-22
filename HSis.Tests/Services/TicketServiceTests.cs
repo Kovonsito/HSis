@@ -1,10 +1,11 @@
 using FluentAssertions;
 using FluentValidation;
 using HSis.Data.Models;
-using HSis.Logic.Constants;
-using HSis.Logic.DTOs;
+using HSis.Contracts.Constants;
+using HSis.Contracts.DTOs;
+using HSis.Contracts.Services;
 using HSis.Logic.Services;
-using HSis.Logic.Validators;
+using HSis.Contracts.Validators;
 using Mapster;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
@@ -182,6 +183,70 @@ namespace HSis.Tests.Services
             // Assert 3
             resultadoComplejo.Should().HaveCount(1);
             resultadoComplejo.First().IdTicket.Should().Be(102);
+        }
+
+        [Fact]
+        public async Task ObtenerIndicadoresTecnicoAsyncDebeCalcularKPIsCorrectamente()
+        {
+            // Arrange
+            var options = new DbContextOptionsBuilder<HSisDbContext>()
+                .UseInMemoryDatabase(databaseName: "HSis_Test_IndicadoresTecnico")
+                .Options;
+
+            var service = new TicketService(CreateFactory(options), _mapper, _createValidator, _updateValidator);
+
+            using (var db = new HSisDbContext(options))
+            {
+                // Tecnico 5
+                db.Tickets.Add(new Ticket { IdTicket = 201, IdTecnico = 5, Estatus = ConstantesEstatus.EN_PROCESO, Calificacion = 5 });
+                db.Tickets.Add(new Ticket { IdTicket = 202, IdTecnico = 5, Estatus = ConstantesEstatus.CERRADO, Calificacion = 4 });
+                // Ticket disponible (sin tecnico, estatus Abierto)
+                db.Tickets.Add(new Ticket { IdTicket = 203, IdTecnico = null, Estatus = ConstantesEstatus.ABIERTO });
+                // Otro tecnico
+                db.Tickets.Add(new Ticket { IdTicket = 204, IdTecnico = 6, Estatus = ConstantesEstatus.EN_PROCESO });
+
+                await db.SaveChangesAsync();
+            }
+
+            // Act
+            var indicadores = await service.ObtenerIndicadoresTecnicoAsync(5);
+
+            // Assert
+            indicadores.Asignados.Should().Be(1); // 201 is not closed
+            indicadores.Cerrados.Should().Be(1); // 202 is closed
+            indicadores.Disponibles.Should().Be(1); // 203
+            indicadores.PromedioCalificacion.Should().Be(4.5); // (5+4)/2
+        }
+
+        [Fact]
+        public async Task ObtenerResumenClienteAsyncDebeRetornarTicketsYContadores()
+        {
+            // Arrange
+            var options = new DbContextOptionsBuilder<HSisDbContext>()
+                .UseInMemoryDatabase(databaseName: "HSis_Test_ResumenCliente")
+                .Options;
+
+            var service = new TicketService(CreateFactory(options), _mapper, _createValidator, _updateValidator);
+
+            using (var db = new HSisDbContext(options))
+            {
+                db.Usuarios.Add(new Usuario { IdUsuario = 20, Nombre = "Cliente 1" });
+                db.Tickets.Add(new Ticket { IdTicket = 301, IdUsuario = 20, Estatus = ConstantesEstatus.ABIERTO, FechaAlta = DateTime.Now });
+                db.Tickets.Add(new Ticket { IdTicket = 302, IdUsuario = 20, Estatus = ConstantesEstatus.EN_PROCESO, FechaAlta = DateTime.Now });
+                db.Tickets.Add(new Ticket { IdTicket = 303, IdUsuario = 20, Estatus = ConstantesEstatus.CERRADO, FechaAlta = DateTime.Now });
+                // Otro usuario
+                db.Tickets.Add(new Ticket { IdTicket = 304, IdUsuario = 21, Estatus = ConstantesEstatus.ABIERTO, FechaAlta = DateTime.Now });
+
+                await db.SaveChangesAsync();
+            }
+
+            // Act
+            var resumen = await service.ObtenerResumenClienteAsync(20);
+
+            // Assert
+            resumen.Activos.Should().Be(2); // 301, 302
+            resumen.Cerrados.Should().Be(1); // 303
+            resumen.Tickets.Should().HaveCount(3);
         }
     }
 }

@@ -191,7 +191,7 @@ partial class NuevoTicketForm
     private void InicializarLayoutNuevoTicket()
     {
         rtbDescripcion = new CajaTextoOrtograficaWpf();
-        bool esPerfilElevado = SesionSistema.EsAdmin || SesionSistema.EsTecnico;
+        bool esPerfilElevado = _contextoSesion.EsAdmin || _contextoSesion.EsTecnico;
 
         this.ClientSize = new Size(620, esPerfilElevado ? 560 : 460);
 

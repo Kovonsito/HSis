@@ -1,18 +1,17 @@
 using System.Net.Http;
 using System.Net.Http.Json;
-using HSis.Logic.DTOs;
-using HSis.Logic.Services;
+using HSis.Contracts.DTOs;
+using HSis.Contracts.Services;
+using HSis.UI.Services;
 
 namespace HSis.UI.ApiClients
 {
     public class TicketApiClientService(HttpClient httpClient) : ITicketService
     {
-
         public async Task<List<TicketDto>> ObtenerTicketsAsync()
         {
             return await httpClient.GetFromJsonAsync<List<TicketDto>>("api/Tickets") ?? [];
         }
-
 
         public async Task<TicketDto?> ObtenerTicketPorIdAsync(int id)
         {
@@ -44,7 +43,6 @@ namespace HSis.UI.ApiClients
             return await httpClient.GetFromJsonAsync<List<HistorialCambiosDto>>($"api/Tickets/{idTicket}/historial") ?? [];
         }
 
-
         public async Task ActualizarTicketAsync(TicketUpdateDto ticketDto)
         {
             var response = await httpClient.PutAsJsonAsync($"api/Tickets/{ticketDto.IdTicket}", ticketDto);
@@ -70,7 +68,6 @@ namespace HSis.UI.ApiClients
         {
             return await httpClient.GetFromJsonAsync<List<TicketDto>>("api/Tickets/disponibles") ?? [];
         }
-
 
         public async Task<TicketDto> CrearTicketAsync(TicketCreateDto ticketDto)
         {
@@ -112,7 +109,6 @@ namespace HSis.UI.ApiClients
             return await httpClient.GetFromJsonAsync<double>($"api/Tickets/tecnico/{idTecnico}/promedio-calificacion");
         }
 
-
         public async Task<List<TicketDto>> ObtenerFeedbackTecnicoAsync(int idTecnico)
         {
             return await httpClient.GetFromJsonAsync<List<TicketDto>>($"api/Tickets/tecnico/{idTecnico}/feedback") ?? [];
@@ -124,6 +120,16 @@ namespace HSis.UI.ApiClients
             return await httpClient.GetFromJsonAsync<DashboardResumenDto>(url) ?? new DashboardResumenDto();
         }
 
+        public async Task<IndicadoresTecnicoDto> ObtenerIndicadoresTecnicoAsync(int idTecnico)
+        {
+            return await httpClient.GetFromJsonAsync<IndicadoresTecnicoDto>($"api/Tickets/tecnico/{idTecnico}/indicadores")
+                   ?? new IndicadoresTecnicoDto(0, 0, 0, 0.0);
+        }
+
+        public async Task<ResumenClienteDto> ObtenerResumenClienteAsync(int idUsuario)
+        {
+            return await httpClient.GetFromJsonAsync<ResumenClienteDto>($"api/Tickets/usuario/{idUsuario}/resumen")
+                   ?? new ResumenClienteDto(0, 0, []);
+        }
     }
 }
-

@@ -1,6 +1,6 @@
-namespace HSis.Logic.Services
+namespace HSis.Contracts.Services
 {
-    public interface INotificationEventBus
+    public interface IBusEventosNotificaciones
     {
         event EventHandler<NotificacionEventArgs>? OnNotificacionPublicada;
         event EventHandler<EstadoConexionEventArgs>? OnEstadoConexionCambiado;
@@ -9,4 +9,3 @@ namespace HSis.Logic.Services
         void PublicarEstadoConexion(bool conectado, string? mensajeEstado = null);
     }
 }
-

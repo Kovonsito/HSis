@@ -3,10 +3,11 @@ using System.Net.Http;
 using System.Runtime.Versioning;
 using AutoUpdaterDotNET;
 using FluentValidation;
-using HSis.Logic.Constants;
-using HSis.Logic.Services;
-using HSis.Logic.Validators;
+using HSis.Contracts.Constants;
+using HSis.Contracts.Services;
+using HSis.Contracts.Validators;
 using HSis.UI.Factories;
+using HSis.UI.Services;
 using HSis.UI.Forms.Auth;
 using HSis.UI.Forms.Dashboards;
 using HSis.UI.Forms.Otros;
@@ -146,24 +147,14 @@ namespace HSis.UI
                 services.AddHttpClient<IReportExportService, ApiClients.ReportExportApiClientService>(ConfigurarHttpClient)
                         .AddHttpMessageHandler<ApiClients.JwtAuthHeaderHandler>();
 
-                // Almacenamiento local persistente para notificaciones de la UI
-                services.AddSingleton<INotificacionStorageService, LocalFileNotificacionStorageService>();
-                services.AddSingleton<INotificationEventBus, NotificationEventBus>();
-                services.AddSingleton<INotificationClientService, NotificationClientService>();
-                services.AddSingleton<ISessionCacheService, SessionCacheService>();
-                services.AddSingleton<ContextoSesion>();
-                services.AddSingleton<IContextoSesion>(sp =>
-                {
-                    var ctx = sp.GetRequiredService<ContextoSesion>();
-                    SesionSistema.Inicializar(ctx);
-                    return ctx;
-                });
-                services.AddSingleton<ICurrentUserService>(sp => sp.GetRequiredService<ContextoSesion>());
+                // Servicios de UI centralizados
+                services.AddSingleton<IBusEventosNotificaciones, BusEventosNotificaciones>();
+                services.AddSingleton<IClienteSignalRNotificaciones, ClienteSignalRNotificaciones>();
+                services.AddSingleton<IAlmacenamientoCredencialesLocal, AlmacenamientoCredencialesLocal>();
+                services.AddSingleton<AdministradorSesionUsuario>();
+                services.AddSingleton<IAdministradorSesionUsuario>(sp => sp.GetRequiredService<AdministradorSesionUsuario>());
+                services.AddSingleton<ICurrentUserService>(sp => sp.GetRequiredService<AdministradorSesionUsuario>());
                 services.AddSingleton<IFabricaFormularios, FabricaFormularios>();
-
-                // Coordinadores de UI (Desacoplamiento arquitectónico y reducción de dependencias en Forms)
-                services.AddSingleton<Services.Coordinators.IUiSessionCoordinator, Services.Coordinators.UiSessionCoordinator>();
-                services.AddTransient<HSis.Contracts.Coordinators.IAdminDashboardCoordinator, HSis.Contracts.Coordinators.AdminDashboardCoordinator>();
 
                 // Registrar Formularios con inyección directa de dependencias
                 services.AddTransient<IniciarSesionForm>();
@@ -190,7 +181,7 @@ namespace HSis.UI
                 }
 
                 Form? startForm = null;
-                var sessionCache = ServiceProvider.GetRequiredService<ISessionCacheService>();
+                var sessionCache = ServiceProvider.GetRequiredService<IAlmacenamientoCredencialesLocal>();
                 var cached = sessionCache.GetCredentials();
 
                 if (cached.HasValue)
@@ -202,22 +193,21 @@ namespace HSis.UI
 
                         if (usuario != null)
                         {
-                            var contextoSesion = ServiceProvider.GetRequiredService<IContextoSesion>();
+                            var contextoSesion = ServiceProvider.GetRequiredService<IAdministradorSesionUsuario>();
                             contextoSesion.UsuarioActual = usuario;
-                            SesionSistema.UsuarioActual = usuario;
 
                             // Iniciar SignalR
-                            var notificationClient = ServiceProvider.GetRequiredService<INotificationClientService>();
-                            string roleName = (RolUsuarioEnum)SesionSistema.IdRolUsuario switch
+                            var notificationClient = ServiceProvider.GetRequiredService<IClienteSignalRNotificaciones>();
+                            string roleName = (RolUsuarioEnum)contextoSesion.IdRolUsuario switch
                             {
                                 RolUsuarioEnum.Administrador => "Administrador",
                                 RolUsuarioEnum.Tecnico => "Técnico",
                                 RolUsuarioEnum.Cliente => "Cliente",
                                 _ => "Usuario"
                             };
-                            notificationClient.IniciarAsync(SesionSistema.IdUsuario, roleName).GetAwaiter().GetResult();
+                            notificationClient.IniciarAsync(contextoSesion.IdUsuario, roleName).GetAwaiter().GetResult();
 
-                            startForm = (RolUsuarioEnum)SesionSistema.IdRolUsuario switch
+                            startForm = (RolUsuarioEnum)contextoSesion.IdRolUsuario switch
                             {
                                 RolUsuarioEnum.Administrador => ServiceProvider.GetRequiredService<DashboardAdminForm>(),
                                 RolUsuarioEnum.Tecnico => ServiceProvider.GetRequiredService<DashboardTecnicoForm>(),

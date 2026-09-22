@@ -1,4 +1,4 @@
-namespace HSis.Logic.Constants
+namespace HSis.Contracts.Constants
 {
     public static class ConstantesEstatus
     {

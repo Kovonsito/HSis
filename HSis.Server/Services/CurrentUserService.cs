@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using HSis.Logic.Services;
+using HSis.Contracts.Services;
 
 namespace HSis.Server.Services
 {

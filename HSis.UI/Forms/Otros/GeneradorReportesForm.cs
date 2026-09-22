@@ -2,9 +2,10 @@
 using System.Drawing.Drawing2D;
 using System.IO;
 using FontAwesome.Sharp;
-using HSis.Logic.Constants;
-using HSis.Logic.DTOs;
-using HSis.Logic.Services;
+using HSis.Contracts.Constants;
+using HSis.Contracts.DTOs;
+using HSis.Contracts.Services;
+using HSis.UI.Services;
 using HSis.UI.Helpers;
 
 namespace HSis.UI.Forms.Otros
@@ -21,38 +22,6 @@ namespace HSis.UI.Forms.Otros
             InitializeComponent();
             _ticketService = ticketService;
             _reportExportService = reportExportService;
-        }
-
-        public void MostrarError(string mensaje)
-        {
-            if (InvokeRequired)
-            {
-                Invoke(new Action(() => MostrarError(mensaje)));
-                return;
-            }
-            MessageBox.Show(mensaje, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-
-        public void MostrarExito(string mensaje)
-        {
-            if (InvokeRequired)
-            {
-                Invoke(new Action(() => MostrarExito(mensaje)));
-                return;
-            }
-            MessageBox.Show(mensaje, "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
-
-        public void MostrarCargando(bool cargando)
-        {
-            if (InvokeRequired)
-            {
-                Invoke(new Action(() => MostrarCargando(cargando)));
-                return;
-            }
-            btnExcel.Enabled = !cargando;
-            btnPdf.Enabled = !cargando;
-            Cursor = cargando ? Cursors.WaitCursor : Cursors.Default;
         }
 
         #region Form Events
@@ -103,7 +72,7 @@ namespace HSis.UI.Forms.Otros
                     var tickets = await _ticketService.ObtenerTicketsFiltradosAsync(filtro);
                     var bytes = await _reportExportService.GenerarExcelAsync(kpis, tickets, inicio, fin);
                     await File.WriteAllBytesAsync(sfd.FileName, bytes);
-                    MostrarExito("Reporte en Excel generado y guardado correctamente.");
+                    DialogoUIHelper.MostrarExito("Reporte en Excel generado y guardado correctamente.");
                 }, "Error al generar el reporte en Excel", btnExcel, btnPdf);
             }
         }
@@ -133,7 +102,7 @@ namespace HSis.UI.Forms.Otros
                     var tickets = await _ticketService.ObtenerTicketsFiltradosAsync(filtro);
                     var bytes = await _reportExportService.GenerarPdfAsync(kpis, tickets, inicio, fin);
                     await File.WriteAllBytesAsync(sfd.FileName, bytes);
-                    MostrarExito("Reporte en PDF generado y guardado correctamente.");
+                    DialogoUIHelper.MostrarExito("Reporte en PDF generado y guardado correctamente.");
                 }, "Error al generar el reporte en PDF", btnExcel, btnPdf);
             }
         }

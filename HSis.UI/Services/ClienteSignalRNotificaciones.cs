@@ -1,23 +1,25 @@
+using HSis.Contracts.Services;
+using HSis.Contracts.DTOs;
 using System.Collections.Concurrent;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace HSis.Logic.Services
+namespace HSis.UI.Services
 {
-    public class NotificationClientService(
+    public class ClienteSignalRNotificaciones(
         IConfiguration configuration,
-        ILogger<NotificationClientService> logger,
-        INotificationEventBus? eventBus = null) : INotificationClientService
+        ILogger<ClienteSignalRNotificaciones> logger,
+        IBusEventosNotificaciones? eventBus = null) : IClienteSignalRNotificaciones
     {
         private readonly IConfiguration _configuration = configuration;
-        private readonly ILogger<NotificationClientService> _logger = logger;
-        private readonly INotificationEventBus? _eventBus = eventBus;
+        private readonly ILogger<ClienteSignalRNotificaciones> _logger = logger;
+        private readonly IBusEventosNotificaciones? _eventBus = eventBus;
         private HubConnection? _connection;
         private bool _isConnecting = false;
         private readonly ConcurrentQueue<Func<HubConnection, Task>> _pendingNotifications = new();
 
-        // Eventos expuestos para que la UI responda a los cambios (compatibilidad legacy)
+        // Eventos expuestos para que la UI responda a los cambios
         public event Action<string, int, string>? OnNotificationReceived;
         public event Action? OnConnected;
         public event Action? OnDisconnected;
@@ -218,25 +220,19 @@ namespace HSis.Logic.Services
             await NotificarCambioTicketAsync(ticketId, "Creado", $"Nuevo ticket #{ticketFolio}: {titulo}");
         }
 
-
         public async Task NotificarCambioEstatusTicketAsync(int clientUserId, int ticketId, string ticketFolio, string newStatus)
         {
             await NotificarCambioEstatusAsync(ticketId, newStatus);
         }
-
 
         public async Task NotificarCalificacionTicketAsync(int technicianUserId, int ticketId, string ticketFolio, int rating, string comment)
         {
             await NotificarCambioTicketAsync(ticketId, "Calificado", $"Ticket #{ticketFolio} calificado con {rating} estrellas: {comment}");
         }
 
-
         private void EncolarNotificacion(Func<HubConnection, Task> action)
         {
             _pendingNotifications.Enqueue(action);
         }
-
     }
-
 }
-

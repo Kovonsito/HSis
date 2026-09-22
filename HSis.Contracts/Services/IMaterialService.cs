@@ -1,6 +1,6 @@
-using HSis.Logic.DTOs;
+using HSis.Contracts.DTOs;
 
-namespace HSis.Logic.Services
+namespace HSis.Contracts.Services
 {
     public interface IMaterialService
     {

@@ -1,12 +1,10 @@
 #nullable enable
 using System.Runtime.Versioning;
-using HSis.Logic.Constants;
-using HSis.Logic.DTOs;
-using HSis.Logic.Services;
+using HSis.Contracts.Constants;
+using HSis.Contracts.DTOs;
+using HSis.Contracts.Services;
 using HSis.UI.Controls;
 using HSis.UI.Helpers;
-
-using HSis.UI.Services.Coordinators;
 
 namespace HSis.UI.Forms.Tickets
 {
@@ -15,18 +13,18 @@ namespace HSis.UI.Forms.Tickets
     {
         private readonly ITicketService _ticketService;
         private readonly IUsuarioService _usuarioService;
-        private readonly IContextoSesion _contextoSesion;
+        private readonly IAdministradorSesionUsuario _contextoSesion;
         private CajaTextoOrtograficaWpf rtbDescripcion = null!;
 
         public NuevoTicketForm(
             ITicketService ticketService,
             IUsuarioService usuarioService,
-            IUiSessionCoordinator sessionCoordinator)
+            IAdministradorSesionUsuario contextoSesion)
         {
             InitializeComponent();
             _ticketService = ticketService;
             _usuarioService = usuarioService;
-            _contextoSesion = sessionCoordinator.ContextoSesion;
+            _contextoSesion = contextoSesion;
 
             InicializarLayoutNuevoTicket();
         }
@@ -95,37 +93,6 @@ namespace HSis.UI.Forms.Tickets
             cmbPrioridad.SelectedIndex = 0;
         }
 
-        public void MostrarError(string titulo, string mensaje)
-        {
-            if (InvokeRequired)
-            {
-                Invoke(new Action(() => MostrarError(titulo, mensaje)));
-                return;
-            }
-            MessageBox.Show(mensaje, titulo, MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-
-        public void MostrarExito(string mensaje)
-        {
-            if (InvokeRequired)
-            {
-                Invoke(new Action(() => MostrarExito(mensaje)));
-                return;
-            }
-            MessageBox.Show(mensaje, "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
-
-        public void MostrarCargando(bool cargando)
-        {
-            if (InvokeRequired)
-            {
-                Invoke(new Action(() => MostrarCargando(cargando)));
-                return;
-            }
-            btnGuardar.Enabled = !cargando;
-            this.UseWaitCursor = cargando;
-        }
-
         #region UI Handlers
 
         private void chkSolicitanteEnRepresentacion_CheckedChanged(object? sender, EventArgs e)
@@ -154,9 +121,8 @@ namespace HSis.UI.Forms.Tickets
 
         private async Task CargarCatalogosAsync()
         {
-            try
+            await this.EjecutarOperacionAsync(async () =>
             {
-                MostrarCargando(true);
                 CargarPrioridades();
 
                 var clientes = await _usuarioService.ObtenerUsuariosPorRolAsync((int)RolUsuarioEnum.Cliente);
@@ -166,35 +132,28 @@ namespace HSis.UI.Forms.Tickets
 
                 CargarClientes(clientes.OrderBy(u => u.Nombre).ToList(), _contextoSesion.IdUsuario);
                 CargarTecnicos(personalAtencion, _contextoSesion.EsTecnico, _contextoSesion.IdUsuario);
-            }
-            catch (Exception ex)
-            {
-                MostrarError("Error de Carga", $"Ocurrió un error al cargar catálogos: {ex.Message}");
-            }
-            finally
-            {
-                MostrarCargando(false);
-            }
+            },
+            mensajeErrorContexto: "Error al cargar catálogos");
         }
 
         private async void btnGuardar_Click(object? sender, EventArgs e)
         {
             if (chkSolicitanteEnRepresentacion.Checked && string.IsNullOrWhiteSpace(txtNombreSolicitante.Text))
             {
-                MostrarError("Validación", "Por favor, ingrese el nombre de la persona que solicitó la atención.");
+                DialogoUIHelper.MostrarAdvertencia("Por favor, ingrese el nombre de la persona que solicitó la atención.", "Validación requerida");
+                txtNombreSolicitante.Focus();
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(rtbDescripcion.Text))
             {
-                MostrarError("Validación", "Por favor, ingrese una descripción del problema.");
+                DialogoUIHelper.MostrarAdvertencia("Por favor, ingrese una descripción del problema.", "Validación requerida");
+                rtbDescripcion.Focus();
                 return;
             }
 
-            try
+            await this.EjecutarOperacionAsync(async () =>
             {
-                MostrarCargando(true);
-
                 int idUsuarioFinal = _contextoSesion.IdUsuario;
                 int? idTecnicoFinal = null;
                 string? prioridadFinal = null;
@@ -230,23 +189,12 @@ namespace HSis.UI.Forms.Tickets
                 };
 
                 var ticketGuardado = await _ticketService.CrearTicketAsync(nuevoTicketDto);
-                MostrarExito($"Ticket registrado exitosamente con Folio: TK-{ticketGuardado.IdTicket:d6}");
+                DialogoUIHelper.MostrarExito($"Ticket registrado exitosamente con Folio: TK-{ticketGuardado.IdTicket:d6}");
                 this.DialogResult = DialogResult.OK;
                 this.Close();
-            }
-            catch (FluentValidation.ValidationException ex)
-            {
-                string errores = string.Join("\n", ex.Errors.Select(err => "- " + err.ErrorMessage));
-                MostrarError("Validación", $"Datos inválidos:\n{errores}");
-            }
-            catch (Exception ex)
-            {
-                MostrarError("Error", $"Error al registrar el ticket: {ex.Message}");
-            }
-            finally
-            {
-                MostrarCargando(false);
-            }
+            },
+            mensajeErrorContexto: "Error al registrar el ticket",
+            controlesADeshabilitar: [btnGuardar, btnCancelar]);
         }
 
         private void btnCancelar_Click(object? sender, EventArgs e)

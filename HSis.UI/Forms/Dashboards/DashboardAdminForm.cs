@@ -1,26 +1,28 @@
 #nullable enable
 using System.Data;
 using System.Runtime.Versioning;
-using HSis.Logic.Constants;
-using HSis.Logic.DTOs;
-using HSis.Logic.Services;
+using HSis.Contracts.Constants;
+using HSis.Contracts.DTOs;
+using HSis.Contracts.Services;
+using HSis.UI.Services;
 using HSis.UI.Controls;
 using HSis.UI.Factories;
 using HSis.UI.Forms.Otros;
 using HSis.UI.Forms.Tickets;
 using HSis.UI.Helpers;
 
-using HSis.Contracts.Coordinators;
-using HSis.UI.Services.Coordinators;
-
 namespace HSis.UI.Forms.Dashboards
 {
     [SupportedOSPlatform("windows")]
     public partial class DashboardAdminForm : Form
     {
-        private readonly IAdminDashboardCoordinator _coordinator;
-        private readonly IUiSessionCoordinator _sessionCoordinator;
+        private readonly ITicketService _ticketService;
+        private readonly IUsuarioService _usuarioService;
+        private readonly ICatalogoService _catalogoService;
+        private readonly IAdministradorSesionUsuario _contextoSesion;
+        private readonly IAlmacenamientoCredencialesLocal _sessionCache;
         private readonly IFabricaFormularios _fabricaFormularios;
+        private readonly IClienteSignalRNotificaciones _notificationClient;
 
         private bool _estaCargando = true;
         private PaginacionControl PaginacionControl = null!;
@@ -28,13 +30,22 @@ namespace HSis.UI.Forms.Dashboards
         private IndicadorControl? _ucCalificacion;
 
         public DashboardAdminForm(
-            IAdminDashboardCoordinator coordinator,
-            IUiSessionCoordinator sessionCoordinator)
+            ITicketService ticketService,
+            IUsuarioService usuarioService,
+            ICatalogoService catalogoService,
+            IAdministradorSesionUsuario contextoSesion,
+            IAlmacenamientoCredencialesLocal sessionCache,
+            IFabricaFormularios fabricaFormularios,
+            IClienteSignalRNotificaciones notificationClient)
         {
             InitializeComponent();
-            _coordinator = coordinator;
-            _sessionCoordinator = sessionCoordinator;
-            _fabricaFormularios = sessionCoordinator.FabricaFormularios;
+            _ticketService = ticketService;
+            _usuarioService = usuarioService;
+            _catalogoService = catalogoService;
+            _contextoSesion = contextoSesion;
+            _sessionCache = sessionCache;
+            _fabricaFormularios = fabricaFormularios;
+            _notificationClient = notificationClient;
         }
 
         private async void DashboardAdmin_Load(object sender, EventArgs e)
@@ -49,8 +60,11 @@ namespace HSis.UI.Forms.Dashboards
 
             this.IntegrarNotificacionesModerno(
                 topBarAdmin,
-                _sessionCoordinator,
-                () => Task.WhenAll(CargarKPIsAsync(SesionSistema.IdUsuario), CargarGridCompletoAsync())
+                _fabricaFormularios,
+                _contextoSesion,
+                _notificationClient,
+                null,
+                () => Task.WhenAll(CargarKPIsAsync(_contextoSesion.IdUsuario), CargarGridCompletoAsync())
             );
 
             // Cargar los combos de filtros antes del grid
@@ -61,7 +75,7 @@ namespace HSis.UI.Forms.Dashboards
 
             // Cargamos KPIs y Grid de tickets en paralelo
             await Task.WhenAll(
-                CargarKPIsAsync(SesionSistema.IdUsuario),
+                CargarKPIsAsync(_contextoSesion.IdUsuario),
                 CargarGridCompletoAsync()
             );
 
@@ -83,7 +97,7 @@ namespace HSis.UI.Forms.Dashboards
                 new ItemSidebar { Clave = "reportes", Titulo = "Reportes", Icono = FontAwesome.Sharp.IconChar.ChartBar }
             };
 
-            sidebarAdmin.ConfigurarSesion(_sessionCoordinator.SessionCache);
+            sidebarAdmin.ConfigurarSesion(_sessionCache);
             sidebarAdmin.ConfigurarItems(items, "tickets");
 
             void SeleccionarVista(string clave)
@@ -128,7 +142,7 @@ namespace HSis.UI.Forms.Dashboards
 
             sidebarAdmin.ItemSeleccionado += (s, clave) => SeleccionarVista(clave);
 
-            topBarAdmin.ConfigurarSesion(_sessionCoordinator.SessionCache);
+            topBarAdmin.ConfigurarSesion(_sessionCache, _contextoSesion);
             topBarAdmin.ConfigurarMenuHamburguesa(
                 items,
                 "tickets",
@@ -183,7 +197,7 @@ namespace HSis.UI.Forms.Dashboards
             await this.EjecutarOperacionAsync(async () =>
             {
                 var filtros = ConfiguracionFiltrosTickets.MapearFiltrosAdmin(filtroGenerico.ObtenerValoresFiltros());
-                var resultado = await _coordinator.FiltrarTicketsPaginadosAsync(filtros, _controladorPaginacion.PaginaActual, _controladorPaginacion.TamanoPagina);
+                var resultado = await _ticketService.ObtenerTicketsFiltradosPaginadosAsync(filtros, _controladorPaginacion.PaginaActual, _controladorPaginacion.TamanoPagina);
                 MostrarTickets(resultado.Items, resultado.TotalCount);
             }, "Error al filtrar tickets");
         }
@@ -213,12 +227,12 @@ namespace HSis.UI.Forms.Dashboards
         private async void btnRecargar_Click(object sender, EventArgs e)
         {
             await CargarGridCompletoAsync();
-            await CargarKPIsAsync(SesionSistema.IdUsuario);
+            await CargarKPIsAsync(_contextoSesion.IdUsuario);
         }
 
         private async void dgvTickets_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
-            await dgvTickets.ManejarDetalleTicketAsync(e.RowIndex, _fabricaFormularios, () => Task.WhenAll(CargarKPIsAsync(SesionSistema.IdUsuario), CargarGridCompletoAsync()), "Folio");
+            await dgvTickets.ManejarDetalleTicketAsync(e.RowIndex, _fabricaFormularios, () => Task.WhenAll(CargarKPIsAsync(_contextoSesion.IdUsuario), CargarGridCompletoAsync()), "Folio");
         }
 
         private async Task ConfigurarTabsCatalogosAsync()
@@ -354,7 +368,7 @@ namespace HSis.UI.Forms.Dashboards
         {
             try
             {
-                var resultList = await _coordinator.CargarDatosCatalogoAsync(tipoEntidad);
+                var resultList = await _catalogoService.ObtenerTodosPorTipoAsync(tipoEntidad);
 
                 if (resultList != null)
                 {
@@ -400,7 +414,7 @@ namespace HSis.UI.Forms.Dashboards
                 using var frm = _fabricaFormularios.Crear<NuevoTicketForm>();
                 if (frm.ShowDialog(this) == DialogResult.OK)
                 {
-                    await Task.WhenAll(CargarKPIsAsync(SesionSistema.IdUsuario), CargarGridCompletoAsync());
+                    await Task.WhenAll(CargarKPIsAsync(_contextoSesion.IdUsuario), CargarGridCompletoAsync());
                 }
             }
             catch (Exception ex)
@@ -413,7 +427,7 @@ namespace HSis.UI.Forms.Dashboards
         {
             try
             {
-                var promedio = await _coordinator.ObtenerCalificacionPromedioAsync(SesionSistema.IdUsuario);
+                var promedio = await _ticketService.ObtenerPromedioCalificacionTecnicoAsync(_contextoSesion.IdUsuario);
                 MessageBox.Show($"Tu calificación promedio como Administrador resolviendo tickets es: {promedio:F1} de 5.0 ⭐", "Mi Calificación", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
@@ -424,10 +438,10 @@ namespace HSis.UI.Forms.Dashboards
 
         public async Task CargarKPIsAsync(int? idUsuario = null)
         {
-            try
+            await this.EjecutarOperacionAsync(async () =>
             {
-                int targetUser = idUsuario ?? _sessionCoordinator.ContextoSesion.IdUsuario;
-                var resumen = await _coordinator.ObtenerResumenKPIsAsync(targetUser);
+                int targetUser = idUsuario ?? _contextoSesion.IdUsuario;
+                var resumen = await _ticketService.ObtenerResumenDashboardAsync(targetUser);
                 MostrarKPIs(
                     resumen.TicketsNuevos,
                     resumen.TicketsUrgentes,
@@ -436,26 +450,46 @@ namespace HSis.UI.Forms.Dashboards
                     resumen.TicketsReabiertos,
                     resumen.PromedioCalificacion
                 );
-            }
-            catch (Exception ex)
-            {
-                MostrarError($"Error al cargar KPIs de administración: {ex.Message}");
-            }
+            }, "Error al cargar KPIs de administración");
         }
 
         public async Task CargarCombosFiltrosAsync()
         {
-            try
+            await this.EjecutarOperacionAsync(async () =>
             {
-                var tecnicosYAdmins = await _coordinator.ObtenerTecnicosYAdminsAsync();
+                var tecnicosYAdmins = await ObtenerTecnicosYAdminsAsync();
                 filtroGenerico.ConfigurarOpcionesCombo("Tecnico", tecnicosYAdmins);
                 filtroGenerico.ConfigurarOpcionesCombo("Estatus", new List<string> { "Todos", "Nuevos", "Urgentes", ConstantesEstatus.ABIERTO, ConstantesEstatus.EN_PROCESO, ConstantesEstatus.CERRADO, ConstantesEstatus.REABIERTO });
                 filtroGenerico.ConfigurarOpcionesCombo("Prioridad", new List<string> { "Todos", ConstantesPrioridad.ALTA, ConstantesPrioridad.MEDIA, ConstantesPrioridad.BAJA });
-            }
-            catch (Exception ex)
+            }, "Error al cargar filtros de técnicos y administradores");
+        }
+
+        private async Task<List<ElementoOpcionCombo>> ObtenerTecnicosYAdminsAsync()
+        {
+            var resultado = new List<ElementoOpcionCombo>
             {
-                MostrarError($"Error al cargar filtros de técnicos y administradores: {ex.Message}");
+                new(0, "Todos"),
+                new(-1, "Sin Asignar")
+            };
+
+            var tareaAdmins = _usuarioService.ObtenerUsuariosPorRolAsync(RolUsuarioEnum.Administrador);
+            var tareaTecnicos = _usuarioService.ObtenerUsuariosPorRolAsync(RolUsuarioEnum.Tecnico);
+
+            await Task.WhenAll(tareaAdmins, tareaTecnicos);
+
+            var admins = await tareaAdmins ?? [];
+            var tecnicos = await tareaTecnicos ?? [];
+
+            foreach (var a in admins)
+            {
+                resultado.Add(new(a.IdUsuario, $"Admin - {a.Nombre}"));
             }
+            foreach (var t in tecnicos)
+            {
+                resultado.Add(new(t.IdUsuario, $"Técnico - {t.Nombre}"));
+            }
+
+            return resultado;
         }
 
         public void MostrarKPIs(int nuevos, int urgentes, int enProceso, int cerrados, int reabiertos, double calificacion)
@@ -522,44 +556,6 @@ namespace HSis.UI.Forms.Dashboards
 
             dgvTickets.AutoajustarAnchosMinimos();
             _controladorPaginacion.Actualizar(totalCount);
-        }
-
-        public void CargarCombosFiltros(List<UsuarioDto> admins, List<UsuarioDto> tecnicos)
-        {
-            var listaTecnicos = new List<object> { new { Id = (int?)0, Nombre = "Todos" } };
-
-            foreach (var a in admins)
-            {
-                listaTecnicos.Add(new { Id = (int?)a.IdUsuario, Nombre = $"Admin - {a.Nombre}" });
-            }
-            foreach (var t in tecnicos)
-            {
-                listaTecnicos.Add(new { Id = (int?)t.IdUsuario, Nombre = $"Técnico - {t.Nombre}" });
-            }
-
-            filtroGenerico.ConfigurarOpcionesCombo("Tecnico", listaTecnicos);
-            filtroGenerico.ConfigurarOpcionesCombo("Estatus", new List<string> { "Todos", "Nuevos", "Urgentes", ConstantesEstatus.ABIERTO, ConstantesEstatus.EN_PROCESO, ConstantesEstatus.CERRADO, ConstantesEstatus.REABIERTO });
-            filtroGenerico.ConfigurarOpcionesCombo("Prioridad", new List<string> { "Todos", ConstantesPrioridad.ALTA, ConstantesPrioridad.MEDIA, ConstantesPrioridad.BAJA });
-        }
-
-        public void MostrarError(string mensaje)
-        {
-            if (InvokeRequired)
-            {
-                Invoke(new Action(() => MostrarError(mensaje)));
-                return;
-            }
-            MessageBox.Show(mensaje, "Error en Dashboard de Administración", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-
-        public void MostrarCargando(bool cargando)
-        {
-            if (InvokeRequired)
-            {
-                Invoke(new Action(() => MostrarCargando(cargando)));
-                return;
-            }
-            Cursor = cargando ? Cursors.WaitCursor : Cursors.Default;
         }
     }
 }

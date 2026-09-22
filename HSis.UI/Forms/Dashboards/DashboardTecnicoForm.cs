@@ -1,14 +1,13 @@
 #nullable enable
 using System.Runtime.Versioning;
-using HSis.Logic.Constants;
-using HSis.Logic.DTOs;
-using HSis.Logic.Services;
+using HSis.Contracts.Constants;
+using HSis.Contracts.DTOs;
+using HSis.Contracts.Services;
 using HSis.UI.Controls;
 using HSis.UI.Factories;
 using HSis.UI.Forms.Tickets;
 using HSis.UI.Helpers;
-
-using HSis.UI.Services.Coordinators;
+using HSis.UI.Services;
 
 namespace HSis.UI.Forms.Dashboards
 {
@@ -16,8 +15,10 @@ namespace HSis.UI.Forms.Dashboards
     public partial class DashboardTecnicoForm : Form
     {
         private readonly ITicketService _ticketService;
-        private readonly IUiSessionCoordinator _sessionCoordinator;
+        private readonly IAdministradorSesionUsuario _contextoSesion;
+        private readonly IAlmacenamientoCredencialesLocal _sessionCache;
         private readonly IFabricaFormularios _formFactory;
+        private readonly IClienteSignalRNotificaciones _notificationClient;
 
         private enum VistaDashboard
         {
@@ -36,12 +37,17 @@ namespace HSis.UI.Forms.Dashboards
 
         public DashboardTecnicoForm(
             ITicketService ticketService,
-            IUiSessionCoordinator sessionCoordinator)
+            IAdministradorSesionUsuario contextoSesion,
+            IAlmacenamientoCredencialesLocal sessionCache,
+            IFabricaFormularios formFactory,
+            IClienteSignalRNotificaciones notificationClient)
         {
             InitializeComponent();
             _ticketService = ticketService;
-            _sessionCoordinator = sessionCoordinator;
-            _formFactory = sessionCoordinator.FabricaFormularios;
+            _contextoSesion = contextoSesion;
+            _sessionCache = sessionCache;
+            _formFactory = formFactory;
+            _notificationClient = notificationClient;
         }
 
         private async void frmDashboardTecnico_Load(object? sender, EventArgs e)
@@ -54,7 +60,7 @@ namespace HSis.UI.Forms.Dashboards
             ConfigurarSidebar();
             ConfigurarFiltros();
 
-            this.IntegrarNotificacionesModerno(topBarTecnico, _sessionCoordinator, CargarDatosInicialesAsync);
+            this.IntegrarNotificacionesModerno(topBarTecnico, _formFactory, _contextoSesion, _notificationClient, null, CargarDatosInicialesAsync);
 
             await CargarDatosInicialesAsync();
         }
@@ -70,7 +76,7 @@ namespace HSis.UI.Forms.Dashboards
                 new ItemSidebar { Clave = "kardex", Titulo = "Almacén / Kardex", Icono = FontAwesome.Sharp.IconChar.BoxesStacked }
             };
 
-            sidebarTecnico.ConfigurarSesion(_sessionCoordinator.SessionCache);
+            sidebarTecnico.ConfigurarSesion(_sessionCache);
             sidebarTecnico.ConfigurarItems(items, "asignados");
 
             async void SeleccionarVista(string clave)
@@ -127,7 +133,7 @@ namespace HSis.UI.Forms.Dashboards
 
             sidebarTecnico.ItemSeleccionado += (s, clave) => SeleccionarVista(clave);
 
-            topBarTecnico.ConfigurarSesion(_sessionCoordinator.SessionCache);
+            topBarTecnico.ConfigurarSesion(_sessionCache, _contextoSesion);
             topBarTecnico.ConfigurarMenuHamburguesa(
                 items,
                 "asignados",
@@ -139,40 +145,31 @@ namespace HSis.UI.Forms.Dashboards
 
         private async Task CargarDatosInicialesAsync()
         {
-            await Task.WhenAll(CargarIndicadoresAsync(SesionSistema.IdUsuario), CargarTicketsSegunVistaAsync());
+            await Task.WhenAll(CargarIndicadoresAsync(_contextoSesion.IdUsuario), CargarTicketsSegunVistaAsync());
         }
 
         private async Task CargarIndicadoresAsync(int idTecnico)
         {
-            try
+            await this.EjecutarOperacionAsync(async () =>
             {
-                var taskAsignados = _ticketService.ObtenerTicketsAsignadosATecnicoAsync(idTecnico);
-                var taskDisponibles = _ticketService.ObtenerTicketsDisponiblesAsync();
-                var taskCerrados = _ticketService.ObtenerTicketsCerradosPorTecnicoAsync(idTecnico);
-                var taskPromedio = _ticketService.ObtenerPromedioCalificacionTecnicoAsync(idTecnico);
-
-                await Task.WhenAll(taskAsignados, taskDisponibles, taskCerrados, taskPromedio);
-
+                var ind = await _ticketService.ObtenerIndicadoresTecnicoAsync(idTecnico);
                 MostrarIndicadores(
-                    taskAsignados.Result.Count,
-                    taskDisponibles.Result.Count,
-                    taskCerrados.Result.Count,
-                    taskPromedio.Result
+                    ind.Asignados,
+                    ind.Disponibles,
+                    ind.Cerrados,
+                    ind.PromedioCalificacion
                 );
-            }
-            catch (Exception ex)
-            {
-                MostrarError($"Error al cargar indicadores técnicos: {ex.Message}");
-            }
+            }, "Error al cargar indicadores técnicos");
         }
 
         private async Task CargarTicketsSegunVistaAsync()
         {
             await this.EjecutarOperacionAsync(async () =>
             {
+                int idTecnico = _contextoSesion.IdUsuario;
                 if (_vistaActual == VistaDashboard.MisAsignados)
                 {
-                    _todosLosTickets = await _ticketService.ObtenerTicketsAsignadosATecnicoAsync(SesionSistema.IdUsuario);
+                    _todosLosTickets = await _ticketService.ObtenerTicketsAsignadosATecnicoAsync(idTecnico);
                     AplicarFiltrosMemoria();
                 }
                 else if (_vistaActual == VistaDashboard.Disponibles)
@@ -182,16 +179,17 @@ namespace HSis.UI.Forms.Dashboards
                 }
                 else if (_vistaActual == VistaDashboard.Cerrados)
                 {
-                    _todosLosTickets = await _ticketService.ObtenerTicketsCerradosPorTecnicoAsync(SesionSistema.IdUsuario);
+                    _todosLosTickets = await _ticketService.ObtenerTicketsCerradosPorTecnicoAsync(idTecnico);
                     AplicarFiltrosMemoria();
                 }
                 else if (_vistaActual == VistaDashboard.Calificaciones)
                 {
-                    var feedbacks = await _ticketService.ObtenerFeedbackTecnicoAsync(SesionSistema.IdUsuario);
+                    var feedbacks = await _ticketService.ObtenerFeedbackTecnicoAsync(idTecnico);
                     _todosLosFeedbacks = feedbacks.Select(f => new FeedbackTecnicoDto
                     {
                         IdTicket = f.IdTicket,
-                        Calificacion = (f.Calificacion ?? 0).ToString(),
+                        NombreUsuario = f.Usuario,
+                        Calificacion = f.Calificacion.HasValue ? $"{f.Calificacion.Value} ⭐" : "N/A",
                         Comentario = f.ComentarioEvaluacion,
                         Fecha = f.FechaEvaluacion
                     }).ToList();
@@ -419,26 +417,6 @@ namespace HSis.UI.Forms.Dashboards
                 ucCalificacion.Titulo = "Mi Calificación";
                 ucCalificacion.ColorFondo = TemaVisual.TicketReabierto;
             }
-        }
-
-        public void MostrarCargando(bool cargando)
-        {
-            if (InvokeRequired)
-            {
-                Invoke(new Action(() => MostrarCargando(cargando)));
-                return;
-            }
-            Cursor = cargando ? Cursors.WaitCursor : Cursors.Default;
-        }
-
-        public void MostrarError(string mensaje)
-        {
-            if (InvokeRequired)
-            {
-                Invoke(new Action(() => MostrarError(mensaje)));
-                return;
-            }
-            MessageBox.Show(mensaje, "Error en Dashboard Técnico", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 }

@@ -1,12 +1,13 @@
 using System.Net.Http;
 using System.Net.Http.Json;
-using HSis.Logic.DTOs;
-using HSis.Logic.Services;
+using HSis.Contracts.DTOs;
+using HSis.Contracts.Services;
+using HSis.UI.Services;
 using HSis.UI.Helpers;
 
 namespace HSis.UI.ApiClients
 {
-    public class UsuarioApiClientService(HttpClient httpClient) : IUsuarioService
+    public class UsuarioApiClientService(HttpClient httpClient, IAdministradorSesionUsuario sesionUsuario) : IUsuarioService
     {
 
         public Task RehashearContraseñasAsync()
@@ -25,7 +26,7 @@ namespace HSis.UI.ApiClients
                 var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponseDto>();
                 if (loginResponse != null)
                 {
-                    SesionSistema.TokenJWT = loginResponse.Token;
+                    sesionUsuario.TokenJWT = loginResponse.Token;
                     return loginResponse.Usuario;
                 }
             }
