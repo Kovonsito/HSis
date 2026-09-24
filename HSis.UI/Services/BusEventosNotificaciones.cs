@@ -1,5 +1,4 @@
 using HSis.Contracts.Services;
-using HSis.Contracts.DTOs;
 namespace HSis.UI.Services
 {
     public class BusEventosNotificaciones : IBusEventosNotificaciones

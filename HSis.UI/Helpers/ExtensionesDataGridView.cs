@@ -10,7 +10,8 @@ namespace HSis.UI.Helpers
             {
                 if (col.Visible)
                 {
-                    col.MinimumWidth = col.GetPreferredWidth(DataGridViewAutoSizeColumnMode.ColumnHeader, true);
+                    int prefHeader = col.GetPreferredWidth(DataGridViewAutoSizeColumnMode.ColumnHeader, true);
+                    col.MinimumWidth = Math.Max(col.MinimumWidth, prefHeader);
                 }
             }
         }

@@ -32,11 +32,6 @@ partial class DashboardAdminForm
         sidebarAdmin = new HSis.UI.Controls.SidebarControl();
         topBarAdmin = new HSis.UI.Controls.TopBarControl();
         pnlContenedorPrincipal = new Panel();
-        ucNuevos = new HSis.UI.Controls.IndicadorControl();
-        ucUrgentes = new HSis.UI.Controls.IndicadorControl();
-        ucEnProceso = new HSis.UI.Controls.IndicadorControl();
-        ucCerrados = new HSis.UI.Controls.IndicadorControl();
-        ucReabiertos = new HSis.UI.Controls.IndicadorControl();
         btnNuevoTicket = new HSis.UI.Controls.BotonModerno();
         btnAbrirReportes = new HSis.UI.Controls.BotonModerno();
         tabMain = new TabControl();
@@ -74,36 +69,6 @@ partial class DashboardAdminForm
         pnlContenedorPrincipal.Size = new Size(960, 720);
         pnlContenedorPrincipal.TabIndex = 1;
 
-        // ucNuevos
-        ucNuevos.Name = "ucNuevos";
-        ucNuevos.Size = new Size(200, 100);
-        ucNuevos.TabIndex = 0;
-        ucNuevos.IndicadorClic += UcNuevosUcIndicadorEvent;
-
-        // ucUrgentes
-        ucUrgentes.Name = "ucUrgentes";
-        ucUrgentes.Size = new Size(200, 100);
-        ucUrgentes.TabIndex = 1;
-        ucUrgentes.IndicadorClic += UcUrgentes_ucIndicadorEvent;
-
-        // ucEnProceso
-        ucEnProceso.Name = "ucEnProceso";
-        ucEnProceso.Size = new Size(200, 100);
-        ucEnProceso.TabIndex = 2;
-        ucEnProceso.IndicadorClic += UcEnProceso_ucIndicadorEvent;
-
-        // ucCerrados
-        ucCerrados.Name = "ucCerrados";
-        ucCerrados.Size = new Size(200, 100);
-        ucCerrados.TabIndex = 3;
-        ucCerrados.IndicadorClic += UcCerrados_ucIndicadorEvent;
-
-        // ucReabiertos
-        ucReabiertos.Name = "ucReabiertos";
-        ucReabiertos.Size = new Size(200, 100);
-        ucReabiertos.TabIndex = 4;
-        ucReabiertos.IndicadorClic += UcReabiertos_ucIndicadorEvent;
-
         // btnNuevoTicket
         btnNuevoTicket.Estilo = EstiloBotonModerno.Exito;
         btnNuevoTicket.Icono = FontAwesome.Sharp.IconChar.Plus;
@@ -112,17 +77,15 @@ partial class DashboardAdminForm
         btnNuevoTicket.Size = new Size(150, 36);
         btnNuevoTicket.TabIndex = 5;
         btnNuevoTicket.Text = "Nuevo Ticket";
-        btnNuevoTicket.Click += btnNuevoTicket_Click;
 
         // btnAbrirReportes
-        btnAbrirReportes.Estilo = EstiloBotonModerno.Primario;
+        btnAbrirReportes.Estilo = EstiloBotonModerno.Secundario;
         btnAbrirReportes.Icono = FontAwesome.Sharp.IconChar.ChartBar;
         btnAbrirReportes.IconoTamano = 14;
         btnAbrirReportes.Name = "btnAbrirReportes";
         btnAbrirReportes.Size = new Size(140, 36);
         btnAbrirReportes.TabIndex = 6;
         btnAbrirReportes.Text = "Reportes";
-        btnAbrirReportes.Click += btnAbrirReportes_Click;
 
         // vistaTickets
         vistaTickets.Dock = DockStyle.Fill;
@@ -174,11 +137,6 @@ partial class DashboardAdminForm
     private HSis.UI.Controls.SidebarControl sidebarAdmin;
     private HSis.UI.Controls.TopBarControl topBarAdmin;
     private Panel pnlContenedorPrincipal;
-    private HSis.UI.Controls.IndicadorControl ucNuevos;
-    private HSis.UI.Controls.IndicadorControl ucUrgentes;
-    private HSis.UI.Controls.IndicadorControl ucEnProceso;
-    private HSis.UI.Controls.IndicadorControl ucCerrados;
-    private HSis.UI.Controls.IndicadorControl ucReabiertos;
     private HSis.UI.Controls.BotonModerno btnNuevoTicket;
     private HSis.UI.Controls.BotonModerno btnAbrirReportes;
     private TabControl tabMain;

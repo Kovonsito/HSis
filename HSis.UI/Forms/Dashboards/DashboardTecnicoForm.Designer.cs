@@ -26,10 +26,6 @@ partial class DashboardTecnicoForm
         this.topBarTecnico = new HSis.UI.Controls.TopBarControl();
         this.pnlContenedorPrincipal = new Panel();
         this.btnNuevoTicket = new HSis.UI.Controls.BotonModerno();
-        this.ucMisAsignados = new HSis.UI.Controls.IndicadorControl();
-        this.ucDisponibles = new HSis.UI.Controls.IndicadorControl();
-        this.ucCerrados = new HSis.UI.Controls.IndicadorControl();
-        this.ucCalificacion = new HSis.UI.Controls.IndicadorControl();
         this.pnlContenedorPrincipal.SuspendLayout();
         this.SuspendLayout();
 
@@ -58,30 +54,6 @@ partial class DashboardTecnicoForm
         this.pnlContenedorPrincipal.Size = new Size(960, 720);
         this.pnlContenedorPrincipal.TabIndex = 1;
 
-        // ucMisAsignados
-        this.ucMisAsignados.Location = new Point(12, 50);
-        this.ucMisAsignados.Name = "ucMisAsignados";
-        this.ucMisAsignados.Size = new Size(200, 100);
-        this.ucMisAsignados.TabIndex = 1;
-
-        // ucDisponibles
-        this.ucDisponibles.Location = new Point(220, 50);
-        this.ucDisponibles.Name = "ucDisponibles";
-        this.ucDisponibles.Size = new Size(200, 100);
-        this.ucDisponibles.TabIndex = 2;
-
-        // ucCerrados
-        this.ucCerrados.Location = new Point(428, 50);
-        this.ucCerrados.Name = "ucCerrados";
-        this.ucCerrados.Size = new Size(200, 100);
-        this.ucCerrados.TabIndex = 4;
-
-        // ucCalificacion
-        this.ucCalificacion.Location = new Point(636, 50);
-        this.ucCalificacion.Name = "ucCalificacion";
-        this.ucCalificacion.Size = new Size(200, 100);
-        this.ucCalificacion.TabIndex = 5;
-
         // btnNuevoTicket
         this.btnNuevoTicket.Estilo = EstiloBotonModerno.Exito;
         this.btnNuevoTicket.Icono = FontAwesome.Sharp.IconChar.Plus;
@@ -89,7 +61,6 @@ partial class DashboardTecnicoForm
         this.btnNuevoTicket.Size = new Size(140, 36);
         this.btnNuevoTicket.TabIndex = 6;
         this.btnNuevoTicket.Text = "Nuevo Ticket";
-        this.btnNuevoTicket.Click += new EventHandler(this.btnNuevoTicket_Click);
 
         // vistaTickets
         this.vistaTickets = new HSis.UI.Controls.VistaTicketsDashboardControl();
@@ -118,10 +89,6 @@ partial class DashboardTecnicoForm
     private HSis.UI.Controls.SidebarControl sidebarTecnico;
     private HSis.UI.Controls.TopBarControl topBarTecnico;
     private Panel pnlContenedorPrincipal;
-    private HSis.UI.Controls.IndicadorControl ucMisAsignados;
-    private HSis.UI.Controls.IndicadorControl ucDisponibles;
-    private HSis.UI.Controls.IndicadorControl ucCerrados;
-    private HSis.UI.Controls.IndicadorControl ucCalificacion;
     private HSis.UI.Controls.BotonModerno btnNuevoTicket;
     private HSis.UI.Controls.VistaTicketsDashboardControl vistaTickets;
 }

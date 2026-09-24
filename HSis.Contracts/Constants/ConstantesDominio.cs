@@ -2,6 +2,8 @@ namespace HSis.Contracts.Constants
 {
     public static class ConstantesEstatus
     {
+        public const string DISPONIBLE = "Disponible";
+        public const string URGENTE = "Urgente";
         public const string ABIERTO = "Abierto";
         public const string EN_PROCESO = "En proceso";
         public const string CERRADO = "Cerrado";
