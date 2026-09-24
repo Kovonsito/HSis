@@ -2,7 +2,6 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using HSis.Contracts.DTOs;
 using HSis.Contracts.Services;
-using HSis.UI.Services;
 
 namespace HSis.UI.ApiClients
 {

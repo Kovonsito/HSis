@@ -3,7 +3,6 @@ using System.Runtime.Versioning;
 using FontAwesome.Sharp;
 using HSis.Contracts.DTOs;
 using HSis.Contracts.Services;
-using HSis.UI.Services;
 using HSis.UI.Helpers;
 
 namespace HSis.UI.Forms.Otros
@@ -35,13 +34,13 @@ namespace HSis.UI.Forms.Otros
             dgvKardex.AplicarTemaModerno();
 
             var col1 = dgvKardex.Columns["IdMovimiento"];
-            if (col1 != null) col1.Visible = false;
+            col1?.Visible = false;
 
             var col2 = dgvKardex.Columns["IdMaterial"];
-            if (col2 != null) col2.Visible = false;
+            col2?.Visible = false;
 
             var col3 = dgvKardex.Columns["CostoUnitario"];
-            if (col3 != null) col3.DefaultCellStyle.Format = "C2";
+            col3?.DefaultCellStyle.Format = "C2";
         }
 
         #region Form Events

@@ -1,6 +1,5 @@
 using FluentAssertions;
 using HSis.Data.Models;
-using HSis.Contracts.Services;
 using HSis.Logic.Services;
 using Mapster;
 using MapsterMapper;

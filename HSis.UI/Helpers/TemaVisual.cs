@@ -1,8 +1,6 @@
 #nullable enable
-using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Runtime.Versioning;
-using System.Windows.Forms;
 
 namespace HSis.UI.Helpers
 {
@@ -10,25 +8,31 @@ namespace HSis.UI.Helpers
     public static class TemaVisual
     {
         // Paleta base (Clean SaaS / Modern Slate)
-        public static readonly Color FondoApp = Color.FromArgb(248, 250, 252);        // #F8FAFC
+        public static readonly Color FondoApp = Color.FromArgb(248, 250, 252);        // #F8FAFC (Slate 50)
+        public static readonly Color FondoTenue = Color.FromArgb(241, 245, 249);      // #F1F5F9 (Slate 100)
         public static readonly Color FondoTarjeta = Color.FromArgb(255, 255, 255);    // #FFFFFF
-        public static readonly Color BordeSutil = Color.FromArgb(226, 232, 240);       // #E2E8F0
-        public static readonly Color BordeHover = Color.FromArgb(203, 213, 225);       // #CBD5E1
+        public static readonly Color BordeSutil = Color.FromArgb(226, 232, 240);       // #E2E8F0 (Slate 200)
+        public static readonly Color BordeHover = Color.FromArgb(203, 213, 225);       // #CBD5E1 (Slate 300)
 
         // Tipografía / Textos
-        public static readonly Color TextoPrincipal = Color.FromArgb(15, 23, 42);     // #0F172A
-        public static readonly Color TextoSecundario = Color.FromArgb(100, 116, 139); // #64748B
-        public static readonly Color TextoMuted = Color.FromArgb(148, 163, 184);      // #94A3B8
+        public static readonly Color TextoPrincipal = Color.FromArgb(15, 23, 42);     // #0F172A (Slate 900)
+        public static readonly Color TextoOscuro = Color.FromArgb(51, 65, 85);        // #334155 (Slate 700)
+        public static readonly Color TextoMedio = Color.FromArgb(71, 85, 105);        // #475569 (Slate 600)
+        public static readonly Color TextoSecundario = Color.FromArgb(100, 116, 139); // #64748B (Slate 500)
+        public static readonly Color TextoMuted = Color.FromArgb(148, 163, 184);      // #94A3B8 (Slate 400)
 
         // Colores de Acento / Primarios
         public static readonly Color Primario = Color.FromArgb(37, 99, 235);          // #2563EB (Royal Blue)
         public static readonly Color PrimarioHover = Color.FromArgb(29, 78, 216);     // #1D4ED8
-        public static readonly Color PrimarioSuave = Color.FromArgb(239, 246, 255);   // #EFF6FF
+        public static readonly Color PrimarioSuave = Color.FromArgb(239, 246, 255);   // #EFF6FF (Blue 50)
+        public static readonly Color PrimarioBorde = Color.FromArgb(191, 219, 254);   // #BFDBFE (Blue 200)
 
-        // Semántica de Tickets / KPIs
-        public static readonly Color TicketNuevo = Color.FromArgb(59, 130, 246);       // #3B82F6 (Azul)
-        public static readonly Color TicketNuevoBg = Color.FromArgb(239, 246, 255);     // #EFF6FF
-        
+        // Semántica de Tickets / KPIs / Estados
+        public static readonly Color TicketDisponible = Color.FromArgb(59, 130, 246);   // #3B82F6 (Azul)
+        public static readonly Color TicketDisponibleBg = Color.FromArgb(239, 246, 255); // #EFF6FF
+        public static readonly Color TicketNuevo = TicketDisponible;
+        public static readonly Color TicketNuevoBg = TicketDisponibleBg;
+
         public static readonly Color TicketEnProceso = Color.FromArgb(245, 158, 11);   // #F59E0B (Ámbar)
         public static readonly Color TicketEnProcesoBg = Color.FromArgb(254, 243, 199); // #FEF3C7
 
@@ -41,9 +45,35 @@ namespace HSis.UI.Helpers
         public static readonly Color TicketReabierto = Color.FromArgb(139, 92, 246);   // #8B5CF6 (Púrpura)
         public static readonly Color TicketReabiertoBg = Color.FromArgb(237, 233, 254); // #EDE9FE
 
+        public static readonly Color PrioridadMedia = Color.FromArgb(217, 119, 6);     // #D97706 (Ámbar oscuro)
+        public static readonly Color PrioridadBaja = Color.FromArgb(71, 85, 105);      // #475569 (Slate 600)
+
+        // Estados y Acciones (Éxito, Peligro, Advertencia)
+        public static readonly Color Exito = Color.FromArgb(34, 197, 94);              // #22C55E
+        public static readonly Color Peligro = Color.FromArgb(239, 68, 68);            // #EF4444
+        public static readonly Color PeligroHover = Color.FromArgb(220, 38, 38);       // #DC2626
+        public static readonly Color Advertencia = Color.FromArgb(251, 191, 36);       // #FBBF24
+
+        // Indicador de Conexión / Píldoras de Estado
+        public static readonly Color OnlineBg = Color.FromArgb(236, 253, 245);        // #ECFDF5
+        public static readonly Color OnlineBorde = Color.FromArgb(167, 243, 208);     // #A7F3D0
+        public static readonly Color OnlinePunto = Color.FromArgb(16, 185, 129);      // #10B981
+        public static readonly Color OnlineTexto = Color.FromArgb(6, 95, 70);         // #065F46
+
+        public static readonly Color OfflineBg = Color.FromArgb(254, 243, 199);       // #FEF3C7
+        public static readonly Color OfflineBorde = Color.FromArgb(253, 230, 138);    // #FDE68A
+        public static readonly Color OfflinePunto = Color.FromArgb(245, 158, 11);     // #F59E0B
+        public static readonly Color OfflineTexto = Color.FromArgb(146, 64, 14);      // #92400E
+
+        // Calificación y Encuestas (Estrellas / CSAT)
+        public static readonly Color EstrellaActiva = Color.FromArgb(241, 196, 15);   // #F1C40F (Dorado)
+        public static readonly Color EstrellaInactiva = Color.FromArgb(203, 213, 225);// #CBD5E1 (Slate 300)
+
+        // Sidebar
         public static readonly Color SidebarFondo = Color.FromArgb(15, 23, 42);        // #0F172A
         public static readonly Color SidebarItemHover = Color.FromArgb(30, 41, 59);    // #1E293B
         public static readonly Color SidebarItemActivo = Color.FromArgb(37, 99, 235);   // #2563EB
+        public static readonly Color SidebarItemTexto = Color.FromArgb(203, 213, 225); // #CBD5E1
 
         // Fuentes estándar
         public static readonly Font FuenteTitulo = new("Segoe UI", 12f, FontStyle.Bold);
@@ -58,7 +88,7 @@ namespace HSis.UI.Helpers
         public static (Color Texto, Color Fondo) ObtenerColoresBadge(string? valor)
         {
             if (string.IsNullOrWhiteSpace(valor))
-                return (TextoSecundario, Color.FromArgb(241, 245, 249));
+                return (TextoSecundario, FondoTenue);
 
             string v = valor.Trim().ToUpperInvariant();
 
@@ -73,11 +103,11 @@ namespace HSis.UI.Helpers
             if (v.Contains("REABIERTO"))
                 return (TicketReabierto, TicketReabiertoBg);
             if (v.Contains("MEDIA"))
-                return (Color.FromArgb(217, 119, 6), Color.FromArgb(254, 243, 199));
+                return (PrioridadMedia, TicketEnProcesoBg);
             if (v.Contains("BAJA"))
-                return (Color.FromArgb(71, 85, 105), Color.FromArgb(241, 245, 249));
+                return (PrioridadBaja, FondoTenue);
 
-            return (TextoPrincipal, Color.FromArgb(241, 245, 249));
+            return (TextoPrincipal, FondoTenue);
         }
 
         /// <summary>
@@ -96,13 +126,14 @@ namespace HSis.UI.Helpers
             dgv.AutoGenerateColumns = true;
             dgv.AllowUserToResizeRows = false;
             dgv.ShowCellToolTips = true;
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
 
             // Fila de encabezado
             dgv.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
-            dgv.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(241, 245, 249); // #F1F5F9
-            dgv.ColumnHeadersDefaultCellStyle.ForeColor = Color.FromArgb(71, 85, 105);   // Slate-600
-            dgv.ColumnHeadersDefaultCellStyle.SelectionBackColor = Color.FromArgb(241, 245, 249);
-            dgv.ColumnHeadersDefaultCellStyle.SelectionForeColor = Color.FromArgb(71, 85, 105);
+            dgv.ColumnHeadersDefaultCellStyle.BackColor = FondoTenue;
+            dgv.ColumnHeadersDefaultCellStyle.ForeColor = TextoMedio;
+            dgv.ColumnHeadersDefaultCellStyle.SelectionBackColor = FondoTenue;
+            dgv.ColumnHeadersDefaultCellStyle.SelectionForeColor = TextoMedio;
             dgv.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 9.5f, FontStyle.Bold);
             dgv.ColumnHeadersDefaultCellStyle.Padding = new Padding(12, 10, 12, 10);
             dgv.ColumnHeadersHeight = 44;
@@ -113,13 +144,13 @@ namespace HSis.UI.Helpers
             dgv.DefaultCellStyle.ForeColor = TextoPrincipal;
             dgv.DefaultCellStyle.Font = FuenteNormal;
             dgv.DefaultCellStyle.Padding = new Padding(12, 6, 12, 6);
-            dgv.DefaultCellStyle.SelectionBackColor = Color.FromArgb(239, 246, 255); // Azul muy tenue
+            dgv.DefaultCellStyle.SelectionBackColor = PrimarioSuave;
             dgv.DefaultCellStyle.SelectionForeColor = TextoPrincipal;
             dgv.RowTemplate.Height = 42;
 
             // Filas alternas sutiles
-            dgv.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(248, 250, 252);
-            dgv.AlternatingRowsDefaultCellStyle.SelectionBackColor = Color.FromArgb(239, 246, 255);
+            dgv.AlternatingRowsDefaultCellStyle.BackColor = FondoApp;
+            dgv.AlternatingRowsDefaultCellStyle.SelectionBackColor = PrimarioSuave;
             dgv.AlternatingRowsDefaultCellStyle.SelectionForeColor = TextoPrincipal;
 
             // Pintado personalizado de Badges para columnas como Estatus o Prioridad
@@ -135,7 +166,7 @@ namespace HSis.UI.Helpers
             // 1. Evitar resaltado estridente en encabezados de columna
             if (e.RowIndex == -1)
             {
-                using var brushH = new SolidBrush(Color.FromArgb(241, 245, 249));
+                using var brushH = new SolidBrush(FondoTenue);
                 e.Graphics.FillRectangle(brushH, e.CellBounds);
 
                 using var penBorder = new Pen(BordeSutil, 1f);

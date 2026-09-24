@@ -65,9 +65,9 @@ partial class IndicadorControl
         AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
         AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
         BackColor = System.Drawing.Color.Transparent;
-        Controls.Add(pbxIcono);
-        Controls.Add(lblCantidad);
         Controls.Add(lblTitulo);
+        Controls.Add(lblCantidad);
+        Controls.Add(pbxIcono);
         Cursor = System.Windows.Forms.Cursors.Hand;
         Name = "IndicadorControl";
         Size = new System.Drawing.Size(200, 85);

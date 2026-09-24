@@ -1,7 +1,6 @@
 using FluentAssertions;
 using HSis.Data.Models;
 using HSis.Contracts.DTOs;
-using HSis.Contracts.Services;
 using HSis.Logic.Services;
 using Microsoft.EntityFrameworkCore;
 using Moq;

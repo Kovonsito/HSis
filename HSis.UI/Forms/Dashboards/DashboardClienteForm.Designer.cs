@@ -24,7 +24,6 @@ partial class DashboardClienteForm
         this.sidebarCliente = new HSis.UI.Controls.SidebarControl();
         this.topBarCliente = new HSis.UI.Controls.TopBarControl();
         this.pnlContenedorPrincipal = new Panel();
-        this.ucMisActivos = new HSis.UI.Controls.IndicadorControl();
         this.btnNuevoReporte = new HSis.UI.Controls.BotonModerno();
         this.pnlContenedorPrincipal.SuspendLayout();
         this.SuspendLayout();
@@ -54,12 +53,6 @@ partial class DashboardClienteForm
         this.pnlContenedorPrincipal.Size = new Size(960, 720);
         this.pnlContenedorPrincipal.TabIndex = 1;
 
-        // ucMisActivos
-        this.ucMisActivos.Location = new Point(12, 50);
-        this.ucMisActivos.Name = "ucMisActivos";
-        this.ucMisActivos.Size = new Size(200, 100);
-        this.ucMisActivos.TabIndex = 1;
-
         // btnNuevoReporte
         this.btnNuevoReporte.Estilo = EstiloBotonModerno.Primario;
         this.btnNuevoReporte.Icono = FontAwesome.Sharp.IconChar.Plus;
@@ -69,7 +62,6 @@ partial class DashboardClienteForm
         this.btnNuevoReporte.Size = new Size(180, 48);
         this.btnNuevoReporte.TabIndex = 2;
         this.btnNuevoReporte.Text = "Nuevo Reporte";
-        this.btnNuevoReporte.Click += new EventHandler(this.btnNuevoReporte_Click);
 
         // vistaTickets
         this.vistaTickets = new HSis.UI.Controls.VistaTicketsDashboardControl();
@@ -99,7 +91,6 @@ partial class DashboardClienteForm
     private HSis.UI.Controls.SidebarControl sidebarCliente;
     private HSis.UI.Controls.TopBarControl topBarCliente;
     private Panel pnlContenedorPrincipal;
-    private HSis.UI.Controls.IndicadorControl ucMisActivos;
     private HSis.UI.Controls.BotonModerno btnNuevoReporte;
     private HSis.UI.Controls.VistaTicketsDashboardControl vistaTickets;
 }

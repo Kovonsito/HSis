@@ -96,11 +96,11 @@ internal class Resources
     /// <summary>
     ///   Busca un recurso adaptado de tipo System.Drawing.Bitmap.
     /// </summary>
-    internal static System.Drawing.Bitmap Nuevo
+    internal static System.Drawing.Bitmap Disponible
     {
         get
         {
-            object obj = ResourceManager.GetObject("Nuevo", resourceCulture);
+            object obj = ResourceManager.GetObject("Disponible", resourceCulture);
             return ((System.Drawing.Bitmap)(obj));
         }
     }

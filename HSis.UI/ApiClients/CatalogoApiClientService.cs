@@ -2,7 +2,6 @@ using System.Linq.Expressions;
 using System.Net.Http;
 using System.Net.Http.Json;
 using HSis.Contracts.Services;
-using HSis.UI.Services;
 
 namespace HSis.UI.ApiClients
 {

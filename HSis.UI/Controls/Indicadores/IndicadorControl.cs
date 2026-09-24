@@ -1,10 +1,7 @@
 #nullable enable
-using System;
 using System.ComponentModel;
-using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Runtime.Versioning;
-using System.Windows.Forms;
 using HSis.UI.Helpers;
 
 namespace HSis.UI.Controls
@@ -20,7 +17,7 @@ namespace HSis.UI.Controls
         {
             InitializeComponent();
             DoubleBuffered = true;
-            SetStyle(ControlStyles.SupportsTransparentBackColor | ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.ResizeRedraw, true);
+            SetStyle(ControlStyles.SupportsTransparentBackColor | ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint | ControlStyles.ResizeRedraw, true);
 
             MouseEnter += (s, e) => { _isHovered = true; Invalidate(); };
             MouseLeave += (s, e) => { _isHovered = false; Invalidate(); };
@@ -32,25 +29,30 @@ namespace HSis.UI.Controls
             pbxIcono.MouseLeave += (s, e) => { _isHovered = false; Invalidate(); };
         }
 
+        private string _titulo = "INDICADOR";
+        private string _cantidad = "0";
+
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public string Titulo
         {
-            get => lblTitulo.Text;
+            get => _titulo;
             set
             {
-                lblTitulo.Text = value.ToUpperInvariant();
-                AjustarDisenoInterno();
+                _titulo = value?.ToUpperInvariant() ?? string.Empty;
+                lblTitulo.Text = _titulo;
+                Invalidate();
             }
         }
 
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public string Cantidad
         {
-            get => lblCantidad.Text;
+            get => _cantidad;
             set
             {
-                lblCantidad.Text = value;
-                AjustarDisenoInterno();
+                _cantidad = value ?? "0";
+                lblCantidad.Text = _cantidad;
+                Invalidate();
             }
         }
 
@@ -79,16 +81,16 @@ namespace HSis.UI.Controls
             }
         }
 
-        protected override void OnPaint(PaintEventArgs e)
+        protected override void OnPaintBackground(PaintEventArgs e)
         {
-            base.OnPaint(e);
             var g = e.Graphics;
             g.SmoothingMode = SmoothingMode.AntiAlias;
 
-            // Limpiar fondo con el color del padre
+            // Fondo del contenedor padre para bordes redondeados limpios
             Color colorPadre = (Parent?.BackColor != null && Parent.BackColor != Color.Transparent && Parent.BackColor.A > 0)
                 ? Parent.BackColor
                 : TemaVisual.FondoApp;
+
             using (var brushPadre = new SolidBrush(colorPadre))
             {
                 g.FillRectangle(brushPadre, 0, 0, Width, Height);
@@ -103,7 +105,7 @@ namespace HSis.UI.Controls
                 g.FillPath(brushFondo, path);
             }
 
-            // Barra lateral izquierda de acento de color
+            // Barra lateral izquierda de acento
             var barraRect = new Rectangle(0, 0, 5, Height);
             g.SetClip(path);
             using (var brushAcento = new SolidBrush(_colorAcento))
@@ -117,36 +119,48 @@ namespace HSis.UI.Controls
             g.DrawPath(penBorde, path);
         }
 
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+        }
+
         protected override void OnResize(EventArgs e)
         {
             base.OnResize(e);
             AjustarDisenoInterno();
-            Invalidate();
         }
 
         private void AjustarDisenoInterno()
         {
-            if (lblTitulo == null || lblCantidad == null || pbxIcono == null)
-                return;
-
             int width = ClientSize.Width;
             int height = ClientSize.Height;
             if (width <= 0 || height <= 0) return;
 
-            // 1. Ícono arriba a la derecha escalable
+            // Posicionamiento de controles hijos
             int iconSide = width < 140 ? 24 : (width < 180 ? 28 : 34);
-            pbxIcono.Size = new Size(iconSide, iconSide);
-            pbxIcono.Location = new Point(Math.Max(10, width - iconSide - 12), 10);
+            int paddingDerecho = 14;
 
-            // 2. Título arriba a la izquierda
-            lblTitulo.Font = new Font("Segoe UI Semibold", width < 140 ? 7F : 8F, FontStyle.Bold);
-            lblTitulo.Location = new Point(14, 12);
-            lblTitulo.MaximumSize = new Size(Math.Max(10, width - iconSide - 24), 16);
+            if (pbxIcono != null)
+            {
+                pbxIcono.Size = new Size(iconSide, iconSide);
+                pbxIcono.Location = new Point(Math.Max(10, width - iconSide - paddingDerecho), (height - iconSide) / 2);
+            }
 
-            // 3. Cantidad grande abajo a la izquierda escalable
-            float fontCant = width < 140 ? 15F : (width < 180 ? 18F : 22F);
-            lblCantidad.Font = new Font("Segoe UI", fontCant, FontStyle.Bold);
-            lblCantidad.Location = new Point(14, 34);
+            int anchoDisponible = Math.Max(40, width - iconSide - paddingDerecho - 22);
+
+            if (lblTitulo != null)
+            {
+                lblTitulo.Location = new Point(14, 14);
+                lblTitulo.MaximumSize = new Size(anchoDisponible, 20);
+                lblTitulo.AutoEllipsis = true;
+            }
+
+            if (lblCantidad != null)
+            {
+                lblCantidad.Location = new Point(12, 36);
+                lblCantidad.MaximumSize = new Size(anchoDisponible, 40);
+                lblCantidad.AutoEllipsis = true;
+            }
         }
 
         private void Indicador_Click(object? sender, EventArgs e)
