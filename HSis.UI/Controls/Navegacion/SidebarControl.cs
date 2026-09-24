@@ -4,7 +4,6 @@ using System.Drawing.Drawing2D;
 using System.Runtime.Versioning;
 using FontAwesome.Sharp;
 using HSis.Contracts.Services;
-using HSis.UI.Services;
 using HSis.UI.Helpers;
 
 namespace HSis.UI.Controls

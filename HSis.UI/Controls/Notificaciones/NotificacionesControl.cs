@@ -2,9 +2,7 @@
 using System.Drawing.Drawing2D;
 using System.Runtime.Versioning;
 using FontAwesome.Sharp;
-using HSis.Contracts.DTOs;
 using HSis.Contracts.Services;
-using HSis.UI.Services;
 using HSis.UI.Factories;
 using HSis.UI.Helpers;
 
@@ -13,7 +11,7 @@ namespace HSis.UI.Controls
     [SupportedOSPlatform("windows")]
     public partial class NotificacionesControl : UserControl
     {
-        private readonly List<NotificacionLocal> _notificaciones = new();
+        private readonly List<NotificacionLocal> _notificaciones = [];
         private IFabricaFormularios? _fabricaFormularios;
         private IAdministradorSesionUsuario? _contextoSesion;
         private IClienteSignalRNotificaciones? _clienteNotificaciones;
@@ -175,10 +173,7 @@ namespace HSis.UI.Controls
                 return;
             }
 
-            if (_topBar != null)
-            {
-                _topBar.NotificacionesNoLeidas = noLeidas;
-            }
+            _topBar?.NotificacionesNoLeidas = noLeidas;
 
             if (lblBadgeCount != null)
             {

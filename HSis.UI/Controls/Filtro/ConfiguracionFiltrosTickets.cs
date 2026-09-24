@@ -1,9 +1,6 @@
 #nullable enable
-using System;
-using System.Collections.Generic;
 using HSis.Contracts.Constants;
 using HSis.Contracts.DTOs;
-using HSis.UI.Controls;
 
 namespace HSis.UI.Helpers
 {
@@ -35,9 +32,9 @@ namespace HSis.UI.Helpers
         public static List<FiltroCampo> ObtenerCamposCliente()
         {
             return [
-                new() { NombrePropiedad = "Texto", Etiqueta = "Buscar (Folio/Problema):", Tipo = TipoFiltroControl.Texto, Ancho = 200 },
-                new() { NombrePropiedad = "FechaInicio", Etiqueta = "Desde:", Tipo = TipoFiltroControl.Fecha, Ancho = 115, ValorDefecto = DateTime.Today.AddDays(-60) },
-                new() { NombrePropiedad = "FechaFin", Etiqueta = "Hasta:", Tipo = TipoFiltroControl.Fecha, Ancho = 115, ValorDefecto = DateTime.Today.AddDays(1).AddTicks(-1) }
+                new() { NombrePropiedad = "Texto", Etiqueta = "Buscar (Folio/Problema):", Tipo = TipoFiltroControl.Texto, Ancho = 230 },
+                new() { NombrePropiedad = "FechaInicio", Etiqueta = "Desde:", Tipo = TipoFiltroControl.Fecha, Ancho = 135, ValorDefecto = DateTime.Today.AddDays(-60) },
+                new() { NombrePropiedad = "FechaFin", Etiqueta = "Hasta:", Tipo = TipoFiltroControl.Fecha, Ancho = 135, ValorDefecto = DateTime.Today.AddDays(1).AddTicks(-1) }
             ];
         }
 

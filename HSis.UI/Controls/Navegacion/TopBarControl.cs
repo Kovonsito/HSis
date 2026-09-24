@@ -4,7 +4,6 @@ using System.Drawing.Drawing2D;
 using System.Runtime.Versioning;
 using FontAwesome.Sharp;
 using HSis.Contracts.Services;
-using HSis.UI.Services;
 using HSis.UI.Helpers;
 
 namespace HSis.UI.Controls
@@ -29,7 +28,7 @@ namespace HSis.UI.Controls
         private IAlmacenamientoCredencialesLocal? _sessionCache;
         private IAdministradorSesionUsuario? _sesionUsuario;
         private ContextMenuStrip? _menuHamburguesa;
-        private readonly List<ItemSidebar> _itemsHamburguesa = new();
+        private readonly List<ItemSidebar> _itemsHamburguesa = [];
         private string _itemActivoClave = string.Empty;
         private Action<string>? _onItemSelected;
         private Action? _onToggleSidebar;

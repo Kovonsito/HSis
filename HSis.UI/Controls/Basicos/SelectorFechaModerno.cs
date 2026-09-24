@@ -68,7 +68,7 @@ namespace HSis.UI.Controls
                 CalendarTitleForeColor = Color.White
             };
 
-            Padding = new Padding(28, 4, 6, 4);
+            Padding = new Padding(24, 4, 4, 4);
             BackColor = Color.White;
             DoubleBuffered = true;
             SetStyle(ControlStyles.SupportsTransparentBackColor | ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint, true);

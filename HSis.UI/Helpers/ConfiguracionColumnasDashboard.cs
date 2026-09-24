@@ -1,6 +1,5 @@
 #nullable enable
 using System.Runtime.Versioning;
-using HSis.UI.Controls;
 
 namespace HSis.UI.Helpers
 {
@@ -34,12 +33,12 @@ namespace HSis.UI.Helpers
                 "FechaEvaluacion", "Evaluacion", "FolioFormato");
 
             dgv.ConfigurarColumnas(
-                ("Folio",          "Folio",                    45,  null),
-                ("FechaAlta",      "Fecha de Solicitud",       70,  "dd/MM/yyyy HH:mm"),
-                ("Status",         "Estatus",                  55,  null),
-                ("TecnicoAsignado","Técnico Asignado",         75,  null),
-                ("Descripcion",    "Descripción del Problema", 160, null),
-                ("Feedback",       "Calificación / Feedback",  85,  null)
+                ("Folio", "Folio", 70, null),
+                ("FechaAlta", "Fecha de Solicitud", 130, "dd/MM/yyyy HH:mm"),
+                ("Status", "Estatus", 90, null),
+                ("TecnicoAsignado", "Técnico Asignado", 140, null),
+                ("Descripcion", "Descripción del Problema", 260, null),
+                ("Feedback", "Calificación / Feedback", 120, null)
             );
 
             dgv.AutoajustarAnchosMinimos();
@@ -56,13 +55,13 @@ namespace HSis.UI.Helpers
             dgv.ConfigurarOcultarColumnas(_columnasOcultasBase);
 
             dgv.ConfigurarColumnas(
-                ("Folio",      "Folio",                   80,  null),
-                ("Usuario",    "Usuario Solicitante",     160, null),
-                ("Status",     "Estatus",                 100, null),
-                ("Prioridad",  "Prioridad",               100, null),
-                ("FechaAlta",  "Fecha Alta",              130, null),
-                ("Descripcion","Descripción del Problema",260, null),
-                ("Solucion",   "Solución Aplicada",       260, null)
+                ("Folio", "Folio", 80, null),
+                ("Usuario", "Usuario Solicitante", 160, null),
+                ("Status", "Estatus", 100, null),
+                ("Prioridad", "Prioridad", 100, null),
+                ("FechaAlta", "Fecha Alta", 130, null),
+                ("Descripcion", "Descripción del Problema", 260, null),
+                ("Solucion", "Solución Aplicada", 260, null)
             );
 
             dgv.AutoajustarAnchosMinimos();
@@ -79,10 +78,10 @@ namespace HSis.UI.Helpers
             dgv.ConfigurarOcultarColumnas(_columnasOcultasBase);
 
             dgv.ConfigurarColumnas(
-                ("NombreUsuario", "Usuario Calificador",          180, null),
-                ("Comentario",    "Comentario de Retroalimentación", 320, null),
-                ("FechaRegistro", "Fecha Calificación",           140, null),
-                ("Puntuacion",    "Calificación ⭐",              130, null)
+                ("NombreUsuario", "Usuario Calificador", 180, null),
+                ("Comentario", "Comentario de Retroalimentación", 320, null),
+                ("FechaRegistro", "Fecha Calificación", 140, null),
+                ("Puntuacion", "Calificación ⭐", 130, null)
             );
 
             dgv.AutoajustarAnchosMinimos();
@@ -101,16 +100,16 @@ namespace HSis.UI.Helpers
                 "ComentarioEvaluacion", "FechaEvaluacion", "Evaluacion", "Feedback", "FolioFormato");
 
             dgv.ConfigurarColumnas(
-                ("Folio",          "Folio",            50,  null),
-                ("NombreUsuario",  "Usuario",          110, null),
-                ("Estatus",        "Estatus",          70,  null),
-                ("Prioridad",      "Prioridad",        70,  null),
-                ("FechaAlta",      "Fecha Alta",       85,  "dd/MM/yyyy HH:mm"),
-                ("FechaAtencion",  "Fecha Atención",   85,  "dd/MM/yyyy HH:mm"),
-                ("FechaCierre",    "Fecha Cierre",     85,  "dd/MM/yyyy HH:mm"),
-                ("TecnicoAsignado","Técnico Asignado", 100, null),
-                ("Descripcion",    "Descripción",      150, null),
-                ("Solucion",       "Solución",         150, null)
+                ("Folio", "Folio", 50, null),
+                ("NombreUsuario", "Usuario", 110, null),
+                ("Estatus", "Estatus", 70, null),
+                ("Prioridad", "Prioridad", 70, null),
+                ("FechaAlta", "Fecha Alta", 85, "dd/MM/yyyy HH:mm"),
+                ("FechaAtencion", "Fecha Atención", 85, "dd/MM/yyyy HH:mm"),
+                ("FechaCierre", "Fecha Cierre", 85, "dd/MM/yyyy HH:mm"),
+                ("TecnicoAsignado", "Técnico Asignado", 100, null),
+                ("Descripcion", "Descripción", 150, null),
+                ("Solucion", "Solución", 150, null)
             );
 
             dgv.AutoajustarAnchosMinimos();

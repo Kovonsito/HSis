@@ -11,8 +11,13 @@
             "cwd": "${workspaceFolder}/HSis.Server",
             "console": "internalConsole",
             "stopAtEntry": false,
+            "hotReload": true,
+            "hotReloadSettings": {
+                "applyOnSave": true
+            },
             "env": {
-                "ASPNETCORE_ENVIRONMENT": "Development"
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "DOTNET_MODIFIABLE_ASSEMBLIES": "debug"
             }
         },
         {
@@ -24,7 +29,14 @@
             "args": [],
             "cwd": "${workspaceFolder}/HSis.UI",
             "console": "internalConsole",
-            "stopAtEntry": false
+            "stopAtEntry": false,
+            "hotReload": true,
+            "hotReloadSettings": {
+                "applyOnSave": true
+            },
+            "env": {
+                "DOTNET_MODIFIABLE_ASSEMBLIES": "debug"
+            }
         },
         {
             "name": ".NET UI - Instancia 2 (HSis.UI)",
@@ -35,7 +47,14 @@
             "args": [],
             "cwd": "${workspaceFolder}/HSis.UI",
             "console": "internalConsole",
-            "stopAtEntry": false
+            "stopAtEntry": false,
+            "hotReload": true,
+            "hotReloadSettings": {
+                "applyOnSave": true
+            },
+            "env": {
+                "DOTNET_MODIFIABLE_ASSEMBLIES": "debug"
+            }
         },
         {
             // Use IntelliSense to find out which attributes exist for C# debugging

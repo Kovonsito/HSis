@@ -1,5 +1,4 @@
 using HSis.Contracts.Services;
-using HSis.Contracts.DTOs;
 using System.Collections.Concurrent;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Configuration;

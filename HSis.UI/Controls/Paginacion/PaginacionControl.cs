@@ -61,20 +61,15 @@ namespace HSis.UI.Controls
 
         private void SuscribirEventos()
         {
-            if (_comboTamanoPagina != null)
-                _comboTamanoPagina.SelectedIndexChanged += CmbTamanoPagina_SelectedIndexChanged;
+            _comboTamanoPagina?.SelectedIndexChanged += CmbTamanoPagina_SelectedIndexChanged;
 
-            if (_botonPrimero != null)
-                _botonPrimero.Click += (s, e) => CambiarPagina(1);
+            _botonPrimero?.Click += (s, e) => CambiarPagina(1);
 
-            if (_botonAnterior != null)
-                _botonAnterior.Click += (s, e) => CambiarPagina(PaginaActual - 1);
+            _botonAnterior?.Click += (s, e) => CambiarPagina(PaginaActual - 1);
 
-            if (_botonSiguiente != null)
-                _botonSiguiente.Click += (s, e) => CambiarPagina(PaginaActual + 1);
+            _botonSiguiente?.Click += (s, e) => CambiarPagina(PaginaActual + 1);
 
-            if (_botonUltimo != null)
-                _botonUltimo.Click += (s, e) => CambiarPagina(TotalPaginas);
+            _botonUltimo?.Click += (s, e) => CambiarPagina(TotalPaginas);
 
         }
 
@@ -102,20 +97,12 @@ namespace HSis.UI.Controls
 
         public void ActualizarInterfaz()
         {
-            if (_etiquetaInformacionPagina != null)
-            {
-                _etiquetaInformacionPagina.Text = $"Página {PaginaActual} de {TotalPaginas}";
-            }
-
-            if (_etiquetaTotal != null)
-            {
-                _etiquetaTotal.Text = $"Total: {TotalRegistros} registros";
-            }
-
-            if (_botonPrimero != null) _botonPrimero.Enabled = PaginaActual > 1;
-            if (_botonAnterior != null) _botonAnterior.Enabled = PaginaActual > 1;
-            if (_botonSiguiente != null) _botonSiguiente.Enabled = PaginaActual < TotalPaginas;
-            if (_botonUltimo != null) _botonUltimo.Enabled = PaginaActual < TotalPaginas;
+            _etiquetaInformacionPagina?.Text = $"Página {PaginaActual} de {TotalPaginas}";
+            _etiquetaTotal?.Text = $"Total: {TotalRegistros} registros";
+            _botonPrimero?.Enabled = PaginaActual > 1;
+            _botonAnterior?.Enabled = PaginaActual > 1;
+            _botonSiguiente?.Enabled = PaginaActual < TotalPaginas;
+            _botonUltimo?.Enabled = PaginaActual < TotalPaginas;
         }
 
         private void _botonSiguiente_Click(object sender, EventArgs e)

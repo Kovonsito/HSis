@@ -1,7 +1,6 @@
 using System.Net.Http;
 using System.Net.Http.Headers;
 using HSis.Contracts.Services;
-using HSis.UI.Services;
 
 namespace HSis.UI.ApiClients
 {

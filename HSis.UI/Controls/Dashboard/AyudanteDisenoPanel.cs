@@ -62,17 +62,42 @@ namespace HSis.UI.Helpers
             return tbl;
         }
 
-        public static void ReubicarControles(Control padre, Control tblPrincipal, params Control?[] controlesARemover)
+        public static TableLayoutPanel CrearCabeceraDashboard(Control pnlKpis, Control? pnlAcciones, int anchoAcciones = 160)
         {
-            foreach (var ctrl in controlesARemover)
+            var tbl = new TableLayoutPanel
             {
-                if (ctrl != null)
-                {
-                    padre.Controls.Remove(ctrl);
-                }
+                Dock = DockStyle.Fill,
+                Name = "tblCabeceraDashboard",
+                RowCount = 1,
+                ColumnCount = pnlAcciones != null ? 2 : 1,
+                Margin = new Padding(0, 0, 0, 8),
+                BackColor = TemaVisual.FondoApp
+            };
+
+            tbl.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+
+            if (pnlAcciones != null)
+            {
+                tbl.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+                tbl.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, anchoAcciones));
+
+                pnlKpis.Dock = DockStyle.Fill;
+                pnlKpis.Margin = new Padding(0, 0, 8, 0);
+                tbl.Controls.Add(pnlKpis, 0, 0);
+
+                pnlAcciones.Dock = DockStyle.Fill;
+                pnlAcciones.Margin = new Padding(4, 0, 0, 0);
+                tbl.Controls.Add(pnlAcciones, 1, 0);
             }
-            padre.Controls.Add(tblPrincipal);
-            tblPrincipal.BringToFront();
+            else
+            {
+                tbl.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+                pnlKpis.Dock = DockStyle.Fill;
+                pnlKpis.Margin = new Padding(0);
+                tbl.Controls.Add(pnlKpis, 0, 0);
+            }
+
+            return tbl;
         }
     }
 }
