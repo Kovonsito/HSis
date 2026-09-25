@@ -59,23 +59,29 @@ namespace HSis.UI.Controls
 
             foreach (var campo in campos)
             {
-                var container = new FlowLayoutPanel
+                var container = new TableLayoutPanel
                 {
-                    FlowDirection = FlowDirection.TopDown,
-                    WrapContents = false,
+                    ColumnCount = 1,
+                    RowCount = 2,
                     Width = campo.Ancho,
-                    Height = 48,
+                    Height = 52,
                     Margin = new Padding(4, 1, 4, 1),
+                    Padding = new Padding(0),
                     BackColor = Color.White
                 };
+                container.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+                container.RowStyles.Add(new RowStyle(SizeType.Absolute, 16F));
+                container.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
 
                 var lbl = new Label
                 {
                     Text = campo.Etiqueta,
-                    AutoSize = true,
+                    AutoSize = false,
+                    Dock = DockStyle.Fill,
+                    TextAlign = ContentAlignment.MiddleLeft,
                     Font = new Font("Segoe UI Semibold", 8F, FontStyle.Bold),
                     ForeColor = Color.FromArgb(100, 116, 139),
-                    Margin = new Padding(0, 0, 0, 2),
+                    Margin = new Padding(0),
                     BackColor = Color.White
                 };
 
@@ -85,8 +91,6 @@ namespace HSis.UI.Controls
                     case TipoFiltroControl.Texto:
                         var txt = new CajaTextoModerna
                         {
-                            Width = campo.Ancho - 6,
-                            Height = 32,
                             Placeholder = campo.Etiqueta
                         };
                         txt.TextChanged += (s, e) => LanzarFiltroCambiado();
@@ -96,9 +100,7 @@ namespace HSis.UI.Controls
                     case TipoFiltroControl.ComboSeleccion:
                         var cmb = new ComboModerno
                         {
-                            DropDownStyle = ComboBoxStyle.DropDownList,
-                            Width = campo.Ancho - 6,
-                            Height = 32
+                            DropDownStyle = ComboBoxStyle.DropDownList
                         };
                         if (campo.ValoresCombo != null)
                         {
@@ -112,9 +114,7 @@ namespace HSis.UI.Controls
                     case TipoFiltroControl.Fecha:
                         var dtp = new SelectorFechaModerno
                         {
-                            Format = DateTimePickerFormat.Short,
-                            Width = campo.Ancho - 6,
-                            Height = 32
+                            Format = DateTimePickerFormat.Short
                         };
                         if (campo.ValorDefecto is DateTime dt)
                         {
@@ -128,11 +128,14 @@ namespace HSis.UI.Controls
                         continue;
                 }
 
+                input.Dock = DockStyle.Fill;
+                input.Margin = new Padding(0);
+
                 _controlesEntrada[campo.NombrePropiedad] = input;
                 _tipos[campo.NombrePropiedad] = campo.Tipo;
 
-                container.Controls.Add(lbl);
-                container.Controls.Add(input);
+                container.Controls.Add(lbl, 0, 0);
+                container.Controls.Add(input, 0, 1);
                 flowLayoutPanelMain.Controls.Add(container);
             }
 
@@ -245,6 +248,20 @@ namespace HSis.UI.Controls
                 }
                 _suspenderEventos = false;
             }
+        }
+
+        public bool CargarOpcionesCombo(string nombrePropiedad, IEnumerable<object> opciones)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(nombrePropiedad);
+            ArgumentNullException.ThrowIfNull(opciones);
+
+            if (!_controlesEntrada.ContainsKey(nombrePropiedad))
+            {
+                return false;
+            }
+
+            ConfigurarOpcionesCombo(nombrePropiedad, opciones);
+            return true;
         }
 
         public Dictionary<string, object?> ObtenerValoresFiltros()

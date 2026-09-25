@@ -36,7 +36,7 @@ partial class IndicadorControl
         // 
         // lblCantidad
         // 
-        lblCantidad.AutoSize = true;
+        lblCantidad.AutoSize = false;
         lblCantidad.BackColor = System.Drawing.Color.Transparent;
         lblCantidad.Font = new System.Drawing.Font("Segoe UI", 20F, System.Drawing.FontStyle.Bold);
         lblCantidad.ForeColor = System.Drawing.Color.FromArgb(15, 23, 42);
@@ -70,7 +70,9 @@ partial class IndicadorControl
         Controls.Add(pbxIcono);
         Cursor = System.Windows.Forms.Cursors.Hand;
         Name = "IndicadorControl";
-        Size = new System.Drawing.Size(200, 85);
+        // Permitir que el indicador ajuste su tamaño automáticamente según contenido
+        AutoSize = false;
+        MinimumSize = new System.Drawing.Size(120, 80);
         Click += Indicador_Click;
         ((System.ComponentModel.ISupportInitialize)pbxIcono).EndInit();
         ResumeLayout(false);

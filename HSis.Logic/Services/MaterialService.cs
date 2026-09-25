@@ -1,6 +1,7 @@
 using HSis.Contracts.Services;
 using HSis.Data.Models;
 using HSis.Contracts.DTOs;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
 namespace HSis.Logic.Services
@@ -8,8 +9,59 @@ namespace HSis.Logic.Services
     /// <summary>
     /// Servicio para gestionar operaciones relacionadas con Materiales e inventario.
     /// </summary>
-    public class MaterialService(IDbContextFactory<HSisDbContext> dbContextFactory) : IMaterialService
+    public class MaterialService(
+        IDbContextFactory<HSisDbContext> dbContextFactory,
+        IValidator<Material>? validator = null) : IMaterialService
     {
+        public async Task<MaterialDto> CrearMaterialAsync(MaterialCatalogoRequestDto request)
+        {
+            var material = new Material
+            {
+                Nombre = request.Nombre,
+                Costo = request.CostoUnitario,
+                Inventario = request.StockActual,
+                UnidadMedida = request.UnidadMedida
+            };
+            await CatalogoValidation.ValidarAsync(validator, material);
+
+            using var db = dbContextFactory.CreateDbContext();
+            db.Materials.Add(material);
+            await db.SaveChangesAsync();
+            return Convertir(material);
+        }
+
+        public async Task<MaterialDto?> ActualizarMaterialAsync(int idMaterial, MaterialCatalogoRequestDto request)
+        {
+            using var db = dbContextFactory.CreateDbContext();
+            var material = await db.Materials.FindAsync(idMaterial);
+            if (material is null)
+            {
+                return null;
+            }
+
+            material.Nombre = request.Nombre;
+            material.Costo = request.CostoUnitario;
+            material.Inventario = request.StockActual;
+            material.UnidadMedida = request.UnidadMedida;
+            await CatalogoValidation.ValidarAsync(validator, material);
+            await db.SaveChangesAsync();
+            return Convertir(material);
+        }
+
+        public async Task<bool> EliminarMaterialAsync(int idMaterial)
+        {
+            using var db = dbContextFactory.CreateDbContext();
+            var material = await db.Materials.FindAsync(idMaterial);
+            if (material is null)
+            {
+                return false;
+            }
+
+            db.Materials.Remove(material);
+            await db.SaveChangesAsync();
+            return true;
+        }
+
         public async Task ActualizarCostoMaterialAsync(int idMaterial, decimal nuevoCosto)
         {
             using var db = dbContextFactory.CreateDbContext();
@@ -37,6 +89,15 @@ namespace HSis.Logic.Services
                 })
                 .ToListAsync();
         }
+
+        private static MaterialDto Convertir(Material material) => new()
+        {
+            IdMaterial = material.IdMaterial,
+            Nombre = material.Nombre,
+            CostoUnitario = material.Costo,
+            StockActual = material.Inventario,
+            UnidadMedida = material.UnidadMedida
+        };
 
         public async Task<List<KardexMovimientoDto>> ObtenerKardexPorMaterialAsync(int idMaterial)
         {

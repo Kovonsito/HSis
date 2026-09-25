@@ -8,7 +8,6 @@ namespace HSis.UI.Controls
     public partial class VistaTicketsDashboardControl : UserControl
     {
         private readonly TableLayoutPanel _tblPrincipal;
-        private TableLayoutPanel? _tblCabecera;
         private TableLayoutPanel? _tblIndicadores;
         private FlowLayoutPanel? _pnlAcciones;
         private readonly Dictionary<TipoKpiDashboard, IndicadorControl> _kpisActivos = [];
@@ -68,9 +67,9 @@ namespace HSis.UI.Controls
 
             // 4. Panel principal en franjas
             _tblPrincipal = AyudanteDisenoPanel.CrearPanelPrincipal(Size, incluirFiltros: true);
-            _tblPrincipal.Controls.Add(_filtroGenerico, 0, 1);
-            _tblPrincipal.Controls.Add(_dgvTickets, 0, 2);
-            _tblPrincipal.Controls.Add(_paginacionControl, 0, 3);
+            _tblPrincipal.Controls.Add(_filtroGenerico, 0, 2);
+            _tblPrincipal.Controls.Add(_dgvTickets, 0, 3);
+            _tblPrincipal.Controls.Add(_paginacionControl, 0, 4);
 
             Controls.Add(_tblPrincipal);
         }
@@ -108,63 +107,54 @@ namespace HSis.UI.Controls
 
         private void ReconstruirCabecera(List<Control> controlesKpi, List<Control> botones)
         {
-            if (_tblCabecera != null)
+            foreach (Control control in _tblPrincipal.Controls.Cast<Control>().ToList())
             {
-                _tblPrincipal.Controls.Remove(_tblCabecera);
-                _tblCabecera.Dispose();
-                _tblCabecera = null;
-                _tblIndicadores = null;
-                _pnlAcciones = null;
+                var posicion = _tblPrincipal.GetPositionFromControl(control);
+                if (posicion.Row is 0 or 1)
+                {
+                    _tblPrincipal.Controls.Remove(control);
+                    control.Dispose();
+                }
             }
 
-            if (controlesKpi.Count == 0 && botones.Count == 0) return;
+            _tblIndicadores = null;
+            _pnlAcciones = null;
 
-            // 1. Contenedor de KPIs
-            Control pnlKpis;
             if (controlesKpi.Count > 0)
             {
                 _tblIndicadores = AyudanteDisenoPanel.CrearPanelIndicadores(
                     "tblKPIsDashboard",
                     controlesKpi.Count,
-                    controlesKpi.ToArray()
-                );
-                pnlKpis = _tblIndicadores;
-            }
-            else
-            {
-                pnlKpis = new Panel { Dock = DockStyle.Fill, BackColor = TemaVisual.FondoApp };
+                    controlesKpi.ToArray());
+                _tblIndicadores.Dock = DockStyle.Fill;
+                _tblIndicadores.AutoSize = false;
+                _tblPrincipal.Controls.Add(_tblIndicadores, 0, 0);
             }
 
-            // 2. Contenedor de Botones de Acción (separado)
-            Control? pnlBotones = null;
-            int anchoAcciones = 190;
             if (botones.Count > 0)
             {
                 _pnlAcciones = new FlowLayoutPanel
                 {
                     Dock = DockStyle.Fill,
                     FlowDirection = FlowDirection.RightToLeft,
-                    WrapContents = false,
+                    WrapContents = true,
+                    AutoScroll = true,
+                    Padding = new Padding(0, 4, 0, 4),
                     Margin = new Padding(0),
-                    Padding = new Padding(0, 14, 0, 14),
                     BackColor = TemaVisual.FondoApp
                 };
 
-                int anchoAcumulado = 0;
                 foreach (var btn in botones)
                 {
                     btn.Visible = true;
-                    btn.Margin = new Padding(8, 0, 0, 0);
+                    btn.AutoSize = false;
+                    btn.Size = new Size(Math.Max(140, btn.Width), 42);
+                    btn.Margin = new Padding(8, 2, 0, 2);
                     _pnlAcciones.Controls.Add(btn);
-                    btn.BringToFront();
-                    anchoAcumulado += btn.Width + 16;
                 }
-                anchoAcciones = Math.Max(190, anchoAcumulado + 16);
-                pnlBotones = _pnlAcciones;
-            }
 
-            _tblCabecera = AyudanteDisenoPanel.CrearCabeceraDashboard(pnlKpis, pnlBotones, anchoAcciones);
-            _tblPrincipal.Controls.Add(_tblCabecera, 0, 0);
+                _tblPrincipal.Controls.Add(_pnlAcciones, 0, 1);
+            }
         }
 
         /// <summary>

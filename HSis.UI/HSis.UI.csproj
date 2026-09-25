@@ -59,9 +59,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Update="Properties\Resources.resx">
+    <EmbeddedResource Remove="Properties\Resources.resx" />
+    <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <LogicalName>HSis.UI.Properties.Resources.resources</LogicalName>
     </EmbeddedResource>
   </ItemGroup>
 

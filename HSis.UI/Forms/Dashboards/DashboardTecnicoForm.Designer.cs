@@ -47,7 +47,6 @@ partial class DashboardTecnicoForm
 
         // pnlContenedorPrincipal
         this.pnlContenedorPrincipal.BackColor = Color.FromArgb(248, 250, 252);
-        this.pnlContenedorPrincipal.Controls.Add(this.topBarTecnico);
         this.pnlContenedorPrincipal.Dock = DockStyle.Fill;
         this.pnlContenedorPrincipal.Location = new Point(240, 0);
         this.pnlContenedorPrincipal.Name = "pnlContenedorPrincipal";
@@ -69,6 +68,7 @@ partial class DashboardTecnicoForm
         this.vistaTickets.Name = "vistaTickets";
         this.vistaTickets.TabIndex = 1;
         this.pnlContenedorPrincipal.Controls.Add(this.vistaTickets);
+        this.pnlContenedorPrincipal.Controls.Add(this.topBarTecnico);
 
         // DashboardTecnicoForm
         this.AutoScaleDimensions = new SizeF(7F, 15F);

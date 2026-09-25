@@ -27,6 +27,17 @@ namespace HSis.UI.Coordinators
         protected List<TicketDto> TodosLosTickets = [];
         protected bool EstaCargando = false;
 
+        protected override void AlCambiarFiltros()
+        {
+            if (EstaCargando)
+            {
+                return;
+            }
+
+            VistaTickets.ControladorPaginacion.ReiniciarAPrimeraPagina();
+            MostrarPaginaActual();
+        }
+
         public void MostrarPaginaActual()
         {
             if (EstaCargando) return;

@@ -15,7 +15,7 @@ namespace HSis.UI.Helpers
             "IdTicket", "IdUsuario", "NombreUsuario", "DepartamentoUsuario",
             "FechaAtencion", "FechaCierre", "Estatus", "IdTecnico", "NombreTecnico",
             "TecnicoAsignado", "Calificacion", "ComentarioEvaluacion", "FechaEvaluacion",
-            "Evaluacion", "Feedback", "FolioFormato"
+            "Evaluacion", "Feedback", "FolioFormato", "Folio", "Usuario", "Status"
         ];
 
         /// <summary>
@@ -30,7 +30,7 @@ namespace HSis.UI.Helpers
                 "IdTicket", "IdUsuario", "NombreUsuario", "Usuario", "DepartamentoUsuario",
                 "FechaAtencion", "FechaCierre", "Estatus", "Solucion", "IdTecnico",
                 "NombreTecnico", "Prioridad", "Calificacion", "ComentarioEvaluacion",
-                "FechaEvaluacion", "Evaluacion", "FolioFormato");
+                "FechaEvaluacion", "Evaluacion", "FolioFormato", "Folio", "Status");
 
             dgv.ConfigurarColumnas(
                 ("Folio", "Folio", 70, null),
@@ -75,13 +75,16 @@ namespace HSis.UI.Helpers
         {
             if (dgv.Columns.Count == 0) return;
 
-            dgv.ConfigurarOcultarColumnas(_columnasOcultasBase);
+            dgv.ConfigurarOcultarColumnas(
+                "IdTicket", "IdUsuario", "DepartamentoUsuario", "FechaAlta", "FechaAtencion", "FechaCierre",
+                "Estatus", "Status", "IdTecnico", "NombreTecnico", "TecnicoAsignado", "Prioridad",
+                "Descripcion", "Solucion", "Evaluacion", "Feedback", "Folio", "FolioFormato", "Usuario");
 
             dgv.ConfigurarColumnas(
                 ("NombreUsuario", "Usuario Calificador", 180, null),
-                ("Comentario", "Comentario de Retroalimentación", 320, null),
-                ("FechaRegistro", "Fecha Calificación", 140, null),
-                ("Puntuacion", "Calificación ⭐", 130, null)
+                ("ComentarioEvaluacion", "Comentario de Retroalimentación", 320, null),
+                ("FechaEvaluacion", "Fecha Calificación", 140, "dd/MM/yyyy HH:mm"),
+                ("Calificacion", "Calificación ⭐", 130, null)
             );
 
             dgv.AutoajustarAnchosMinimos();
@@ -97,7 +100,7 @@ namespace HSis.UI.Helpers
 
             dgv.ConfigurarOcultarColumnas(
                 "IdTicket", "IdUsuario", "DepartamentoUsuario", "Calificacion",
-                "ComentarioEvaluacion", "FechaEvaluacion", "Evaluacion", "Feedback", "FolioFormato");
+                "ComentarioEvaluacion", "FechaEvaluacion", "Evaluacion", "Feedback", "FolioFormato", "Folio", "Usuario", "Status");
 
             dgv.ConfigurarColumnas(
                 ("Folio", "Folio", 50, null),

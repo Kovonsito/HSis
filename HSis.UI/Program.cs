@@ -9,6 +9,7 @@ using HSis.Contracts.Validators;
 using HSis.UI.Factories;
 using HSis.UI.Services;
 using HSis.UI.Forms.Auth;
+using HSis.UI.Forms.Catalogos;
 using HSis.UI.Forms.Dashboards;
 using HSis.UI.Forms.Otros;
 using HSis.UI.Forms.Tickets;
@@ -139,9 +140,21 @@ namespace HSis.UI
                         .AddHttpMessageHandler<ApiClients.JwtAuthHeaderHandler>();
                 services.AddHttpClient<ICatalogoService, ApiClients.CatalogoApiClientService>(ConfigurarHttpClient)
                         .AddHttpMessageHandler<ApiClients.JwtAuthHeaderHandler>();
+                services.AddHttpClient<ICatalogoGestionService, ApiClients.CatalogoApiClientService>(ConfigurarHttpClient)
+                        .AddHttpMessageHandler<ApiClients.JwtAuthHeaderHandler>();
                 services.AddHttpClient<ITicketDetalleService, ApiClients.TicketDetalleApiClientService>(ConfigurarHttpClient)
                         .AddHttpMessageHandler<ApiClients.JwtAuthHeaderHandler>();
                 services.AddHttpClient<IMaterialService, ApiClients.MaterialApiClientService>(ConfigurarHttpClient)
+                        .AddHttpMessageHandler<ApiClients.JwtAuthHeaderHandler>();
+                services.AddHttpClient<IDepartamentoService, ApiClients.CatalogosAdministracionApiClientService>(ConfigurarHttpClient)
+                        .AddHttpMessageHandler<ApiClients.JwtAuthHeaderHandler>();
+                services.AddHttpClient<ISucursalService, ApiClients.CatalogosAdministracionApiClientService>(ConfigurarHttpClient)
+                        .AddHttpMessageHandler<ApiClients.JwtAuthHeaderHandler>();
+                services.AddHttpClient<IEmpresaService, ApiClients.CatalogosAdministracionApiClientService>(ConfigurarHttpClient)
+                        .AddHttpMessageHandler<ApiClients.JwtAuthHeaderHandler>();
+                services.AddHttpClient<IPuestoService, ApiClients.CatalogosAdministracionApiClientService>(ConfigurarHttpClient)
+                        .AddHttpMessageHandler<ApiClients.JwtAuthHeaderHandler>();
+                services.AddHttpClient<IRolUsuarioService, ApiClients.CatalogosAdministracionApiClientService>(ConfigurarHttpClient)
                         .AddHttpMessageHandler<ApiClients.JwtAuthHeaderHandler>();
                 services.AddHttpClient<IReportExportService, ApiClients.ReportExportApiClientService>(ConfigurarHttpClient)
                         .AddHttpMessageHandler<ApiClients.JwtAuthHeaderHandler>();
@@ -165,6 +178,13 @@ namespace HSis.UI
                 services.AddTransient<NuevoTicketForm>();
                 services.AddTransient<DetalleClienteForm>();
                 services.AddTransient<TicketDetalleForm>();
+                services.AddTransient<MaterialCatalogoForm>();
+                services.AddTransient<UsuarioCatalogoForm>();
+                services.AddTransient<DepartamentoCatalogoForm>();
+                services.AddTransient<SucursalCatalogoForm>();
+                services.AddTransient<EmpresaCatalogoForm>();
+                services.AddTransient<PuestoCatalogoForm>();
+                services.AddTransient<RolUsuarioCatalogoForm>();
 
                 ServiceProvider = services.BuildServiceProvider();
 

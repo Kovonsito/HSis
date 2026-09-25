@@ -21,71 +21,82 @@ partial class DashboardClienteForm
 
     private void InitializeComponent()
     {
-        this.sidebarCliente = new HSis.UI.Controls.SidebarControl();
-        this.topBarCliente = new HSis.UI.Controls.TopBarControl();
-        this.pnlContenedorPrincipal = new Panel();
-        this.btnNuevoReporte = new HSis.UI.Controls.BotonModerno();
-        this.pnlContenedorPrincipal.SuspendLayout();
-        this.SuspendLayout();
-
+        sidebarCliente = new SidebarControl();
+        topBarCliente = new TopBarControl();
+        pnlContenedorPrincipal = new Panel();
+        vistaTickets = new VistaTicketsDashboardControl();
+        btnNuevoReporte = new BotonModerno();
+        pnlContenedorPrincipal.SuspendLayout();
+        SuspendLayout();
+        // 
         // sidebarCliente
-        this.sidebarCliente.Dock = DockStyle.Left;
-        this.sidebarCliente.Location = new Point(0, 0);
-        this.sidebarCliente.Name = "sidebarCliente";
-        this.sidebarCliente.Size = new Size(240, 720);
-        this.sidebarCliente.TabIndex = 0;
-
+        // 
+        sidebarCliente.BackColor = Color.FromArgb(15, 23, 42);
+        sidebarCliente.Dock = DockStyle.Left;
+        sidebarCliente.Location = new Point(0, 0);
+        sidebarCliente.Name = "sidebarCliente";
+        sidebarCliente.Size = new Size(240, 720);
+        sidebarCliente.TabIndex = 0;
+        // 
         // topBarCliente
-        this.topBarCliente.Dock = DockStyle.Top;
-        this.topBarCliente.Location = new Point(0, 0);
-        this.topBarCliente.Name = "topBarCliente";
-        this.topBarCliente.Size = new Size(960, 64);
-        this.topBarCliente.TabIndex = 0;
-        this.topBarCliente.Titulo = "Mi Portal de Soporte";
-        this.topBarCliente.Subtitulo = "Seguimiento y Registro de Solicitudes";
-
+        // 
+        topBarCliente.BackColor = Color.White;
+        topBarCliente.Dock = DockStyle.Top;
+        topBarCliente.Location = new Point(0, 0);
+        topBarCliente.Name = "topBarCliente";
+        topBarCliente.Size = new Size(960, 64);
+        topBarCliente.TabIndex = 0;
+        topBarCliente.Load += topBarCliente_Load;
+        // 
         // pnlContenedorPrincipal
-        this.pnlContenedorPrincipal.BackColor = Color.FromArgb(248, 250, 252);
-        this.pnlContenedorPrincipal.Controls.Add(this.topBarCliente);
-        this.pnlContenedorPrincipal.Dock = DockStyle.Fill;
-        this.pnlContenedorPrincipal.Location = new Point(240, 0);
-        this.pnlContenedorPrincipal.Name = "pnlContenedorPrincipal";
-        this.pnlContenedorPrincipal.Size = new Size(960, 720);
-        this.pnlContenedorPrincipal.TabIndex = 1;
-
-        // btnNuevoReporte
-        this.btnNuevoReporte.Estilo = EstiloBotonModerno.Primario;
-        this.btnNuevoReporte.Icono = FontAwesome.Sharp.IconChar.Plus;
-        this.btnNuevoReporte.IconoTamano = 16;
-        this.btnNuevoReporte.Font = new Font("Segoe UI Semibold", 10.5F, FontStyle.Bold);
-        this.btnNuevoReporte.Name = "btnNuevoReporte";
-        this.btnNuevoReporte.Size = new Size(180, 48);
-        this.btnNuevoReporte.TabIndex = 2;
-        this.btnNuevoReporte.Text = "Nuevo Reporte";
-
+        // 
+        pnlContenedorPrincipal.BackColor = Color.FromArgb(248, 250, 252);
+        pnlContenedorPrincipal.Controls.Add(vistaTickets);
+        pnlContenedorPrincipal.Controls.Add(topBarCliente);
+        pnlContenedorPrincipal.Dock = DockStyle.Fill;
+        pnlContenedorPrincipal.Location = new Point(240, 0);
+        pnlContenedorPrincipal.Name = "pnlContenedorPrincipal";
+        pnlContenedorPrincipal.Size = new Size(960, 720);
+        pnlContenedorPrincipal.TabIndex = 1;
+        // 
         // vistaTickets
-        this.vistaTickets = new HSis.UI.Controls.VistaTicketsDashboardControl();
-        this.vistaTickets.Dock = DockStyle.Fill;
-        this.vistaTickets.Location = new Point(0, 64);
-        this.vistaTickets.Name = "vistaTickets";
-        this.vistaTickets.Size = new Size(960, 656);
-        this.vistaTickets.TabIndex = 2;
-        this.pnlContenedorPrincipal.Controls.Add(this.vistaTickets);
-
+        // 
+        vistaTickets.BackColor = Color.FromArgb(248, 250, 252);
+        vistaTickets.Dock = DockStyle.Fill;
+        vistaTickets.Location = new Point(0, 64);
+        vistaTickets.Name = "vistaTickets";
+        vistaTickets.Size = new Size(960, 656);
+        vistaTickets.TabIndex = 2;
+        // 
+        // btnNuevoReporte
+        // 
+        btnNuevoReporte.BackColor = Color.Transparent;
+        btnNuevoReporte.FlatStyle = FlatStyle.Flat;
+        btnNuevoReporte.Font = new Font("Segoe UI Semibold", 10.5F, FontStyle.Bold);
+        btnNuevoReporte.ForeColor = Color.White;
+        btnNuevoReporte.Icono = FontAwesome.Sharp.IconChar.Add;
+        btnNuevoReporte.Location = new Point(0, 0);
+        btnNuevoReporte.Name = "btnNuevoReporte";
+        btnNuevoReporte.Size = new Size(180, 48);
+        btnNuevoReporte.TabIndex = 2;
+        btnNuevoReporte.Text = "Nuevo Reporte";
+        btnNuevoReporte.UseVisualStyleBackColor = false;
+        // 
         // DashboardClienteForm
-        this.AutoScaleDimensions = new SizeF(7F, 15F);
-        this.AutoScaleMode = AutoScaleMode.Font;
-        this.BackColor = Color.FromArgb(248, 250, 252);
-        this.ClientSize = new Size(1200, 720);
-        this.MinimumSize = new Size(800, 500);
-        this.Controls.Add(this.pnlContenedorPrincipal);
-        this.Controls.Add(this.sidebarCliente);
-        this.Name = "DashboardClienteForm";
-        this.StartPosition = FormStartPosition.CenterScreen;
-        this.Text = "HSis Support - Mi Portal";
-        this.Load += new EventHandler(this.frmDashboardCliente_Load);
-        this.pnlContenedorPrincipal.ResumeLayout(false);
-        this.ResumeLayout(false);
+        // 
+        AutoScaleDimensions = new SizeF(7F, 15F);
+        AutoScaleMode = AutoScaleMode.Font;
+        BackColor = Color.FromArgb(248, 250, 252);
+        ClientSize = new Size(1200, 720);
+        Controls.Add(pnlContenedorPrincipal);
+        Controls.Add(sidebarCliente);
+        MinimumSize = new Size(800, 500);
+        Name = "DashboardClienteForm";
+        StartPosition = FormStartPosition.CenterScreen;
+        Text = "HSis Support - Mi Portal";
+        Load += frmDashboardCliente_Load;
+        pnlContenedorPrincipal.ResumeLayout(false);
+        ResumeLayout(false);
     }
 
     private HSis.UI.Controls.SidebarControl sidebarCliente;

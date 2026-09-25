@@ -28,7 +28,7 @@ namespace HSis.UI.Forms.Tickets
         {
             _ticketActual = ticket;
 
-            lblFolioValor.Text = $"TK{ticket.IdTicket:D6}";
+            lblFolioValor.Text = ticket.IdTicket.ToString(System.Globalization.CultureInfo.InvariantCulture);
             lblFechaAltaValor.Text = ticket.FechaAlta?.ToString("dd/MM/yyyy HH:mm") ?? "N/A";
             lblEstatusValor.Text = ticket.Estatus ?? "Desconocido";
             lblTecnicoValor.Text = ticket.NombreTecnico ?? "Sin asignar";
