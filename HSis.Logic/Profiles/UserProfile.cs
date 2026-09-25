@@ -1,5 +1,6 @@
 using HSis.Data.Models;
 using HSis.Contracts.DTOs;
+using HSis.Logic.Helpers;
 using Mapster;
 
 namespace HSis.Logic.Profiles
@@ -10,9 +11,11 @@ namespace HSis.Logic.Profiles
         {
             // Entidad a DTO (Ocultamos la contraseña por seguridad)
             config.NewConfig<Usuario, UsuarioDto>()
-                .Map(dest => dest.DepartamentoNombre, src => src.Departamento != null ? src.Departamento.Nombre : string.Empty)
-                .Map(dest => dest.PuestoNombre, src => src.Puesto != null ? src.Puesto.Nombre : string.Empty)
-                .Map(dest => dest.SucursalNombre, src => src.Sucursal != null ? src.Sucursal.Nombre : string.Empty)
+                .Map(dest => dest.Nombre, src => NombreDisplayHelper.Normalizar(src.Nombre))
+                .Map(dest => dest.DepartamentoNombre, src => NombreDisplayHelper.Normalizar(src.Departamento != null ? src.Departamento.Nombre : null))
+                .Map(dest => dest.PuestoNombre, src => NombreDisplayHelper.Normalizar(src.Puesto != null ? src.Puesto.Nombre : null))
+                .Map(dest => dest.SucursalNombre, src => NombreDisplayHelper.Normalizar(src.Sucursal != null ? src.Sucursal.Nombre : null))
+                .Map(dest => dest.RolNombre, src => NombreDisplayHelper.Normalizar(src.Rol != null ? src.Rol.Descripcion : null))
                 .Ignore(dest => dest.Contraseña!);
 
             // DTO a Entidad

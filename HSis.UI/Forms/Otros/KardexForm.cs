@@ -16,6 +16,7 @@ namespace HSis.UI.Forms.Otros
         {
             InitializeComponent();
             _materialService = materialService;
+            dgvKardex.AplicarTemaModerno();
         }
 
         public void CargarMateriales(List<MaterialDto> materiales)
@@ -32,6 +33,10 @@ namespace HSis.UI.Forms.Otros
         {
             dgvKardex.DataSource = new ListaVinculableOrdenable<KardexMovimientoDto>(historial);
             dgvKardex.AplicarTemaModerno();
+            lblEstadoKardex.Text = historial.Count == 0
+                ? "No hay movimientos registrados para este material."
+                : string.Empty;
+            lblEstadoKardex.Visible = historial.Count == 0;
 
             var col1 = dgvKardex.Columns["IdMovimiento"];
             col1?.Visible = false;
@@ -73,6 +78,8 @@ namespace HSis.UI.Forms.Otros
             else
             {
                 dgvKardex.DataSource = null;
+                lblEstadoKardex.Text = "Selecciona un material para consultar sus movimientos.";
+                lblEstadoKardex.Visible = true;
             }
         }
         #endregion

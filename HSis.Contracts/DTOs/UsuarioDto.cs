@@ -13,6 +13,7 @@ namespace HSis.Contracts.DTOs
         public string? DepartamentoNombre { get; set; }
         public string? PuestoNombre { get; set; }
         public string? SucursalNombre { get; set; }
+        public string? RolNombre { get; set; }
     }
 }
 

@@ -109,6 +109,11 @@ builder.Services.AddDbContextFactory<HSisDbContext>((sp, options) =>
 // Registrar Servicios de Lógica mediante Interfaces
 builder.Services.AddTransient<ITicketService, TicketService>();
 builder.Services.AddTransient<IUsuarioService, UsuarioService>();
+builder.Services.AddTransient<IDepartamentoService, DepartamentoService>();
+builder.Services.AddTransient<ISucursalService, SucursalService>();
+builder.Services.AddTransient<IEmpresaService, EmpresaService>();
+builder.Services.AddTransient<IPuestoService, PuestoService>();
+builder.Services.AddTransient<IRolUsuarioService, RolUsuarioService>();
 builder.Services.AddTransient<ICatalogoService, CatalogoService>();
 builder.Services.AddTransient<ITicketDetalleService, TicketDetalleService>();
 builder.Services.AddTransient<IMaterialService, MaterialService>();

@@ -37,23 +37,36 @@ namespace HSis.UI.Helpers
             }
 
             formulario.Resize += (s, e) => Reposicionar();
-            topBar.NotificacionesClic += (s, e) => Reposicionar();
+            EventHandler reposicionarHandler = (_, _) => Reposicionar();
+            topBar.NotificacionesClic += reposicionarHandler;
 
             notifControl.VincularTopBar(topBar);
             notifControl.Configurar(fabricaFormularios, contextoSesion, clienteNotificaciones, eventBus, callbackRecargaDatos);
             formulario.Controls.Add(notifControl);
             notifControl.BringToFront();
 
-            ConfigurarOcultarAlHacerClicFuera(formulario, notifControl);
-            formulario.FormClosed += (s, e) => notifControl.DesconectarEvents();
+            ConfigurarOcultarAlHacerClicFuera(formulario, notifControl, topBar);
+            formulario.FormClosed += (_, _) =>
+            {
+                topBar.NotificacionesClic -= reposicionarHandler;
+                notifControl.DesconectarEvents();
+            };
 
             return notifControl;
         }
 
-        private static void ConfigurarOcultarAlHacerClicFuera(Form formulario, NotificacionesControl notifControl)
+        private static void ConfigurarOcultarAlHacerClicFuera(
+            Form formulario,
+            NotificacionesControl notifControl,
+            TopBarControl topBar)
         {
             void SuscribirRecursivo(Control container)
             {
+                if (container == notifControl || container == topBar)
+                {
+                    return;
+                }
+
                 container.Click += (s, e) =>
                 {
                     if (notifControl.Visible)
@@ -68,7 +81,6 @@ namespace HSis.UI.Helpers
 
                 foreach (Control ctrl in container.Controls)
                 {
-                    if (ctrl == notifControl) continue;
                     SuscribirRecursivo(ctrl);
                 }
             }

@@ -21,7 +21,7 @@ namespace HSis.Contracts.DTOs
 
         // Propiedades de conveniencia y compatibilidad unificada con Dashboards
         public int Folio => IdTicket;
-        public string FolioFormato => $"TK-{IdTicket:D6}";
+        public string FolioFormato => IdTicket.ToString(System.Globalization.CultureInfo.InvariantCulture);
         public string? Usuario => NombreUsuario;
         public string? TecnicoAsignado => NombreTecnico;
         public string? Status { get => Estatus; set => Estatus = value; }

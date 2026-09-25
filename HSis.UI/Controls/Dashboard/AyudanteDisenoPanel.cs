@@ -9,7 +9,7 @@ namespace HSis.UI.Helpers
             {
                 Dock = DockStyle.Fill,
                 Name = "tblPrincipal",
-                RowCount = incluirFiltros ? 4 : 3,
+                RowCount = incluirFiltros ? 5 : 4,
                 ColumnCount = 1,
                 Padding = new Padding(16, 12, 16, 10),
                 BackColor = TemaVisual.FondoApp
@@ -17,17 +17,20 @@ namespace HSis.UI.Helpers
 
             tbl.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
 
-            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 105F)); // Fila 0: Indicadores (KPI Cards)
+            // La cabecera tiene una altura controlada para que nunca colapse por el AutoSize
+            // de alguno de sus controles hijos.
+            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 96F)); // Fila 0: Indicadores
+            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 54F)); // Fila 1: Acciones
             if (incluirFiltros)
             {
-                tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 74F));  // Fila 1: Barra de Filtros
-                tbl.RowStyles.Add(new RowStyle(SizeType.Percent, 100F)); // Fila 2: Grid
-                tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 48F));  // Fila 3: Paginación
+                tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 74F));  // Fila 2: Barra de Filtros
+                tbl.RowStyles.Add(new RowStyle(SizeType.Percent, 100F)); // Fila 3: Grid
+                tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 48F));  // Fila 4: Paginación
             }
             else
             {
-                tbl.RowStyles.Add(new RowStyle(SizeType.Percent, 100F)); // Fila 1: Grid
-                tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 48F));  // Fila 2: Paginación
+                tbl.RowStyles.Add(new RowStyle(SizeType.Percent, 100F)); // Fila 2: Grid
+                tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 48F));  // Fila 3: Paginación
             }
 
             return tbl;
@@ -41,9 +44,12 @@ namespace HSis.UI.Helpers
                 Name = nombre,
                 RowCount = 1,
                 ColumnCount = columnas,
-                Margin = new Padding(0, 0, 0, 8),
+                Margin = new Padding(0),
+                Padding = new Padding(0),
                 BackColor = TemaVisual.FondoApp
             };
+
+            tbl.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
 
             float percent = 100f / columnas;
             for (int i = 0; i < columnas; i++)
@@ -55,7 +61,7 @@ namespace HSis.UI.Helpers
             {
                 var ctrl = controles[i];
                 ctrl.Dock = DockStyle.Fill;
-                ctrl.Margin = new Padding(i == 0 ? 0 : 6, 0, i == controles.Length - 1 ? 0 : 6, 0);
+                ctrl.Margin = new Padding(i == 0 ? 0 : 4, 4, i == controles.Length - 1 ? 0 : 4, 4);
                 tbl.Controls.Add(ctrl, i, 0);
             }
 

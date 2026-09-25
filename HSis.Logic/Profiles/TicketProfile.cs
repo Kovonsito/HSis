@@ -1,5 +1,6 @@
 using HSis.Data.Models;
 using HSis.Contracts.DTOs;
+using HSis.Logic.Helpers;
 using Mapster;
 
 namespace HSis.Logic.Profiles
@@ -10,9 +11,9 @@ namespace HSis.Logic.Profiles
         {
             // Entidad a DTO
             config.NewConfig<Ticket, TicketDto>()
-                .Map(dest => dest.NombreUsuario, src => src.Usuario != null ? src.Usuario.Nombre : string.Empty)
-                .Map(dest => dest.NombreTecnico, src => src.Tecnico != null ? src.Tecnico.Nombre : string.Empty)
-                .Map(dest => dest.DepartamentoUsuario, src => src.Usuario != null && src.Usuario.Departamento != null ? src.Usuario.Departamento.Nombre : string.Empty);
+                .Map(dest => dest.NombreUsuario, src => NombreDisplayHelper.Normalizar(src.Usuario != null ? src.Usuario.Nombre : null))
+                .Map(dest => dest.NombreTecnico, src => NombreDisplayHelper.Normalizar(src.Tecnico != null ? src.Tecnico.Nombre : null))
+                .Map(dest => dest.DepartamentoUsuario, src => NombreDisplayHelper.Normalizar(src.Usuario != null && src.Usuario.Departamento != null ? src.Usuario.Departamento.Nombre : null));
 
             // Create DTO a Entidad
             config.NewConfig<TicketCreateDto, Ticket>()

@@ -7,6 +7,38 @@ namespace HSis.UI.ApiClients
 {
     public class MaterialApiClientService(HttpClient httpClient) : IMaterialService
     {
+        public async Task<MaterialDto> CrearMaterialAsync(MaterialCatalogoRequestDto request)
+        {
+            var response = await httpClient.PostAsJsonAsync("api/Catalogos/materiales", request);
+            await response.EnsureSuccessStatusCodeWithDetailsAsync();
+            return await response.Content.ReadFromJsonAsync<MaterialDto>()
+                ?? throw new HttpRequestException("La API no devolvió el material creado.");
+        }
+
+        public async Task<MaterialDto?> ActualizarMaterialAsync(int idMaterial, MaterialCatalogoRequestDto request)
+        {
+            var response = await httpClient.PutAsJsonAsync($"api/Catalogos/materiales/{idMaterial}", request);
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                return null;
+            }
+
+            await response.EnsureSuccessStatusCodeWithDetailsAsync();
+            return await response.Content.ReadFromJsonAsync<MaterialDto>();
+        }
+
+        public async Task<bool> EliminarMaterialAsync(int idMaterial)
+        {
+            var response = await httpClient.DeleteAsync($"api/Catalogos/materiales/{idMaterial}");
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                return false;
+            }
+
+            await response.EnsureSuccessStatusCodeWithDetailsAsync();
+            return true;
+        }
+
         public async Task ActualizarCostoMaterialAsync(int idMaterial, decimal nuevoCosto)
         {
             var response = await httpClient.PutAsJsonAsync($"api/Materiales/{idMaterial}/costo", nuevoCosto);
@@ -15,7 +47,7 @@ namespace HSis.UI.ApiClients
 
         public async Task<List<MaterialDto>> ObtenerMaterialesAsync()
         {
-            return await httpClient.GetFromJsonAsync<List<MaterialDto>>("api/Materiales") ?? [];
+            return await httpClient.GetFromJsonAsync<List<MaterialDto>>("api/Catalogos/materiales") ?? [];
         }
 
         public async Task<List<KardexMovimientoDto>> ObtenerKardexPorMaterialAsync(int idMaterial)

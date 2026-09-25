@@ -5,337 +5,391 @@ using HSis.Contracts.DTOs;
 using HSis.Contracts.Services;
 using HSis.UI.Controls;
 using HSis.UI.Factories;
+using HSis.UI.Forms.Catalogos;
 using HSis.UI.Forms.Otros;
 using HSis.UI.Forms.Tickets;
 using HSis.UI.Helpers;
 
-namespace HSis.UI.Coordinators
+namespace HSis.UI.Coordinators;
+
+[SupportedOSPlatform("windows")]
+public class CoordinadorDashboardAdmin(
+    Form formulario,
+    SidebarControl sidebar,
+    TopBarControl topBar,
+    VistaTicketsDashboardControl vistaTickets,
+    TabControl tabMain,
+    Control btnNuevoTicket,
+    Control btnAbrirReportes,
+    ITicketService ticketService,
+    IUsuarioService usuarioService,
+    IMaterialService materialService,
+    IDepartamentoService departamentoService,
+    ISucursalService sucursalService,
+    IEmpresaService empresaService,
+    IPuestoService puestoService,
+    IRolUsuarioService rolUsuarioService,
+    IAdministradorSesionUsuario contextoSesion,
+    IAlmacenamientoCredencialesLocal sessionCache,
+    IFabricaFormularios formFactory,
+    IClienteSignalRNotificaciones notificationClient)
+    : CoordinadorDashboardBase(
+        formulario,
+        sidebar,
+        topBar,
+        vistaTickets,
+        contextoSesion,
+        sessionCache,
+        formFactory,
+        notificationClient)
 {
-    /// <summary>
-    /// Coordinador unificado para el Dashboard del Administrador.
-    /// Maneja tickets globales (paginación de servidor), KPIs, catálogo de pestañas y modales.
-    /// </summary>
-    [SupportedOSPlatform("windows")]
-    public class CoordinadorDashboardAdmin(
-        Form formulario,
-        SidebarControl sidebar,
-        TopBarControl topBar,
-        VistaTicketsDashboardControl vistaTickets,
-        TabControl tabMain,
-        Control btnNuevoTicket,
-        Control btnAbrirReportes,
-        ITicketService ticketService,
-        IUsuarioService usuarioService,
-        ICatalogoService catalogoService,
-        IAdministradorSesionUsuario contextoSesion,
-        IAlmacenamientoCredencialesLocal sessionCache,
-        IFabricaFormularios formFactory,
-        IClienteSignalRNotificaciones notificationClient) : CoordinadorDashboardBase(formulario, sidebar, topBar, vistaTickets, contextoSesion, sessionCache, formFactory, notificationClient)
+    private readonly ITicketService _ticketService = ticketService;
+    private readonly IUsuarioService _usuarioService = usuarioService;
+    private readonly IMaterialService _materialService = materialService;
+    private readonly IDepartamentoService _departamentoService = departamentoService;
+    private readonly ISucursalService _sucursalService = sucursalService;
+    private readonly IEmpresaService _empresaService = empresaService;
+    private readonly IPuestoService _puestoService = puestoService;
+    private readonly IRolUsuarioService _rolUsuarioService = rolUsuarioService;
+    private readonly TabControl _tabMain = tabMain;
+    private readonly VistaCatalogoAdminControl _vistaMateriales = new("Inventario");
+    private readonly VistaCatalogoAdminControl _vistaUsuarios = new("Usuarios");
+    private readonly VistaCatalogoAdminControl _vistaDepartamentos = new("Departamentos");
+    private readonly VistaCatalogoAdminControl _vistaSucursales = new("Sucursales");
+    private readonly VistaCatalogoAdminControl _vistaEmpresas = new("Empresas");
+    private readonly VistaCatalogoAdminControl _vistaPuestos = new("Puestos");
+    private readonly VistaCatalogoAdminControl _vistaRoles = new("Roles");
+    private readonly Dictionary<string, TabPage> _paginasCatalogos = [];
+    private readonly HashSet<string> _catalogosCargados = [];
+    private List<TicketDto> _tickets = [];
+    private TipoKpiDashboard? _kpiActivo;
+    private int _numeroRecarga;
+
+    protected override void ConfigurarNavegacion()
     {
-        private readonly TabControl _tabMain = tabMain;
-        private readonly Control _btnNuevoTicket = btnNuevoTicket;
-        private readonly Control _btnAbrirReportes = btnAbrirReportes;
-        private readonly ITicketService _ticketService = ticketService;
-        private readonly IUsuarioService _usuarioService = usuarioService;
-        private readonly ICatalogoService _catalogoService = catalogoService;
-        private bool _estaCargando = false;
+        ConfigurarPestanasCatalogos();
+        ConfiguradorSidebarDashboard.Configurar(
+            Sidebar,
+            TopBar,
+            SessionCache,
+            ContextoSesion,
+            FabricaMenusSidebar.ParaAdmin(),
+            "tickets",
+            SeleccionarVista);
 
-        public override async Task IniciarAsync()
+    }
+
+    private void ConfigurarPestanasCatalogos()
+    {
+        if (_paginasCatalogos.Count > 0)
         {
-            ConfigurarNavegacion();
-            ConfigurarVistaTickets();
-
-            Formulario.IntegrarNotificacionesModerno(
-                TopBar, FormFactory, ContextoSesion, NotificationClient, null,
-                () => Task.WhenAll(CargarKPIsAsync(), CargarGridCompletoAsync())
-            );
-
-            await CargarCombosFiltrosAsync();
-            _estaCargando = false;
-
-            await Task.WhenAll(CargarKPIsAsync(), CargarGridCompletoAsync());
-            await ConfigurarTabsCatalogosAsync();
+            return;
         }
 
-        protected override void ConfigurarNavegacion()
-        {
-            ConfiguradorSidebarDashboard.Configurar(
-                sidebar: Sidebar,
-                topBar: TopBar,
-                sessionCache: SessionCache,
-                contextoSesion: ContextoSesion,
-                items: FabricaMenusSidebar.ParaAdmin(),
-                claveDefault: "tickets",
-                alSeleccionar: SeleccionarVista
-            );
-        }
+        _vistaMateriales.ConfigurarColumnas(
+            ("IdMaterial", "Id", 70),
+            ("Nombre", "Nombre", 180),
+            ("Costo", "Costo", 100),
+            ("Inventario", "Existencias", 100),
+            ("UnidadMedida", "Unidad de medida", 140));
+        _vistaUsuarios.ConfigurarColumnas(
+            ("IdUsuario", "Id", 70),
+            ("Nombre", "Nombre", 170),
+            ("Departamento", "Departamento", 130),
+            ("Puesto", "Puesto", 130),
+            ("Sucursal", "Sucursal", 130),
+            ("Rol", "Rol", 80));
+        _vistaDepartamentos.ConfigurarColumnas(
+            ("IdDepartamento", "Id", 70),
+            ("Nombre", "Nombre", 180),
+            ("Descripcion", "Descripción", 260));
+        _vistaSucursales.ConfigurarColumnas(
+            ("IdSucursal", "Id", 70),
+            ("Nombre", "Nombre", 150),
+            ("Empresa", "Empresa", 140),
+            ("Calle", "Calle", 140),
+            ("Numero", "Número", 80),
+            ("Colonia", "Colonia", 130),
+            ("Telefono", "Teléfono", 120));
+        _vistaEmpresas.ConfigurarColumnas(
+            ("IdEmpresa", "Id", 70),
+            ("Nombre", "Nombre", 170),
+            ("Calle", "Calle", 140),
+            ("Numero", "Número", 80),
+            ("Colonia", "Colonia", 130),
+            ("Telefono", "Teléfono", 120));
+        _vistaPuestos.ConfigurarColumnas(
+            ("IdPuesto", "Id", 70),
+            ("Nombre", "Nombre", 180),
+            ("Descripcion", "Descripción", 260));
+        _vistaRoles.ConfigurarColumnas(
+            ("IdRol", "Id", 70),
+            ("Descripcion", "Descripción", 260));
 
-        protected override void ConfigurarVistaTickets()
+        AgregarPaginaCatalogo("inventario", "Inventario", _vistaMateriales);
+        AgregarPaginaCatalogo("usuarios", "Usuarios", _vistaUsuarios);
+        AgregarPaginaCatalogo("departamentos", "Departamentos", _vistaDepartamentos);
+        AgregarPaginaCatalogo("sucursales", "Sucursales", _vistaSucursales);
+        AgregarPaginaCatalogo("empresas", "Empresas", _vistaEmpresas);
+        AgregarPaginaCatalogo("puestos", "Puestos", _vistaPuestos);
+        AgregarPaginaCatalogo("roles", "Roles", _vistaRoles);
+
+        _vistaMateriales.ActualizarClic += async (_, _) => await CargarMaterialesAsync();
+        _vistaMateriales.NuevoClic += async (_, _) => await NuevoMaterialAsync();
+        _vistaMateriales.EditarClic += async (_, _) => await EditarMaterialAsync();
+        _vistaMateriales.EliminarClic += async (_, _) => await EliminarMaterialAsync();
+
+        _vistaUsuarios.ActualizarClic += async (_, _) => await CargarUsuariosAsync();
+        _vistaUsuarios.NuevoClic += async (_, _) => await NuevoUsuarioAsync();
+        _vistaUsuarios.EditarClic += async (_, _) => await EditarUsuarioAsync();
+        _vistaUsuarios.EliminarClic += async (_, _) => await EliminarUsuarioAsync();
+
+        _vistaDepartamentos.ActualizarClic += async (_, _) => await CargarDepartamentosAsync();
+        _vistaDepartamentos.NuevoClic += async (_, _) => await NuevoDepartamentoAsync();
+        _vistaDepartamentos.EditarClic += async (_, _) => await EditarDepartamentoAsync();
+        _vistaDepartamentos.EliminarClic += async (_, _) => await EliminarDepartamentoAsync();
+
+        _vistaSucursales.ActualizarClic += async (_, _) => await CargarSucursalesAsync();
+        _vistaSucursales.NuevoClic += async (_, _) => await NuevoSucursalAsync();
+        _vistaSucursales.EditarClic += async (_, _) => await EditarSucursalAsync();
+        _vistaSucursales.EliminarClic += async (_, _) => await EliminarSucursalAsync();
+
+        _vistaEmpresas.ActualizarClic += async (_, _) => await CargarEmpresasAsync();
+        _vistaEmpresas.NuevoClic += async (_, _) => await NuevoEmpresaAsync();
+        _vistaEmpresas.EditarClic += async (_, _) => await EditarEmpresaAsync();
+        _vistaEmpresas.EliminarClic += async (_, _) => await EliminarEmpresaAsync();
+
+        _vistaPuestos.ActualizarClic += async (_, _) => await CargarPuestosAsync();
+        _vistaPuestos.NuevoClic += async (_, _) => await NuevoPuestoAsync();
+        _vistaPuestos.EditarClic += async (_, _) => await EditarPuestoAsync();
+        _vistaPuestos.EliminarClic += async (_, _) => await EliminarPuestoAsync();
+
+        _vistaRoles.ActualizarClic += async (_, _) => await CargarRolesAsync();
+        _vistaRoles.NuevoClic += async (_, _) => await NuevoRolAsync();
+        _vistaRoles.EditarClic += async (_, _) => await EditarRolAsync();
+        _vistaRoles.EliminarClic += async (_, _) => await EliminarRolAsync();
+    }
+
+    private void AgregarPaginaCatalogo(string clave, string titulo, VistaCatalogoAdminControl vista)
+    {
+        var pagina = new TabPage(titulo)
         {
-            VistaTickets.ConfigurarKpis([
+            Name = $"tab{titulo.Replace(" ", string.Empty)}",
+            BackColor = TemaVisual.FondoApp,
+            Padding = new Padding(3)
+        };
+        pagina.Controls.Add(vista);
+        _tabMain.Controls.Add(pagina);
+        _paginasCatalogos[clave] = pagina;
+    }
+
+    protected override void ConfigurarVistaTickets()
+    {
+        VistaTickets.ConfigurarKpis(
+            [
                 TipoKpiDashboard.Disponibles,
                 TipoKpiDashboard.Urgentes,
                 TipoKpiDashboard.EnProceso,
                 TipoKpiDashboard.Cerrados,
                 TipoKpiDashboard.Reabiertos,
                 TipoKpiDashboard.Calificacion
-            ], [_btnNuevoTicket, _btnAbrirReportes]);
+            ],
+            [btnNuevoTicket, btnAbrirReportes]);
 
-            VistaTickets.Filtro.InicializarFiltros(ConfiguracionFiltrosTickets.ObtenerCamposAdmin());
-            VistaTickets.ControladorPaginacion.Vincular(async () => { if (!_estaCargando) await FiltrarTicketsAsync(); });
+        VistaTickets.Filtro.InicializarFiltros(ConfiguracionFiltrosTickets.ObtenerCamposAdmin());
+        VistaTickets.ControladorPaginacion.Vincular((Action)MostrarPaginaActual);
+        VistaTickets.KpiClic += MostrarVistaKpi;
+        VistaTickets.Grid.CellDoubleClick += VistaTickets_DoubleClick;
 
-            VistaTickets.RecargarClic += async (_, _) => { await CargarGridCompletoAsync(); await CargarKPIsAsync(); };
-            VistaTickets.LimpiarClic += async (_, _) =>
-            {
-                _estaCargando = true;
-                VistaTickets.Filtro.LimpiarFiltros(ConfiguracionFiltrosTickets.ObtenerValoresDefecto());
-                VistaTickets.ControladorPaginacion.ReiniciarAPrimeraPagina();
-                _estaCargando = false;
-                await CargarGridCompletoAsync();
-            };
-            VistaTickets.Grid.CellDoubleClick += async (_, e) =>
-            {
-                if (e.RowIndex >= 0)
-                {
-                    await VistaTickets.Grid.ManejarDetalleTicketAsync(
-                        e.RowIndex, FormFactory,
-                        () => Task.WhenAll(CargarKPIsAsync(), CargarGridCompletoAsync()),
-                        "Folio");
-                }
-            };
-            VistaTickets.KpiClic += tipo =>
-            {
-                switch (tipo)
-                {
-                    case TipoKpiDashboard.Disponibles:
-                        VistaTickets.Filtro.EstablecerValorFiltro("Estatus", ConstantesEstatus.DISPONIBLE);
-                        break;
-                    case TipoKpiDashboard.Urgentes:
-                        VistaTickets.Filtro.EstablecerValorFiltro("Estatus", ConstantesEstatus.URGENTE);
-                        break;
-                    case TipoKpiDashboard.EnProceso:
-                        VistaTickets.Filtro.EstablecerValorFiltro("Estatus", ConstantesEstatus.EN_PROCESO);
-                        break;
-                    case TipoKpiDashboard.Cerrados:
-                        VistaTickets.Filtro.EstablecerValorFiltro("Estatus", ConstantesEstatus.CERRADO);
-                        break;
-                    case TipoKpiDashboard.Reabiertos:
-                        VistaTickets.Filtro.EstablecerValorFiltro("Estatus", ConstantesEstatus.REABIERTO);
-                        break;
-                    case TipoKpiDashboard.Calificacion:
-                        AbrirModalCalificaciones();
-                        break;
-                }
-            };
-
-            VistaTickets.FiltroCambiado += async (_, _) =>
-            {
-                if (!_estaCargando)
-                {
-                    VistaTickets.ControladorPaginacion.ReiniciarAPrimeraPagina();
-                    await FiltrarTicketsAsync();
-                }
-            };
-
-            _btnNuevoTicket.Click += async (s, e) =>
-            {
-                try
-                {
-                    using var frm = FormFactory.Crear<NuevoTicketForm>();
-                    if (frm.ShowDialog(Formulario) == DialogResult.OK)
-                    {
-                        await Task.WhenAll(CargarKPIsAsync(), CargarGridCompletoAsync());
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error al crear ticket: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            };
-
-            _btnAbrirReportes.Click += (s, e) => AbrirReportes();
-        }
-
-        public override async Task RecargarDatosAsync()
+        btnNuevoTicket.Click += (_, _) =>
         {
-            await Task.WhenAll(CargarKPIsAsync(), CargarGridCompletoAsync());
-        }
-
-        public void SeleccionarVista(string clave)
-        {
-            if (clave == "reportes")
+            using var formularioNuevo = FormFactory.Crear<NuevoTicketForm>();
+            if (formularioNuevo.ShowDialog(Formulario) == DialogResult.OK)
             {
-                AbrirReportes();
-                Sidebar.SeleccionarItem("tickets");
-                TopBar.ActualizarItemActivo("tickets");
+                _ = RecargarDatosAsync();
+            }
+        };
+
+        btnAbrirReportes.Click += (_, _) => AbrirGeneradorReportes();
+    }
+
+    protected override async Task PrepararFiltrosAsync()
+    {
+        var tecnicos = await _usuarioService.ObtenerUsuariosPorRolAsync(RolUsuarioEnum.Tecnico);
+        var opciones = new List<object> { "Todos" };
+        opciones.AddRange(tecnicos
+            .OrderBy(t => t.Nombre)
+            .Select(t => (object)new ElementoCombo<int>(t.Nombre ?? $"Técnico #{t.IdUsuario}", t.IdUsuario)));
+
+        VistaTickets.Filtro.CargarOpcionesCombo("Tecnico", opciones);
+    }
+
+    public override async Task RecargarDatosAsync()
+    {
+        var numeroRecarga = Interlocked.Increment(ref _numeroRecarga);
+
+        await Formulario.EjecutarOperacionAsync(async () =>
+        {
+            var valores = VistaTickets.Filtro.ObtenerValoresFiltros();
+            var filtros = ConfiguracionFiltrosTickets.MapearFiltrosAdmin(valores);
+            var tickets = await _ticketService.ObtenerTicketsFiltradosAsync(filtros);
+
+            // El usuario puede cambiar otro filtro mientras la petición estaba pendiente.
+            // En ese caso, solo la petición más reciente puede actualizar la pantalla.
+            if (numeroRecarga != Volatile.Read(ref _numeroRecarga))
+            {
                 return;
             }
 
-            string nombreTab = clave switch
-            {
-                "tickets" => "Tickets",
-                "inventario" => "Materiales",
-                "usuarios" => "Usuarios",
-                "departamentos" => "Departamentos",
-                "sucursales" => "Sucursales",
-                "empresas" => "Empresas",
-                "puestos" => "Puestos",
-                "roles" => "RolesUsuario",
-                _ => "Tickets"
-            };
-
-            TopBar.Titulo = nombreTab == "Tickets" ? "Panel de Control" : $"Catálogo: {nombreTab}";
-            TopBar.Subtitulo = nombreTab == "Tickets" ? "Mesa de Servicio y Gestión Global" : $"Administración de registros de {nombreTab}";
-
-            foreach (TabPage tab in _tabMain.TabPages)
-            {
-                if (tab.Text.Equals(nombreTab, StringComparison.OrdinalIgnoreCase) ||
-                    tab.Name.Equals("tab" + nombreTab, StringComparison.OrdinalIgnoreCase))
-                {
-                    _tabMain.SelectedTab = tab;
-                    break;
-                }
-            }
-
-            Sidebar.SeleccionarItem(clave);
-            TopBar.ActualizarItemActivo(clave);
-        }
-
-        private void AbrirReportes()
-        {
-            var modal = FormFactory.Crear<GeneradorReportesForm>();
-            modal.ShowDialog();
-        }
-
-        private void AbrirModalCalificaciones()
-        {
-            var modal = FormFactory.Crear<GeneradorReportesForm>();
-            modal.ShowDialog();
-        }
-
-        public async Task FiltrarTicketsAsync()
-        {
-            if (_estaCargando) return;
-
-            await Formulario.EjecutarOperacionAsync(async () =>
-            {
-                var filtros = ConfiguracionFiltrosTickets.MapearFiltrosAdmin(VistaTickets.Filtro.ObtenerValoresFiltros());
-                var ctrl = VistaTickets.ControladorPaginacion;
-                var resultado = await _ticketService.ObtenerTicketsFiltradosPaginadosAsync(filtros, ctrl.PaginaActual, ctrl.TamanoPagina);
-                MostrarTickets(resultado.Items, resultado.TotalCount);
-            }, "Error al filtrar tickets");
-        }
-
-        public async Task CargarGridCompletoAsync()
-        {
+            _tickets = tickets;
+            ActualizarKpis(_tickets);
             VistaTickets.ControladorPaginacion.ReiniciarAPrimeraPagina();
-            await FiltrarTicketsAsync();
-        }
+            MostrarPaginaActual();
+        }, "Error al cargar el dashboard de administración");
+    }
 
-        public async Task CargarKPIsAsync()
+    private void ActualizarKpis(IEnumerable<TicketDto> tickets)
+    {
+        var lista = tickets.ToList();
+        var limiteSla = DateTime.Now.AddHours(-48);
+
+        VistaTickets.ActualizarValorKpi(
+            TipoKpiDashboard.Disponibles,
+            lista.Count(t => t.Estatus == ConstantesEstatus.ABIERTO &&
+                             t.FechaAlta.HasValue && t.FechaAlta.Value >= limiteSla));
+        VistaTickets.ActualizarValorKpi(
+            TipoKpiDashboard.Urgentes,
+            lista.Count(t => t.Estatus == ConstantesEstatus.ABIERTO &&
+                             t.FechaAlta.HasValue && t.FechaAlta.Value < limiteSla));
+        VistaTickets.ActualizarValorKpi(
+            TipoKpiDashboard.EnProceso,
+            lista.Count(t => t.Estatus == ConstantesEstatus.EN_PROCESO));
+        VistaTickets.ActualizarValorKpi(
+            TipoKpiDashboard.Cerrados,
+            lista.Count(t => t.Estatus == ConstantesEstatus.CERRADO));
+        VistaTickets.ActualizarValorKpi(
+            TipoKpiDashboard.Reabiertos,
+            lista.Count(t => t.Estatus == ConstantesEstatus.REABIERTO));
+
+        var calificaciones = lista
+            .Where(t => t.Calificacion.HasValue)
+            .Select(t => t.Calificacion!.Value)
+            .ToList();
+        var promedio = calificaciones.Count == 0 ? 0D : calificaciones.Average();
+        VistaTickets.ActualizarValorKpi(TipoKpiDashboard.Calificacion, promedio, true);
+    }
+
+    private void MostrarPaginaActual()
+    {
+        IEnumerable<TicketDto> consulta = _tickets;
+        var valores = VistaTickets.Filtro.ObtenerValoresFiltros();
+        var (_, fechaInicio, fechaFin, prioridad, usuario) = valores.ExtraerFiltrosComunes();
+
+        if (_kpiActivo == TipoKpiDashboard.Calificacion)
         {
-            await Formulario.EjecutarOperacionAsync(async () =>
+            consulta = consulta.Where(t => t.Calificacion.HasValue);
+        }
+        else if (_kpiActivo.HasValue)
+        {
+            var limiteSla = DateTime.Now.AddHours(-48);
+            consulta = _kpiActivo.Value switch
             {
-                var resumen = await _ticketService.ObtenerResumenDashboardAsync();
-                VistaTickets.ActualizarValorKpi(TipoKpiDashboard.Disponibles, resumen.TicketsNuevos);
-                VistaTickets.ActualizarValorKpi(TipoKpiDashboard.Urgentes, resumen.TicketsUrgentes);
-                VistaTickets.ActualizarValorKpi(TipoKpiDashboard.EnProceso, resumen.TicketsEnProceso);
-                VistaTickets.ActualizarValorKpi(TipoKpiDashboard.Cerrados, resumen.TicketsCerrados);
-                VistaTickets.ActualizarValorKpi(TipoKpiDashboard.Reabiertos, resumen.TicketsReabiertos);
-                VistaTickets.ActualizarValorKpi(TipoKpiDashboard.Calificacion, resumen.PromedioCalificacion, esCalificacionEstrellas: true);
-            }, "Error al cargar KPIs de administración");
-        }
-
-        public async Task CargarCombosFiltrosAsync()
-        {
-            await Formulario.EjecutarOperacionAsync(async () =>
-            {
-                var tecnicosYAdmins = await ObtenerTecnicosYAdminsAsync();
-                VistaTickets.Filtro.ConfigurarOpcionesCombo("Tecnico", tecnicosYAdmins);
-                VistaTickets.Filtro.ConfigurarOpcionesCombo("Estatus", new List<string> { "Todos", "Nuevos", "Urgentes", ConstantesEstatus.ABIERTO, ConstantesEstatus.EN_PROCESO, ConstantesEstatus.CERRADO, ConstantesEstatus.REABIERTO });
-                VistaTickets.Filtro.ConfigurarOpcionesCombo("Prioridad", new List<string> { "Todos", ConstantesPrioridad.ALTA, ConstantesPrioridad.MEDIA, ConstantesPrioridad.BAJA });
-            }, "Error al cargar filtros de técnicos y administradores");
-        }
-
-        private async Task<List<ElementoOpcionCombo>> ObtenerTecnicosYAdminsAsync()
-        {
-            var resultado = new List<ElementoOpcionCombo> { new(0, "Todos"), new(-1, "Sin Asignar") };
-            var tareaAdmins = _usuarioService.ObtenerUsuariosPorRolAsync(RolUsuarioEnum.Administrador);
-            var tareaTecnicos = _usuarioService.ObtenerUsuariosPorRolAsync(RolUsuarioEnum.Tecnico);
-            await Task.WhenAll(tareaAdmins, tareaTecnicos);
-
-            var admins = await tareaAdmins ?? [];
-            var tecnicos = await tareaTecnicos ?? [];
-
-            foreach (var a in admins) resultado.Add(new(a.IdUsuario, $"Admin - {a.Nombre}"));
-            foreach (var t in tecnicos) resultado.Add(new(t.IdUsuario, $"Técnico - {t.Nombre}"));
-
-            return resultado;
-        }
-
-        private async Task ConfigurarTabsCatalogosAsync()
-        {
-            var catalogos = new (string Nombre, Type Tipo)[] {
-                ("Usuarios", typeof(UsuarioDto)),
-                ("Departamentos", typeof(DepartamentoDto)),
-                ("Empresas", typeof(EmpresaDto)),
-                ("Materiales", typeof(MaterialDto)),
-                ("Puestos", typeof(PuestoDto)),
-                ("RolesUsuario", typeof(RolUsuarioDto)),
-                ("Sucursales", typeof(SucursalDto))
+                TipoKpiDashboard.Disponibles => consulta.Where(t => t.Estatus == ConstantesEstatus.ABIERTO && t.FechaAlta.HasValue && t.FechaAlta.Value >= limiteSla),
+                TipoKpiDashboard.Urgentes => consulta.Where(t => t.Estatus == ConstantesEstatus.ABIERTO && t.FechaAlta.HasValue && t.FechaAlta.Value < limiteSla),
+                TipoKpiDashboard.EnProceso => consulta.Where(t => t.Estatus == ConstantesEstatus.EN_PROCESO),
+                TipoKpiDashboard.Cerrados => consulta.Where(t => t.Estatus == ConstantesEstatus.CERRADO),
+                TipoKpiDashboard.Reabiertos => consulta.Where(t => t.Estatus == ConstantesEstatus.REABIERTO),
+                _ => consulta
             };
-
-            foreach (var (nombre, tipo) in catalogos)
-            {
-                try
-                {
-                    Action<Panel, DataGridView>? onExtra = tipo == typeof(MaterialDto)
-                        ? AgregarControlesInventario
-                        : null;
-
-                    var tab = AyudanteCatalogoTab.CrearTabCatalogo(nombre, tipo, _catalogoService, onExtra);
-                    _tabMain.TabPages.Add(tab);
-
-                    if (tab.Controls["dgv" + nombre] is DataGridView dgv)
-                    {
-                        await AyudanteCatalogoTab.CargarDatosAsync(dgv, tipo, _catalogoService);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Serilog.Log.Error(ex, "Error al configurar la pestaña de catálogo '{Nombre}'.", nombre);
-                }
-            }
         }
 
-        private void AgregarControlesInventario(Panel panelTop, DataGridView dgv)
+        if (!string.IsNullOrWhiteSpace(prioridad))
         {
-            BotonModerno btnKardex = new()
-            {
-                Text = "Ver Kardex",
-                Icono = FontAwesome.Sharp.IconChar.ClipboardList,
-                IconoTamano = 14,
-                Location = new Point(155, 10),
-                Width = 140,
-                Height = 36,
-                Estilo = EstiloBotonModerno.Primario
-            };
-
-            btnKardex.Click += (s, ev) =>
-            {
-                var frmK = FormFactory.Crear<KardexForm>();
-                frmK.ShowDialog();
-            };
-
-            panelTop.Controls.Add(btnKardex);
+            consulta = consulta.Where(t => string.Equals(t.Prioridad, prioridad, StringComparison.OrdinalIgnoreCase));
         }
 
-        private void MostrarTickets(List<TicketDto> tickets, int totalCount)
+        if (!string.IsNullOrWhiteSpace(usuario))
         {
-            var grid = VistaTickets.Grid;
-            grid.DataSource = new ListaVinculableOrdenable<TicketDto>(tickets);
-            ConfiguracionColumnasDashboard.AplicarPerfilAdmin(grid);
-            VistaTickets.ControladorPaginacion.Actualizar(totalCount);
+            consulta = consulta.Where(t => (t.NombreUsuario ?? string.Empty).Contains(usuario, StringComparison.OrdinalIgnoreCase));
         }
+
+        if (fechaInicio.HasValue)
+        {
+            consulta = consulta.Where(t => t.FechaAlta.HasValue && t.FechaAlta.Value >= fechaInicio.Value);
+        }
+
+        if (fechaFin.HasValue)
+        {
+            consulta = consulta.Where(t => t.FechaAlta.HasValue && t.FechaAlta.Value <= fechaFin.Value);
+        }
+
+        var filtrados = consulta.ToList();
+        var pagina = VistaTickets.ControladorPaginacion.ObtenerPagina(filtrados).ToList();
+        VistaTickets.Grid.DataSource = new ListaVinculableOrdenable<TicketDto>(pagina);
+
+        if (_kpiActivo == TipoKpiDashboard.Calificacion)
+        {
+            ConfiguracionColumnasDashboard.AplicarPerfilCalificaciones(VistaTickets.Grid);
+        }
+        else
+        {
+            ConfiguracionColumnasDashboard.AplicarPerfilAdmin(VistaTickets.Grid);
+        }
+
+        VistaTickets.ControladorPaginacion.Actualizar(filtrados.Count);
+    }
+
+    private void MostrarVistaKpi(TipoKpiDashboard tipo)
+    {
+        _kpiActivo = _kpiActivo == tipo ? null : tipo;
+
+        if (_kpiActivo == TipoKpiDashboard.Calificacion)
+        {
+            TopBar.Titulo = "Calificaciones";
+            TopBar.Subtitulo = "Retroalimentación registrada por los usuarios";
+        }
+        else
+        {
+            TopBar.Titulo = "Panel de Control";
+            TopBar.Subtitulo = "Mesa de Servicio y Gestión Global";
+        }
+
+        VistaTickets.ControladorPaginacion.ReiniciarAPrimeraPagina();
+        MostrarPaginaActual();
+    }
+
+    private async void VistaTickets_DoubleClick(object? sender, DataGridViewCellEventArgs e)
+    {
+        if (e.RowIndex < 0)
+        {
+            return;
+        }
+
+        await VistaTickets.Grid.ManejarDetalleTicketAsync(
+            e.RowIndex,
+            FormFactory,
+            RecargarDatosAsync,
+            "IdTicket",
+            abrirEnRetroalimentacion: _kpiActivo == TipoKpiDashboard.Calificacion);
+    }
+
+    private void SeleccionarVista(string clave)
+    {
+        if (string.Equals(clave, "reportes", StringComparison.OrdinalIgnoreCase))
+        {
+            AbrirGeneradorReportes();
+            return;
+        }
+
+        _kpiActivo = null;
+        TopBar.Titulo = "Panel de Control";
+        TopBar.Subtitulo = "Mesa de Servicio y Gestión Global";
+        MostrarPaginaActual();
+    }
+
+    private void AbrirGeneradorReportes()
+    {
+        using var formularioReportes = FormFactory.Crear<GeneradorReportesForm>();
+        formularioReportes.ShowDialog(Formulario);
     }
 }

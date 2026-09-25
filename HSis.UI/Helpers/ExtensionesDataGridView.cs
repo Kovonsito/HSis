@@ -1,4 +1,5 @@
 using HSis.UI.Factories;
+using HSis.UI.Forms.Tickets;
 
 namespace HSis.UI.Helpers
 {
@@ -39,6 +40,7 @@ namespace HSis.UI.Helpers
                 if (dgv.Columns[nombre] is DataGridViewColumn col)
                 {
                     col.HeaderText = encabezado;
+                    col.Visible = true;
                     if (ancho.HasValue)
                     {
                         col.FillWeight = ancho.Value;
@@ -64,7 +66,7 @@ namespace HSis.UI.Helpers
             return null;
         }
 
-        public static async Task ManejarDetalleTicketAsync(this DataGridView dgv, int indiceFila, IFabricaFormularios fabricaFormularios, Func<Task> retornoRecargar, string nombreColumna = "IdTicket", bool esCliente = false)
+        public static async Task ManejarDetalleTicketAsync(this DataGridView dgv, int indiceFila, IFabricaFormularios fabricaFormularios, Func<Task> retornoRecargar, string nombreColumna = "IdTicket", bool esCliente = false, bool abrirEnRetroalimentacion = false)
         {
             var id = dgv.ObtenerIdSeleccionado(indiceFila, nombreColumna);
             if (id.HasValue)
@@ -72,6 +74,11 @@ namespace HSis.UI.Helpers
                 using var frm = esCliente
                     ? (Form)fabricaFormularios.CrearDetalleCliente(id.Value)
                     : (Form)fabricaFormularios.CrearTicketDetalle(id.Value);
+
+                if (abrirEnRetroalimentacion && frm is TicketDetalleForm detalleTicket)
+                {
+                    detalleTicket.SeleccionarPestanaRetroalimentacion();
+                }
 
                 frm.ShowDialog();
                 await retornoRecargar();

@@ -41,13 +41,13 @@ partial class FiltroGenericoControl
             AutoScroll = true,
             BackColor = Color.White,
             Dock = DockStyle.Fill,
+            FlowDirection = FlowDirection.LeftToRight,
             Location = new Point(0, 0),
             Margin = new Padding(0),
             Padding = new Padding(0),
             TabIndex = 0,
             WrapContents = false
         };
-
         var pnlBotones = new FlowLayoutPanel
         {
             BackColor = Color.White,
@@ -56,7 +56,8 @@ partial class FiltroGenericoControl
             WrapContents = false,
             AutoSize = true,
             Margin = new Padding(0),
-            Padding = new Padding(0, 10, 0, 0)
+            Padding = new Padding(0, 10, 0, 10),
+            MinimumSize = new Size(210, 54)
         };
 
         btnLimpiar = new BotonModerno

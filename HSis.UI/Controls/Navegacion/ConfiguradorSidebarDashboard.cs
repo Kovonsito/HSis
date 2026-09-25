@@ -33,22 +33,21 @@ namespace HSis.UI.Helpers
             string claveDefault,
             Action<string> alSeleccionar)
         {
+            string claveInicial = items.Any(item => item.Clave == claveDefault)
+                ? claveDefault
+                : string.Empty;
+
             // 1. Sesión y lista de ítems
             sidebar.ConfigurarSesion(sessionCache);
-            sidebar.ConfigurarItems(items, claveDefault);
+            sidebar.ConfigurarItems(items, claveInicial);
 
             // 2. Evento de selección desde el sidebar
             sidebar.ItemSeleccionado += (_, clave) => alSeleccionar(clave);
 
             // 3. Sesión del topBar + menú hamburguesa sincronizado con el sidebar
             topBar.ConfigurarSesion(sessionCache, contextoSesion);
-            topBar.ConfigurarMenuHamburguesa(
-                items,
-                claveDefault,
-                alSeleccionar,
-                () => sidebar.Colapsado = !sidebar.Colapsado,
-                () => !sidebar.Colapsado
-            );
+            topBar.ConfigurarMenuHamburguesa(items, claveInicial, alSeleccionar);
+            topBar.HamburguesaDobleClic += (_, _) => sidebar.Colapsado = false;
         }
     }
 }

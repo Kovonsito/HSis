@@ -52,17 +52,6 @@ namespace HSis.UI.Coordinators
             VistaTickets.Filtro.InicializarFiltros(ConfiguracionFiltrosTickets.ObtenerCamposCliente());
             VistaTickets.ControladorPaginacion.Vincular(() => { MostrarPaginaActual(); return Task.CompletedTask; });
 
-            VistaTickets.RecargarClic += (_, _) => _ = RecargarDatosAsync();
-            VistaTickets.FiltroCambiado += (_, _) =>
-            {
-                VistaTickets.ControladorPaginacion.ReiniciarAPrimeraPagina();
-                MostrarPaginaActual();
-            };
-            VistaTickets.LimpiarClic += (_, _) =>
-            {
-                VistaTickets.ControladorPaginacion.ReiniciarAPrimeraPagina();
-                MostrarPaginaActual();
-            };
             VistaTickets.Grid.CellDoubleClick += async (_, e) =>
             {
                 if (e.RowIndex >= 0)

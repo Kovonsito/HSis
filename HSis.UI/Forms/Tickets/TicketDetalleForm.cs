@@ -42,9 +42,9 @@ namespace HSis.UI.Forms.Tickets
         public void MostrarTicket(TicketDto ticket)
         {
             _ticketActual = ticket;
-            lblFolio.Text = $"Folio: TK-{ticket.IdTicket:d6}";
-            txtUsuario.Text = ticket.NombreUsuario;
-            txtDepartamento.Text = ticket.DepartamentoUsuario;
+            lblFolio.Text = $"Folio: {ticket.IdTicket.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
+            txtUsuario.Text = string.IsNullOrWhiteSpace(ticket.NombreUsuario) ? "Sin nombre" : ticket.NombreUsuario;
+            txtDepartamento.Text = string.IsNullOrWhiteSpace(ticket.DepartamentoUsuario) ? "Sin departamento" : ticket.DepartamentoUsuario;
             txtAlta.Text = (ticket.FechaAlta ?? DateTime.Now).ToString("dddd, dd 'de' MMMM 'de' yyyy 'a las' HH:mm:ss");
             rtbDescripcion.Text = ticket.Descripcion ?? string.Empty;
             rtbSolucion.Text = ticket.Solucion ?? string.Empty;
@@ -91,8 +91,8 @@ namespace HSis.UI.Forms.Tickets
 
         public void CargarTecnicos(List<UsuarioDto> tecnicos, int? idTecnicoActual, bool esAdmin)
         {
-            cmbAtendido.DisplayMember = "Nombre";
-            cmbAtendido.ValueMember = "IdUsuario";
+            cmbAtendido.DisplayMember = nameof(UsuarioDto.Nombre);
+            cmbAtendido.ValueMember = nameof(UsuarioDto.IdUsuario);
             cmbAtendido.DataSource = tecnicos;
 
             cmbAtendido.SelectedValue = (object?)idTecnicoActual ?? -1;
@@ -114,6 +114,11 @@ namespace HSis.UI.Forms.Tickets
             dgvMateriales.DataSource = null;
             dgvMateriales.DataSource = detalles;
             ConfigurarEstilosGridMateriales();
+        }
+
+        public void SeleccionarPestanaRetroalimentacion()
+        {
+            tabControlTicket.SelectedTab = tbpFeedback;
         }
 
         #region Form Handlers & Layout
@@ -253,11 +258,65 @@ namespace HSis.UI.Forms.Tickets
         private void MostrarSeccionFeedback(TicketDto ticket)
         {
             bool esCerrado = ticket.Estatus == ConstantesEstatus.CERRADO;
+
+            // Este formulario es el detalle para personal de soporte. La captura
+            // de la calificación corresponde exclusivamente a DetalleClienteForm.
+            bool esPersonalSoporte = _contextoSesion.EsAdmin || _contextoSesion.EsTecnico;
+
+            if (esPersonalSoporte)
+            {
+                grpFeedback.Visible = esCerrado;
+                pnlFeedbackEstado.Visible = !esCerrado;
+
+                // El técnico y el administrador solo consultan la valoración.
+                lblEstrellas.Visible = false;
+                cmbEstrellas.Visible = false;
+                lblComentario.Visible = false;
+                txtComentario.Visible = false;
+                btnEnviar.Visible = false;
+                lblResumen.Visible = esCerrado;
+                lblComentarioLectura.Visible = esCerrado;
+
+                if (!esCerrado)
+                {
+                    return;
+                }
+
+                if (ticket.Calificacion.HasValue)
+                {
+                    lblResumen.Text = $"Calificación: {new string('⭐', ticket.Calificacion.Value)} ({ticket.Calificacion}/5)";
+                    lblComentarioLectura.Text = string.IsNullOrWhiteSpace(ticket.ComentarioEvaluacion)
+                        ? "Sin comentarios."
+                        : $"Comentario: {ticket.ComentarioEvaluacion}";
+                }
+                else
+                {
+                    lblResumen.Text = "Aún no hay una calificación registrada.";
+                    lblComentarioLectura.Text = "El cliente todavía no ha calificado la atención.";
+                }
+
+                return;
+            }
+
             grpFeedback.Visible = esCerrado;
-            if (esCerrado && ticket.Calificacion.HasValue)
+            pnlFeedbackEstado.Visible = !esCerrado;
+
+            if (!esCerrado)
+            {
+                return;
+            }
+
+            if (ticket.Calificacion.HasValue)
             {
                 lblResumen.Text = $"Calificación: {new string('⭐', ticket.Calificacion.Value)} ({ticket.Calificacion}/5)";
-                lblComentarioLectura.Text = string.IsNullOrWhiteSpace(ticket.ComentarioEvaluacion) ? "Sin comentarios." : ticket.ComentarioEvaluacion;
+                lblComentarioLectura.Text = string.IsNullOrWhiteSpace(ticket.ComentarioEvaluacion)
+                    ? "Sin comentarios."
+                    : ticket.ComentarioEvaluacion;
+            }
+            else
+            {
+                lblResumen.Text = "Aún no hay una calificación registrada.";
+                lblComentarioLectura.Text = "Comparte tu experiencia para ayudarnos a mejorar la atención.";
             }
         }
 
