@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
+using FontAwesome.Sharp;
 using HSis.UI.Controls;
 using HSis.UI.Helpers;
 
@@ -195,7 +196,7 @@ partial class TicketDetalleForm
         lblCierre.Name = "lblCierre";
         lblCierre.Size = new Size(75, 15);
         lblCierre.TabIndex = 16;
-        lblCierre.Text = "Fecha Cierra:";
+        lblCierre.Text = "Fecha Cierre:";
         // 
         // txtCierre
         // 
@@ -527,43 +528,468 @@ partial class TicketDetalleForm
     private TabPage tabDescripcionSolucion;
     private TabPage tbpHistorial;
     private TabPage tbpFeedback;
+    private TabPage tbpMateriales = null!;
+    private PanelCardModerno pnlFeedbackEstado = null!;
+    private Label lblFeedbackEstado = null!;
     // rtbSolucion y rtbDescripcion serán creados dinámicamente en el código del formulario
 
     private void InicializarLayoutDetalle()
     {
-        rtbDescripcion = new CajaTextoOrtograficaWpf { Dock = DockStyle.Fill, Margin = new Padding(0, 0, 0, 8) };
-        rtbSolucion = new CajaTextoOrtograficaWpf { Dock = DockStyle.Fill, Margin = new Padding(0) };
-        dgvMateriales = new DataGridView { Dock = DockStyle.Fill, ReadOnly = true, AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill };
-        dgvMateriales.AplicarTemaModerno();
+        BackColor = TemaVisual.FondoApp;
+        Font = TemaVisual.FuenteNormal;
+        ClientSize = new Size(920, 680);
+        MinimumSize = new Size(760, 600);
 
-        tabDescripcionSolucion.Controls.Clear();
-        var tblDescSol = new TableLayoutPanel
+        rtbDescripcion = new CajaTextoOrtograficaWpf
         {
             Dock = DockStyle.Fill,
-            RowCount = 4,
-            ColumnCount = 1,
-            Padding = new Padding(12),
-            BackColor = Color.Transparent
+            Margin = new Padding(0),
+            BackColor = Color.White
         };
-        tblDescSol.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-        tblDescSol.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        tblDescSol.RowStyles.Add(new RowStyle(SizeType.Percent, 45F));
-        tblDescSol.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        tblDescSol.RowStyles.Add(new RowStyle(SizeType.Percent, 55F));
+        rtbSolucion = new CajaTextoOrtograficaWpf
+        {
+            Dock = DockStyle.Fill,
+            Margin = new Padding(0),
+            BackColor = Color.White
+        };
 
-        lblDescripcion.Dock = DockStyle.Fill;
-        lblDescripcion.Margin = new Padding(0, 0, 0, 4);
-        lblSolucion.Dock = DockStyle.Fill;
-        lblSolucion.Margin = new Padding(0, 8, 0, 4);
+        dgvMateriales = new DataGridView
+        {
+            AllowUserToAddRows = false,
+            AllowUserToDeleteRows = false,
+            AutoGenerateColumns = true,
+            AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+            Dock = DockStyle.Fill,
+            Margin = new Padding(0),
+            ReadOnly = true,
+            SelectionMode = DataGridViewSelectionMode.FullRowSelect
+        };
+        dgvMateriales.AplicarTemaModerno();
+        dgvHistorial.AplicarTemaModerno();
 
-        tblDescSol.Controls.Add(lblDescripcion, 0, 0);
-        tblDescSol.Controls.Add(rtbDescripcion, 0, 1);
-        tblDescSol.Controls.Add(lblSolucion, 0, 2);
-        tblDescSol.Controls.Add(rtbSolucion, 0, 3);
-        tabDescripcionSolucion.Controls.Add(tblDescSol);
+        ConfigurarPagina(tabInfoGeneral);
+        ConfigurarPagina(tabDescripcionSolucion);
+        ConfigurarPagina(tbpHistorial);
+        ConfigurarPagina(tbpFeedback);
 
-        TabPage tbpMateriales = new TabPage("Materiales Utilizados");
-        tbpMateriales.Controls.Add(dgvMateriales);
+        tabInfoGeneral.Controls.Clear();
+        tabDescripcionSolucion.Controls.Clear();
+        tbpHistorial.Controls.Clear();
+        tbpFeedback.Controls.Clear();
+
+        txtUsuario.Enabled = true;
+        txtUsuario.ReadOnly = true;
+        txtDepartamento.Enabled = true;
+        txtDepartamento.ReadOnly = true;
+        txtAlta.ReadOnly = true;
+        txtAtencion.ReadOnly = true;
+        txtCierre.ReadOnly = true;
+
+        // Pestaña de información: separar los datos de contexto de la gestión operativa.
+        var tablaInfo = new TableLayoutPanel
+        {
+            BackColor = Color.Transparent,
+            ColumnCount = 2,
+            Dock = DockStyle.Fill,
+            Margin = new Padding(0),
+            Padding = new Padding(0),
+            RowCount = 1
+        };
+        tablaInfo.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 48F));
+        tablaInfo.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 52F));
+        tablaInfo.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+
+        var tarjetaSolicitante = CrearTarjeta("Información del solicitante", IconChar.Ticket);
+        tarjetaSolicitante.Margin = new Padding(0, 0, 8, 0);
+        var tablaSolicitante = CrearTablaCampos(3);
+        lblFolio.AutoSize = false;
+        lblFolio.BackColor = TemaVisual.PrimarioSuave;
+        lblFolio.Dock = DockStyle.Fill;
+        lblFolio.Font = TemaVisual.FuenteSubtitulo;
+        lblFolio.ForeColor = TemaVisual.Primario;
+        lblFolio.Margin = new Padding(0, 0, 0, 8);
+        lblFolio.Padding = new Padding(12, 0, 12, 0);
+        lblFolio.TextAlign = ContentAlignment.MiddleLeft;
+        tablaSolicitante.Controls.Add(lblFolio, 0, 0);
+        tablaSolicitante.SetColumnSpan(lblFolio, 2);
+        AgregarCampo(tablaSolicitante, 1, lblUsuario, txtUsuario);
+        AgregarCampo(tablaSolicitante, 2, lblDepartamento, txtDepartamento);
+        tarjetaSolicitante.Controls.Add(tablaSolicitante);
+
+        var tarjetaGestion = CrearTarjeta("Gestión y seguimiento", IconChar.ClipboardList);
+        tarjetaGestion.Margin = new Padding(8, 0, 0, 0);
+        var tablaGestion = CrearTablaCampos(6);
+        AgregarCampo(tablaGestion, 0, lblEstatus, cmbEstatus);
+        AgregarCampo(tablaGestion, 1, lblPrioridad, cmbPrioridad);
+        AgregarCampo(tablaGestion, 2, lblAtendido, cmbAtendido);
+        AgregarCampo(tablaGestion, 3, lblAlta, txtAlta);
+        AgregarCampo(tablaGestion, 4, lblAtencion, txtAtencion);
+        AgregarCampo(tablaGestion, 5, lblCierre, txtCierre);
+        tarjetaGestion.Controls.Add(tablaGestion);
+
+        tablaInfo.Controls.Add(tarjetaSolicitante, 0, 0);
+        tablaInfo.Controls.Add(tarjetaGestion, 1, 0);
+        tabInfoGeneral.Controls.Add(tablaInfo);
+
+        // Pestaña de descripción: dos editores independientes para facilitar la lectura.
+        var tablaDescripcion = new TableLayoutPanel
+        {
+            BackColor = Color.Transparent,
+            ColumnCount = 1,
+            Dock = DockStyle.Fill,
+            Margin = new Padding(0),
+            Padding = new Padding(0),
+            RowCount = 2
+        };
+        tablaDescripcion.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+        tablaDescripcion.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
+        tablaDescripcion.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
+
+        var tarjetaDescripcion = CrearTarjeta("Descripción del problema", IconChar.ClipboardList);
+        tarjetaDescripcion.Margin = new Padding(0, 0, 0, 8);
+        var contenidoDescripcion = CrearTablaEditor();
+        ConfigurarEtiquetaEditor(lblDescripcion, "Detalle reportado por el usuario");
+        contenidoDescripcion.Controls.Add(lblDescripcion, 0, 0);
+        contenidoDescripcion.Controls.Add(rtbDescripcion, 0, 1);
+        tarjetaDescripcion.Controls.Add(contenidoDescripcion);
+
+        var tarjetaSolucion = CrearTarjeta("Solución aplicada", IconChar.Check);
+        tarjetaSolucion.Margin = new Padding(0, 8, 0, 0);
+        var contenidoSolucion = CrearTablaEditor();
+        ConfigurarEtiquetaEditor(lblSolucion, "Respuesta y acciones realizadas por soporte");
+        contenidoSolucion.Controls.Add(lblSolucion, 0, 0);
+        contenidoSolucion.Controls.Add(rtbSolucion, 0, 1);
+        tarjetaSolucion.Controls.Add(contenidoSolucion);
+
+        tablaDescripcion.Controls.Add(tarjetaDescripcion, 0, 0);
+        tablaDescripcion.Controls.Add(tarjetaSolucion, 0, 1);
+        tabDescripcionSolucion.Controls.Add(tablaDescripcion);
+
+        // Pestaña de historial: el grid se presenta dentro de una tarjeta con encabezado propio.
+        var tarjetaHistorial = CrearTarjeta("Línea de tiempo de cambios", IconChar.ClipboardList);
+        tarjetaHistorial.Controls.Add(dgvHistorial);
+        tbpHistorial.Controls.Add(tarjetaHistorial);
+
+        // Pestaña de retroalimentación: conservar los controles existentes, pero distribuirlos con una retícula flexible.
+        grpFeedback.Controls.Clear();
+        grpFeedback.BackColor = TemaVisual.FondoTarjeta;
+        grpFeedback.Dock = DockStyle.Fill;
+        grpFeedback.Font = TemaVisual.FuenteNormal;
+        grpFeedback.Margin = new Padding(0);
+        grpFeedback.Titulo = "Retroalimentación de la atención";
+        grpFeedback.Icono = IconChar.Star;
+
+        var tablaFeedback = new TableLayoutPanel
+        {
+            BackColor = Color.Transparent,
+            ColumnCount = 3,
+            Dock = DockStyle.Fill,
+            Margin = new Padding(0),
+            Padding = new Padding(0),
+            RowCount = 5
+        };
+        tablaFeedback.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 165F));
+        tablaFeedback.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+        tablaFeedback.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 145F));
+        tablaFeedback.RowStyles.Add(new RowStyle(SizeType.Absolute, 32F));
+        tablaFeedback.RowStyles.Add(new RowStyle(SizeType.Absolute, 42F));
+        tablaFeedback.RowStyles.Add(new RowStyle(SizeType.Absolute, 28F));
+        tablaFeedback.RowStyles.Add(new RowStyle(SizeType.Absolute, 44F));
+        tablaFeedback.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+
+        lblResumen.AutoSize = false;
+        lblResumen.Dock = DockStyle.Fill;
+        lblResumen.Font = TemaVisual.FuenteSubtitulo;
+        lblResumen.ForeColor = TemaVisual.Primario;
+        lblResumen.TextAlign = ContentAlignment.MiddleLeft;
+        tablaFeedback.Controls.Add(lblResumen, 0, 0);
+        tablaFeedback.SetColumnSpan(lblResumen, 3);
+
+        ConfigurarEtiquetaCampo(lblEstrellas);
+        cmbEstrellas.Dock = DockStyle.Fill;
+        cmbEstrellas.Margin = new Padding(0, 3, 10, 3);
+        tablaFeedback.Controls.Add(lblEstrellas, 0, 1);
+        tablaFeedback.Controls.Add(cmbEstrellas, 1, 1);
+
+        ConfigurarEtiquetaCampo(lblComentario);
+        tablaFeedback.Controls.Add(lblComentario, 0, 2);
+        tablaFeedback.SetColumnSpan(lblComentario, 3);
+
+        txtComentario.Dock = DockStyle.Fill;
+        txtComentario.Margin = new Padding(0, 3, 10, 3);
+        btnEnviar.Dock = DockStyle.Fill;
+        btnEnviar.Margin = new Padding(0, 3, 0, 3);
+        tablaFeedback.Controls.Add(txtComentario, 0, 3);
+        tablaFeedback.SetColumnSpan(txtComentario, 2);
+        tablaFeedback.Controls.Add(btnEnviar, 2, 3);
+
+        lblComentarioLectura.AutoSize = false;
+        lblComentarioLectura.Dock = DockStyle.Fill;
+        lblComentarioLectura.Font = TemaVisual.FuentePequena;
+        lblComentarioLectura.ForeColor = TemaVisual.TextoSecundario;
+        lblComentarioLectura.Padding = new Padding(0, 8, 0, 0);
+        tablaFeedback.Controls.Add(lblComentarioLectura, 0, 4);
+        tablaFeedback.SetColumnSpan(lblComentarioLectura, 3);
+        grpFeedback.Controls.Add(tablaFeedback);
+        grpFeedback.Visible = false;
+
+        pnlFeedbackEstado = CrearTarjeta("Retroalimentación pendiente", IconChar.Star);
+        lblFeedbackEstado = new Label
+        {
+            AutoSize = false,
+            Dock = DockStyle.Fill,
+            Font = TemaVisual.FuenteNormal,
+            ForeColor = TemaVisual.TextoSecundario,
+            Text = "La retroalimentación estará disponible cuando el ticket se cierre.",
+            TextAlign = ContentAlignment.MiddleCenter
+        };
+        pnlFeedbackEstado.Controls.Add(lblFeedbackEstado);
+
+        var panelFeedbackContenido = new Panel
+        {
+            BackColor = Color.Transparent,
+            Dock = DockStyle.Fill,
+            Margin = new Padding(0),
+            Padding = new Padding(0)
+        };
+        panelFeedbackContenido.Controls.Add(pnlFeedbackEstado);
+        panelFeedbackContenido.Controls.Add(grpFeedback);
+        tbpFeedback.Controls.Add(panelFeedbackContenido);
+
+        // Pestaña de materiales.
+        tbpMateriales = new TabPage("Materiales utilizados")
+        {
+            BackColor = TemaVisual.FondoApp,
+            Name = "tbpMateriales",
+            Padding = new Padding(16),
+            UseVisualStyleBackColor = false
+        };
+        var tarjetaMateriales = CrearTarjeta("Materiales utilizados", IconChar.BoxesStacked);
+        tarjetaMateriales.Controls.Add(dgvMateriales);
+        tbpMateriales.Controls.Add(tarjetaMateriales);
         tabControlTicket.TabPages.Add(tbpMateriales);
+
+        // Navegación de pestañas y envoltura general del formulario.
+        tabControlTicket.BackColor = TemaVisual.FondoApp;
+        tabControlTicket.DrawMode = TabDrawMode.OwnerDrawFixed;
+        tabControlTicket.Font = TemaVisual.FuentePequena;
+        tabControlTicket.ItemSize = new Size(145, 42);
+        tabControlTicket.Padding = new Point(14, 0);
+        tabControlTicket.SizeMode = TabSizeMode.Fixed;
+        tabControlTicket.DrawItem -= TabControlTicket_DrawItem;
+        tabControlTicket.DrawItem += TabControlTicket_DrawItem;
+        tabControlTicket.SelectedIndexChanged -= TabControlTicket_SelectedIndexChanged;
+        tabControlTicket.SelectedIndexChanged += TabControlTicket_SelectedIndexChanged;
+
+        var pnlHeader = new Panel
+        {
+            BackColor = Color.White,
+            Dock = DockStyle.Top,
+            Height = 72,
+            Name = "pnlHeaderDetalle"
+        };
+        pnlHeader.Paint += (_, e) =>
+        {
+            var g = e.Graphics;
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            using (var brushCirculo = new SolidBrush(TemaVisual.Primario))
+            {
+                g.FillEllipse(brushCirculo, 20, 18, 36, 36);
+            }
+
+            using (var bmpIcono = IconChar.Ticket.ToBitmap(Color.White, 18))
+            {
+                g.DrawImageUnscaled(bmpIcono, 29, 27);
+            }
+
+            using (var brushTitulo = new SolidBrush(TemaVisual.TextoPrincipal))
+            using (var fuenteTitulo = new Font("Segoe UI", 13F, FontStyle.Bold))
+            {
+                g.DrawString("Detalle del ticket", fuenteTitulo, brushTitulo, new PointF(70, 13));
+            }
+
+            using (var brushSubtitulo = new SolidBrush(TemaVisual.TextoSecundario))
+            using (var fuenteSubtitulo = new Font("Segoe UI", 8.5F, FontStyle.Regular))
+            {
+                g.DrawString("Consulta y actualiza la información, gestión y seguimiento de la solicitud.", fuenteSubtitulo, brushSubtitulo, new PointF(70, 39));
+            }
+
+            using var penDivision = new Pen(TemaVisual.BordeSutil, 1F);
+            g.DrawLine(penDivision, 0, pnlHeader.Height - 1, pnlHeader.Width, pnlHeader.Height - 1);
+        };
+        pnlHeader.Resize += (_, _) => pnlHeader.Invalidate();
+
+        var pnlFooter = new Panel
+        {
+            BackColor = Color.White,
+            Dock = DockStyle.Bottom,
+            Height = 64,
+            Name = "pnlFooterDetalle"
+        };
+        pnlFooter.Paint += (_, e) =>
+        {
+            using var penDivision = new Pen(TemaVisual.BordeSutil, 1F);
+            e.Graphics.DrawLine(penDivision, 0, 0, pnlFooter.Width, 0);
+        };
+        pnlFooter.Resize += (_, _) => pnlFooter.Invalidate();
+
+        var botonesFooter = new FlowLayoutPanel
+        {
+            AutoSize = true,
+            Dock = DockStyle.Right,
+            FlowDirection = FlowDirection.RightToLeft,
+            Padding = new Padding(0, 12, 20, 12),
+            WrapContents = false
+        };
+        btnCancelar.Anchor = AnchorStyles.None;
+        btnCancelar.Margin = new Padding(10, 0, 0, 0);
+        btnCancelar.Size = new Size(116, 40);
+        btnGuardar.Anchor = AnchorStyles.None;
+        btnGuardar.Margin = new Padding(0);
+        btnGuardar.Size = new Size(145, 40);
+        botonesFooter.Controls.Add(btnCancelar);
+        botonesFooter.Controls.Add(btnGuardar);
+        pnlFooter.Controls.Add(botonesFooter);
+
+        var pnlBody = new Panel
+        {
+            BackColor = TemaVisual.FondoApp,
+            Dock = DockStyle.Fill,
+            Name = "pnlBodyDetalle",
+            Padding = new Padding(16, 14, 16, 12)
+        };
+        tabControlTicket.Dock = DockStyle.Fill;
+        pnlBody.Controls.Add(tabControlTicket);
+
+        Controls.Clear();
+        Controls.Add(pnlBody);
+        Controls.Add(pnlFooter);
+        Controls.Add(pnlHeader);
+        Text = "HSis Support - Detalle del ticket";
+    }
+
+    private static PanelCardModerno CrearTarjeta(string titulo, IconChar icono)
+    {
+        return new PanelCardModerno
+        {
+            BackColor = TemaVisual.FondoTarjeta,
+            Dock = DockStyle.Fill,
+            Icono = icono,
+            Margin = new Padding(0),
+            Titulo = titulo
+        };
+    }
+
+    private static TableLayoutPanel CrearTablaCampos(int filas)
+    {
+        var tabla = new TableLayoutPanel
+        {
+            BackColor = Color.Transparent,
+            ColumnCount = 2,
+            Dock = DockStyle.Fill,
+            Margin = new Padding(0),
+            Padding = new Padding(0),
+            RowCount = filas + 1
+        };
+        tabla.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 112F));
+        tabla.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+
+        for (int i = 0; i < filas; i++)
+        {
+            tabla.RowStyles.Add(new RowStyle(SizeType.Absolute, 42F));
+        }
+
+        // La última fila absorbe el espacio sobrante; los campos mantienen una
+        // altura uniforme y no convierten el último control en una zona enorme.
+        tabla.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+
+        return tabla;
+    }
+
+    private static void AgregarCampo(TableLayoutPanel tabla, int fila, Label etiqueta, Control control)
+    {
+        ConfigurarEtiquetaCampo(etiqueta);
+        control.Dock = DockStyle.Fill;
+        control.Margin = new Padding(0, 3, 0, 3);
+        tabla.Controls.Add(etiqueta, 0, fila);
+        tabla.Controls.Add(control, 1, fila);
+    }
+
+    private static void ConfigurarEtiquetaCampo(Label etiqueta)
+    {
+        etiqueta.AutoSize = false;
+        etiqueta.Dock = DockStyle.Fill;
+        etiqueta.Font = TemaVisual.FuentePequena;
+        etiqueta.ForeColor = TemaVisual.TextoMedio;
+        etiqueta.Margin = new Padding(0, 0, 10, 0);
+        etiqueta.TextAlign = ContentAlignment.MiddleLeft;
+    }
+
+    private static TableLayoutPanel CrearTablaEditor()
+    {
+        var tabla = new TableLayoutPanel
+        {
+            BackColor = Color.Transparent,
+            ColumnCount = 1,
+            Dock = DockStyle.Fill,
+            Margin = new Padding(0),
+            Padding = new Padding(0),
+            RowCount = 2
+        };
+        tabla.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+        tabla.RowStyles.Add(new RowStyle(SizeType.Absolute, 24F));
+        tabla.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+        return tabla;
+    }
+
+    private static void ConfigurarEtiquetaEditor(Label etiqueta, string texto)
+    {
+        etiqueta.AutoSize = false;
+        etiqueta.Dock = DockStyle.Fill;
+        etiqueta.Font = TemaVisual.FuentePequena;
+        etiqueta.ForeColor = TemaVisual.TextoSecundario;
+        etiqueta.Margin = new Padding(0, 0, 0, 4);
+        etiqueta.Text = texto;
+        etiqueta.TextAlign = ContentAlignment.MiddleLeft;
+    }
+
+    private static void ConfigurarPagina(TabPage pagina)
+    {
+        pagina.AutoScroll = false;
+        pagina.BackColor = TemaVisual.FondoApp;
+        pagina.Padding = new Padding(16);
+        pagina.UseVisualStyleBackColor = false;
+    }
+
+    private void TabControlTicket_SelectedIndexChanged(object sender, EventArgs e)
+    {
+        tabControlTicket.Invalidate();
+    }
+
+    private void TabControlTicket_DrawItem(object sender, DrawItemEventArgs e)
+    {
+        if (sender is not TabControl tabControl || e.Index < 0 || e.Index >= tabControl.TabPages.Count)
+        {
+            return;
+        }
+
+        bool seleccionado = e.Index == tabControl.SelectedIndex;
+        var rect = e.Bounds;
+        rect.Inflate(-2, -2);
+
+        using var brushFondo = new SolidBrush(seleccionado ? TemaVisual.FondoTarjeta : TemaVisual.FondoTenue);
+        using var penBorde = new Pen(seleccionado ? TemaVisual.Primario : TemaVisual.BordeSutil, seleccionado ? 1.5F : 1F);
+        e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+        e.Graphics.FillRectangle(brushFondo, rect);
+        e.Graphics.DrawRectangle(penBorde, rect);
+
+        Color colorTexto = seleccionado ? TemaVisual.Primario : TemaVisual.TextoSecundario;
+        TextRenderer.DrawText(
+            e.Graphics,
+            tabControl.TabPages[e.Index].Text,
+            seleccionado ? TemaVisual.FuenteSubtitulo : TemaVisual.FuentePequena,
+            rect,
+            colorTexto,
+            TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
     }
 }

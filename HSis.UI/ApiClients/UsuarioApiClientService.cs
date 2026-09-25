@@ -7,6 +7,43 @@ namespace HSis.UI.ApiClients
 {
     public class UsuarioApiClientService(HttpClient httpClient, IAdministradorSesionUsuario sesionUsuario) : IUsuarioService
     {
+        public async Task<List<UsuarioDto>> ObtenerUsuariosAsync()
+        {
+            return await httpClient.GetFromJsonAsync<List<UsuarioDto>>("api/Catalogos/usuarios") ?? [];
+        }
+
+        public async Task<UsuarioDto> CrearUsuarioAsync(UsuarioCatalogoRequestDto request)
+        {
+            var response = await httpClient.PostAsJsonAsync("api/Catalogos/usuarios", request);
+            await response.EnsureSuccessStatusCodeWithDetailsAsync();
+            return await response.Content.ReadFromJsonAsync<UsuarioDto>()
+                ?? throw new HttpRequestException("La API no devolvió el usuario creado.");
+        }
+
+        public async Task<UsuarioDto?> ActualizarUsuarioAsync(int idUsuario, UsuarioCatalogoRequestDto request)
+        {
+            var response = await httpClient.PutAsJsonAsync($"api/Catalogos/usuarios/{idUsuario}", request);
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                return null;
+            }
+
+            await response.EnsureSuccessStatusCodeWithDetailsAsync();
+            return await response.Content.ReadFromJsonAsync<UsuarioDto>();
+        }
+
+        public async Task<bool> EliminarUsuarioAsync(int idUsuario)
+        {
+            var response = await httpClient.DeleteAsync($"api/Catalogos/usuarios/{idUsuario}");
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                return false;
+            }
+
+            await response.EnsureSuccessStatusCodeWithDetailsAsync();
+            return true;
+        }
+
 
         public Task RehashearContraseñasAsync()
         {

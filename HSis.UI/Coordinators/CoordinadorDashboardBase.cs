@@ -41,6 +41,14 @@ namespace HSis.UI.Coordinators
             // 2. Configurar vista de tickets
             ConfigurarVistaTickets();
 
+            // Permite cargar catálogos dinámicos antes de conectar los eventos
+            // públicos del filtro y de realizar la primera consulta.
+            await PrepararFiltrosAsync();
+
+            // Los filtros se configuran antes de suscribirnos para no provocar
+            // consultas parciales durante la construcción de la vista.
+            SuscribirRecargaAutomaticaDeFiltros();
+
             // 3. Integrar SignalR y notificaciones flotantes
             Formulario.IntegrarNotificacionesModerno(
                 TopBar,
@@ -57,6 +65,25 @@ namespace HSis.UI.Coordinators
 
         protected abstract void ConfigurarNavegacion();
         protected abstract void ConfigurarVistaTickets();
+        protected virtual Task PrepararFiltrosAsync() => Task.CompletedTask;
         public abstract Task RecargarDatosAsync();
+
+        protected virtual void AlCambiarFiltros()
+        {
+            VistaTickets.ControladorPaginacion.ReiniciarAPrimeraPagina();
+            _ = RecargarDatosAsync();
+        }
+
+        private void SuscribirRecargaAutomaticaDeFiltros()
+        {
+            VistaTickets.FiltroCambiado += (_, _) => AlCambiarFiltros();
+            VistaTickets.LimpiarClic += (_, _) => AlCambiarFiltros();
+            // El botón de recarga realiza una recarga completa desde el servidor.
+            VistaTickets.RecargarClic += (_, _) =>
+            {
+                VistaTickets.ControladorPaginacion.ReiniciarAPrimeraPagina();
+                _ = RecargarDatosAsync();
+            };
+        }
     }
 }

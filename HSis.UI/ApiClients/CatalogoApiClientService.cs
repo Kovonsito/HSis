@@ -1,11 +1,13 @@
 using System.Linq.Expressions;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text.Json;
+using HSis.Contracts.DTOs;
 using HSis.Contracts.Services;
 
 namespace HSis.UI.ApiClients
 {
-    public class CatalogoApiClientService(HttpClient httpClient) : ICatalogoService
+    public class CatalogoApiClientService(HttpClient httpClient) : ICatalogoService, ICatalogoGestionService
     {
 
         public async Task<List<T>> ObtenerTodosAsync<T>() where T : class
@@ -63,6 +65,51 @@ namespace HSis.UI.ApiClients
                 }
             }
             return 1;
+        }
+
+        public async Task<IReadOnlyList<CatalogoRegistroDto>> ObtenerRegistrosAsync(string entidad)
+        {
+            var respuesta = await httpClient.GetFromJsonAsync<List<Dictionary<string, JsonElement>>>(
+                $"api/Catalogos/{Uri.EscapeDataString(entidad)}/registros") ?? [];
+
+            return respuesta
+                .Select(valores => new CatalogoRegistroDto
+                {
+                    Valores = valores.ToDictionary(
+                        par => par.Key,
+                        par => (object?)ConvertirJsonElement(par.Value),
+                        StringComparer.OrdinalIgnoreCase)
+                })
+                .ToList();
+        }
+
+        public async Task CrearRegistroAsync(string entidad, CatalogoRegistroDto registro)
+        {
+            var respuesta = await httpClient.PostAsJsonAsync(
+                $"api/Catalogos/{Uri.EscapeDataString(entidad)}/registros",
+                registro.Valores);
+            await respuesta.EnsureSuccessStatusCodeWithDetailsAsync();
+        }
+
+        public async Task EliminarRegistroAsync(string entidad, string clave)
+        {
+            var respuesta = await httpClient.DeleteAsync(
+                $"api/Catalogos/{Uri.EscapeDataString(entidad)}/registros/{Uri.EscapeDataString(clave)}");
+            await respuesta.EnsureSuccessStatusCodeWithDetailsAsync();
+        }
+
+        private static object? ConvertirJsonElement(JsonElement valor)
+        {
+            return valor.ValueKind switch
+            {
+                JsonValueKind.String => valor.GetString(),
+                JsonValueKind.Number when valor.TryGetInt64(out var entero) => entero,
+                JsonValueKind.Number when valor.TryGetDecimal(out var decimalValue) => decimalValue,
+                JsonValueKind.True => true,
+                JsonValueKind.False => false,
+                JsonValueKind.Null => null,
+                _ => valor
+            };
         }
     }
 }

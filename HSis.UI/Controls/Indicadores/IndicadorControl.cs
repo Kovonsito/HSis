@@ -130,6 +130,7 @@ namespace HSis.UI.Controls
             AjustarDisenoInterno();
         }
 
+
         private void AjustarDisenoInterno()
         {
             int width = ClientSize.Width;
@@ -150,16 +151,18 @@ namespace HSis.UI.Controls
 
             if (lblTitulo != null)
             {
-                lblTitulo.Location = new Point(14, 14);
-                lblTitulo.MaximumSize = new Size(anchoDisponible, 20);
+                lblTitulo.Location = new Point(14, 12);
+                lblTitulo.AutoSize = false;
+                lblTitulo.Size = new Size(anchoDisponible, 20);
                 lblTitulo.AutoEllipsis = true;
             }
 
             if (lblCantidad != null)
             {
-                lblCantidad.Location = new Point(12, 36);
-                lblCantidad.MaximumSize = new Size(anchoDisponible, 40);
+                lblCantidad.Location = new Point(14, 34);
+                lblCantidad.Size = new Size(anchoDisponible, 40);
                 lblCantidad.AutoEllipsis = true;
+                lblCantidad.AutoSize = false;
             }
         }
 

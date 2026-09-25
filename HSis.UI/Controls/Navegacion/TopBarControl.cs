@@ -13,6 +13,7 @@ namespace HSis.UI.Controls
     {
         public event EventHandler? NotificacionesClic;
         public event EventHandler? HamburguesaClic;
+        public event EventHandler? HamburguesaDobleClic;
         public event EventHandler? CerrarSesionClic;
 
         private string _titulo = "Panel Principal";
@@ -25,14 +26,13 @@ namespace HSis.UI.Controls
         private bool _hoverCampana = false;
         private bool _hoverUsuario = false;
         private bool _hoverSalir = false;
+        private bool _mostrarHamburguesa = true;
         private IAlmacenamientoCredencialesLocal? _sessionCache;
         private IAdministradorSesionUsuario? _sesionUsuario;
         private ContextMenuStrip? _menuHamburguesa;
         private readonly List<ItemSidebar> _itemsHamburguesa = [];
         private string _itemActivoClave = string.Empty;
         private Action<string>? _onItemSelected;
-        private Action? _onToggleSidebar;
-        private Func<bool>? _isSidebarVisible;
 
         [Browsable(false)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -58,6 +58,21 @@ namespace HSis.UI.Controls
             set { _notificacionesNoLeidas = Math.Max(0, value); Invalidate(); }
         }
 
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public bool MostrarHamburguesa
+        {
+            get => _mostrarHamburguesa;
+            set
+            {
+                if (_mostrarHamburguesa == value) return;
+
+                _mostrarHamburguesa = value;
+                _hoverHamburguesa = false;
+                Invalidate();
+            }
+        }
+
         public TopBarControl()
         {
             Dock = DockStyle.Top;
@@ -77,6 +92,7 @@ namespace HSis.UI.Controls
                 Invalidate();
             };
             MouseClick += TopBarControl_MouseClick;
+            MouseDoubleClick += TopBarControl_MouseDoubleClick;
         }
 
         public void ConfigurarSesion(IAlmacenamientoCredencialesLocal sessionCache, IAdministradorSesionUsuario? sesionUsuario = null)
@@ -99,16 +115,12 @@ namespace HSis.UI.Controls
         public void ConfigurarMenuHamburguesa(
             IEnumerable<ItemSidebar> items,
             string itemInicial,
-            Action<string> onItemSelected,
-            Action? onToggleSidebar = null,
-            Func<bool>? isSidebarVisible = null)
+            Action<string> onItemSelected)
         {
             _itemsHamburguesa.Clear();
             _itemsHamburguesa.AddRange(items);
             _itemActivoClave = itemInicial;
             _onItemSelected = onItemSelected;
-            _onToggleSidebar = onToggleSidebar;
-            _isSidebarVisible = isSidebarVisible;
 
             ReconstruirMenuHamburguesa();
         }
@@ -169,27 +181,6 @@ namespace HSis.UI.Controls
                 _menuHamburguesa.Items.Add(menuItem);
             }
 
-            if (_onToggleSidebar != null)
-            {
-                _menuHamburguesa.Items.Add(new ToolStripSeparator());
-                bool lateralVisible = _isSidebarVisible?.Invoke() ?? true;
-                string toggleTexto = lateralVisible ? "  Ocultar Barra Lateral" : "  Mostrar Barra Lateral";
-
-                var itemToggle = new ToolStripMenuItem(toggleTexto)
-                {
-                    Font = new Font("Segoe UI", 9f),
-                    ForeColor = Color.FromArgb(71, 85, 105),
-                    Image = (lateralVisible ? IconChar.EyeSlash : IconChar.Eye).ToBitmap(Color.FromArgb(100, 116, 139), 18)
-                };
-
-                itemToggle.Click += (s, e) =>
-                {
-                    _onToggleSidebar.Invoke();
-                    ReconstruirMenuHamburguesa();
-                };
-
-                _menuHamburguesa.Items.Add(itemToggle);
-            }
         }
 
         private Rectangle ObtenerRectHamburguesa() => new Rectangle(12, 13, 38, 38);
@@ -204,7 +195,7 @@ namespace HSis.UI.Controls
 
         private void TopBarControl_MouseMove(object? sender, MouseEventArgs e)
         {
-            bool hHamburguesa = ObtenerRectHamburguesa().Contains(e.Location);
+            bool hHamburguesa = _mostrarHamburguesa && ObtenerRectHamburguesa().Contains(e.Location);
             bool hCampana = ObtenerRectCampana().Contains(e.Location);
             bool hUsuario = ObtenerRectUsuario().Contains(e.Location);
             bool hSalir = ObtenerRectBotonSalir().Contains(e.Location);
@@ -225,8 +216,10 @@ namespace HSis.UI.Controls
         {
             if (e.Button != MouseButtons.Left) return;
 
-            if (ObtenerRectHamburguesa().Contains(e.Location))
+            if (_mostrarHamburguesa && ObtenerRectHamburguesa().Contains(e.Location))
             {
+                if (e.Clicks != 1) return;
+
                 HamburguesaClic?.Invoke(this, EventArgs.Empty);
                 if (_menuHamburguesa != null && _menuHamburguesa.Items.Count > 0)
                 {
@@ -245,6 +238,15 @@ namespace HSis.UI.Controls
             {
                 EjecutarCierreSesion();
             }
+        }
+
+        private void TopBarControl_MouseDoubleClick(object? sender, MouseEventArgs e)
+        {
+            if (e.Button != MouseButtons.Left || !_mostrarHamburguesa || !ObtenerRectHamburguesa().Contains(e.Location))
+                return;
+
+            _menuHamburguesa?.Close();
+            HamburguesaDobleClic?.Invoke(this, EventArgs.Empty);
         }
 
         private void MostrarInfoUsuario()
@@ -284,15 +286,16 @@ namespace HSis.UI.Controls
 
             // 1. Botón Menú Hamburguesa
             var rectHam = ObtenerRectHamburguesa();
-            if (_hoverHamburguesa)
+            if (_mostrarHamburguesa)
             {
-                using var pathH = TemaVisual.CrearRectanguloRedondeado(rectHam, 8);
-                using var brushH = new SolidBrush(Color.FromArgb(241, 245, 249));
-                g.FillPath(brushH, pathH);
-            }
+                if (_hoverHamburguesa)
+                {
+                    using var pathH = TemaVisual.CrearRectanguloRedondeado(rectHam, 8);
+                    using var brushH = new SolidBrush(Color.FromArgb(241, 245, 249));
+                    g.FillPath(brushH, pathH);
+                }
 
-            using (var bmpHam = IconChar.Bars.ToBitmap(Color.FromArgb(51, 65, 85), 18))
-            {
+                using var bmpHam = IconChar.Bars.ToBitmap(Color.FromArgb(51, 65, 85), 18);
                 int hamX = rectHam.X + (rectHam.Width - bmpHam.Width) / 2;
                 int hamY = rectHam.Y + (rectHam.Height - bmpHam.Height) / 2;
                 g.DrawImage(bmpHam, hamX, hamY);
@@ -302,13 +305,13 @@ namespace HSis.UI.Controls
             using (var brushTitulo = new SolidBrush(TemaVisual.TextoPrincipal))
             using (var fontTitulo = new Font("Segoe UI", 13f, FontStyle.Bold))
             {
-                g.DrawString(_titulo, fontTitulo, brushTitulo, new PointF(58, 11));
+                g.DrawString(_titulo, fontTitulo, brushTitulo, new PointF(_mostrarHamburguesa ? 58 : 20, 11));
             }
 
             using (var brushSub = new SolidBrush(TemaVisual.TextoSecundario))
             using (var fontSub = new Font("Segoe UI", 8.5f, FontStyle.Regular))
             {
-                g.DrawString(_subtitulo, fontSub, brushSub, new PointF(58, 36));
+                g.DrawString(_subtitulo, fontSub, brushSub, new PointF(_mostrarHamburguesa ? 58 : 20, 36));
             }
 
             // 3. Indicador SignalR

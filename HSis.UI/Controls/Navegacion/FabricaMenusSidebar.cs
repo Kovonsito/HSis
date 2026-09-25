@@ -28,17 +28,9 @@ namespace HSis.UI.Helpers
 
         public static ItemSidebar[] ParaTecnico() =>
         [
-            new() { Clave = "asignados",     Titulo = "Mis Asignados",  Icono = IconChar.ClipboardCheck },
-            new() { Clave = "disponibles",   Titulo = "Disponibles",     Icono = IconChar.Inbox },
-            new() { Clave = "cerrados",      Titulo = "Mis Cerrados",    Icono = IconChar.CheckCircle },
-            new() { Clave = "calificaciones",Titulo = "Calificaciones", Icono = IconChar.Star },
-            new() { Clave = "kardex",        Titulo = "Almacén / Kardex", Icono = IconChar.BoxesStacked }
+            new() { Clave = "kardex", Titulo = "Almacén / Kardex", Icono = IconChar.BoxesStacked }
         ];
 
-        public static ItemSidebar[] ParaCliente() =>
-        [
-            new() { Clave = "activos",  Titulo = "Mis Activos",        Icono = IconChar.Ticket },
-            new() { Clave = "cerrados", Titulo = "Historial Cerrados", Icono = IconChar.ClockRotateLeft }
-        ];
+        public static ItemSidebar[] ParaCliente() => [];
     }
 }

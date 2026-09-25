@@ -251,5 +251,32 @@ partial class IniciarSesionForm
 
     private void InicializarLayoutLogin()
     {
+        pnlFormulario.Resize += (_, _) => AjustarLayoutLogin();
+        AjustarLayoutLogin();
+    }
+
+    private void AjustarLayoutLogin()
+    {
+        int anchoDisponible = pnlFormulario.ClientSize.Width - pnlFormulario.Padding.Left - pnlFormulario.Padding.Right;
+        if (anchoDisponible <= 0) return;
+
+        int anchoContenido = Math.Min(360, anchoDisponible);
+        int margenIzquierdo = pnlFormulario.Padding.Left + (anchoDisponible - anchoContenido) / 2;
+        int altoBloque = 330;
+        int margenSuperior = Math.Max(28, (pnlFormulario.ClientSize.Height - altoBloque) / 2);
+
+        lblBienvenida.Location = new Point(margenIzquierdo, margenSuperior);
+        lblSubBienvenida.Location = new Point(margenIzquierdo, margenSuperior + 34);
+        lblUsuario.Location = new Point(margenIzquierdo, margenSuperior + 76);
+        txtUsuario.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+        txtUsuario.Location = new Point(margenIzquierdo, margenSuperior + 98);
+        txtUsuario.Width = anchoContenido;
+        lblContraseña.Location = new Point(margenIzquierdo, margenSuperior + 150);
+        txtContraseña.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+        txtContraseña.Location = new Point(margenIzquierdo, margenSuperior + 172);
+        txtContraseña.Width = anchoContenido;
+        btnIniciarSesion.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+        btnIniciarSesion.Location = new Point(margenIzquierdo, margenSuperior + 231);
+        btnIniciarSesion.Width = anchoContenido;
     }
 }

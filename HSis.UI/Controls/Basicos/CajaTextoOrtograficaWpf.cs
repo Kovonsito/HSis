@@ -24,10 +24,11 @@ namespace HSis.UI.Controls
                 TextWrapping = System.Windows.TextWrapping.Wrap,
                 VerticalScrollBarVisibility = WPF.ScrollBarVisibility.Auto,
                 FontFamily = new System.Windows.Media.FontFamily("Segoe UI"),
-                FontSize = 14.5, // Aproximadamente 11pt, alineado con el resto del formulario
+                FontSize = 13.5,
+                Background = System.Windows.Media.Brushes.White,
                 BorderThickness = new System.Windows.Thickness(1),
-                BorderBrush = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(171, 173, 179)), // Borde Windows clásico
-                Padding = new System.Windows.Thickness(4),
+                BorderBrush = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(226, 232, 240)),
+                Padding = new System.Windows.Thickness(10, 8, 10, 8),
                 AcceptsTab = true
             };
 
@@ -56,10 +57,9 @@ namespace HSis.UI.Controls
             set
             {
                 _cajaTextoWpf.IsReadOnly = value;
-                // Ajustar el color de fondo para que coincida con el estilo de Windows Forms de sólo lectura
                 if (value)
                 {
-                    _cajaTextoWpf.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(240, 240, 240));
+                    _cajaTextoWpf.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(248, 250, 252));
                 }
                 else
                 {

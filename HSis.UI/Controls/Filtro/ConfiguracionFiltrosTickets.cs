@@ -70,7 +70,7 @@ namespace HSis.UI.Helpers
 
             if (vals.TryGetValue("Tecnico", out var tecVal) && tecVal != null)
             {
-                if (int.TryParse(tecVal.ToString(), out int idTecnico) && idTecnico > 0)
+                if (IntentarObtenerId(tecVal, out int idTecnico) && idTecnico > 0)
                 {
                     filtros.IdTecnico = idTecnico;
                 }
@@ -104,6 +104,24 @@ namespace HSis.UI.Helpers
             filtros.FechaAltaFin = fechaFin ?? DateTime.Today.AddDays(1).AddTicks(-1);
 
             return filtros;
+        }
+
+        private static bool IntentarObtenerId(object valor, out int id)
+        {
+            switch (valor)
+            {
+                case ElementoCombo<int> elementoEntero:
+                    id = elementoEntero.Valor;
+                    return true;
+                case ElementoCombo<int?> elementoNullable when elementoNullable.Valor.HasValue:
+                    id = elementoNullable.Valor.Value;
+                    return true;
+                case ElementoOpcionCombo elementoOpcion when elementoOpcion.Id.HasValue:
+                    id = elementoOpcion.Id.Value;
+                    return true;
+                default:
+                    return int.TryParse(valor.ToString(), out id);
+            }
         }
 
         public static (string? Texto, DateTime? FechaInicio, DateTime? FechaFin, string? Prioridad, string? Usuario) ExtraerFiltrosComunes(

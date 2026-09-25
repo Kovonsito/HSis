@@ -69,21 +69,18 @@ namespace HSis.UI.Coordinators
 
             VistaTickets.Filtro.InicializarFiltros(ConfiguracionFiltrosTickets.ObtenerCamposTecnico());
             VistaTickets.ControladorPaginacion.Vincular(() => { MostrarPaginaActual(); return Task.CompletedTask; });
+            // Suscripciones locales removidas: RecargarClic, FiltroCambiado y LimpiarClic.
+            // Estas suscripciones se centralizaron en CoordinadorDashboardBase para evitar recargas duplicadas.
 
-            VistaTickets.RecargarClic += (_, _) => _ = RecargarDatosAsync();
-            VistaTickets.FiltroCambiado += (_, _) => { if (!_estaCargando) AplicarFiltrosMemoria(); };
-            VistaTickets.LimpiarClic += (_, _) =>
-            {
-                _estaCargando = true;
-                VistaTickets.Filtro.LimpiarFiltros(ConfiguracionFiltrosTickets.ObtenerValoresDefecto());
-                _estaCargando = false;
-                AplicarFiltrosMemoria();
-            };
             VistaTickets.Grid.CellDoubleClick += async (_, e) =>
             {
                 if (e.RowIndex >= 0)
                 {
-                    await VistaTickets.Grid.ManejarDetalleTicketAsync(e.RowIndex, FormFactory, RecargarDatosAsync);
+                    await VistaTickets.Grid.ManejarDetalleTicketAsync(
+                        e.RowIndex,
+                        FormFactory,
+                        RecargarDatosAsync,
+                        abrirEnRetroalimentacion: _vistaActual == VistaTecnico.Calificaciones);
                 }
             };
             VistaTickets.KpiClic += tipo =>
@@ -132,7 +129,7 @@ namespace HSis.UI.Coordinators
             if (clave == "kardex")
             {
                 var frmK = FormFactory.Crear<KardexForm>();
-                frmK.ShowDialog();
+                frmK.Show(Formulario);
                 string claveActual = _vistaActual switch
                 {
                     VistaTecnico.MisAsignados => "asignados",

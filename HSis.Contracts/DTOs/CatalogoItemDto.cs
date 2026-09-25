@@ -20,6 +20,7 @@ namespace HSis.Contracts.DTOs
         public int IdDepartamento { get; set; }
         public int Id => IdDepartamento;
         public string Nombre { get; set; } = string.Empty;
+        public string? Descripcion { get; set; }
         public int? IdSucursal { get; set; }
         public string? SucursalNombre { get; set; }
     }
@@ -29,6 +30,7 @@ namespace HSis.Contracts.DTOs
         public int IdPuesto { get; set; }
         public int Id => IdPuesto;
         public string Nombre { get; set; } = string.Empty;
+        public string? Descripcion { get; set; }
     }
 
     public class SucursalDto : IElementoCatalogo
@@ -36,6 +38,10 @@ namespace HSis.Contracts.DTOs
         public int IdSucursal { get; set; }
         public int Id => IdSucursal;
         public string Nombre { get; set; } = string.Empty;
+        public string? Calle { get; set; }
+        public string? Numero { get; set; }
+        public string? Colonia { get; set; }
+        public string? Telefono { get; set; }
         public int? IdEmpresa { get; set; }
         public string? EmpresaNombre { get; set; }
     }
@@ -45,6 +51,9 @@ namespace HSis.Contracts.DTOs
         public int IdEmpresa { get; set; }
         public int Id => IdEmpresa;
         public string Nombre { get; set; } = string.Empty;
+        public string? Calle { get; set; }
+        public string? Numero { get; set; }
+        public string? Colonia { get; set; }
         public string? Telefono { get; set; }
     }
 

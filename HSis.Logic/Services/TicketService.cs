@@ -150,7 +150,7 @@ namespace HSis.Logic.Services
                 var notificacion = new Notificacion
                 {
                     UsuarioDestinoId = ticketTracked.IdUsuario,
-                    Mensaje = $"El ticket TK-{ticketTracked.IdTicket:d6} ha cambiado al estatus: {ticketTracked.Estatus}.",
+                    Mensaje = $"El ticket {ticketTracked.IdTicket.ToString(System.Globalization.CultureInfo.InvariantCulture)} ha cambiado al estatus: {ticketTracked.Estatus}.",
                     Tipo = "EstadoTicket",
                     FechaCreacion = DateTime.Now,
                     Leido = false
