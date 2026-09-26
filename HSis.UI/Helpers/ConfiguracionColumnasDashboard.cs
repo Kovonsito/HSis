@@ -10,17 +10,14 @@ namespace HSis.UI.Helpers
     [SupportedOSPlatform("windows")]
     public static class ConfiguracionColumnasDashboard
     {
-        // ── Columnas que SIEMPRE se ocultan en vistas de tickets ──────────────
         private static readonly string[] _columnasOcultasBase = [
-            "IdTicket", "IdUsuario", "NombreUsuario", "DepartamentoUsuario",
-            "FechaAtencion", "FechaCierre", "Estatus", "IdTecnico", "NombreTecnico",
-            "TecnicoAsignado", "Calificacion", "ComentarioEvaluacion", "FechaEvaluacion",
-            "Evaluacion", "Feedback", "FolioFormato", "Folio", "Usuario", "Status"
+            "IdTicket", "IdUsuario", "DepartamentoUsuario", "FechaAtencion", "FechaCierre",
+            "IdTecnico", "Calificacion", "ComentarioEvaluacion", "FechaEvaluacion", "Evaluacion",
+            "Feedback", "Usuario", "Status", "NombreTecnico", "TecnicoAsignado"
         ];
 
         /// <summary>
-        /// Vista de tickets del panel de cliente: muestra folio, fecha, estatus,
-        /// técnico asignado, descripción y feedback.
+        /// Vista de tickets del panel de cliente.
         /// </summary>
         public static void AplicarPerfilCliente(DataGridView dgv)
         {
@@ -28,25 +25,25 @@ namespace HSis.UI.Helpers
 
             dgv.ConfigurarOcultarColumnas(
                 "IdTicket", "IdUsuario", "NombreUsuario", "Usuario", "DepartamentoUsuario",
-                "FechaAtencion", "FechaCierre", "Estatus", "Solucion", "IdTecnico",
-                "NombreTecnico", "Prioridad", "Calificacion", "ComentarioEvaluacion",
-                "FechaEvaluacion", "Evaluacion", "FolioFormato", "Folio", "Status");
+                "FechaAtencion", "FechaCierre", "Solucion", "IdTecnico",
+                "TecnicoAsignado", "Calificacion", "ComentarioEvaluacion", "FechaEvaluacion",
+                "Evaluacion", "Status");
 
             dgv.ConfigurarColumnas(
-                ("Folio", "Folio", 70, null),
-                ("FechaAlta", "Fecha de Solicitud", 130, "dd/MM/yyyy HH:mm"),
-                ("Status", "Estatus", 90, null),
-                ("TecnicoAsignado", "Técnico Asignado", 140, null),
-                ("Descripcion", "Descripción del Problema", 260, null),
-                ("Feedback", "Calificación / Feedback", 120, null)
+                ("Folio", "Folio", 80, null),
+                ("Descripcion", "Descripción", 320, null),
+                ("FechaAlta", "Fecha de solicitud", 140, "dd/MM/yyyy HH:mm"),
+                ("Estatus", "Estatus", 105, null),
+                ("Prioridad", "Prioridad", 100, null),
+                ("NombreTecnico", "Técnico asignado", 170, null),
+                ("Feedback", "Calificación / feedback", 170, null)
             );
 
             dgv.AutoajustarAnchosMinimos();
         }
 
         /// <summary>
-        /// Vista de tickets del panel técnico: folio, usuario, estatus, prioridad,
-        /// fecha, descripción y solución.
+        /// Vista de tickets del panel técnico.
         /// </summary>
         public static void AplicarPerfilTecnico(DataGridView dgv)
         {
@@ -56,20 +53,19 @@ namespace HSis.UI.Helpers
 
             dgv.ConfigurarColumnas(
                 ("Folio", "Folio", 80, null),
-                ("Usuario", "Usuario Solicitante", 160, null),
-                ("Status", "Estatus", 100, null),
+                ("Descripcion", "Descripción", 320, null),
+                ("FechaAlta", "Fecha de alta", 140, "dd/MM/yyyy HH:mm"),
+                ("Estatus", "Estatus", 105, null),
                 ("Prioridad", "Prioridad", 100, null),
-                ("FechaAlta", "Fecha Alta", 130, null),
-                ("Descripcion", "Descripción del Problema", 260, null),
-                ("Solucion", "Solución Aplicada", 260, null)
+                ("NombreUsuario", "Usuario solicitante", 180, null),
+                ("Solucion", "Solución aplicada", 300, null)
             );
 
             dgv.AutoajustarAnchosMinimos();
         }
 
         /// <summary>
-        /// Vista de calificaciones del panel técnico: usuario calificador, comentario,
-        /// fecha y puntuación con emoji de estrella.
+        /// Vista de calificaciones basada en TicketDto, usada por el panel administrador.
         /// </summary>
         public static void AplicarPerfilCalificaciones(DataGridView dgv)
         {
@@ -77,13 +73,14 @@ namespace HSis.UI.Helpers
 
             dgv.ConfigurarOcultarColumnas(
                 "IdTicket", "IdUsuario", "DepartamentoUsuario", "FechaAlta", "FechaAtencion", "FechaCierre",
-                "Estatus", "Status", "IdTecnico", "NombreTecnico", "TecnicoAsignado", "Prioridad",
-                "Descripcion", "Solucion", "Evaluacion", "Feedback", "Folio", "FolioFormato", "Usuario");
+                "Estatus", "IdTecnico", "NombreTecnico", "TecnicoAsignado", "Prioridad", "Descripcion",
+                "Solucion", "Evaluacion", "Feedback", "Usuario", "Status");
 
             dgv.ConfigurarColumnas(
+                ("Folio", "Folio", 80, null),
                 ("NombreUsuario", "Usuario Calificador", 180, null),
-                ("ComentarioEvaluacion", "Comentario de Retroalimentación", 320, null),
-                ("FechaEvaluacion", "Fecha Calificación", 140, "dd/MM/yyyy HH:mm"),
+                ("ComentarioEvaluacion", "Comentario de retroalimentación", 320, null),
+                ("FechaEvaluacion", "Fecha de calificación", 140, "dd/MM/yyyy HH:mm"),
                 ("Calificacion", "Calificación ⭐", 130, null)
             );
 
@@ -91,28 +88,48 @@ namespace HSis.UI.Helpers
         }
 
         /// <summary>
-        /// Vista de tickets del panel administrador: columnas completas incluyendo
-        /// técnico asignado, fechas de atención y cierre.
+        /// Vista de calificaciones basada en FeedbackTecnicoDto, usada por el panel técnico.
+        /// </summary>
+        public static void AplicarPerfilFeedbackTecnico(DataGridView dgv)
+        {
+            if (dgv.Columns.Count == 0) return;
+
+            dgv.ConfigurarOcultarColumnas("IdTicket", "Puntuacion", "FechaRegistro");
+
+            dgv.ConfigurarColumnas(
+                ("Folio", "Folio", 80, null),
+                ("Comentario", "Comentario de retroalimentación", 320, null),
+                ("Fecha", "Fecha de calificación", 140, "dd/MM/yyyy HH:mm"),
+                ("NombreUsuario", "Usuario calificador", 180, null),
+                ("Calificacion", "Calificación ⭐", 130, null)
+            );
+
+            dgv.AutoajustarAnchosMinimos();
+        }
+
+        /// <summary>
+        /// Vista de tickets del panel administrador.
         /// </summary>
         public static void AplicarPerfilAdmin(DataGridView dgv)
         {
             if (dgv.Columns.Count == 0) return;
 
             dgv.ConfigurarOcultarColumnas(
-                "IdTicket", "IdUsuario", "DepartamentoUsuario", "Calificacion",
-                "ComentarioEvaluacion", "FechaEvaluacion", "Evaluacion", "Feedback", "FolioFormato", "Folio", "Usuario", "Status");
+                "IdTicket", "IdUsuario", "DepartamentoUsuario", "IdTecnico", "Calificacion",
+                "ComentarioEvaluacion", "FechaEvaluacion", "Evaluacion", "Feedback", "Usuario",
+                "TecnicoAsignado", "Status");
 
             dgv.ConfigurarColumnas(
-                ("Folio", "Folio", 50, null),
-                ("NombreUsuario", "Usuario", 110, null),
-                ("Estatus", "Estatus", 70, null),
-                ("Prioridad", "Prioridad", 70, null),
-                ("FechaAlta", "Fecha Alta", 85, "dd/MM/yyyy HH:mm"),
-                ("FechaAtencion", "Fecha Atención", 85, "dd/MM/yyyy HH:mm"),
-                ("FechaCierre", "Fecha Cierre", 85, "dd/MM/yyyy HH:mm"),
-                ("TecnicoAsignado", "Técnico Asignado", 100, null),
-                ("Descripcion", "Descripción", 150, null),
-                ("Solucion", "Solución", 150, null)
+                ("Folio", "Folio", 80, null),
+                ("Descripcion", "Descripción", 320, null),
+                ("FechaAlta", "Fecha de alta", 140, "dd/MM/yyyy HH:mm"),
+                ("Estatus", "Estatus", 105, null),
+                ("Prioridad", "Prioridad", 100, null),
+                ("NombreUsuario", "Usuario", 170, null),
+                ("NombreTecnico", "Técnico asignado", 170, null),
+                ("Solucion", "Solución", 300, null),
+                ("FechaAtencion", "Fecha de atención", 140, "dd/MM/yyyy HH:mm"),
+                ("FechaCierre", "Fecha de cierre", 140, "dd/MM/yyyy HH:mm")
             );
 
             dgv.AutoajustarAnchosMinimos();

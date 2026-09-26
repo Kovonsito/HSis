@@ -56,7 +56,7 @@ namespace HSis.UI.Forms.Otros
             {
                 var materiales = await _materialService.ObtenerMaterialesAsync();
                 CargarMateriales(materiales);
-            }, "Error al cargar materiales", cbMaterial);
+            }, "Error al cargar materiales", "kardex-materiales", cbMaterial);
         }
 
         private void PanelTop_Paint(object? sender, PaintEventArgs e)
@@ -73,7 +73,7 @@ namespace HSis.UI.Forms.Otros
                 {
                     var historial = await _materialService.ObtenerKardexPorMaterialAsync(idMaterial);
                     CargarHistorialKardex(historial);
-                }, "Error al cargar Kardex", cbMaterial);
+                }, "Error al cargar Kardex", "kardex-historial", cbMaterial);
             }
             else
             {

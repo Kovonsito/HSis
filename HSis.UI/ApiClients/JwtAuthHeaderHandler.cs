@@ -13,7 +13,13 @@ namespace HSis.UI.ApiClients
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", contextoSesion.TokenJWT);
             }
 
-            return await base.SendAsync(request, cancellationToken);
+            var response = await base.SendAsync(request, cancellationToken);
+            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                contextoSesion.CerrarSesion();
+            }
+
+            return response;
         }
     }
 }

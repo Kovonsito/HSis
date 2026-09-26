@@ -13,7 +13,7 @@ public sealed class VistaCatalogoAdminControl : UserControl
     private readonly BotonModerno _btnNuevo;
     private readonly BotonModerno _btnEditar;
     private readonly BotonModerno _btnEliminar;
-    private bool _cargando;
+    private readonly EstadoCargaAsync _estadoCarga = new();
 
     public VistaCatalogoAdminControl(string titulo)
     {
@@ -88,15 +88,41 @@ public sealed class VistaCatalogoAdminControl : UserControl
 
     public DataGridView Grid => _grid;
 
+    [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
     public bool EstaCargando
+        => _estadoCarga.EstaCargando;
+
+    public bool IntentarIniciarCarga(string claveOperacion = "general")
     {
-        get => _cargando;
-        set
+        var iniciada = _estadoCarga.IntentarIniciar(claveOperacion);
+        if (iniciada)
         {
-            _cargando = value;
-            _btnActualizar.Enabled = !value;
-            _btnNuevo.Enabled = !value;
             ActualizarEstadoBotones();
+        }
+
+        return iniciada;
+    }
+
+    public void FinalizarCarga(string claveOperacion = "general")
+    {
+        _estadoCarga.Finalizar(claveOperacion);
+        ActualizarEstadoBotones();
+    }
+
+    public async Task EjecutarCargaAsync(Func<Task> accionAsync, string claveOperacion = "general")
+    {
+        if (!IntentarIniciarCarga(claveOperacion))
+        {
+            return;
+        }
+
+        try
+        {
+            await accionAsync();
+        }
+        finally
+        {
+            FinalizarCarga(claveOperacion);
         }
     }
 
@@ -114,8 +140,9 @@ public sealed class VistaCatalogoAdminControl : UserControl
             {
                 Name = columna.Nombre,
                 HeaderText = columna.Titulo,
-                FillWeight = Math.Max(50, columna.Ancho),
-                MinimumWidth = Math.Min(Math.Max(50, columna.Ancho), 90),
+                AutoSizeMode = DataGridViewAutoSizeColumnMode.NotSet,
+                FillWeight = Math.Max(1, columna.Ancho),
+                MinimumWidth = Math.Max(50, Math.Min(columna.Ancho, 600)),
                 SortMode = DataGridViewColumnSortMode.NotSortable
             });
         }
@@ -129,7 +156,7 @@ public sealed class VistaCatalogoAdminControl : UserControl
             _grid.Rows.Clear();
             foreach (var fila in filas)
             {
-                var rowIndex = _grid.Rows.Add(fila.Valores.ToArray());
+                var rowIndex = _grid.Rows.Add(fila.Valores.Select(valor => valor ?? string.Empty).ToArray());
                 _grid.Rows[rowIndex].Tag = fila.Registro;
             }
         }
@@ -148,7 +175,9 @@ public sealed class VistaCatalogoAdminControl : UserControl
 
     private void ActualizarEstadoBotones()
     {
-        var habilitado = !_cargando && _grid.SelectedRows.Count > 0;
+        _btnActualizar.Enabled = !EstaCargando;
+        _btnNuevo.Enabled = !EstaCargando;
+        var habilitado = !EstaCargando && _grid.SelectedRows.Count > 0;
         _btnEditar.Enabled = habilitado;
         _btnEliminar.Enabled = habilitado;
     }

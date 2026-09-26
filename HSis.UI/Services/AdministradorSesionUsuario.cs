@@ -1,12 +1,36 @@
 using HSis.Contracts.Services;
 using HSis.Contracts.Constants;
 using HSis.Contracts.DTOs;
+using HSis.Desktop.Infrastructure;
 
 namespace HSis.UI.Services
 {
     public class AdministradorSesionUsuario : IAdministradorSesionUsuario, ICurrentUserService
     {
-        public UsuarioDto? UsuarioActual { get; set; }
+        private readonly PresenciaAplicacion _presenciaAplicacion;
+        private UsuarioDto? _usuarioActual;
+
+        public AdministradorSesionUsuario(PresenciaAplicacion presenciaAplicacion)
+        {
+            _presenciaAplicacion = presenciaAplicacion;
+        }
+
+        public UsuarioDto? UsuarioActual
+        {
+            get => _usuarioActual;
+            set
+            {
+                _usuarioActual = value;
+                if (value is null)
+                {
+                    _presenciaAplicacion.Desactivar();
+                }
+                else
+                {
+                    _presenciaAplicacion.Activar();
+                }
+            }
+        }
         public string TokenJWT { get; set; } = string.Empty;
         public int IdUsuario => UsuarioActual?.IdUsuario ?? 0;
         public string NombreUsuario => UsuarioActual?.Nombre ?? string.Empty;

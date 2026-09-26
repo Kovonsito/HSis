@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	<OutputType>WinExe</OutputType>
+	<TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+	<Nullable>enable</Nullable>
+	<ImplicitUsings>enable</ImplicitUsings>
+	<UseWindowsForms>true</UseWindowsForms>
+	<WindowsPackageType>None</WindowsPackageType>
+	<ApplicationManifest>app.manifest</ApplicationManifest>
+	<AssemblyName>HSis.NotificationAgent</AssemblyName>
+	<RootNamespace>HSis.NotificationAgent</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+	<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.7" />
+	<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.7" />
+	<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.10" />
+	<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.10" />
+	<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.10" />
+	<PackageReference Include="Microsoft.WindowsAppSDK" Version="2.5.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<ProjectReference Include="..\HSis.Contracts\HSis.Contracts.csproj" />
+	<ProjectReference Include="..\HSis.Desktop.Infrastructure\HSis.Desktop.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<None Update="appsettings.json">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	</None>
+  </ItemGroup>
+
+</Project>

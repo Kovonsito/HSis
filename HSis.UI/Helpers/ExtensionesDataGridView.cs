@@ -5,6 +5,16 @@ namespace HSis.UI.Helpers
 {
     public static class ExtensionesDataGridView
     {
+        public static void ConfigurarDesplazamientoYTexto(this DataGridView dgv)
+        {
+            dgv.ScrollBars = ScrollBars.Both;
+            dgv.AllowUserToResizeColumns = true;
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgv.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
+            dgv.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
+            dgv.ColumnHeadersDefaultCellStyle.WrapMode = DataGridViewTriState.True;
+        }
+
         public static void AutoajustarAnchosMinimos(this DataGridView dgv)
         {
             foreach (DataGridViewColumn col in dgv.Columns)
@@ -12,7 +22,7 @@ namespace HSis.UI.Helpers
                 if (col.Visible)
                 {
                     int prefHeader = col.GetPreferredWidth(DataGridViewAutoSizeColumnMode.ColumnHeader, true);
-                    col.MinimumWidth = Math.Max(col.MinimumWidth, prefHeader);
+                    col.MinimumWidth = Math.Max(col.MinimumWidth, Math.Min(prefHeader, 600));
                 }
             }
         }
@@ -35,6 +45,8 @@ namespace HSis.UI.Helpers
 
         public static void ConfigurarColumnas(this DataGridView dgv, params (string NombrePropiedad, string Encabezado, int? Ancho, string? Formato)[] columnas)
         {
+            var columnasVisibles = new List<DataGridViewColumn>();
+
             foreach (var (nombre, encabezado, ancho, formato) in columnas)
             {
                 if (dgv.Columns[nombre] is DataGridViewColumn col)
@@ -43,14 +55,22 @@ namespace HSis.UI.Helpers
                     col.Visible = true;
                     if (ancho.HasValue)
                     {
-                        col.FillWeight = ancho.Value;
-                        col.MinimumWidth = Math.Min(ancho.Value, 75);
+                        col.AutoSizeMode = DataGridViewAutoSizeColumnMode.NotSet;
+                        col.FillWeight = Math.Max(1, ancho.Value);
+                        col.MinimumWidth = Math.Max(50, Math.Min(ancho.Value, 600));
                     }
                     if (!string.IsNullOrEmpty(formato))
                     {
                         col.DefaultCellStyle.Format = formato;
                     }
+
+                    columnasVisibles.Add(col);
                 }
+            }
+
+            for (var indice = 0; indice < columnasVisibles.Count; indice++)
+            {
+                columnasVisibles[indice].DisplayIndex = indice;
             }
         }
 

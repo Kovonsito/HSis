@@ -1,8 +1,11 @@
 using HSis.Contracts.Services;
+using HSis.Contracts.Constants;
 using HSis.Data.Models;
 using HSis.Contracts.DTOs;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Logging;
 
 namespace HSis.Logic.Services
 {
@@ -11,7 +14,11 @@ namespace HSis.Logic.Services
     /// </summary>
     public class MaterialService(
         IDbContextFactory<HSisDbContext> dbContextFactory,
-        IValidator<Material>? validator = null) : IMaterialService
+        IValidator<Material>? validator = null,
+        INotificacionDestinatariosService? notificationRecipients = null,
+        IServerNotificationDispatcher? notificationDispatcher = null,
+        ICurrentUserService? currentUserService = null,
+        ILogger<MaterialService>? logger = null) : IMaterialService
     {
         public async Task<MaterialDto> CrearMaterialAsync(MaterialCatalogoRequestDto request)
         {
@@ -123,27 +130,130 @@ namespace HSis.Logic.Services
         public async Task RegistrarMovimientoAsync(KardexMovimientoDto movimiento)
         {
             using var db = dbContextFactory.CreateDbContext();
+            var material = await db.Materials.FindAsync(movimiento.IdMaterial)
+                ?? throw new KeyNotFoundException($"No existe el material {movimiento.IdMaterial}.");
+
+            var usuarioId = currentUserService?.GetCurrentUserId() is > 0
+                ? currentUserService.GetCurrentUserId()
+                : movimiento.IdUsuario;
+            var destinatarios = notificationRecipients is null
+                ? Array.Empty<int>()
+                : await notificationRecipients.ObtenerDestinatariosMovimientoMaterialAsync();
+
             var entity = new MovimientoMaterial
             {
                 IdMaterial = movimiento.IdMaterial,
                 Cantidad = movimiento.Cantidad,
                 CostoUnitario = movimiento.CostoUnitario,
                 FechaMovimiento = movimiento.Fecha == default ? DateTime.Now : movimiento.Fecha,
-                IdUsuario = movimiento.IdUsuario,
+                IdUsuario = usuarioId,
                 Motivo = movimiento.Motivo
             };
-            db.MovimientosMateriales.Add(entity);
 
-            var mat = await db.Materials.FindAsync(movimiento.IdMaterial);
-            if (mat != null)
+            var existenciaPosterior = material.Inventario + movimiento.Cantidad;
+            await EjecutarEnTransaccionAsync(db, async () =>
             {
-                mat.Inventario += movimiento.Cantidad;
+                db.MovimientosMateriales.Add(entity);
+                material.Inventario = existenciaPosterior;
                 if (movimiento.CostoUnitario > 0)
                 {
-                    mat.Costo = movimiento.CostoUnitario;
+                    material.Costo = movimiento.CostoUnitario;
+                }
+
+                await db.SaveChangesAsync();
+
+                if (destinatarios.Count > 0)
+                {
+                    var mensaje = NotificacionFactory.CrearMensajeMovimientoMaterial(
+                        material.IdMaterial,
+                        material.Nombre,
+                        movimiento.TipoMovimiento,
+                        movimiento.Cantidad,
+                        existenciaPosterior,
+                        movimiento.Motivo);
+                    db.Notificaciones.AddRange(destinatarios.Select(idUsuarioDestino => NotificacionFactory.Crear(
+                        idUsuarioDestino,
+                        null,
+                        ConstantesTiposNotificacion.MovimientoMaterial,
+                        mensaje,
+                        materialId: material.IdMaterial)));
+                    await db.SaveChangesAsync();
+                }
+            });
+
+            if (notificationDispatcher is not null)
+            {
+                await PublicarNotificacionSeguraAsync(
+                    () => notificationDispatcher.NotifyMaterialChangeAsync(
+                        destinatarios,
+                        null,
+                        material.IdMaterial,
+                        ConstantesTiposNotificacion.MovimientoMaterial,
+                        NotificacionFactory.CrearMensajeMovimientoMaterial(
+                            material.IdMaterial,
+                            material.Nombre,
+                            movimiento.TipoMovimiento,
+                            movimiento.Cantidad,
+                            existenciaPosterior,
+                            movimiento.Motivo)),
+                    "movimiento de material",
+                    material.IdMaterial);
+            }
+        }
+
+        private static async Task EjecutarEnTransaccionAsync(
+            HSisDbContext db,
+            Func<Task> operacion)
+        {
+            IDbContextTransaction? transaction = null;
+            if (db.Database.IsRelational())
+            {
+                transaction = await db.Database.BeginTransactionAsync();
+            }
+
+            try
+            {
+                await operacion();
+                if (transaction is not null)
+                {
+                    await transaction.CommitAsync();
                 }
             }
-            await db.SaveChangesAsync();
+            catch
+            {
+                if (transaction is not null)
+                {
+                    await transaction.RollbackAsync();
+                }
+
+                throw;
+            }
+            finally
+            {
+                if (transaction is not null)
+                {
+                    await transaction.DisposeAsync();
+                }
+            }
+        }
+
+        private async Task PublicarNotificacionSeguraAsync(
+            Func<Task> publicar,
+            string evento,
+            int materialId)
+        {
+            try
+            {
+                await publicar();
+            }
+            catch (Exception ex)
+            {
+                logger?.LogError(
+                    ex,
+                    "No se pudo publicar la notificación de {Evento} para el material {MaterialId}. El historial persistido queda disponible para sincronización.",
+                    evento,
+                    materialId);
+            }
         }
     }
 }

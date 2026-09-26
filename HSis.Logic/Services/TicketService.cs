@@ -2,9 +2,12 @@ using HSis.Contracts.Services;
 using HSis.Data.Models;
 using HSis.Contracts.Constants;
 using HSis.Contracts.DTOs;
+using HSis.Logic.Exceptions;
 using Mapster;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Logging;
 
 namespace HSis.Logic.Services
 {
@@ -13,13 +16,19 @@ namespace HSis.Logic.Services
         IMapper mapper,
         FluentValidation.IValidator<TicketCreateDto> createValidator,
         FluentValidation.IValidator<TicketUpdateDto> updateValidator,
-        IServerNotificationDispatcher? notificationDispatcher = null) : ITicketService
+        INotificacionDestinatariosService? notificationRecipients = null,
+        IServerNotificationDispatcher? notificationDispatcher = null,
+        ILogger<TicketService>? logger = null,
+        NotificacionTicketCoordinator? notificationTicketCoordinator = null) : ITicketService
     {
         private readonly IDbContextFactory<HSisDbContext> dbContextFactory = dbContextFactory;
         private readonly IMapper mapper = mapper;
         private readonly FluentValidation.IValidator<TicketCreateDto> createValidator = createValidator;
         private readonly FluentValidation.IValidator<TicketUpdateDto> updateValidator = updateValidator;
+        private readonly INotificacionDestinatariosService? notificationRecipients = notificationRecipients;
         private readonly IServerNotificationDispatcher? notificationDispatcher = notificationDispatcher;
+        private readonly ILogger<TicketService>? logger = logger;
+        private readonly NotificacionTicketCoordinator? notificationTicketCoordinator = notificationTicketCoordinator;
 
         private static DateTime ObtenerLimiteSLA()
         {
@@ -119,9 +128,9 @@ namespace HSis.Logic.Services
             using var db = dbContextFactory.CreateDbContext();
 
             var ticketTracked = await db.Tickets.FindAsync(ticketDto.IdTicket)
-                ?? throw new KeyNotFoundException("El ticket no existe o ya fue eliminado.");
+                ?? throw new TicketNotFoundException(ticketDto.IdTicket);
 
-            var estatusAnterior = ticketTracked.Estatus;
+            var estadoAnterior = CrearEstadoNotificacion(ticketTracked);
 
             if (ticketDto.Estatus == ConstantesEstatus.REABIERTO)
             {
@@ -141,32 +150,39 @@ namespace HSis.Logic.Services
                 ticketDto.FechaCierre = null;
             }
 
-            mapper.Map(ticketDto, ticketTracked);
-            await db.SaveChangesAsync();
-
-            // Guardar notificación en base de datos si el estatus cambió
-            if (estatusAnterior != ticketTracked.Estatus)
+            IReadOnlyList<NotificacionTicketPendiente> notificacionesPendientes = Array.Empty<NotificacionTicketPendiente>();
+            await EjecutarEnTransaccionAsync(db, async () =>
             {
-                var notificacion = new Notificacion
-                {
-                    UsuarioDestinoId = ticketTracked.IdUsuario,
-                    Mensaje = $"El ticket {ticketTracked.IdTicket.ToString(System.Globalization.CultureInfo.InvariantCulture)} ha cambiado al estatus: {ticketTracked.Estatus}.",
-                    Tipo = "EstadoTicket",
-                    FechaCreacion = DateTime.Now,
-                    Leido = false
-                };
-                db.Notificaciones.Add(notificacion);
-                await db.SaveChangesAsync();
+                mapper.Map(ticketDto, ticketTracked);
 
-                if (notificationDispatcher != null)
+                if (notificationTicketCoordinator is not null)
                 {
-                    _ = notificationDispatcher.NotifyTicketStatusChangedAsync(
-                        ticketTracked.IdUsuario,
-                        ticketTracked.IdTicket,
-                        ticketTracked.IdTicket.ToString("d6"),
-                        ticketTracked.Estatus ?? string.Empty
-                    );
+                    notificacionesPendientes = await notificationTicketCoordinator.DetectarCambiosAsync(
+                        estadoAnterior,
+                        ticketTracked);
+
+                    db.Notificaciones.AddRange(
+                        notificacionesPendientes.SelectMany(notificacion =>
+                            notificacion.Destinatarios.Select(idUsuario => NotificacionFactory.Crear(
+                                idUsuario,
+                                notificacion.TicketId,
+                                notificacion.Tipo,
+                                notificacion.Mensaje))));
                 }
+
+                await db.SaveChangesAsync();
+            });
+
+            foreach (var notificacion in notificacionesPendientes)
+            {
+                await PublicarNotificacionSeguraAsync(
+                    dispatcher => dispatcher.NotifyTicketChangeAsync(
+                        notificacion.Destinatarios,
+                        notificacion.TicketId,
+                        notificacion.Tipo,
+                        notificacion.Mensaje),
+                    notificacion.Tipo,
+                    notificacion.TicketId);
             }
         }
 
@@ -180,6 +196,17 @@ namespace HSis.Logic.Services
                 .OrderByDescending(t => t.FechaAlta)
                 .ToListAsync());
         }
+
+        private static Ticket CrearEstadoNotificacion(Ticket ticket)
+            => new()
+            {
+                IdTicket = ticket.IdTicket,
+                IdUsuario = ticket.IdUsuario,
+                IdTecnico = ticket.IdTecnico,
+                Estatus = ticket.Estatus,
+                Prioridad = ticket.Prioridad,
+                Solucion = ticket.Solucion
+            };
 
         // Obtener tickets asignados a un técnico (no cerrados) - Async
         public async Task<List<TicketDto>> ObtenerTicketsAsignadosATecnicoAsync(int idTecnico)
@@ -234,17 +261,39 @@ namespace HSis.Logic.Services
                 nuevoTicket.Estatus = ConstantesEstatus.ABIERTO;
             }
 
-            db.Tickets.Add(nuevoTicket);
-            await db.SaveChangesAsync();
-
-            if (notificationDispatcher != null)
+            IReadOnlyList<int> destinatarios = Array.Empty<int>();
+            var recipientsService = notificationRecipients;
+            await EjecutarEnTransaccionAsync(db, async () =>
             {
-                _ = notificationDispatcher.NotifyTicketCreatedAsync(
+                db.Tickets.Add(nuevoTicket);
+                await db.SaveChangesAsync();
+
+                destinatarios = recipientsService is null
+                    ? Array.Empty<int>()
+                    : await recipientsService.ObtenerDestinatariosNuevoTicketAsync();
+
+                if (destinatarios.Count > 0)
+                {
+                    var mensaje = NotificacionFactory.CrearMensajeNuevoTicket(
+                        nuevoTicket.IdTicket,
+                        nuevoTicket.IdTicket.ToString(),
+                        nuevoTicket.Descripcion ?? string.Empty);
+                    db.Notificaciones.AddRange(destinatarios.Select(idUsuario => NotificacionFactory.Crear(
+                        idUsuario,
+                        nuevoTicket.IdTicket,
+                        ConstantesTiposNotificacion.NuevoTicket,
+                        mensaje)));
+                    await db.SaveChangesAsync();
+                }
+            });
+
+            await PublicarNotificacionSeguraAsync(
+                dispatcher => dispatcher.NotifyTicketCreatedAsync(
                     nuevoTicket.IdTicket,
-                    nuevoTicket.IdTicket.ToString("d6"),
-                    nuevoTicket.Descripcion ?? string.Empty
-                );
-            }
+                    nuevoTicket.IdTicket.ToString(),
+                    nuevoTicket.Descripcion ?? string.Empty),
+                "creación de ticket",
+                nuevoTicket.IdTicket);
 
             return mapper.Map<TicketDto>(nuevoTicket);
         }
@@ -402,45 +451,115 @@ namespace HSis.Logic.Services
         public async Task<bool> RegistrarCalificacionAsync(int idTicket, int calificacion, string? comentario)
         {
             if (calificacion < 1 || calificacion > 5)
-                throw new ArgumentException("La calificación debe estar entre 1 y 5.");
+                throw new TicketRatingInvalidException(calificacion);
 
             using var db = dbContextFactory.CreateDbContext();
             var ticket = await db.Tickets.FindAsync(idTicket);
-            if (ticket == null) return false;
+            if (ticket == null)
+                throw new TicketNotFoundException(idTicket);
 
             if (ticket.Estatus != ConstantesEstatus.CERRADO)
-                throw new InvalidOperationException("Solo se pueden calificar tickets que estén cerrados.");
+                throw new TicketNotClosedException(idTicket);
 
             ticket.Calificacion = calificacion;
             ticket.ComentarioEvaluacion = comentario;
             ticket.FechaEvaluacion = DateTime.Now;
 
-            // Notificar la calificación vía SignalR (a técnico si existe, o 0 para administradores)
-            int idTecnicoNotif = ticket.IdTecnico ?? 0;
-            var stars = new string('⭐', calificacion);
-            var notificacion = new Notificacion
+            var destinatarios = notificationRecipients is null
+                ? Array.Empty<int>()
+                : await notificationRecipients.ObtenerDestinatariosCalificacionAsync(ticket.IdTecnico);
+            var mensaje = NotificacionFactory.CrearMensajeCalificacion(
+                ticket.IdTicket,
+                ticket.IdTicket.ToString(),
+                calificacion,
+                comentario);
+            await EjecutarEnTransaccionAsync(db, async () =>
             {
-                UsuarioDestinoId = idTecnicoNotif > 0 ? idTecnicoNotif : 1, // Admin si no hay técnico
-                Mensaje = $"El cliente calificó el ticket TK-{ticket.IdTicket:d6} con {stars} ({calificacion}/5). Comentario: \"{comentario ?? string.Empty}\"",
-                Tipo = "Calificacion",
-                FechaCreacion = DateTime.Now,
-                Leido = false
-            };
-            db.Notificaciones.Add(notificacion);
-
-            if (notificationDispatcher != null)
-            {
-                _ = notificationDispatcher.NotifyTicketRatedAsync(
-                    idTecnicoNotif,
+                db.Notificaciones.AddRange(destinatarios.Select(idUsuario => NotificacionFactory.Crear(
+                    idUsuario,
                     ticket.IdTicket,
-                    ticket.IdTicket.ToString("d6"),
+                    ConstantesTiposNotificacion.Calificacion,
+                    mensaje)));
+                await db.SaveChangesAsync();
+            });
+
+            await PublicarNotificacionSeguraAsync(
+                dispatcher => dispatcher.NotifyTicketRatedAsync(
+                    ticket.IdTecnico ?? 0,
+                    ticket.IdTicket,
+                    ticket.IdTicket.ToString(),
                     calificacion,
-                    comentario ?? string.Empty
-                );
+                    comentario ?? string.Empty),
+                "calificación de ticket",
+                ticket.IdTicket);
+            return true;
+        }
+
+        private static async Task EjecutarEnTransaccionAsync(
+            HSisDbContext db,
+            Func<Task> operacion)
+        {
+            IDbContextTransaction? transaction = null;
+            if (db.Database.IsRelational())
+            {
+                transaction = await db.Database.BeginTransactionAsync();
             }
 
-            await db.SaveChangesAsync();
-            return true;
+            try
+            {
+                await operacion();
+
+                if (transaction is not null)
+                {
+                    await transaction.CommitAsync();
+                }
+            }
+            catch
+            {
+                if (transaction is not null)
+                {
+                    try
+                    {
+                        await transaction.RollbackAsync();
+                    }
+                    catch
+                    {
+                    }
+                }
+
+                throw;
+            }
+            finally
+            {
+                if (transaction is not null)
+                {
+                    await transaction.DisposeAsync();
+                }
+            }
+        }
+
+        private async Task PublicarNotificacionSeguraAsync(
+            Func<IServerNotificationDispatcher, Task> publicar,
+            string evento,
+            int ticketId)
+        {
+            if (notificationDispatcher is null)
+            {
+                return;
+            }
+
+            try
+            {
+                await publicar(notificationDispatcher);
+            }
+            catch (Exception ex)
+            {
+                logger?.LogError(
+                    ex,
+                    "No se pudo publicar la notificación de {Evento} para el ticket {TicketId}. El historial persistido queda disponible para sincronización.",
+                    evento,
+                    ticketId);
+            }
         }
 
         // Obtener promedio de calificación de un técnico

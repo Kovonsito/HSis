@@ -73,6 +73,6 @@ public sealed class MaterialCatalogoForm : FormularioCatalogoBase
 
             DialogResult = DialogResult.OK;
             Close();
-        }, "Error al guardar el material", BtnGuardar, BtnCancelar);
+        }, "Error al guardar el material", "material-guardar", BtnGuardar, BtnCancelar);
     }
 }

@@ -63,7 +63,7 @@ public sealed class SucursalCatalogoForm : FormularioCatalogoBase
             {
                 SeleccionarEmpresa(_empresaEnEdicion.Value);
             }
-        }, "Error al cargar las empresas", _cmbEmpresa);
+        }, "Error al cargar las empresas", "sucursal-empresas", _cmbEmpresa);
     }
 
     private void SeleccionarEmpresa(int idEmpresa)
@@ -111,7 +111,7 @@ public sealed class SucursalCatalogoForm : FormularioCatalogoBase
 
             DialogResult = DialogResult.OK;
             Close();
-        }, "Error al guardar la sucursal", BtnGuardar, BtnCancelar);
+        }, "Error al guardar la sucursal", "sucursal-guardar", BtnGuardar, BtnCancelar);
     }
 
     private static string? TextoOpcional(CajaTextoModerna control)

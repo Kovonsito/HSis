@@ -22,14 +22,15 @@ namespace HSis.UI.Coordinators
         IAdministradorSesionUsuario contextoSesion,
         IAlmacenamientoCredencialesLocal sessionCache,
         IFabricaFormularios formFactory,
-        IClienteSignalRNotificaciones notificationClient) : CoordinadorDashboardBase(formulario, sidebar, topBar, vistaTickets, contextoSesion, sessionCache, formFactory, notificationClient)
+        IClienteSignalRNotificaciones notificationClient,
+        INotificacionesApiClient notificacionesApiClient,
+        IBusEventosNotificaciones eventBus) : CoordinadorDashboardBase(formulario, sidebar, topBar, vistaTickets, contextoSesion, sessionCache, formFactory, notificationClient, notificacionesApiClient, eventBus)
     {
         protected List<TicketDto> TodosLosTickets = [];
-        protected bool EstaCargando = false;
 
         protected override void AlCambiarFiltros()
         {
-            if (EstaCargando)
+            if (EstadoCarga.EstaCargando)
             {
                 return;
             }
@@ -40,8 +41,6 @@ namespace HSis.UI.Coordinators
 
         public void MostrarPaginaActual()
         {
-            if (EstaCargando) return;
-
             var query = TodosLosTickets.AsEnumerable();
 
             // 1. Filtrado personalizado por vista o estado del rol
@@ -53,7 +52,7 @@ namespace HSis.UI.Coordinators
             if (!string.IsNullOrEmpty(txt))
             {
                 query = query.Where(t =>
-                    (t.Folio.ToString().Contains(txt) || t.FolioFormato.ToLowerInvariant().Contains(txt)) ||
+                    t.Folio.ToString().Contains(txt) ||
                     (t.Descripcion?.ToLowerInvariant().Contains(txt) ?? false) ||
                     (t.TecnicoAsignado?.ToLowerInvariant().Contains(txt) ?? false));
             }

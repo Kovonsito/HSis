@@ -152,7 +152,7 @@ namespace HSis.UI.Forms.Tickets
                 CargarTecnicos(personalAtencion, ticket.IdTecnico, _contextoSesion.EsAdmin);
 
                 await RecargarHistorialYMaterialesAsync(idTicket);
-            }, "Error al cargar ticket");
+            }, "Error al cargar ticket", "ticket-detalle");
         }
 
         public async Task RecargarHistorialYMaterialesAsync(int idTicket)
@@ -165,7 +165,8 @@ namespace HSis.UI.Forms.Tickets
                 var detalles = await _ticketDetalleService.ObtenerDetallesTicketAsync(idTicket);
                 CargarDetallesMaterial(detalles);
             },
-            mensajeErrorContexto: $"Error al recargar historial y materiales del ticket {idTicket}");
+            mensajeErrorContexto: $"Error al recargar historial y materiales del ticket {idTicket}",
+            claveOperacion: "ticket-historial-materiales");
         }
 
         private void CmbEstatus_SelectedIndexChanged(object? sender, EventArgs e)
@@ -234,6 +235,7 @@ namespace HSis.UI.Forms.Tickets
                 this.Close();
             },
             mensajeErrorContexto: "Error al actualizar ticket",
+            claveOperacion: "ticket-actualizar",
             controlesADeshabilitar: [btnGuardar, btnCancelar]);
         }
 
@@ -343,20 +345,18 @@ namespace HSis.UI.Forms.Tickets
                 {
                     DialogoUIHelper.MostrarError("No se pudo registrar la calificación.");
                 }
-            }, "Error al enviar feedback", btnEnviar);
+            }, "Error al enviar feedback", "ticket-feedback", btnEnviar);
         }
 
         private void ConfigurarEstilosGridHistorial()
         {
             dgvHistorial.AutoGenerateColumns = true;
-            dgvHistorial.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvHistorial.AplicarTemaModerno();
         }
 
         private void ConfigurarEstilosGridMateriales()
         {
             dgvMateriales.AutoGenerateColumns = true;
-            dgvMateriales.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvMateriales.AplicarTemaModerno();
         }
         #endregion

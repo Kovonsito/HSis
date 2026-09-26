@@ -32,7 +32,9 @@ public class CoordinadorDashboardAdmin(
     IAdministradorSesionUsuario contextoSesion,
     IAlmacenamientoCredencialesLocal sessionCache,
     IFabricaFormularios formFactory,
-    IClienteSignalRNotificaciones notificationClient)
+    IClienteSignalRNotificaciones notificationClient,
+    INotificacionesApiClient notificacionesApiClient,
+    IBusEventosNotificaciones eventBus)
     : CoordinadorDashboardBase(
         formulario,
         sidebar,
@@ -41,7 +43,9 @@ public class CoordinadorDashboardAdmin(
         contextoSesion,
         sessionCache,
         formFactory,
-        notificationClient)
+        notificationClient,
+        notificacionesApiClient,
+        eventBus)
 {
     private readonly ITicketService _ticketService = ticketService;
     private readonly IUsuarioService _usuarioService = usuarioService;
@@ -245,7 +249,7 @@ public class CoordinadorDashboardAdmin(
             ActualizarKpis(_tickets);
             VistaTickets.ControladorPaginacion.ReiniciarAPrimeraPagina();
             MostrarPaginaActual();
-        }, "Error al cargar el dashboard de administración");
+        }, "Error al cargar el dashboard de administración", "dashboard-admin", VistaTickets.Grid);
     }
 
     private void ActualizarKpis(IEnumerable<TicketDto> tickets)
@@ -358,6 +362,450 @@ public class CoordinadorDashboardAdmin(
         MostrarPaginaActual();
     }
 
+    private Task CargarMaterialesAsync()
+        => CargarCatalogoAsync(
+            "inventario",
+            _vistaMateriales,
+            _materialService.ObtenerMaterialesAsync,
+            material => new FilaCatalogoAdmin(
+                material,
+                new object?[]
+                {
+                    material.IdMaterial,
+                    material.Nombre,
+                    material.CostoUnitario.ToString("C2"),
+                    material.StockActual,
+                    material.UnidadMedida
+                }),
+            "Error al cargar los materiales");
+
+    private async Task NuevoMaterialAsync()
+    {
+        using var formulario = FormFactory.Crear<MaterialCatalogoForm>();
+        if (formulario.ShowDialog(Formulario) == DialogResult.OK)
+        {
+            await CargarMaterialesAsync();
+        }
+    }
+
+    private async Task EditarMaterialAsync()
+    {
+        var material = _vistaMateriales.ObtenerSeleccionado<MaterialDto>();
+        if (material is null)
+        {
+            return;
+        }
+
+        using var formulario = FormFactory.Crear<MaterialCatalogoForm>();
+        formulario.Editar(material);
+        if (formulario.ShowDialog(Formulario) == DialogResult.OK)
+        {
+            await CargarMaterialesAsync();
+        }
+    }
+
+    private async Task EliminarMaterialAsync()
+    {
+        var material = _vistaMateriales.ObtenerSeleccionado<MaterialDto>();
+        if (material is null)
+        {
+            return;
+        }
+
+        await EliminarCatalogoAsync(
+            _vistaMateriales,
+            "material",
+            () => _materialService.EliminarMaterialAsync(material.IdMaterial),
+            CargarMaterialesAsync);
+    }
+
+    private Task CargarUsuariosAsync()
+        => CargarCatalogoAsync(
+            "usuarios",
+            _vistaUsuarios,
+            _usuarioService.ObtenerUsuariosAsync,
+            usuario => new FilaCatalogoAdmin(
+                usuario,
+                new object?[]
+                {
+                    usuario.IdUsuario,
+                    usuario.Nombre,
+                    usuario.DepartamentoNombre ?? "Sin departamento",
+                    usuario.PuestoNombre ?? "Sin puesto",
+                    usuario.SucursalNombre ?? "Sin sucursal",
+                    usuario.RolNombre ?? "Sin rol"
+                }),
+            "Error al cargar los usuarios");
+
+    private async Task NuevoUsuarioAsync()
+    {
+        using var formulario = FormFactory.Crear<UsuarioCatalogoForm>();
+        if (formulario.ShowDialog(Formulario) == DialogResult.OK)
+        {
+            await CargarUsuariosAsync();
+        }
+    }
+
+    private async Task EditarUsuarioAsync()
+    {
+        var usuario = _vistaUsuarios.ObtenerSeleccionado<UsuarioDto>();
+        if (usuario is null)
+        {
+            return;
+        }
+
+        using var formulario = FormFactory.Crear<UsuarioCatalogoForm>();
+        formulario.Editar(usuario);
+        if (formulario.ShowDialog(Formulario) == DialogResult.OK)
+        {
+            await CargarUsuariosAsync();
+        }
+    }
+
+    private async Task EliminarUsuarioAsync()
+    {
+        var usuario = _vistaUsuarios.ObtenerSeleccionado<UsuarioDto>();
+        if (usuario is null)
+        {
+            return;
+        }
+
+        await EliminarCatalogoAsync(
+            _vistaUsuarios,
+            "usuario",
+            () => _usuarioService.EliminarUsuarioAsync(usuario.IdUsuario),
+            CargarUsuariosAsync);
+    }
+
+    private Task CargarDepartamentosAsync()
+        => CargarCatalogoAsync(
+            "departamentos",
+            _vistaDepartamentos,
+            _departamentoService.ObtenerDepartamentosAsync,
+            departamento => new FilaCatalogoAdmin(
+                departamento,
+                new object?[]
+                {
+                    departamento.IdDepartamento,
+                    departamento.Nombre,
+                    departamento.Descripcion ?? string.Empty
+                }),
+            "Error al cargar los departamentos");
+
+    private async Task NuevoDepartamentoAsync()
+    {
+        using var formulario = FormFactory.Crear<DepartamentoCatalogoForm>();
+        if (formulario.ShowDialog(Formulario) == DialogResult.OK)
+        {
+            await CargarDepartamentosAsync();
+        }
+    }
+
+    private async Task EditarDepartamentoAsync()
+    {
+        var departamento = _vistaDepartamentos.ObtenerSeleccionado<DepartamentoDto>();
+        if (departamento is null)
+        {
+            return;
+        }
+
+        using var formulario = FormFactory.Crear<DepartamentoCatalogoForm>();
+        formulario.Editar(departamento);
+        if (formulario.ShowDialog(Formulario) == DialogResult.OK)
+        {
+            await CargarDepartamentosAsync();
+        }
+    }
+
+    private async Task EliminarDepartamentoAsync()
+    {
+        var departamento = _vistaDepartamentos.ObtenerSeleccionado<DepartamentoDto>();
+        if (departamento is null)
+        {
+            return;
+        }
+
+        await EliminarCatalogoAsync(
+            _vistaDepartamentos,
+            "departamento",
+            () => _departamentoService.EliminarDepartamentoAsync(departamento.IdDepartamento),
+            CargarDepartamentosAsync);
+    }
+
+    private Task CargarSucursalesAsync()
+        => CargarCatalogoAsync(
+            "sucursales",
+            _vistaSucursales,
+            _sucursalService.ObtenerSucursalesAsync,
+            sucursal => new FilaCatalogoAdmin(
+                sucursal,
+                new object?[]
+                {
+                    sucursal.IdSucursal,
+                    sucursal.Nombre,
+                    sucursal.EmpresaNombre ?? "Sin empresa",
+                    sucursal.Calle ?? string.Empty,
+                    sucursal.Numero ?? string.Empty,
+                    sucursal.Colonia ?? string.Empty,
+                    sucursal.Telefono ?? string.Empty
+                }),
+            "Error al cargar las sucursales");
+
+    private async Task NuevoSucursalAsync()
+    {
+        using var formulario = FormFactory.Crear<SucursalCatalogoForm>();
+        if (formulario.ShowDialog(Formulario) == DialogResult.OK)
+        {
+            await CargarSucursalesAsync();
+        }
+    }
+
+    private async Task EditarSucursalAsync()
+    {
+        var sucursal = _vistaSucursales.ObtenerSeleccionado<SucursalDto>();
+        if (sucursal is null)
+        {
+            return;
+        }
+
+        using var formulario = FormFactory.Crear<SucursalCatalogoForm>();
+        formulario.Editar(sucursal);
+        if (formulario.ShowDialog(Formulario) == DialogResult.OK)
+        {
+            await CargarSucursalesAsync();
+        }
+    }
+
+    private async Task EliminarSucursalAsync()
+    {
+        var sucursal = _vistaSucursales.ObtenerSeleccionado<SucursalDto>();
+        if (sucursal is null)
+        {
+            return;
+        }
+
+        await EliminarCatalogoAsync(
+            _vistaSucursales,
+            "sucursal",
+            () => _sucursalService.EliminarSucursalAsync(sucursal.IdSucursal),
+            CargarSucursalesAsync);
+    }
+
+    private Task CargarEmpresasAsync()
+        => CargarCatalogoAsync(
+            "empresas",
+            _vistaEmpresas,
+            _empresaService.ObtenerEmpresasAsync,
+            empresa => new FilaCatalogoAdmin(
+                empresa,
+                new object?[]
+                {
+                    empresa.IdEmpresa,
+                    empresa.Nombre,
+                    empresa.Calle ?? string.Empty,
+                    empresa.Numero ?? string.Empty,
+                    empresa.Colonia ?? string.Empty,
+                    empresa.Telefono ?? string.Empty
+                }),
+            "Error al cargar las empresas");
+
+    private async Task NuevoEmpresaAsync()
+    {
+        using var formulario = FormFactory.Crear<EmpresaCatalogoForm>();
+        if (formulario.ShowDialog(Formulario) == DialogResult.OK)
+        {
+            await CargarEmpresasAsync();
+        }
+    }
+
+    private async Task EditarEmpresaAsync()
+    {
+        var empresa = _vistaEmpresas.ObtenerSeleccionado<EmpresaDto>();
+        if (empresa is null)
+        {
+            return;
+        }
+
+        using var formulario = FormFactory.Crear<EmpresaCatalogoForm>();
+        formulario.Editar(empresa);
+        if (formulario.ShowDialog(Formulario) == DialogResult.OK)
+        {
+            await CargarEmpresasAsync();
+        }
+    }
+
+    private async Task EliminarEmpresaAsync()
+    {
+        var empresa = _vistaEmpresas.ObtenerSeleccionado<EmpresaDto>();
+        if (empresa is null)
+        {
+            return;
+        }
+
+        await EliminarCatalogoAsync(
+            _vistaEmpresas,
+            "empresa",
+            () => _empresaService.EliminarEmpresaAsync(empresa.IdEmpresa),
+            CargarEmpresasAsync);
+    }
+
+    private Task CargarPuestosAsync()
+        => CargarCatalogoAsync(
+            "puestos",
+            _vistaPuestos,
+            _puestoService.ObtenerPuestosAsync,
+            puesto => new FilaCatalogoAdmin(
+                puesto,
+                new object?[]
+                {
+                    puesto.IdPuesto,
+                    puesto.Nombre,
+                    puesto.Descripcion ?? string.Empty
+                }),
+            "Error al cargar los puestos");
+
+    private async Task NuevoPuestoAsync()
+    {
+        using var formulario = FormFactory.Crear<PuestoCatalogoForm>();
+        if (formulario.ShowDialog(Formulario) == DialogResult.OK)
+        {
+            await CargarPuestosAsync();
+        }
+    }
+
+    private async Task EditarPuestoAsync()
+    {
+        var puesto = _vistaPuestos.ObtenerSeleccionado<PuestoDto>();
+        if (puesto is null)
+        {
+            return;
+        }
+
+        using var formulario = FormFactory.Crear<PuestoCatalogoForm>();
+        formulario.Editar(puesto);
+        if (formulario.ShowDialog(Formulario) == DialogResult.OK)
+        {
+            await CargarPuestosAsync();
+        }
+    }
+
+    private async Task EliminarPuestoAsync()
+    {
+        var puesto = _vistaPuestos.ObtenerSeleccionado<PuestoDto>();
+        if (puesto is null)
+        {
+            return;
+        }
+
+        await EliminarCatalogoAsync(
+            _vistaPuestos,
+            "puesto",
+            () => _puestoService.EliminarPuestoAsync(puesto.IdPuesto),
+            CargarPuestosAsync);
+    }
+
+    private Task CargarRolesAsync()
+        => CargarCatalogoAsync(
+            "roles",
+            _vistaRoles,
+            _rolUsuarioService.ObtenerRolesUsuarioAsync,
+            rol => new FilaCatalogoAdmin(
+                rol,
+                new object?[]
+                {
+                    rol.IdRol,
+                    rol.Descripcion
+                }),
+            "Error al cargar los roles");
+
+    private async Task NuevoRolAsync()
+    {
+        using var formulario = FormFactory.Crear<RolUsuarioCatalogoForm>();
+        if (formulario.ShowDialog(Formulario) == DialogResult.OK)
+        {
+            await CargarRolesAsync();
+        }
+    }
+
+    private async Task EditarRolAsync()
+    {
+        var rol = _vistaRoles.ObtenerSeleccionado<RolUsuarioDto>();
+        if (rol is null)
+        {
+            return;
+        }
+
+        using var formulario = FormFactory.Crear<RolUsuarioCatalogoForm>();
+        formulario.Editar(rol);
+        if (formulario.ShowDialog(Formulario) == DialogResult.OK)
+        {
+            await CargarRolesAsync();
+        }
+    }
+
+    private async Task EliminarRolAsync()
+    {
+        var rol = _vistaRoles.ObtenerSeleccionado<RolUsuarioDto>();
+        if (rol is null)
+        {
+            return;
+        }
+
+        await EliminarCatalogoAsync(
+            _vistaRoles,
+            "rol",
+            () => _rolUsuarioService.EliminarRolUsuarioAsync(rol.IdRol),
+            CargarRolesAsync);
+    }
+
+    private async Task CargarCatalogoAsync<T>(
+        string clave,
+        VistaCatalogoAdminControl vista,
+        Func<Task<List<T>>> obtener,
+        Func<T, FilaCatalogoAdmin> crearFila,
+        string mensajeError)
+    {
+        await vista.EjecutarCargaAsync(async () =>
+        {
+            await Formulario.EjecutarOperacionAsync(async () =>
+            {
+                var registros = await obtener();
+                vista.CargarFilas(registros.Select(crearFila));
+                _catalogosCargados.Add(clave);
+            }, mensajeError, $"catalogo-{clave}-carga");
+        }, $"catalogo-{clave}");
+    }
+
+    private async Task EliminarCatalogoAsync(
+        VistaCatalogoAdminControl vista,
+        string entidad,
+        Func<Task<bool>> eliminar,
+        Func<Task> recargar)
+    {
+        if (!DialogoUIHelper.Confirmar($"¿Desea eliminar el {entidad} seleccionado?"))
+        {
+            return;
+        }
+
+        var eliminado = false;
+        await vista.EjecutarCargaAsync(async () =>
+        {
+            await Formulario.EjecutarOperacionAsync(async () =>
+            {
+                eliminado = await eliminar();
+                if (!eliminado)
+                {
+                    throw new KeyNotFoundException($"El {entidad} ya no existe.");
+                }
+            }, $"Error al eliminar el {entidad}", $"catalogo-{entidad}-eliminar");
+        }, $"catalogo-{entidad}");
+
+        if (eliminado)
+        {
+            await recargar();
+        }
+    }
+
     private async void VistaTickets_DoubleClick(object? sender, DataGridViewCellEventArgs e)
     {
         if (e.RowIndex < 0)
@@ -381,10 +829,64 @@ public class CoordinadorDashboardAdmin(
             return;
         }
 
+        if (_paginasCatalogos.TryGetValue(clave, out var paginaCatalogo))
+        {
+            _tabMain.SelectedTab = paginaCatalogo;
+            ConfigurarEncabezadoCatalogo(clave);
+            _ = CargarCatalogoPorClaveAsync(clave);
+            return;
+        }
+
+        if (string.Equals(clave, "tickets", StringComparison.OrdinalIgnoreCase))
+        {
+            _tabMain.SelectedIndex = 0;
+        }
+
         _kpiActivo = null;
         TopBar.Titulo = "Panel de Control";
         TopBar.Subtitulo = "Mesa de Servicio y Gestión Global";
         MostrarPaginaActual();
+    }
+
+    private void ConfigurarEncabezadoCatalogo(string clave)
+    {
+        var encabezado = clave switch
+        {
+            "inventario" => ("Inventario", "Gestión de materiales y existencias"),
+            "usuarios" => ("Usuarios", "Gestión de usuarios y asignación de roles"),
+            "departamentos" => ("Departamentos", "Catálogo de departamentos"),
+            "sucursales" => ("Sucursales", "Catálogo de sucursales y empresas"),
+            "empresas" => ("Empresas", "Catálogo de empresas"),
+            "puestos" => ("Puestos", "Catálogo de puestos"),
+            "roles" => ("Roles", "Catálogo de roles de usuario"),
+            _ => ("Panel de Control", "Mesa de Servicio y Gestión Global")
+        };
+
+        TopBar.Titulo = encabezado.Item1;
+        TopBar.Subtitulo = encabezado.Item2;
+    }
+
+    private Task CargarCatalogoPorClaveAsync(string clave)
+        => clave switch
+        {
+            "inventario" => CargarSiEsNecesarioAsync(clave, CargarMaterialesAsync),
+            "usuarios" => CargarSiEsNecesarioAsync(clave, CargarUsuariosAsync),
+            "departamentos" => CargarSiEsNecesarioAsync(clave, CargarDepartamentosAsync),
+            "sucursales" => CargarSiEsNecesarioAsync(clave, CargarSucursalesAsync),
+            "empresas" => CargarSiEsNecesarioAsync(clave, CargarEmpresasAsync),
+            "puestos" => CargarSiEsNecesarioAsync(clave, CargarPuestosAsync),
+            "roles" => CargarSiEsNecesarioAsync(clave, CargarRolesAsync),
+            _ => Task.CompletedTask
+        };
+
+    private async Task CargarSiEsNecesarioAsync(string clave, Func<Task> cargar)
+    {
+        if (_catalogosCargados.Contains(clave))
+        {
+            return;
+        }
+
+        await cargar();
     }
 
     private void AbrirGeneradorReportes()

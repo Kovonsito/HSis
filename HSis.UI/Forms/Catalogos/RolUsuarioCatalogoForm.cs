@@ -51,6 +51,6 @@ public sealed class RolUsuarioCatalogoForm : FormularioCatalogoBase
 
             DialogResult = DialogResult.OK;
             Close();
-        }, "Error al guardar el rol", BtnGuardar, BtnCancelar);
+        }, "Error al guardar el rol", "rol-guardar", BtnGuardar, BtnCancelar);
     }
 }

@@ -1,6 +1,8 @@
 using System;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Windows.Forms;
+using FontAwesome.Sharp;
 using HSis.UI.Controls;
 using HSis.UI.Helpers;
 
@@ -436,162 +438,328 @@ partial class DetalleClienteForm
     private void InicializarLayoutDetalleCliente()
     {
         this.BackColor = TemaVisual.FondoApp;
+        this.Font = TemaVisual.FuenteNormal;
+        this.ClientSize = new Size(720, 700);
+        this.MinimumSize = new Size(620, 600);
 
-        // 1. Crear el TableLayoutPanel principal
+        var pnlHeader = new Panel
+        {
+            BackColor = Color.White,
+            Dock = DockStyle.Top,
+            Height = 72,
+            Name = "pnlHeaderDetalleCliente"
+        };
+        pnlHeader.Paint += (_, e) =>
+        {
+            var g = e.Graphics;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            using (var brushCirculo = new SolidBrush(TemaVisual.Primario))
+            {
+                g.FillEllipse(brushCirculo, 20, 18, 36, 36);
+            }
+
+            using (var bmpIcono = IconChar.Ticket.ToBitmap(Color.White, 18))
+            {
+                g.DrawImageUnscaled(bmpIcono, 29, 27);
+            }
+
+            using (var brushTitulo = new SolidBrush(TemaVisual.TextoPrincipal))
+            using (var fuenteTitulo = new Font("Segoe UI", 13F, FontStyle.Bold))
+            {
+                g.DrawString("Detalle del ticket", fuenteTitulo, brushTitulo, new PointF(70, 13));
+            }
+
+            using (var brushSubtitulo = new SolidBrush(TemaVisual.TextoSecundario))
+            using (var fuenteSubtitulo = new Font("Segoe UI", 8.5F, FontStyle.Regular))
+            {
+                g.DrawString("Consulta la información de tu solicitud y comparte tu experiencia.", fuenteSubtitulo, brushSubtitulo, new PointF(70, 39));
+            }
+
+            using var penDivision = new Pen(TemaVisual.BordeSutil, 1F);
+            g.DrawLine(penDivision, 0, pnlHeader.Height - 1, pnlHeader.Width, pnlHeader.Height - 1);
+        };
+        pnlHeader.Resize += (_, _) => pnlHeader.Invalidate();
+
+        var pnlFooter = new Panel
+        {
+            BackColor = Color.White,
+            Dock = DockStyle.Bottom,
+            Height = 64,
+            Name = "pnlFooterDetalleCliente"
+        };
+        pnlFooter.Paint += (_, e) =>
+        {
+            using var penDivision = new Pen(TemaVisual.BordeSutil, 1F);
+            e.Graphics.DrawLine(penDivision, 0, 0, pnlFooter.Width, 0);
+        };
+        pnlFooter.Resize += (_, _) => pnlFooter.Invalidate();
+
+        var flpCerrar = new FlowLayoutPanel
+        {
+            AutoSize = true,
+            Dock = DockStyle.Right,
+            FlowDirection = FlowDirection.RightToLeft,
+            Padding = new Padding(0, 12, 20, 12),
+            WrapContents = false
+        };
+        btnCerrar.Margin = new Padding(0);
+        btnCerrar.Size = new Size(120, 40);
+        flpCerrar.Controls.Add(btnCerrar);
+        pnlFooter.Controls.Add(flpCerrar);
+
+        var pnlBody = new Panel
+        {
+            BackColor = TemaVisual.FondoApp,
+            Dock = DockStyle.Fill,
+            Name = "pnlBodyDetalleCliente",
+            Padding = new Padding(24, 18, 24, 16)
+        };
+
         var tblPrincipal = new TableLayoutPanel
         {
-            Dock = DockStyle.Fill,
-            RowCount = 7,
+            BackColor = Color.Transparent,
             ColumnCount = 1,
-            Padding = new Padding(16),
-            BackColor = TemaVisual.FondoApp,
-            Name = "tblPrincipal"
+            Dock = DockStyle.Fill,
+            Margin = new Padding(0),
+            RowCount = 3
         };
         tblPrincipal.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+        tblPrincipal.RowStyles.Add(new RowStyle(SizeType.Absolute, 150F));
+        tblPrincipal.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+        tblPrincipal.RowStyles.Add(new RowStyle(SizeType.AutoSize));
 
-        // 2. Grid de Información
+        var tarjetaInfo = new PanelCardModerno
+        {
+            BackColor = TemaVisual.FondoTarjeta,
+            Dock = DockStyle.Fill,
+            Icono = IconChar.CircleInfo,
+            Margin = new Padding(0, 0, 0, 12),
+            Titulo = "Información del ticket"
+        };
+
         var tblInfo = new TableLayoutPanel
         {
+            BackColor = Color.Transparent,
+            ColumnCount = 4,
             Dock = DockStyle.Fill,
-            AutoSize = true,
-            RowCount = 5,
-            ColumnCount = 2,
-            Margin = new Padding(0, 0, 0, 10)
+            Margin = new Padding(0),
+            RowCount = 3
         };
-        tblInfo.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 150F));
-        tblInfo.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-
-        for (int i = 0; i < 5; i++)
+        tblInfo.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 92F));
+        tblInfo.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+        tblInfo.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 112F));
+        tblInfo.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+        for (int i = 0; i < 3; i++)
         {
-            tblInfo.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            tblInfo.RowStyles.Add(new RowStyle(SizeType.Percent, 33.333F));
         }
 
-        lblFolio.Dock = DockStyle.Fill;
-        lblFolioValor.Dock = DockStyle.Fill;
-        lblFechaAlta.Dock = DockStyle.Fill;
-        lblFechaAltaValor.Dock = DockStyle.Fill;
-        lblFechaCierre.Dock = DockStyle.Fill;
-        lblFechaCierreValor.Dock = DockStyle.Fill;
-        lblEstatus.Dock = DockStyle.Fill;
-        lblEstatusValor.Dock = DockStyle.Fill;
-        lblTecnico.Dock = DockStyle.Fill;
-        lblTecnicoValor.Dock = DockStyle.Fill;
+        ConfigurarEtiquetaInfo(lblFolio);
+        ConfigurarEtiquetaInfo(lblFechaAlta);
+        ConfigurarEtiquetaInfo(lblFechaCierre);
+        ConfigurarEtiquetaInfo(lblEstatus);
+        ConfigurarEtiquetaInfo(lblTecnico);
+        ConfigurarValorInfo(lblFolioValor);
+        ConfigurarValorInfo(lblFechaAltaValor);
+        ConfigurarValorInfo(lblFechaCierreValor);
+        ConfigurarValorInfo(lblEstatusValor);
+        ConfigurarValorInfo(lblTecnicoValor);
 
         tblInfo.Controls.Add(lblFolio, 0, 0);
         tblInfo.Controls.Add(lblFolioValor, 1, 0);
-        tblInfo.Controls.Add(lblFechaAlta, 0, 1);
-        tblInfo.Controls.Add(lblFechaAltaValor, 1, 1);
+        tblInfo.Controls.Add(lblFechaAlta, 2, 0);
+        tblInfo.Controls.Add(lblFechaAltaValor, 3, 0);
+        tblInfo.Controls.Add(lblEstatus, 0, 1);
+        tblInfo.Controls.Add(lblEstatusValor, 1, 1);
+        tblInfo.Controls.Add(lblTecnico, 2, 1);
+        tblInfo.Controls.Add(lblTecnicoValor, 3, 1);
         tblInfo.Controls.Add(lblFechaCierre, 0, 2);
         tblInfo.Controls.Add(lblFechaCierreValor, 1, 2);
-        tblInfo.Controls.Add(lblEstatus, 0, 3);
-        tblInfo.Controls.Add(lblEstatusValor, 1, 3);
-        tblInfo.Controls.Add(lblTecnico, 0, 4);
-        tblInfo.Controls.Add(lblTecnicoValor, 1, 4);
+        tarjetaInfo.Controls.Add(tblInfo);
 
-        // 3. Descripciones y soluciones
-        lblDescripcion.Dock = DockStyle.Fill;
-        lblDescripcion.Margin = new Padding(0, 0, 0, 5);
-        txtDescripcion.Dock = DockStyle.Fill;
-        txtDescripcion.Height = 80;
-        txtDescripcion.Margin = new Padding(0, 0, 0, 10);
-
-        lblSolucion.Dock = DockStyle.Fill;
-        lblSolucion.Margin = new Padding(0, 0, 0, 5);
-        txtSolucion.Dock = DockStyle.Fill;
-        txtSolucion.Height = 80;
-        txtSolucion.Margin = new Padding(0, 0, 0, 10);
-
-        // 4. Seccion de feedback
-        grpFeedback.Dock = DockStyle.Fill;
-        grpFeedback.Margin = new Padding(0, 0, 0, 10);
-        grpFeedback.AutoSize = true;
-
-        var tblFeedback = new TableLayoutPanel
+        var tblContenido = new TableLayoutPanel
         {
+            BackColor = Color.Transparent,
+            ColumnCount = 2,
             Dock = DockStyle.Fill,
-            RowCount = 3,
-            ColumnCount = 1,
-            Padding = new Padding(12)
+            Margin = new Padding(0),
+            RowCount = 1
         };
-        tblFeedback.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-        tblFeedback.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        tblFeedback.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        tblFeedback.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        tblContenido.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+        tblContenido.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+        tblContenido.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+
+        var tarjetaDescripcion = CrearTarjetaContenido("Descripción del problema", IconChar.ClipboardList, lblDescripcion, txtDescripcion);
+        tarjetaDescripcion.Margin = new Padding(0, 0, 6, 0);
+        var tarjetaSolucion = CrearTarjetaContenido("Solución aplicada", IconChar.Check, lblSolucion, txtSolucion);
+        tarjetaSolucion.Margin = new Padding(6, 0, 0, 0);
+        tblContenido.Controls.Add(tarjetaDescripcion, 0, 0);
+        tblContenido.Controls.Add(tarjetaSolucion, 1, 0);
+
+        var tblFeedback = CrearLayoutFeedbackCliente();
+        grpFeedback.AutoSize = true;
+        grpFeedback.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+        grpFeedback.MinimumSize = new Size(0, 156);
+        grpFeedback.Dock = DockStyle.Fill;
+        grpFeedback.Margin = new Padding(0, 12, 0, 0);
+        grpFeedback.Controls.Clear();
+        grpFeedback.Controls.Add(tblFeedback);
+
+        tblPrincipal.Controls.Add(tarjetaInfo, 0, 0);
+        tblPrincipal.Controls.Add(tblContenido, 0, 1);
+        tblPrincipal.Controls.Add(grpFeedback, 0, 2);
+
+        pnlBody.Controls.Add(tblPrincipal);
+        Controls.Clear();
+        Controls.Add(pnlBody);
+        Controls.Add(pnlFooter);
+        Controls.Add(pnlHeader);
+    }
+
+    private static PanelCardModerno CrearTarjetaContenido(string titulo, IconChar icono, Label etiqueta, Control contenido)
+    {
+        var tarjeta = new PanelCardModerno
+        {
+            BackColor = TemaVisual.FondoTarjeta,
+            Dock = DockStyle.Fill,
+            Icono = icono,
+            Padding = new Padding(14, 44, 14, 14),
+            Titulo = titulo
+        };
+
+        var tabla = new TableLayoutPanel
+        {
+            BackColor = Color.Transparent,
+            ColumnCount = 1,
+            Dock = DockStyle.Fill,
+            Margin = new Padding(0),
+            RowCount = 2
+        };
+        tabla.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+        tabla.RowStyles.Add(new RowStyle(SizeType.Absolute, 24F));
+        tabla.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+
+        etiqueta.AutoSize = false;
+        etiqueta.Dock = DockStyle.Fill;
+        etiqueta.Font = TemaVisual.FuentePequena;
+        etiqueta.ForeColor = TemaVisual.TextoSecundario;
+        etiqueta.Margin = new Padding(0, 0, 0, 4);
+        etiqueta.TextAlign = ContentAlignment.MiddleLeft;
+
+        contenido.Dock = DockStyle.Fill;
+        contenido.Margin = new Padding(0);
+        if (contenido is CajaTextoModerna caja)
+        {
+            caja.BackColor = TemaVisual.FondoTenue;
+        }
+
+        tabla.Controls.Add(etiqueta, 0, 0);
+        tabla.Controls.Add(contenido, 0, 1);
+        tarjeta.Controls.Add(tabla);
+        return tarjeta;
+    }
+
+    private static void ConfigurarEtiquetaInfo(Label etiqueta)
+    {
+        etiqueta.AutoSize = false;
+        etiqueta.Dock = DockStyle.Fill;
+        etiqueta.Font = TemaVisual.FuentePequena;
+        etiqueta.ForeColor = TemaVisual.TextoSecundario;
+        etiqueta.Margin = new Padding(0, 0, 10, 0);
+        etiqueta.TextAlign = ContentAlignment.MiddleLeft;
+    }
+
+    private static void ConfigurarValorInfo(Label valor)
+    {
+        valor.AutoSize = false;
+        valor.Dock = DockStyle.Fill;
+        valor.Font = TemaVisual.FuenteNormal;
+        valor.ForeColor = TemaVisual.TextoPrincipal;
+        valor.Margin = new Padding(0, 0, 16, 0);
+        valor.TextAlign = ContentAlignment.MiddleLeft;
+    }
+
+    private TableLayoutPanel CrearLayoutFeedbackCliente()
+    {
+        var tabla = new TableLayoutPanel
+        {
+            BackColor = Color.Transparent,
+            ColumnCount = 1,
+            Dock = DockStyle.Fill,
+            Margin = new Padding(0),
+            Padding = new Padding(0),
+            RowCount = 3
+        };
+        tabla.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+        tabla.RowStyles.Add(new RowStyle(SizeType.Absolute, 38F));
+        tabla.RowStyles.Add(new RowStyle(SizeType.Absolute, 24F));
+        tabla.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
 
         var flpEstrellas = new FlowLayoutPanel
         {
+            AutoSize = false,
+            BackColor = Color.Transparent,
             Dock = DockStyle.Fill,
             FlowDirection = FlowDirection.LeftToRight,
-            AutoSize = true,
-            Margin = new Padding(0, 0, 0, 10)
+            Margin = new Padding(0),
+            WrapContents = false
         };
-        lblEstrellas.Margin = new Padding(0, 5, 10, 0);
         lblEstrellas.AutoSize = true;
-
+        lblEstrellas.Font = TemaVisual.FuenteNormal;
+        lblEstrellas.ForeColor = TemaVisual.TextoMedio;
+        lblEstrellas.Margin = new Padding(0, 7, 10, 0);
         flpEstrellas.Controls.Add(lblEstrellas);
-        flpEstrellas.Controls.Add(lblStar1);
-        flpEstrellas.Controls.Add(lblStar2);
-        flpEstrellas.Controls.Add(lblStar3);
-        flpEstrellas.Controls.Add(lblStar4);
-        flpEstrellas.Controls.Add(lblStar5);
+
+        foreach (var estrella in new[] { lblStar1, lblStar2, lblStar3, lblStar4, lblStar5 })
+        {
+            estrella.Margin = new Padding(0, 1, 4, 0);
+            flpEstrellas.Controls.Add(estrella);
+        }
+
+        lblResumen.AutoSize = true;
+        lblResumen.Font = TemaVisual.FuenteNormal;
+        lblResumen.ForeColor = TemaVisual.PrioridadMedia;
+        lblResumen.Margin = new Padding(12, 8, 0, 0);
         flpEstrellas.Controls.Add(lblResumen);
 
-        lblComentario.Margin = new Padding(0, 0, 0, 5);
-        lblComentario.AutoSize = true;
+        lblComentario.AutoSize = false;
+        lblComentario.Dock = DockStyle.Fill;
+        lblComentario.Font = TemaVisual.FuentePequena;
+        lblComentario.ForeColor = TemaVisual.TextoSecundario;
+        lblComentario.Margin = new Padding(0, 0, 0, 4);
+        lblComentario.TextAlign = ContentAlignment.MiddleLeft;
 
         var tblComentarioInput = new TableLayoutPanel
         {
-            Dock = DockStyle.Fill,
-            AutoSize = true,
-            RowCount = 1,
+            BackColor = Color.Transparent,
             ColumnCount = 2,
-            Margin = new Padding(0)
+            Dock = DockStyle.Fill,
+            Margin = new Padding(0),
+            RowCount = 1
         };
         tblComentarioInput.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-        tblComentarioInput.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 120F));
+        tblComentarioInput.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 150F));
+        tblComentarioInput.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
 
         var pnlComentario = new Panel { Dock = DockStyle.Fill, Margin = new Padding(0) };
         txtComentario.Dock = DockStyle.Fill;
+        txtComentario.Margin = new Padding(0);
         lblComentarioLectura.Dock = DockStyle.Fill;
+        lblComentarioLectura.Font = TemaVisual.FuenteNormal;
+        lblComentarioLectura.ForeColor = TemaVisual.TextoMedio;
+        lblComentarioLectura.Margin = new Padding(0);
+        lblComentarioLectura.TextAlign = ContentAlignment.MiddleLeft;
         pnlComentario.Controls.Add(txtComentario);
         pnlComentario.Controls.Add(lblComentarioLectura);
 
         btnEnviar.Dock = DockStyle.Fill;
-        btnEnviar.Margin = new Padding(10, 0, 0, 0);
-
+        btnEnviar.Margin = new Padding(12, 0, 0, 0);
         tblComentarioInput.Controls.Add(pnlComentario, 0, 0);
         tblComentarioInput.Controls.Add(btnEnviar, 1, 0);
 
-        grpFeedback.Controls.Clear();
-        tblFeedback.Controls.Add(flpEstrellas, 0, 0);
-        tblFeedback.Controls.Add(lblComentario, 0, 1);
-        tblFeedback.Controls.Add(tblComentarioInput, 0, 2);
-        grpFeedback.Controls.Add(tblFeedback);
-
-
-        // 5. Botón cerrar
-        var flpCerrar = new FlowLayoutPanel
-        {
-            Dock = DockStyle.Fill,
-            FlowDirection = FlowDirection.RightToLeft,
-            AutoSize = true,
-            Margin = new Padding(0)
-        };
-        btnCerrar.Margin = new Padding(0);
-        btnCerrar.Dock = DockStyle.None;
-        flpCerrar.Controls.Add(btnCerrar);
-
-        // 6. Montar todo en tblPrincipal
-        tblPrincipal.Controls.Add(tblInfo, 0, 0);
-        tblPrincipal.Controls.Add(lblDescripcion, 0, 1);
-        tblPrincipal.Controls.Add(txtDescripcion, 0, 2);
-        tblPrincipal.Controls.Add(lblSolucion, 0, 3);
-        tblPrincipal.Controls.Add(txtSolucion, 0, 4);
-        tblPrincipal.Controls.Add(grpFeedback, 0, 5);
-        tblPrincipal.Controls.Add(flpCerrar, 0, 6);
-
-        // Remover de la ventana original
-        this.Controls.Clear();
-        this.Controls.Add(tblPrincipal);
+        tabla.Controls.Add(flpEstrellas, 0, 0);
+        tabla.Controls.Add(lblComentario, 0, 1);
+        tabla.Controls.Add(tblComentarioInput, 0, 2);
+        return tabla;
     }
 }
