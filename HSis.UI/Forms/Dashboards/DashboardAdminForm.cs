@@ -23,7 +23,9 @@ namespace HSis.UI.Forms.Dashboards
             IAdministradorSesionUsuario contextoSesion,
             IAlmacenamientoCredencialesLocal sessionCache,
             IFabricaFormularios fabricaFormularios,
-            IClienteSignalRNotificaciones notificationClient)
+            IClienteSignalRNotificaciones notificationClient,
+            INotificacionesApiClient notificacionesApiClient,
+            IBusEventosNotificaciones eventBus)
         {
             InitializeComponent();
             _coordinador = new CoordinadorDashboardAdmin(
@@ -45,7 +47,9 @@ namespace HSis.UI.Forms.Dashboards
                 contextoSesion,
                 sessionCache,
                 fabricaFormularios,
-                notificationClient
+                notificationClient,
+                notificacionesApiClient,
+                eventBus
             );
         }
 

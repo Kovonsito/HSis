@@ -1,14 +1,16 @@
 using HSis.Contracts.Services;
+using HSis.Contracts.DTOs;
 namespace HSis.UI.Services
 {
-    public class BusEventosNotificaciones : IBusEventosNotificaciones
+    public sealed class BusEventosNotificaciones : IBusEventosNotificaciones
     {
         public event EventHandler<NotificacionEventArgs>? OnNotificacionPublicada;
         public event EventHandler<EstadoConexionEventArgs>? OnEstadoConexionCambiado;
 
-        public void PublicarNotificacion(int ticketId, string tipo, string mensaje)
+        public void PublicarNotificacion(NotificacionDto notificacion)
         {
-            OnNotificacionPublicada?.Invoke(this, new NotificacionEventArgs(ticketId, tipo, mensaje));
+            ArgumentNullException.ThrowIfNull(notificacion);
+            OnNotificacionPublicada?.Invoke(this, new NotificacionEventArgs(notificacion));
         }
 
         public void PublicarEstadoConexion(bool conectado, string? mensajeEstado = null)

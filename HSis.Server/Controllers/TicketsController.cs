@@ -1,10 +1,13 @@
 using HSis.Contracts.DTOs;
+using HSis.Contracts.Errors;
 using HSis.Contracts.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HSis.Server.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/[controller]")]
     public class TicketsController(ITicketService ticketService) : ControllerBase
     {
@@ -20,7 +23,18 @@ namespace HSis.Server.Controllers
         public async Task<ActionResult<TicketDto>> ObtenerTicketPorId(int id)
         {
             var ticket = await ticketService.ObtenerTicketPorIdAsync(id);
-            if (ticket == null) return NotFound();
+            if (ticket == null)
+            {
+                return Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Ticket no encontrado",
+                    detail: "No se encontró el ticket solicitado. Puede que haya sido eliminado o que ya no esté disponible.",
+                    extensions: new Dictionary<string, object?>
+                    {
+                        ["code"] = ApiErrorCodes.TicketNotFound,
+                        ["traceId"] = HttpContext.TraceIdentifier
+                    });
+            }
             return Ok(ticket);
         }
 
@@ -34,7 +48,18 @@ namespace HSis.Server.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> ActualizarTicket(int id, [FromBody] TicketUpdateDto ticketDto)
         {
-            if (id != ticketDto.IdTicket) return BadRequest();
+            if (id != ticketDto.IdTicket)
+            {
+                return Problem(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Identificador de ticket no válido",
+                    detail: "El identificador de la ruta no coincide con el identificador incluido en los datos enviados.",
+                    extensions: new Dictionary<string, object?>
+                    {
+                        ["code"] = ApiErrorCodes.BadRequest,
+                        ["traceId"] = HttpContext.TraceIdentifier
+                    });
+            }
             await ticketService.ActualizarTicketAsync(ticketDto);
             return NoContent();
         }
@@ -71,7 +96,18 @@ namespace HSis.Server.Controllers
         public async Task<IActionResult> CalificarTicket(int id, [FromBody] CalificarTicketRequest request)
         {
             var exito = await ticketService.RegistrarCalificacionAsync(id, request.Calificacion, request.Comentario);
-            if (!exito) return BadRequest();
+            if (!exito)
+            {
+                return Problem(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "No se pudo registrar la calificación",
+                    detail: "No se pudo guardar la calificación del ticket. Compruebe que el ticket esté disponible e inténtelo de nuevo.",
+                    extensions: new Dictionary<string, object?>
+                    {
+                        ["code"] = ApiErrorCodes.BadRequest,
+                        ["traceId"] = HttpContext.TraceIdentifier
+                    });
+            }
             return Ok();
         }
 

@@ -125,8 +125,9 @@ namespace HSis.UI.Helpers
             dgv.RowHeadersVisible = false;
             dgv.AutoGenerateColumns = true;
             dgv.AllowUserToResizeRows = false;
+            dgv.AllowUserToResizeColumns = true;
             dgv.ShowCellToolTips = true;
-            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgv.ConfigurarDesplazamientoYTexto();
 
             // Fila de encabezado
             dgv.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
@@ -137,7 +138,7 @@ namespace HSis.UI.Helpers
             dgv.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 9.5f, FontStyle.Bold);
             dgv.ColumnHeadersDefaultCellStyle.Padding = new Padding(12, 10, 12, 10);
             dgv.ColumnHeadersHeight = 44;
-            dgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+            dgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
 
             // Filas de datos
             dgv.DefaultCellStyle.BackColor = FondoTarjeta;
@@ -156,6 +157,25 @@ namespace HSis.UI.Helpers
             // Pintado personalizado de Badges para columnas como Estatus o Prioridad
             dgv.CellPainting -= Dgv_CellPainting;
             dgv.CellPainting += Dgv_CellPainting;
+
+            dgv.ColumnDividerDoubleClick -= Dgv_ColumnDividerDoubleClick;
+            dgv.ColumnDividerDoubleClick += Dgv_ColumnDividerDoubleClick;
+        }
+
+        private static void Dgv_ColumnDividerDoubleClick(object? sender, DataGridViewColumnDividerDoubleClickEventArgs e)
+        {
+            if (sender is not DataGridView dgv || e.ColumnIndex < 0 || e.ColumnIndex >= dgv.Columns.Count)
+                return;
+
+            var columna = dgv.Columns[e.ColumnIndex];
+            if (!columna.Visible)
+                return;
+
+            columna.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+            var anchoAjustado = columna.Width;
+            columna.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+            columna.Width = Math.Max(columna.MinimumWidth, anchoAjustado);
+            dgv.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
         }
 
         private static void Dgv_CellPainting(object? sender, DataGridViewCellPaintingEventArgs e)

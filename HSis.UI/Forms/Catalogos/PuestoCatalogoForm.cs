@@ -58,6 +58,6 @@ public sealed class PuestoCatalogoForm : FormularioCatalogoBase
 
             DialogResult = DialogResult.OK;
             Close();
-        }, "Error al guardar el puesto", BtnGuardar, BtnCancelar);
+        }, "Error al guardar el puesto", "puesto-guardar", BtnGuardar, BtnCancelar);
     }
 }

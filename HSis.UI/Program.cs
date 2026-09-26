@@ -6,6 +6,7 @@ using FluentValidation;
 using HSis.Contracts.Constants;
 using HSis.Contracts.Services;
 using HSis.Contracts.Validators;
+using HSis.Desktop.Infrastructure;
 using HSis.UI.Factories;
 using HSis.UI.Services;
 using HSis.UI.Forms.Auth;
@@ -13,6 +14,8 @@ using HSis.UI.Forms.Catalogos;
 using HSis.UI.Forms.Dashboards;
 using HSis.UI.Forms.Otros;
 using HSis.UI.Forms.Tickets;
+using HSis.UI.Helpers;
+using HSis.UI.ApiClients;
 using Mapster;
 using MapsterMapper;
 using Microsoft.Extensions.Configuration;
@@ -30,8 +33,20 @@ namespace HSis.UI
         ///  The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main()
+        static void Main(string[] args)
         {
+            using var uiInstance = new InstanciaAplicacion(ConfiguracionEscritorio.MutexUi);
+            if (!uiInstance.EsPrimeraInstancia)
+            {
+                if (args.Length > 0)
+                {
+                    using var activationClient = new CanalActivacionAplicacion();
+                    activationClient.IntentarEnviar(args);
+                }
+
+                return;
+            }
+
             ApplicationConfiguration.Initialize();
 
             // Configurar la fuente por defecto a un tamaño mayor (11 puntos) para mejor legibilidad en todo el sistema
@@ -57,48 +72,27 @@ namespace HSis.UI
                 Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
                 Application.ThreadException += (sender, e) =>
                 {
-                    var ex = e.Exception;
-
-                    // A) Errores de Red / Conexión con la Web API
-                    if (ex is System.Net.Http.HttpRequestException || ex is System.Net.Sockets.SocketException)
-                    {
-                        Log.Warning(ex, "Fallo de comunicación con la Web API.");
-                        MessageBox.Show(
-                            "No se pudo establecer comunicación con el servidor de la aplicación.\n\n" +
-                            "• Categoría: ERR-NET-101 (Conexión de Red)\n" +
-                            "• Sugerencia: Verifique su conexión de red o contacte al administrador del servidor.",
-                            "Error de Conexión",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Warning
-                        );
-                        return;
-                    }
-
-                    // B) Errores Inesperados del Sistema / Crashes
-                    string correlationId = Guid.NewGuid().ToString("N")[..6].ToUpper();
-                    Log.Fatal(ex, "[Ref: {CorrelationId}] Excepción no manejada en el hilo principal de la UI.", correlationId);
-
-                    MessageBox.Show(
-                        $"Ocurrió un problema inesperado al procesar la información.\n\n" +
-                        $"• Categoría: ERR-SYS-999 (Error Inesperado)\n" +
-                        $"• Código de rastreo: #{correlationId}\n\n" +
-                        $"Proporcione este código al equipo de soporte técnico para su revisión.",
-                        "Error del Sistema",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Error
-                    );
+                    HSis.UI.Helpers.ManejadorErroresUI.Manejar(
+                        e.Exception,
+                        "una operación de la interfaz",
+                        Form.ActiveForm,
+                        mostrarDialogo: true,
+                        esFatal: true);
                 };
 
                 AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
                 {
-                    string correlationId = Guid.NewGuid().ToString("N")[..6].ToUpper();
                     if (e.ExceptionObject is Exception ex)
                     {
-                        Log.Fatal(ex, "[Ref: {CorrelationId}] Excepción no manejada en AppDomain.", correlationId);
+                        HSis.UI.Helpers.ManejadorErroresUI.Manejar(
+                            ex,
+                            "el dominio de aplicación",
+                            mostrarDialogo: false,
+                            esFatal: true);
                     }
                     else
                     {
-                        Log.Fatal("[Ref: {CorrelationId}] Excepción no manejada desconocida en AppDomain: {0}", correlationId, e.ExceptionObject);
+                        Log.Fatal("Excepción no manejada desconocida en AppDomain: {ExceptionObject}", e.ExceptionObject);
                     }
                 };
 
@@ -106,6 +100,7 @@ namespace HSis.UI
 
                 // Registrar IConfiguration en el contenedor DI
                 services.AddSingleton<IConfiguration>(configuration);
+                services.AddSingleton(new SolicitudAperturaTicket(args));
 
                 // Registrar Logging
                 services.AddLogging(loggingBuilder =>
@@ -138,10 +133,6 @@ namespace HSis.UI
                         .AddHttpMessageHandler<ApiClients.JwtAuthHeaderHandler>();
                 services.AddHttpClient<ITicketService, ApiClients.TicketApiClientService>(ConfigurarHttpClient)
                         .AddHttpMessageHandler<ApiClients.JwtAuthHeaderHandler>();
-                services.AddHttpClient<ICatalogoService, ApiClients.CatalogoApiClientService>(ConfigurarHttpClient)
-                        .AddHttpMessageHandler<ApiClients.JwtAuthHeaderHandler>();
-                services.AddHttpClient<ICatalogoGestionService, ApiClients.CatalogoApiClientService>(ConfigurarHttpClient)
-                        .AddHttpMessageHandler<ApiClients.JwtAuthHeaderHandler>();
                 services.AddHttpClient<ITicketDetalleService, ApiClients.TicketDetalleApiClientService>(ConfigurarHttpClient)
                         .AddHttpMessageHandler<ApiClients.JwtAuthHeaderHandler>();
                 services.AddHttpClient<IMaterialService, ApiClients.MaterialApiClientService>(ConfigurarHttpClient)
@@ -158,15 +149,20 @@ namespace HSis.UI
                         .AddHttpMessageHandler<ApiClients.JwtAuthHeaderHandler>();
                 services.AddHttpClient<IReportExportService, ApiClients.ReportExportApiClientService>(ConfigurarHttpClient)
                         .AddHttpMessageHandler<ApiClients.JwtAuthHeaderHandler>();
+                services.AddHttpClient<INotificacionesApiClient, ApiClients.NotificacionesApiClientService>(ConfigurarHttpClient)
+                        .AddHttpMessageHandler<ApiClients.JwtAuthHeaderHandler>();
 
                 // Servicios de UI centralizados
                 services.AddSingleton<IBusEventosNotificaciones, BusEventosNotificaciones>();
                 services.AddSingleton<IClienteSignalRNotificaciones, ClienteSignalRNotificaciones>();
                 services.AddSingleton<IAlmacenamientoCredencialesLocal, AlmacenamientoCredencialesLocal>();
+                services.AddSingleton<PresenciaAplicacion>();
                 services.AddSingleton<AdministradorSesionUsuario>();
                 services.AddSingleton<IAdministradorSesionUsuario>(sp => sp.GetRequiredService<AdministradorSesionUsuario>());
                 services.AddSingleton<ICurrentUserService>(sp => sp.GetRequiredService<AdministradorSesionUsuario>());
                 services.AddSingleton<IFabricaFormularios, FabricaFormularios>();
+                services.AddSingleton<AperturaTicketService>();
+                services.AddSingleton<AgenteNotificacionesLauncher>();
 
                 // Registrar Formularios con inyección directa de dependencias
                 services.AddTransient<IniciarSesionForm>();
@@ -187,6 +183,12 @@ namespace HSis.UI
                 services.AddTransient<RolUsuarioCatalogoForm>();
 
                 ServiceProvider = services.BuildServiceProvider();
+                using var applicationPresence = ServiceProvider.GetRequiredService<PresenciaAplicacion>();
+                using var activationChannel = new CanalActivacionAplicacion();
+
+                var notificationClient = ServiceProvider.GetRequiredService<IClienteSignalRNotificaciones>();
+                Application.ApplicationExit += (_, _) =>
+                    notificationClient.DetenerAsync().GetAwaiter().GetResult();
 
                 // Comprobar actualizaciones automáticas desde el servidor API
                 try
@@ -201,6 +203,8 @@ namespace HSis.UI
 
                 Form? startForm = null;
                 var sessionCache = ServiceProvider.GetRequiredService<IAlmacenamientoCredencialesLocal>();
+                var notificationAgentLauncher = ServiceProvider.GetRequiredService<AgenteNotificacionesLauncher>();
+                var aperturaTicketService = ServiceProvider.GetRequiredService<AperturaTicketService>();
                 var cached = sessionCache.GetCredentials();
 
                 if (cached.HasValue)
@@ -216,15 +220,8 @@ namespace HSis.UI
                             contextoSesion.UsuarioActual = usuario;
 
                             // Iniciar SignalR
-                            var notificationClient = ServiceProvider.GetRequiredService<IClienteSignalRNotificaciones>();
-                            string roleName = (RolUsuarioEnum)contextoSesion.IdRolUsuario switch
-                            {
-                                RolUsuarioEnum.Administrador => "Administrador",
-                                RolUsuarioEnum.Tecnico => "Técnico",
-                                RolUsuarioEnum.Cliente => "Cliente",
-                                _ => "Usuario"
-                            };
-                            notificationClient.IniciarAsync(contextoSesion.IdUsuario, roleName).GetAwaiter().GetResult();
+                            notificationClient.IniciarAsync(contextoSesion.TokenJWT).GetAwaiter().GetResult();
+                            notificationAgentLauncher.Iniciar();
 
                             startForm = (RolUsuarioEnum)contextoSesion.IdRolUsuario switch
                             {
@@ -242,6 +239,19 @@ namespace HSis.UI
                 }
 
                 startForm ??= ServiceProvider.GetRequiredService<IniciarSesionForm>();
+
+                activationChannel.Iniciar(argumentos =>
+                {
+                    ServiceProvider.GetRequiredService<SolicitudAperturaTicket>().Agregar(argumentos);
+                    if (startForm is not null && !startForm.IsDisposed && startForm.IsHandleCreated)
+                    {
+                        startForm.BeginInvoke(new Action(() =>
+                            aperturaTicketService.AbrirPendiente(startForm)));
+                    }
+                });
+
+                startForm.Shown += (_, _) =>
+                    aperturaTicketService.AbrirPendiente(startForm);
 
                 Application.Run(startForm);
             }

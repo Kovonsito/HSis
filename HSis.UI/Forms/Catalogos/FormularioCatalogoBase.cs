@@ -18,31 +18,33 @@ public abstract class FormularioCatalogoBase : Form
         Name = GetType().Name;
         StartPosition = FormStartPosition.CenterParent;
         FormBorderStyle = FormBorderStyle.FixedDialog;
+        ShowInTaskbar = false;
         MaximizeBox = false;
         MinimizeBox = false;
-        ClientSize = new Size(560, alto);
-        MinimumSize = new Size(560, alto);
+        AutoScaleMode = AutoScaleMode.Font;
+        ClientSize = new Size(600, alto);
+        MinimumSize = new Size(600, alto);
         BackColor = TemaVisual.FondoApp;
         Font = TemaVisual.FuenteNormal;
 
         var panelPrincipal = new Panel
         {
             Dock = DockStyle.Fill,
-            Padding = new Padding(18),
+            Padding = new Padding(24),
             BackColor = TemaVisual.FondoApp
         };
 
         var panelTitulo = new Panel
         {
             Dock = DockStyle.Top,
-            Height = 54,
+            Height = 62,
             BackColor = TemaVisual.FondoApp
         };
         panelTitulo.Controls.Add(new Label
         {
             Dock = DockStyle.Fill,
             Text = titulo,
-            Font = new Font("Segoe UI", 15f, FontStyle.Bold),
+            Font = TemaVisual.FuenteTitulo,
             ForeColor = TemaVisual.TextoPrincipal,
             TextAlign = ContentAlignment.MiddleLeft
         });
@@ -50,10 +52,10 @@ public abstract class FormularioCatalogoBase : Form
         var panelBotones = new FlowLayoutPanel
         {
             Dock = DockStyle.Bottom,
-            Height = 52,
+            Height = 60,
             FlowDirection = FlowDirection.RightToLeft,
             WrapContents = false,
-            Padding = new Padding(0, 8, 0, 0),
+            Padding = new Padding(0, 12, 0, 0),
             BackColor = TemaVisual.FondoApp
         };
 
@@ -61,16 +63,17 @@ public abstract class FormularioCatalogoBase : Form
         {
             Text = "Cancelar",
             Estilo = EstiloBotonModerno.Secundario,
-            Width = 125,
-            Height = 36,
+            Width = 130,
+            Height = 38,
+            Margin = new Padding(8, 0, 0, 0),
             DialogResult = DialogResult.Cancel
         };
         BtnGuardar = new BotonModerno
         {
             Text = "Guardar",
             Estilo = EstiloBotonModerno.Exito,
-            Width = 125,
-            Height = 36
+            Width = 130,
+            Height = 38
         };
         panelBotones.Controls.Add(BtnCancelar);
         panelBotones.Controls.Add(BtnGuardar);
@@ -79,9 +82,17 @@ public abstract class FormularioCatalogoBase : Form
         {
             Dock = DockStyle.Fill,
             AutoScroll = true,
-            Padding = new Padding(0, 4, 0, 4),
+            Padding = new Padding(0, 8, 0, 8),
             BackColor = TemaVisual.FondoApp
         };
+
+        var panelTarjetaCampos = new PanelCardModerno
+        {
+            Dock = DockStyle.Fill,
+            BackColor = TemaVisual.FondoTarjeta,
+            Padding = new Padding(22, 18, 22, 18)
+        };
+
         Campos = new TableLayoutPanel
         {
             Dock = DockStyle.Top,
@@ -93,7 +104,8 @@ public abstract class FormularioCatalogoBase : Form
         };
         Campos.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 155));
         Campos.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        panelCampos.Controls.Add(Campos);
+        panelTarjetaCampos.Controls.Add(Campos);
+        panelCampos.Controls.Add(panelTarjetaCampos);
 
         panelPrincipal.Controls.Add(panelCampos);
         panelPrincipal.Controls.Add(panelBotones);

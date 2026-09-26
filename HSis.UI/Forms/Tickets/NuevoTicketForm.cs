@@ -133,7 +133,8 @@ namespace HSis.UI.Forms.Tickets
                 CargarClientes(clientes.OrderBy(u => u.Nombre).ToList(), _contextoSesion.IdUsuario);
                 CargarTecnicos(personalAtencion, _contextoSesion.EsTecnico, _contextoSesion.IdUsuario);
             },
-            mensajeErrorContexto: "Error al cargar catálogos");
+             mensajeErrorContexto: "Error al cargar catálogos",
+             claveOperacion: "nuevo-ticket-catalogos");
         }
 
         private async void btnGuardar_Click(object? sender, EventArgs e)
@@ -189,7 +190,7 @@ namespace HSis.UI.Forms.Tickets
                 };
 
                 var ticketGuardado = await _ticketService.CrearTicketAsync(nuevoTicketDto);
-                DialogoUIHelper.MostrarExito($"Ticket registrado exitosamente con Folio: TK-{ticketGuardado.IdTicket:d6}");
+                DialogoUIHelper.MostrarExito($"Ticket registrado exitosamente con Folio: {ticketGuardado.IdTicket}");
                 this.DialogResult = DialogResult.OK;
                 this.Close();
             },

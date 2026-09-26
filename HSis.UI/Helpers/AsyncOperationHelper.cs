@@ -1,25 +1,51 @@
 #nullable enable
-using System.Net.Http;
 using System.Runtime.Versioning;
-using FluentValidation;
-using Serilog;
+using System.Runtime.CompilerServices;
 
 namespace HSis.UI.Helpers
 {
     /// <summary>
     /// Ayudante para ejecutar operaciones asíncronas de manera segura en formularios Windows Forms,
-    /// gestionando automáticamente el cursor de espera, deshabilitación de controles y reporte uniforme de errores.
+    /// gestionando automáticamente el estado de carga por formulario, el cursor de espera,
+    /// la deshabilitación de controles y el reporte uniforme de errores.
     /// </summary>
     [SupportedOSPlatform("windows")]
     public static class AsyncOperationHelper
     {
+        private static readonly ConditionalWeakTable<Form, EstadoCargaAsync> EstadosPorFormulario = new();
+
+        public static EstadoCargaAsync ObtenerEstadoCarga(this Form form)
+            => EstadosPorFormulario.GetValue(form, _ => new EstadoCargaAsync());
+
         public static async Task EjecutarOperacionAsync(
             this Form form,
             Func<Task> accionAsync,
             string? mensajeErrorContexto = null,
             params Control[]? controlesADeshabilitar)
+            => await EjecutarOperacionAsync(
+                form,
+                accionAsync,
+                mensajeErrorContexto,
+                "general",
+                controlesADeshabilitar);
+
+        public static async Task<bool> EjecutarOperacionAsync(
+            this Form form,
+            Func<Task> accionAsync,
+            string? mensajeErrorContexto,
+            string claveOperacion,
+            params Control[]? controlesADeshabilitar)
         {
-            if (form.IsDisposed) return;
+            if (form.IsDisposed)
+            {
+                return false;
+            }
+
+            var estadoCarga = form.ObtenerEstadoCarga();
+            if (!estadoCarga.IntentarIniciar(claveOperacion))
+            {
+                return false;
+            }
 
             void AlternarEstado(bool activo)
             {
@@ -50,29 +76,17 @@ namespace HSis.UI.Helpers
                 AlternarEstado(true);
                 await accionAsync();
             }
-            catch (ValidationException valEx)
-            {
-                Log.Warning("Validación fallida en {FormName}: {Errors}", form.Name, string.Join("; ", valEx.Errors.Select(e => e.ErrorMessage)));
-                string errores = string.Join("\n", valEx.Errors.Select(e => $"• {e.ErrorMessage}"));
-                DialogoUIHelper.MostrarAdvertencia($"Por favor corrija los siguientes datos:\n\n{errores}", "Validación de Datos");
-            }
-            catch (HttpRequestException httpEx)
-            {
-                Log.Warning(httpEx, "Fallo de conexión HTTP durante la operación en {FormName}: {Mensaje}", form.Name, httpEx.Message);
-                DialogoUIHelper.MostrarAdvertencia(
-                    "No se pudo completar la solicitud debido a un problema de comunicación con el servidor.\nVerifique su conexión.",
-                    "Problema de Conexión"
-                );
-            }
             catch (Exception ex)
             {
-                Log.Error(ex, "Error inesperado durante la operación en {FormName}: {Mensaje}", form.Name, ex.Message);
-                DialogoUIHelper.MostrarExcepcion(ex, mensajeErrorContexto ?? "Ocurrió un error al procesar los datos");
+                ManejadorErroresUI.Manejar(ex, mensajeErrorContexto, form);
             }
             finally
             {
-                AlternarEstado(false);
+                estadoCarga.Finalizar(claveOperacion);
+                AlternarEstado(estadoCarga.EstaCargando);
             }
+
+            return true;
         }
     }
 }

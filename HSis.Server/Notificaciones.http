@@ -1,0 +1,8 @@
+@baseUrl = http://localhost:5000
+@token = REEMPLAZAR_CON_JWT
+@desdeId = 0
+
+### Obtener notificaciones nuevas del usuario autenticado
+GET {{baseUrl}}/api/Notificaciones/nuevas?desdeId={{desdeId}}
+Authorization: Bearer {{token}}
+Accept: application/json

@@ -79,7 +79,7 @@ public sealed class UsuarioCatalogoForm : FormularioCatalogoBase
             CargarPuestos(await puestosTask);
             CargarSucursales(await sucursalesTask);
             CargarRoles(await rolesTask);
-        }, "Error al cargar los catálogos del usuario", _cmbDepartamento, _cmbPuesto, _cmbSucursal, _cmbRol);
+        }, "Error al cargar los catálogos del usuario", "usuario-catalogos", _cmbDepartamento, _cmbPuesto, _cmbSucursal, _cmbRol);
     }
 
     private void CargarDepartamentos(IEnumerable<DepartamentoDto> departamentos)
@@ -168,7 +168,7 @@ public sealed class UsuarioCatalogoForm : FormularioCatalogoBase
 
             DialogResult = DialogResult.OK;
             Close();
-        }, "Error al guardar el usuario", BtnGuardar, BtnCancelar);
+        }, "Error al guardar el usuario", "usuario-guardar", BtnGuardar, BtnCancelar);
     }
 
     private static void SeleccionarNullable(ComboModerno combo, int? valor)

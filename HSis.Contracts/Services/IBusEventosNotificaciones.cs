@@ -1,3 +1,5 @@
+using HSis.Contracts.DTOs;
+
 namespace HSis.Contracts.Services
 {
     public interface IBusEventosNotificaciones
@@ -5,7 +7,7 @@ namespace HSis.Contracts.Services
         event EventHandler<NotificacionEventArgs>? OnNotificacionPublicada;
         event EventHandler<EstadoConexionEventArgs>? OnEstadoConexionCambiado;
 
-        void PublicarNotificacion(int ticketId, string tipo, string mensaje);
+        void PublicarNotificacion(NotificacionDto notificacion);
         void PublicarEstadoConexion(bool conectado, string? mensajeEstado = null);
     }
 }

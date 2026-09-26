@@ -6,6 +6,7 @@ using HSis.Contracts.Services;
 using HSis.UI.Factories;
 using HSis.UI.Forms.Dashboards;
 using HSis.UI.Helpers;
+using HSis.UI.Services;
 
 namespace HSis.UI.Forms.Auth
 {
@@ -17,13 +18,17 @@ namespace HSis.UI.Forms.Auth
         private readonly IAlmacenamientoCredencialesLocal _sessionCache;
         private readonly IFabricaFormularios _formFactory;
         private readonly IClienteSignalRNotificaciones _notificationClient;
+        private readonly AgenteNotificacionesLauncher _notificationAgentLauncher;
+        private readonly AperturaTicketService _aperturaTicketService;
 
         public IniciarSesionForm(
             IUsuarioService usuarioService,
             IAdministradorSesionUsuario contextoSesion,
             IAlmacenamientoCredencialesLocal sessionCache,
             IFabricaFormularios formFactory,
-            IClienteSignalRNotificaciones notificationClient)
+            IClienteSignalRNotificaciones notificationClient,
+            AgenteNotificacionesLauncher notificationAgentLauncher,
+            AperturaTicketService aperturaTicketService)
         {
             InitializeComponent();
             _usuarioService = usuarioService;
@@ -31,6 +36,8 @@ namespace HSis.UI.Forms.Auth
             _sessionCache = sessionCache;
             _formFactory = formFactory;
             _notificationClient = notificationClient;
+            _notificationAgentLauncher = notificationAgentLauncher;
+            _aperturaTicketService = aperturaTicketService;
 
             InicializarLayoutLogin();
         }
@@ -58,6 +65,8 @@ namespace HSis.UI.Forms.Auth
             };
 
             dashboardForm.FormClosed += (s, closedArgs) => Application.Exit();
+            dashboardForm.Shown += (_, _) =>
+                _aperturaTicketService.AbrirPendiente(dashboardForm);
             this.Hide();
             dashboardForm.Show();
         }
@@ -90,7 +99,8 @@ namespace HSis.UI.Forms.Auth
                         _ => "Usuario"
                     };
 
-                    _ = _notificationClient.IniciarAsync(_contextoSesion.IdUsuario, roleName);
+                    await _notificationClient.IniciarAsync(_contextoSesion.TokenJWT);
+                    _notificationAgentLauncher.Iniciar();
 
                     NavegarADashboard(usuario, roleName);
                 }
@@ -99,7 +109,7 @@ namespace HSis.UI.Forms.Auth
                     DialogoUIHelper.MostrarAdvertencia("Usuario o contraseña incorrectos", "Credenciales Inválidas");
                     LimpiarCredenciales();
                 }
-            }, "Error al iniciar sesión", btnIniciarSesion);
+            }, "Error al iniciar sesión", "iniciar-sesion", btnIniciarSesion);
         }
 
         private void FrmIniciarSesion_Load(object? sender, EventArgs e)

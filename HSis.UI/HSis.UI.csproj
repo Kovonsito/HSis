@@ -43,6 +43,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\HSis.Contracts\HSis.Contracts.csproj" />
+    <ProjectReference Include="..\HSis.Desktop.Infrastructure\HSis.Desktop.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

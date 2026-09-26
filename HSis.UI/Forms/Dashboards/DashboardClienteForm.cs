@@ -16,7 +16,9 @@ namespace HSis.UI.Forms.Dashboards
             IAdministradorSesionUsuario contextoSesion,
             IAlmacenamientoCredencialesLocal sessionCache,
             IFabricaFormularios formFactory,
-            IClienteSignalRNotificaciones notificationClient)
+            IClienteSignalRNotificaciones notificationClient,
+            INotificacionesApiClient notificacionesApiClient,
+            IBusEventosNotificaciones eventBus)
         {
             InitializeComponent();
             sidebarCliente.Colapsado = true;
@@ -31,7 +33,9 @@ namespace HSis.UI.Forms.Dashboards
                 contextoSesion,
                 sessionCache,
                 formFactory,
-                notificationClient
+                notificationClient,
+                notificacionesApiClient,
+                eventBus
             );
         }
 

@@ -58,6 +58,6 @@ public sealed class DepartamentoCatalogoForm : FormularioCatalogoBase
 
             DialogResult = DialogResult.OK;
             Close();
-        }, "Error al guardar el departamento", BtnGuardar, BtnCancelar);
+        }, "Error al guardar el departamento", "departamento-guardar", BtnGuardar, BtnCancelar);
     }
 }

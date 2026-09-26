@@ -25,7 +25,9 @@ namespace HSis.UI.Coordinators
         IAdministradorSesionUsuario contextoSesion,
         IAlmacenamientoCredencialesLocal sessionCache,
         IFabricaFormularios formFactory,
-        IClienteSignalRNotificaciones notificationClient) : CoordinadorDashboardMemoria(formulario, sidebar, topBar, vistaTickets, contextoSesion, sessionCache, formFactory, notificationClient)
+        IClienteSignalRNotificaciones notificationClient,
+        INotificacionesApiClient notificacionesApiClient,
+        IBusEventosNotificaciones eventBus) : CoordinadorDashboardMemoria(formulario, sidebar, topBar, vistaTickets, contextoSesion, sessionCache, formFactory, notificationClient, notificacionesApiClient, eventBus)
     {
         private readonly ITicketService _ticketService = ticketService;
         private readonly Control _btnNuevoReporte = btnNuevoReporte;
@@ -87,7 +89,7 @@ namespace HSis.UI.Coordinators
                 TodosLosTickets = resumen.Tickets;
                 VistaTickets.ControladorPaginacion.ReiniciarAPrimeraPagina();
                 MostrarPaginaActual();
-            }, "Error al cargar tickets del cliente");
+            }, "Error al cargar tickets del cliente", "dashboard-cliente", VistaTickets.Grid);
         }
 
         public void SeleccionarVista(string clave)

@@ -70,7 +70,7 @@ namespace HSis.UI.Forms.Tickets
                 }
 
                 MostrarTicket(ticket);
-            }, "Error al cargar ticket");
+            }, "Error al cargar ticket", "cliente-detalle");
         }
 
         private async void BtnEnviarFeedback_Click(object? sender, EventArgs e)
@@ -90,7 +90,7 @@ namespace HSis.UI.Forms.Tickets
                 {
                     DialogoUIHelper.MostrarError("No se pudo registrar la calificación.");
                 }
-            }, "Error al registrar calificación", btnEnviar);
+            }, "Error al registrar calificación", "cliente-feedback", btnEnviar);
         }
 
         /// <summary>

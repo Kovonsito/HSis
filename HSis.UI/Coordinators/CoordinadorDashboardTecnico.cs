@@ -26,7 +26,9 @@ namespace HSis.UI.Coordinators
         IAdministradorSesionUsuario contextoSesion,
         IAlmacenamientoCredencialesLocal sessionCache,
         IFabricaFormularios formFactory,
-        IClienteSignalRNotificaciones notificationClient) : CoordinadorDashboardBase(formulario, sidebar, topBar, vistaTickets, contextoSesion, sessionCache, formFactory, notificationClient)
+        IClienteSignalRNotificaciones notificationClient,
+        INotificacionesApiClient notificacionesApiClient,
+        IBusEventosNotificaciones eventBus) : CoordinadorDashboardBase(formulario, sidebar, topBar, vistaTickets, contextoSesion, sessionCache, formFactory, notificationClient, notificacionesApiClient, eventBus)
     {
         public enum VistaTecnico
         {
@@ -43,7 +45,6 @@ namespace HSis.UI.Coordinators
         private List<TicketDto> _todosLosTickets = [];
         private List<TicketDto> _ticketsFiltrados = [];
         private List<FeedbackTecnicoDto> _todosLosFeedbacks = [];
-        private bool _estaCargando = false;
 
         protected override void ConfigurarNavegacion()
         {
@@ -114,7 +115,7 @@ namespace HSis.UI.Coordinators
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Error al abrir el formulario: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    DialogoUIHelper.MostrarError($"Error al abrir el formulario: {ex.Message}", "Error", Formulario);
                 }
             };
         }
@@ -195,7 +196,7 @@ namespace HSis.UI.Coordinators
                 VistaTickets.ActualizarValorKpi(TipoKpiDashboard.Disponibles, ind.Disponibles);
                 VistaTickets.ActualizarValorKpi(TipoKpiDashboard.MisCerrados, ind.Cerrados);
                 VistaTickets.ActualizarValorKpi(TipoKpiDashboard.Calificacion, ind.PromedioCalificacion, esCalificacionEstrellas: true);
-            }, "Error al cargar indicadores técnicos");
+            }, "Error al cargar indicadores técnicos", "indicadores-tecnico");
         }
 
         private async Task CargarTicketsSegunVistaAsync()
@@ -231,7 +232,7 @@ namespace HSis.UI.Coordinators
                     }).ToList();
                     AplicarFiltrosMemoria();
                 }
-            }, "Error al cargar tickets");
+            }, "Error al cargar tickets", "tickets-tecnico", VistaTickets.Grid);
         }
 
         private void MostrarPaginaActual()
@@ -244,7 +245,7 @@ namespace HSis.UI.Coordinators
                 var pageFeedbacks = ctrl.ObtenerPagina(_todosLosFeedbacks).ToList();
                 grid.DataSource = new ListaVinculableOrdenable<FeedbackTecnicoDto>(pageFeedbacks);
                 ctrl.Actualizar(_todosLosFeedbacks.Count);
-                ConfiguracionColumnasDashboard.AplicarPerfilCalificaciones(grid);
+                ConfiguracionColumnasDashboard.AplicarPerfilFeedbackTecnico(grid);
             }
             else
             {
@@ -266,7 +267,7 @@ namespace HSis.UI.Coordinators
             {
                 if (texto != null)
                 {
-                    bool matchTexto = (t.Folio.ToString().Contains(texto) || t.FolioFormato.ToLowerInvariant().Contains(texto)) ||
+                    bool matchTexto = t.Folio.ToString().Contains(texto) ||
                                      (t.Descripcion?.ToLowerInvariant().Contains(texto) ?? false) ||
                                      (t.Usuario?.ToLowerInvariant().Contains(texto) ?? false);
                     if (!matchTexto) return false;

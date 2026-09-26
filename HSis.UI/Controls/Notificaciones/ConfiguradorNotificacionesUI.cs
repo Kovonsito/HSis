@@ -15,6 +15,7 @@ namespace HSis.UI.Helpers
             IFabricaFormularios fabricaFormularios,
             IAdministradorSesionUsuario contextoSesion,
             IClienteSignalRNotificaciones clienteNotificaciones,
+            INotificacionesApiClient notificacionesApiClient,
             IBusEventosNotificaciones? eventBus = null,
             Func<Task>? callbackRecargaDatos = null)
         {
@@ -40,8 +41,22 @@ namespace HSis.UI.Helpers
             EventHandler reposicionarHandler = (_, _) => Reposicionar();
             topBar.NotificacionesClic += reposicionarHandler;
 
+            EventHandler<EstadoConexionEventArgs>? estadoConexionHandler = null;
+            if (eventBus != null)
+            {
+                estadoConexionHandler = (_, args) =>
+                    topBar.ActualizarConexion(args.Conectado, args.MensajeEstado);
+                eventBus.OnEstadoConexionCambiado += estadoConexionHandler;
+            }
+
             notifControl.VincularTopBar(topBar);
-            notifControl.Configurar(fabricaFormularios, contextoSesion, clienteNotificaciones, eventBus, callbackRecargaDatos);
+            notifControl.Configurar(
+                fabricaFormularios,
+                contextoSesion,
+                clienteNotificaciones,
+                notificacionesApiClient,
+                eventBus,
+                callbackRecargaDatos);
             formulario.Controls.Add(notifControl);
             notifControl.BringToFront();
 
@@ -49,6 +64,10 @@ namespace HSis.UI.Helpers
             formulario.FormClosed += (_, _) =>
             {
                 topBar.NotificacionesClic -= reposicionarHandler;
+                if (estadoConexionHandler != null && eventBus != null)
+                {
+                    eventBus.OnEstadoConexionCambiado -= estadoConexionHandler;
+                }
                 notifControl.DesconectarEvents();
             };
 

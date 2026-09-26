@@ -10,7 +10,7 @@ namespace HSis.UI.ApiClients
         public async Task<byte[]> GenerarExcelAsync(ReporteKpisDto kpis, List<TicketDto> tickets, DateTime inicio, DateTime fin)
         {
             var request = new ReporteExportRequestDto { Kpis = kpis, Tickets = tickets, Inicio = inicio, Fin = fin };
-            var response = await httpClient.PostAsJsonAsync("api/ReportExport/excel", request);
+            using var response = await httpClient.PostAsJsonAsync("api/ReportExport/excel", request);
             await response.EnsureSuccessStatusCodeWithDetailsAsync();
             return await response.Content.ReadAsByteArrayAsync();
         }
@@ -18,7 +18,7 @@ namespace HSis.UI.ApiClients
         public async Task<byte[]> GenerarPdfAsync(ReporteKpisDto kpis, List<TicketDto> tickets, DateTime inicio, DateTime fin)
         {
             var request = new ReporteExportRequestDto { Kpis = kpis, Tickets = tickets, Inicio = inicio, Fin = fin };
-            var response = await httpClient.PostAsJsonAsync("api/ReportExport/pdf", request);
+            using var response = await httpClient.PostAsJsonAsync("api/ReportExport/pdf", request);
             await response.EnsureSuccessStatusCodeWithDetailsAsync();
             return await response.Content.ReadAsByteArrayAsync();
         }
