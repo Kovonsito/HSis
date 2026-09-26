@@ -74,31 +74,28 @@ public sealed class CatalogosAdministracionApiClientService(HttpClient httpClien
         => EliminarAsync($"api/Catalogos/roles/{idRol}");
 
     private async Task<List<T>> ObtenerListaAsync<T>(string route)
-        => await httpClient.GetFromJsonAsync<List<T>>(route) ?? [];
+        => await httpClient.GetFromJsonWithDetailsAsync<List<T>>(route) ?? [];
 
     private async Task<T> CrearAsync<T>(string route, object request, string nombre)
     {
-        var response = await httpClient.PostAsJsonAsync(route, request);
-        await response.EnsureSuccessStatusCodeWithDetailsAsync();
-        return await response.Content.ReadFromJsonAsync<T>()
-            ?? throw new HttpRequestException($"La API no devolvió el {nombre} creado.");
+        using var response = await httpClient.PostAsJsonAsync(route, request);
+        return await response.ReadRequiredJsonWithDetailsAsync<T>($"{nombre} creado");
     }
 
     private async Task<T?> ActualizarAsync<T>(string route, object request)
     {
-        var response = await httpClient.PutAsJsonAsync(route, request);
+        using var response = await httpClient.PutAsJsonAsync(route, request);
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
             return default;
         }
 
-        await response.EnsureSuccessStatusCodeWithDetailsAsync();
-        return await response.Content.ReadFromJsonAsync<T>();
+        return await response.ReadFromJsonWithDetailsAsync<T>();
     }
 
     private async Task<bool> EliminarAsync(string route)
     {
-        var response = await httpClient.DeleteAsync(route);
+        using var response = await httpClient.DeleteAsync(route);
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
             return false;

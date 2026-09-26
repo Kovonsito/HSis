@@ -1,10 +1,12 @@
 using HSis.Contracts.DTOs;
 using HSis.Contracts.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HSis.Server.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/[controller]")]
     public class MaterialesController(IMaterialService materialService) : ControllerBase
     {

@@ -1,10 +1,13 @@
 using HSis.Contracts.DTOs;
+using HSis.Contracts.Errors;
 using HSis.Contracts.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HSis.Server.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/[controller]")]
     public class TicketDetalleController(ITicketDetalleService ticketDetalleService) : ControllerBase
     {
@@ -20,7 +23,18 @@ namespace HSis.Server.Controllers
         public async Task<ActionResult<TicketDetalleDto>> ObtenerDetallePorId(int idTicket, int idMaterial)
         {
             var detalle = await ticketDetalleService.ObtenerDetallePorIdAsync(idTicket, idMaterial);
-            if (detalle == null) return NotFound();
+            if (detalle == null)
+            {
+                return Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Material del ticket no encontrado",
+                    detail: "No se encontró el material asociado al ticket solicitado.",
+                    extensions: new Dictionary<string, object?>
+                    {
+                        ["code"] = ApiErrorCodes.ResourceNotFound,
+                        ["traceId"] = HttpContext.TraceIdentifier
+                    });
+            }
             return Ok(detalle);
         }
 

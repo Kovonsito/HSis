@@ -47,13 +47,13 @@ partial class GeneradorReportesForm
         pnlHeader.Dock = System.Windows.Forms.DockStyle.Top;
         pnlHeader.Location = new System.Drawing.Point(0, 0);
         pnlHeader.Name = "pnlHeader";
-        pnlHeader.Size = new System.Drawing.Size(520, 72);
+        pnlHeader.Size = new System.Drawing.Size(600, 88);
         pnlHeader.TabIndex = 0;
         pnlHeader.Paint += PnlHeader_Paint;
         // 
         // picHeaderIcon
         // 
-        picHeaderIcon.Location = new System.Drawing.Point(18, 16);
+        picHeaderIcon.Location = new System.Drawing.Point(24, 22);
         picHeaderIcon.Name = "picHeaderIcon";
         picHeaderIcon.Size = new System.Drawing.Size(40, 40);
         picHeaderIcon.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
@@ -63,9 +63,9 @@ partial class GeneradorReportesForm
         // lblTitle
         // 
         lblTitle.AutoSize = true;
-        lblTitle.Font = new System.Drawing.Font("Segoe UI", 12.5F, System.Drawing.FontStyle.Bold);
+        lblTitle.Font = new System.Drawing.Font("Segoe UI", 13F, System.Drawing.FontStyle.Bold);
         lblTitle.ForeColor = System.Drawing.Color.FromArgb(15, 23, 42);
-        lblTitle.Location = new System.Drawing.Point(66, 15);
+        lblTitle.Location = new System.Drawing.Point(76, 20);
         lblTitle.Name = "lblTitle";
         lblTitle.Size = new System.Drawing.Size(284, 23);
         lblTitle.TabIndex = 1;
@@ -76,7 +76,7 @@ partial class GeneradorReportesForm
         lblSubtitle.AutoSize = true;
         lblSubtitle.Font = new System.Drawing.Font("Segoe UI", 8.5F);
         lblSubtitle.ForeColor = System.Drawing.Color.FromArgb(100, 116, 139);
-        lblSubtitle.Location = new System.Drawing.Point(68, 40);
+        lblSubtitle.Location = new System.Drawing.Point(78, 49);
         lblSubtitle.Name = "lblSubtitle";
         lblSubtitle.Size = new System.Drawing.Size(415, 15);
         lblSubtitle.TabIndex = 2;
@@ -87,10 +87,10 @@ partial class GeneradorReportesForm
         pnlBody.BackColor = System.Drawing.Color.FromArgb(248, 250, 252);
         pnlBody.Controls.Add(pnlCard);
         pnlBody.Dock = System.Windows.Forms.DockStyle.Fill;
-        pnlBody.Location = new System.Drawing.Point(0, 72);
+        pnlBody.Location = new System.Drawing.Point(0, 88);
         pnlBody.Name = "pnlBody";
-        pnlBody.Padding = new System.Windows.Forms.Padding(20);
-        pnlBody.Size = new System.Drawing.Size(520, 298);
+        pnlBody.Padding = new System.Windows.Forms.Padding(24);
+        pnlBody.Size = new System.Drawing.Size(600, 352);
         pnlBody.TabIndex = 1;
         // 
         // pnlCard
@@ -105,8 +105,8 @@ partial class GeneradorReportesForm
         pnlCard.Dock = System.Windows.Forms.DockStyle.Fill;
         pnlCard.Location = new System.Drawing.Point(20, 20);
         pnlCard.Name = "pnlCard";
-        pnlCard.Padding = new System.Windows.Forms.Padding(24);
-        pnlCard.Size = new System.Drawing.Size(480, 258);
+        pnlCard.Padding = new System.Windows.Forms.Padding(28);
+        pnlCard.Size = new System.Drawing.Size(552, 304);
         pnlCard.TabIndex = 0;
         pnlCard.Paint += PnlCard_Paint;
         // 
@@ -115,7 +115,7 @@ partial class GeneradorReportesForm
         lblRangoTitle.AutoSize = true;
         lblRangoTitle.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
         lblRangoTitle.ForeColor = System.Drawing.Color.FromArgb(30, 41, 59);
-        lblRangoTitle.Location = new System.Drawing.Point(24, 20);
+        lblRangoTitle.Location = new System.Drawing.Point(28, 22);
         lblRangoTitle.Name = "lblRangoTitle";
         lblRangoTitle.Size = new System.Drawing.Size(225, 19);
         lblRangoTitle.TabIndex = 0;
@@ -126,7 +126,7 @@ partial class GeneradorReportesForm
         lblInicio.AutoSize = true;
         lblInicio.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
         lblInicio.ForeColor = System.Drawing.Color.FromArgb(71, 85, 105);
-        lblInicio.Location = new System.Drawing.Point(24, 58);
+        lblInicio.Location = new System.Drawing.Point(28, 66);
         lblInicio.Name = "lblInicio";
         lblInicio.Size = new System.Drawing.Size(78, 15);
         lblInicio.TabIndex = 1;
@@ -137,9 +137,9 @@ partial class GeneradorReportesForm
         dtpInicio.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
         dtpInicio.Font = new System.Drawing.Font("Segoe UI", 10F);
         dtpInicio.Format = System.Windows.Forms.DateTimePickerFormat.Short;
-        dtpInicio.Location = new System.Drawing.Point(24, 78);
+        dtpInicio.Location = new System.Drawing.Point(28, 87);
         dtpInicio.Name = "dtpInicio";
-        dtpInicio.Size = new System.Drawing.Size(430, 34);
+        dtpInicio.Size = new System.Drawing.Size(496, 34);
         dtpInicio.TabIndex = 2;
         // 
         // lblFin
@@ -147,7 +147,7 @@ partial class GeneradorReportesForm
         lblFin.AutoSize = true;
         lblFin.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
         lblFin.ForeColor = System.Drawing.Color.FromArgb(71, 85, 105);
-        lblFin.Location = new System.Drawing.Point(24, 122);
+        lblFin.Location = new System.Drawing.Point(28, 132);
         lblFin.Name = "lblFin";
         lblFin.Size = new System.Drawing.Size(72, 15);
         lblFin.TabIndex = 3;
@@ -158,9 +158,9 @@ partial class GeneradorReportesForm
         dtpFin.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
         dtpFin.Font = new System.Drawing.Font("Segoe UI", 10F);
         dtpFin.Format = System.Windows.Forms.DateTimePickerFormat.Short;
-        dtpFin.Location = new System.Drawing.Point(24, 142);
+        dtpFin.Location = new System.Drawing.Point(28, 153);
         dtpFin.Name = "dtpFin";
-        dtpFin.Size = new System.Drawing.Size(430, 34);
+        dtpFin.Size = new System.Drawing.Size(496, 34);
         dtpFin.TabIndex = 4;
         // 
         // flpBotones
@@ -168,9 +168,9 @@ partial class GeneradorReportesForm
         flpBotones.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
         flpBotones.Controls.Add(btnExcel);
         flpBotones.Controls.Add(btnPdf);
-        flpBotones.Location = new System.Drawing.Point(24, 185);
+        flpBotones.Location = new System.Drawing.Point(28, 216);
         flpBotones.Name = "flpBotones";
-        flpBotones.Size = new System.Drawing.Size(430, 50);
+        flpBotones.Size = new System.Drawing.Size(496, 50);
         flpBotones.TabIndex = 5;
         // 
         // btnExcel
@@ -184,7 +184,7 @@ partial class GeneradorReportesForm
         btnExcel.Margin = new System.Windows.Forms.Padding(0, 0, 14, 0);
         btnExcel.Name = "btnExcel";
         btnExcel.RadioBorde = 8;
-        btnExcel.Size = new System.Drawing.Size(185, 44);
+        btnExcel.Size = new System.Drawing.Size(216, 44);
         btnExcel.TabIndex = 0;
         btnExcel.Text = "Exportar a Excel";
         btnExcel.Click += btnExcel_Click;
@@ -196,11 +196,11 @@ partial class GeneradorReportesForm
         btnPdf.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold);
         btnPdf.Icono = FontAwesome.Sharp.IconChar.FilePdf;
         btnPdf.IconoTamano = 18;
-        btnPdf.Location = new System.Drawing.Point(199, 0);
+        btnPdf.Location = new System.Drawing.Point(230, 0);
         btnPdf.Margin = new System.Windows.Forms.Padding(0);
         btnPdf.Name = "btnPdf";
         btnPdf.RadioBorde = 8;
-        btnPdf.Size = new System.Drawing.Size(185, 44);
+        btnPdf.Size = new System.Drawing.Size(216, 44);
         btnPdf.TabIndex = 1;
         btnPdf.Text = "Exportar a PDF";
         btnPdf.Click += btnPdf_Click;
@@ -210,14 +210,14 @@ partial class GeneradorReportesForm
         AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
         AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
         BackColor = System.Drawing.Color.FromArgb(248, 250, 252);
-        ClientSize = new System.Drawing.Size(520, 370);
+        ClientSize = new System.Drawing.Size(600, 440);
         Controls.Add(pnlBody);
         Controls.Add(pnlHeader);
         Font = new System.Drawing.Font("Segoe UI", 9F);
         FormBorderStyle = System.Windows.Forms.FormBorderStyle.Sizable;
         MaximizeBox = true;
         MinimizeBox = true;
-        MinimumSize = new System.Drawing.Size(520, 370);
+        MinimumSize = new System.Drawing.Size(600, 440);
         Name = "GeneradorReportesForm";
         StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
         Text = "Generar Reportes Especializados";

@@ -1,14 +1,19 @@
+using HSis.Contracts.DTOs;
+
 namespace HSis.Contracts.Services
 {
-    public class NotificacionEventArgs(int ticketId, string tipo, string mensaje) : EventArgs
+    public sealed class NotificacionEventArgs(NotificacionDto notificacion) : EventArgs
     {
-        public int TicketId { get; } = ticketId;
-        public string Tipo { get; } = tipo;
-        public string Mensaje { get; } = mensaje;
-        public DateTime Fecha { get; } = DateTime.Now;
+        public NotificacionDto Notificacion { get; } = notificacion;
+        public int IdNotificacion => Notificacion.IdNotificacion;
+        public int? TicketId => Notificacion.TicketId;
+        public int? MaterialId => Notificacion.MaterialId;
+        public string Tipo => Notificacion.Tipo;
+        public string Mensaje => Notificacion.Mensaje;
+        public DateTimeOffset Fecha => Notificacion.FechaCreacion;
     }
 
-    public class EstadoConexionEventArgs(bool conectado, string? mensajeEstado = null) : EventArgs
+    public sealed class EstadoConexionEventArgs(bool conectado, string? mensajeEstado = null) : EventArgs
     {
         public bool Conectado { get; } = conectado;
         public string? MensajeEstado { get; } = mensajeEstado;

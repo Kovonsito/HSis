@@ -70,7 +70,7 @@ public sealed class EmpresaCatalogoForm : FormularioCatalogoBase
 
             DialogResult = DialogResult.OK;
             Close();
-        }, "Error al guardar la empresa", BtnGuardar, BtnCancelar);
+        }, "Error al guardar la empresa", "empresa-guardar", BtnGuardar, BtnCancelar);
     }
 
     private static string? TextoOpcional(CajaTextoModerna control)

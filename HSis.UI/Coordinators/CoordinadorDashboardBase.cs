@@ -1,5 +1,6 @@
 #nullable enable
 using System.Runtime.Versioning;
+using System.Threading;
 using HSis.Contracts.Services;
 using HSis.UI.Controls;
 using HSis.UI.Factories;
@@ -21,7 +22,9 @@ namespace HSis.UI.Coordinators
         IAdministradorSesionUsuario contextoSesion,
         IAlmacenamientoCredencialesLocal sessionCache,
         IFabricaFormularios formFactory,
-        IClienteSignalRNotificaciones notificationClient)
+        IClienteSignalRNotificaciones notificationClient,
+        INotificacionesApiClient notificacionesApiClient,
+        IBusEventosNotificaciones eventBus)
 
     {
         protected readonly Form Formulario = formulario;
@@ -32,6 +35,9 @@ namespace HSis.UI.Coordinators
         protected readonly IAlmacenamientoCredencialesLocal SessionCache = sessionCache;
         protected readonly IFabricaFormularios FormFactory = formFactory;
         protected readonly IClienteSignalRNotificaciones NotificationClient = notificationClient;
+        protected readonly INotificacionesApiClient NotificacionesApiClient = notificacionesApiClient;
+        protected readonly IBusEventosNotificaciones EventBus = eventBus;
+        protected EstadoCargaAsync EstadoCarga => Formulario.ObtenerEstadoCarga();
 
         public virtual async Task IniciarAsync()
         {
@@ -55,7 +61,8 @@ namespace HSis.UI.Coordinators
                 FormFactory,
                 ContextoSesion,
                 NotificationClient,
-                null,
+                NotificacionesApiClient,
+                EventBus,
                 RecargarDatosAsync
             );
 

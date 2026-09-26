@@ -1,18 +1,17 @@
-namespace HSis.Contracts.Services
+using HSis.Contracts.DTOs;
+
+namespace HSis.Contracts.Services;
+
+public interface IClienteSignalRNotificaciones
 {
-    public interface IClienteSignalRNotificaciones : INotificadorTicket
-    {
-        event Action<string, int, string>? OnNotificationReceived;
-        event Action? OnConnected;
-        event Action? OnDisconnected;
-        event Action? OnReconnecting;
-        event Action<string?>? OnReconnected;
+    event Action<NotificacionDto>? OnNotificationReceived;
+    event Action? OnConnected;
+    event Action? OnDisconnected;
+    event Action? OnReconnecting;
+    event Action<string?>? OnReconnected;
 
-        bool IsConnected { get; }
+    bool IsConnected { get; }
 
-        Task IniciarAsync(int userId, string role);
-        Task DetenerAsync();
-        Task NotificarCambioEstatusTicketAsync(int clientUserId, int ticketId, string ticketFolio, string newStatus);
-        Task NotificarCalificacionTicketAsync(int technicianUserId, int ticketId, string ticketFolio, int rating, string comment);
-    }
+    Task IniciarAsync(string token);
+    Task DetenerAsync();
 }

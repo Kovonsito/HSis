@@ -4,6 +4,7 @@ using System.Drawing.Drawing2D;
 using System.Runtime.Versioning;
 using FontAwesome.Sharp;
 using HSis.Contracts.Services;
+using HSis.UI.Forms.Otros;
 using HSis.UI.Helpers;
 
 namespace HSis.UI.Controls
@@ -256,21 +257,22 @@ namespace HSis.UI.Controls
             string puesto = _sesionUsuario?.UsuarioActual?.PuestoNombre ?? "Sin Asignar";
             string sucursal = _sesionUsuario?.UsuarioActual?.SucursalNombre ?? "Sin Asignar";
 
-            string info = $"Usuario: {_sesionUsuario?.NombreUsuario ?? "Desconocido"}\n" +
-                          $"Rol asignado: {rol}\n\n" +
-                          $"Departamento: {depto}\n" +
-                          $"Puesto: {puesto}\n" +
-                          $"Sucursal: {sucursal}";
-
-            MessageBox.Show(info, "Información de Sesión", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        using var dialogo = new InformacionSesionForm(
+            FindForm(),
+            _sesionUsuario?.NombreUsuario ?? "Desconocido",
+            rol,
+            depto,
+            puesto,
+            sucursal);
+        dialogo.ShowDialog();
         }
 
         private void EjecutarCierreSesion()
         {
-            var confirmResult = MessageBox.Show("¿Estás seguro de que deseas cerrar sesión?", "Cerrar Sesión", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-            if (confirmResult == DialogResult.Yes)
+            if (DialogoUIHelper.Confirmar("¿Estás seguro de que deseas cerrar sesión?", "Cerrar Sesión", FindForm()))
             {
                 _sessionCache?.ClearCredentials();
+                _sesionUsuario?.CerrarSesion();
                 CerrarSesionClic?.Invoke(this, EventArgs.Empty);
                 Application.Restart();
             }

@@ -1,3 +1,4 @@
+using HSis.Contracts.Errors;
 using HSis.Contracts.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
@@ -6,14 +7,16 @@ namespace HSis.Server.Controllers
 {
     [ApiController]
     [Route("api/CatalogosLegacy")]
-    public class CatalogosController(ICatalogoService catalogoService) : ControllerBase
+    public class CatalogosController(
+        ICatalogoService catalogoService,
+        ILogger<CatalogosController> logger) : ControllerBase
     {
 
         [HttpGet("{entidad}")]
         public async Task<ActionResult> ObtenerTodos(string entidad)
         {
             var type = ObtenerTipoEntidad(entidad);
-            if (type == null) return NotFound(new { Message = $"Catálogo '{entidad}' no encontrado." });
+            if (type == null) return CatalogoNoEncontrado(entidad);
 
             var data = await catalogoService.ObtenerTodosPorTipoAsync(type);
             return Ok(data);
@@ -23,7 +26,7 @@ namespace HSis.Server.Controllers
         public async Task<ActionResult> ObtenerRegistros(string entidad)
         {
             var type = ObtenerTipoEntidad(entidad);
-            if (type == null) return NotFound(new { Message = $"Catálogo '{entidad}' no encontrado." });
+            if (type == null) return CatalogoNoEncontrado(entidad);
 
             var data = await catalogoService.ObtenerTodosPorTipoAsync(type);
             var registros = data.Select(registro => ConvertirRegistro(registro, type));
@@ -34,7 +37,7 @@ namespace HSis.Server.Controllers
         public async Task<ActionResult> CrearRegistro(string entidad, [FromBody] Dictionary<string, JsonElement> valores)
         {
             var type = ObtenerTipoEntidad(entidad);
-            if (type == null) return NotFound(new { Message = $"Catálogo '{entidad}' no encontrado." });
+            if (type == null) return CatalogoNoEncontrado(entidad);
 
             object entidadCreada;
             try
@@ -43,7 +46,8 @@ namespace HSis.Server.Controllers
             }
             catch (JsonException ex)
             {
-                return BadRequest(new { Message = ex.Message });
+                logger.LogWarning(ex, "Payload no válido al crear un registro del catálogo {Catalogo}.", entidad);
+                return SolicitudNoValida("Los valores enviados no tienen un formato válido para el catálogo seleccionado.");
             }
 
             var metodo = typeof(ICatalogoService).GetMethod("CrearAsync")!.MakeGenericMethod(type);
@@ -57,10 +61,10 @@ namespace HSis.Server.Controllers
         public async Task<ActionResult> EliminarRegistro(string entidad, string id)
         {
             var type = ObtenerTipoEntidad(entidad);
-            if (type == null) return NotFound(new { Message = $"Catálogo '{entidad}' no encontrado." });
+            if (type == null) return CatalogoNoEncontrado(entidad);
 
             var tipoClave = type.GetProperty(ObtenerNombreClave(type))?.PropertyType;
-            if (tipoClave == null) return BadRequest(new { Message = "El catálogo no tiene una clave primaria compatible." });
+            if (tipoClave == null) return SolicitudNoValida("El catálogo no tiene una clave primaria compatible para realizar esta operación.");
 
             object clave;
             try
@@ -69,7 +73,7 @@ namespace HSis.Server.Controllers
             }
             catch (FormatException)
             {
-                return BadRequest(new { Message = $"La clave '{id}' no tiene un formato válido." });
+                return SolicitudNoValida($"La clave '{id}' no tiene un formato válido para el catálogo seleccionado.");
             }
 
             var metodo = typeof(ICatalogoService).GetMethod("EliminarAsync")!.MakeGenericMethod(type);
@@ -83,10 +87,20 @@ namespace HSis.Server.Controllers
         public async Task<ActionResult> Crear(string entidad, [FromBody] System.Text.Json.JsonElement payload)
         {
             var type = ObtenerTipoEntidad(entidad);
-            if (type == null) return NotFound(new { Message = $"Catálogo '{entidad}' no encontrado." });
+            if (type == null) return CatalogoNoEncontrado(entidad);
 
-            object? dto = System.Text.Json.JsonSerializer.Deserialize(payload.GetRawText(), type);
-            if (dto == null) return BadRequest(new { Message = "Cuerpo de solicitud inválido." });
+            object? dto;
+            try
+            {
+                dto = System.Text.Json.JsonSerializer.Deserialize(payload.GetRawText(), type);
+            }
+            catch (JsonException ex)
+            {
+                logger.LogWarning(ex, "Payload no válido al crear el catálogo {Catalogo}.", entidad);
+                return SolicitudNoValida("El cuerpo de la solicitud no contiene datos válidos para el catálogo seleccionado.");
+            }
+
+            if (dto == null) return SolicitudNoValida("El cuerpo de la solicitud está vacío o no tiene un formato válido.");
 
             var metodo = typeof(ICatalogoService).GetMethod("CrearAsync")!.MakeGenericMethod(type);
             Task task = (Task)metodo.Invoke(catalogoService, [dto])!;
@@ -99,10 +113,20 @@ namespace HSis.Server.Controllers
         public async Task<ActionResult> Actualizar(string entidad, [FromBody] System.Text.Json.JsonElement payload)
         {
             var type = ObtenerTipoEntidad(entidad);
-            if (type == null) return NotFound(new { Message = $"Catálogo '{entidad}' no encontrado." });
+            if (type == null) return CatalogoNoEncontrado(entidad);
 
-            object? dto = System.Text.Json.JsonSerializer.Deserialize(payload.GetRawText(), type);
-            if (dto == null) return BadRequest(new { Message = "Cuerpo de solicitud inválido." });
+            object? dto;
+            try
+            {
+                dto = System.Text.Json.JsonSerializer.Deserialize(payload.GetRawText(), type);
+            }
+            catch (JsonException ex)
+            {
+                logger.LogWarning(ex, "Payload no válido al actualizar el catálogo {Catalogo}.", entidad);
+                return SolicitudNoValida("El cuerpo de la solicitud no contiene datos válidos para el catálogo seleccionado.");
+            }
+
+            if (dto == null) return SolicitudNoValida("El cuerpo de la solicitud está vacío o no tiene un formato válido.");
 
             var metodo = typeof(ICatalogoService).GetMethod("ActualizarAsync")!.MakeGenericMethod(type);
             Task task = (Task)metodo.Invoke(catalogoService, [dto])!;
@@ -115,7 +139,7 @@ namespace HSis.Server.Controllers
         public async Task<ActionResult> Eliminar(string entidad, string id)
         {
             var type = ObtenerTipoEntidad(entidad);
-            if (type == null) return NotFound(new { Message = $"Catálogo '{entidad}' no encontrado." });
+            if (type == null) return CatalogoNoEncontrado(entidad);
 
             object idParsed = int.TryParse(id, out int idInt) ? idInt : id;
 
@@ -125,6 +149,27 @@ namespace HSis.Server.Controllers
 
             return NoContent();
         }
+
+        private ObjectResult CatalogoNoEncontrado(string entidad)
+            => Problem(
+                statusCode: StatusCodes.Status404NotFound,
+                title: "Catálogo no encontrado",
+                detail: $"No se encontró el catálogo '{entidad}'. Compruebe el nombre e inténtelo de nuevo.",
+                extensions: CrearExtensiones(ApiErrorCodes.ResourceNotFound));
+
+        private ObjectResult SolicitudNoValida(string detalle)
+            => Problem(
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Datos del catálogo no válidos",
+                detail: detalle,
+                extensions: CrearExtensiones(ApiErrorCodes.BadRequest));
+
+        private Dictionary<string, object?> CrearExtensiones(string code)
+            => new()
+            {
+                ["code"] = code,
+                ["traceId"] = HttpContext.TraceIdentifier
+            };
 
         private static Type? ObtenerTipoEntidad(string entidad)
         {

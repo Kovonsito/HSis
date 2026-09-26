@@ -2,9 +2,11 @@
 using System.Drawing.Drawing2D;
 using System.Runtime.Versioning;
 using FontAwesome.Sharp;
+using HSis.Contracts.DTOs;
 using HSis.Contracts.Services;
 using HSis.UI.Factories;
 using HSis.UI.Helpers;
+using NotificacionLocal = HSis.UI.Models.Notificaciones.NotificacionLocal;
 
 namespace HSis.UI.Controls
 {
@@ -12,9 +14,11 @@ namespace HSis.UI.Controls
     public partial class NotificacionesControl : UserControl
     {
         private readonly List<NotificacionLocal> _notificaciones = [];
+        private readonly SemaphoreSlim _sincronizacionLock = new(1, 1);
         private IFabricaFormularios? _fabricaFormularios;
         private IAdministradorSesionUsuario? _contextoSesion;
         private IClienteSignalRNotificaciones? _clienteNotificaciones;
+        private INotificacionesApiClient? _notificacionesApiClient;
         private IBusEventosNotificaciones? _eventBus;
         private Func<Task>? _callbackRecargaDatos;
         private TopBarControl? _topBar;
@@ -30,18 +34,20 @@ namespace HSis.UI.Controls
             IFabricaFormularios fabricaFormularios,
             IAdministradorSesionUsuario contextoSesion,
             IClienteSignalRNotificaciones clienteNotificaciones,
+            INotificacionesApiClient notificacionesApiClient,
             IBusEventosNotificaciones? eventBus = null,
             Func<Task>? callbackRecargaDatos = null)
         {
+            DesuscribirEventos();
             _fabricaFormularios = fabricaFormularios;
             _contextoSesion = contextoSesion;
             _clienteNotificaciones = clienteNotificaciones;
+            _notificacionesApiClient = notificacionesApiClient;
             _eventBus = eventBus;
             _callbackRecargaDatos = callbackRecargaDatos;
 
             SuscribirEventos();
-            MostrarNotificaciones(_notificaciones);
-            ActualizarInsigniaCampana(0);
+            _ = SincronizarConServidorAsync();
         }
 
         public void DesconectarEvents()
@@ -83,65 +89,233 @@ namespace HSis.UI.Controls
         }
 
         public Task CargarHistorialAsync()
-        {
-            int noLeidas = _notificaciones.Count(n => !n.Leido);
-            ActualizarInsigniaCampana(noLeidas);
-            MostrarNotificaciones(_notificaciones);
-            return Task.CompletedTask;
-        }
+            => SincronizarConServidorAsync();
 
-        public Task MarcarComoLeidaAsync(NotificacionLocal notif)
+        public async Task MarcarComoLeidaAsync(NotificacionLocal notif)
         {
-            notif.Leido = true;
-            _ = CargarHistorialAsync();
-            AbrirDetalleTicket(notif.TicketId);
-            return Task.CompletedTask;
-        }
-
-        public Task MarcarTodasComoLeidasAsync()
-        {
-            foreach (var n in _notificaciones) n.Leido = true;
-            return CargarHistorialAsync();
-        }
-
-        public Task LimpiarTodasAsync()
-        {
-            _notificaciones.Clear();
-            return CargarHistorialAsync();
-        }
-
-        private async void EnNotificacionRecibida(string tipo, int ticketId, string mensaje)
-        {
-            var notif = new NotificacionLocal
+            try
             {
-                Id = Guid.NewGuid(),
-                TicketId = ticketId,
-                Mensaje = mensaje,
-                Fecha = DateTime.Now,
-                Leido = false
-            };
-            _notificaciones.Insert(0, notif);
-            await CargarHistorialAsync();
+                if (!notif.DbId.HasValue || _notificacionesApiClient == null)
+                {
+                    notif.Leido = true;
+                    await CargarHistorialAsync();
+                }
+                else
+                {
+                    await _notificacionesApiClient.MarcarComoLeidaAsync(notif.DbId.Value);
+                    notif.Leido = true;
+                    await CargarHistorialAsync();
+                }
+
+                if (notif.TicketId.HasValue)
+                {
+                    AbrirDetalleTicket(notif.TicketId.Value);
+                }
+            }
+            catch (Exception ex)
+            {
+                ManejadorErroresUI.Manejar(
+                    ex,
+                    "marcar una notificación como leída",
+                    FindForm());
+            }
+        }
+
+        public async Task MarcarTodasComoLeidasAsync()
+        {
+            try
+            {
+                if (_notificacionesApiClient != null)
+                {
+                    await _notificacionesApiClient.MarcarTodasComoLeidasAsync();
+                }
+
+                foreach (var n in _notificaciones)
+                {
+                    n.Leido = true;
+                }
+
+                await CargarHistorialAsync();
+            }
+            catch (Exception ex)
+            {
+                ManejadorErroresUI.Manejar(
+                    ex,
+                    "marcar todas las notificaciones como leídas",
+                    FindForm());
+            }
+        }
+
+        public async Task LimpiarTodasAsync()
+        {
+            try
+            {
+                if (_notificacionesApiClient != null)
+                {
+                    await _notificacionesApiClient.LimpiarTodasAsync();
+                }
+
+                _notificaciones.Clear();
+                await CargarHistorialAsync();
+            }
+            catch (Exception ex)
+            {
+                ManejadorErroresUI.Manejar(
+                    ex,
+                    "limpiar las notificaciones",
+                    FindForm());
+            }
+        }
+
+        private async void EnNotificacionRecibida(NotificacionDto notification)
+        {
+            await EjecutarEnHiloUIAsync(async () =>
+            {
+                UpsertNotificacion(notification);
+                MostrarNotificaciones(_notificaciones);
+                ActualizarInsigniaCampana(_notificaciones.Count(n => !n.Leido));
+                await RecargarDatosHostAsync();
+            });
+        }
+
+        private async void EnConectado()
+        {
+            await SincronizarConServidorAsync();
             await RecargarDatosHostAsync();
         }
 
-        private void EnConectado()
+        private async void EnBusNotificacionPublicada(object? sender, NotificacionEventArgs e)
         {
-            _ = RecargarDatosHostAsync();
-        }
+            await EjecutarEnHiloUIAsync(async () =>
+            {
+                if (e.IdNotificacion > 0)
+                {
+                    UpsertNotificacion(e.Notificacion);
+                    MostrarNotificaciones(_notificaciones);
+                    ActualizarInsigniaCampana(_notificaciones.Count(n => !n.Leido));
+                }
 
-        private void EnBusNotificacionPublicada(object? sender, NotificacionEventArgs e)
-        {
-            EnNotificacionRecibida(e.Tipo, e.TicketId, e.Mensaje);
+                await SincronizarConServidorAsync();
+                await RecargarDatosHostAsync();
+            });
         }
 
         private void EnBusEstadoConexionCambiado(object? sender, EstadoConexionEventArgs e)
         {
             if (e.Conectado)
             {
-                _ = RecargarDatosHostAsync();
+                _ = SincronizarConServidorAsync();
             }
         }
+
+        private async Task SincronizarConServidorAsync()
+        {
+            if (_notificacionesApiClient == null)
+            {
+                return;
+            }
+
+            await _sincronizacionLock.WaitAsync();
+            try
+            {
+                var resumen = await _notificacionesApiClient.ObtenerResumenAsync();
+                await EjecutarEnHiloUIAsync(() =>
+                {
+                    ReemplazarNotificaciones(resumen.Notificaciones);
+                    MostrarNotificaciones(_notificaciones);
+                    ActualizarInsigniaCampana(resumen.NoLeidas);
+                    return Task.CompletedTask;
+                });
+            }
+            catch (Exception ex)
+            {
+                ManejadorErroresUI.Manejar(
+                    ex,
+                    "cargar las notificaciones",
+                    FindForm(),
+                    mostrarDialogo: false);
+            }
+            finally
+            {
+                _sincronizacionLock.Release();
+            }
+        }
+
+        private Task EjecutarEnHiloUIAsync(Func<Task> operacion)
+        {
+            if (IsDisposed || Disposing)
+            {
+                return Task.CompletedTask;
+            }
+
+            if (!InvokeRequired)
+            {
+                return operacion();
+            }
+
+            if (!IsHandleCreated)
+            {
+                return Task.CompletedTask;
+            }
+
+            try
+            {
+                return (Task)Invoke(operacion);
+            }
+            catch (InvalidOperationException) when (IsDisposed || Disposing)
+            {
+                return Task.CompletedTask;
+            }
+            catch (ObjectDisposedException)
+            {
+                return Task.CompletedTask;
+            }
+        }
+
+        private void ReemplazarNotificaciones(IEnumerable<NotificacionDto> notificaciones)
+        {
+            _notificaciones.Clear();
+            foreach (var notification in notificaciones)
+            {
+                _notificaciones.Add(ConvertirNotificacion(notification));
+            }
+        }
+
+        private void UpsertNotificacion(NotificacionDto notification)
+        {
+            var existente = notification.IdNotificacion > 0
+                ? _notificaciones.FirstOrDefault(n => n.DbId == notification.IdNotificacion)
+                : _notificaciones.FirstOrDefault(n =>
+                    n.TicketId == notification.TicketId &&
+                    n.MaterialId == notification.MaterialId &&
+                    string.Equals(n.Tipo, notification.Tipo, StringComparison.Ordinal) &&
+                    string.Equals(n.Mensaje, notification.Mensaje, StringComparison.Ordinal));
+            if (existente != null)
+            {
+                existente.TicketId = notification.TicketId;
+                existente.MaterialId = notification.MaterialId;
+                existente.Tipo = notification.Tipo;
+                existente.Mensaje = notification.Mensaje;
+                existente.Fecha = notification.FechaCreacion.LocalDateTime;
+                existente.Leido = notification.Leido;
+                return;
+            }
+
+            _notificaciones.Insert(0, ConvertirNotificacion(notification));
+        }
+
+        private static NotificacionLocal ConvertirNotificacion(NotificacionDto notification)
+            => new()
+            {
+                Id = Guid.NewGuid(),
+                DbId = notification.IdNotificacion,
+                TicketId = notification.TicketId,
+                MaterialId = notification.MaterialId,
+                Tipo = notification.Tipo,
+                Mensaje = notification.Mensaje,
+                Fecha = notification.FechaCreacion.LocalDateTime,
+                Leido = notification.Leido
+            };
 
         public void VincularTopBar(TopBarControl topBar)
         {
@@ -302,19 +476,14 @@ namespace HSis.UI.Controls
             flpNotificaciones.ResumeLayout();
         }
 
-        public async Task RecargarDatosHostAsync()
+        public Task RecargarDatosHostAsync()
         {
-            if (_callbackRecargaDatos != null)
+            if (_callbackRecargaDatos == null)
             {
-                if (InvokeRequired)
-                {
-                    await Task.Run(() => Invoke(new Action(async () => await _callbackRecargaDatos())));
-                }
-                else
-                {
-                    await _callbackRecargaDatos();
-                }
+                return Task.CompletedTask;
             }
+
+            return EjecutarEnHiloUIAsync(_callbackRecargaDatos);
         }
 
         public void AbrirDetalleTicket(int ticketId)

@@ -1,7 +1,8 @@
-using System.Reflection;
+﻿using System.Reflection;
 using System.Text;
 using FluentValidation;
 using HSis.Data.Models;
+using HSis.Contracts.Errors;
 using HSis.Contracts.Services;
 using HSis.Logic.Interceptors;
 using HSis.Logic.Services;
@@ -12,6 +13,7 @@ using HSis.Server.Services;
 using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -20,6 +22,14 @@ var builder = WebApplication.CreateBuilder(new WebApplicationOptions
     Args = args,
     ContentRootPath = AppContext.BaseDirectory
 });
+
+if (OperatingSystem.IsWindows())
+{
+    builder.Logging.AddEventLog(options =>
+    {
+        options.SourceName = "HSisNotificationServer";
+    });
+}
 
 // Configurar para ejecutar como Servicio de Windows si la plataforma es Windows
 if (OperatingSystem.IsWindows())
@@ -35,6 +45,20 @@ builder.WebHost.UseUrls(builder.Configuration["Urls"] ?? "http://0.0.0.0:5000");
 
 // Registrar controladores de Web API
 builder.Services.AddControllers();
+builder.Services.AddProblemDetails(options =>
+{
+    options.CustomizeProblemDetails = context =>
+    {
+        context.ProblemDetails.Instance ??= context.HttpContext.Request.Path;
+        context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
+
+        var statusCode = context.HttpContext.Response.StatusCode;
+        context.ProblemDetails.Extensions.TryAdd("code", ApiExceptionHandler.ObtenerCodigoError(statusCode));
+        context.ProblemDetails.Title ??= ApiExceptionHandler.ObtenerTituloError(statusCode);
+        context.ProblemDetails.Detail ??= ApiExceptionHandler.ObtenerMensajeError(statusCode);
+    };
+});
+builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -84,6 +108,22 @@ builder.Services.AddAuthentication(options =>
 {
     options.RequireHttpsMetadata = false;
     options.SaveToken = true;
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var requestPath = context.HttpContext.Request.Path;
+
+            if (!string.IsNullOrEmpty(accessToken) &&
+                requestPath.StartsWithSegments("/notificationHub"))
+            {
+                context.Token = accessToken;
+            }
+
+            return Task.CompletedTask;
+        }
+    };
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
@@ -118,13 +158,16 @@ builder.Services.AddTransient<ICatalogoService, CatalogoService>();
 builder.Services.AddTransient<ITicketDetalleService, TicketDetalleService>();
 builder.Services.AddTransient<IMaterialService, MaterialService>();
 builder.Services.AddTransient<IReportExportService, ReportExportService>();
-builder.Services.AddTransient<INotificacionStorageService, NotificacionStorageService>();
+builder.Services.AddTransient<INotificacionService, NotificacionService>();
+builder.Services.AddTransient<INotificacionDestinatariosService, NotificacionDestinatariosService>();
+builder.Services.AddTransient<NotificacionTicketCoordinator>();
 builder.Services.AddTransient<IServerNotificationDispatcher, ServerNotificationDispatcher>();
 
 var app = builder.Build();
 
-// Registrar Middleware de Manejo de Excepciones Globales
-app.UseMiddleware<ExceptionHandlingMiddleware>();
+// Activar el pipeline global de excepciones con IExceptionHandler y ProblemDetails
+app.UseExceptionHandler();
+app.UseStatusCodePages();
 
 // Habilitar Swagger
 if (app.Environment.IsDevelopment())
@@ -146,11 +189,12 @@ app.UseAuthorization();
 app.MapControllers(); // Mapear controladores REST
 
 // Mapear el Hub de SignalR
-app.MapHub<NotificationHub>("/notificationHub");
+app.MapHub<NotificationHub>("/notificationHub").RequireAuthorization();
 
 // Endpoint básico de verificación de estado
 app.MapGet("/", () => new { Status = "HSis Web API Server is running", DateTime.Now });
 
 app.Run();
 
+public partial class Program;
 

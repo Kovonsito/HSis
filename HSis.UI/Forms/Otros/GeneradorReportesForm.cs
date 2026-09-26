@@ -72,7 +72,7 @@ namespace HSis.UI.Forms.Otros
                     var bytes = await _reportExportService.GenerarExcelAsync(kpis, tickets, inicio, fin);
                     await File.WriteAllBytesAsync(sfd.FileName, bytes);
                     DialogoUIHelper.MostrarExito("Reporte en Excel generado y guardado correctamente.");
-                }, "Error al generar el reporte en Excel", btnExcel, btnPdf);
+                }, "Error al generar el reporte en Excel", "reporte-excel", btnExcel, btnPdf);
             }
         }
 
@@ -102,7 +102,7 @@ namespace HSis.UI.Forms.Otros
                     var bytes = await _reportExportService.GenerarPdfAsync(kpis, tickets, inicio, fin);
                     await File.WriteAllBytesAsync(sfd.FileName, bytes);
                     DialogoUIHelper.MostrarExito("Reporte en PDF generado y guardado correctamente.");
-                }, "Error al generar el reporte en PDF", btnExcel, btnPdf);
+                }, "Error al generar el reporte en PDF", "reporte-pdf", btnExcel, btnPdf);
             }
         }
         #endregion

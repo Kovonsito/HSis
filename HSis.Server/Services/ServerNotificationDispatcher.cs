@@ -1,47 +1,113 @@
+using HSis.Contracts.Constants;
+using HSis.Contracts.DTOs;
 using HSis.Contracts.Services;
+using HSis.Logic.Services;
 using HSis.Server.Hubs;
 using Microsoft.AspNetCore.SignalR;
 
 namespace HSis.Server.Services
 {
-    public class ServerNotificationDispatcher(IHubContext<NotificationHub> hubContext) : IServerNotificationDispatcher
+    public class ServerNotificationDispatcher(
+        IHubContext<NotificationHub, INotificationClient> hubContext) : IServerNotificationDispatcher
     {
-        private static string ObtenerFolioNumerico(string? folio)
-        {
-            if (string.IsNullOrWhiteSpace(folio))
-            {
-                return "0";
-            }
-
-            var digitos = new string(folio.Where(char.IsDigit).ToArray()).TrimStart('0');
-            return string.IsNullOrEmpty(digitos) ? "0" : digitos;
-        }
-
         public async Task NotifyTicketCreatedAsync(int ticketId, string ticketFolio, string titulo)
         {
-            var message = $"Se ha registrado un nuevo ticket {ObtenerFolioNumerico(ticketFolio)}: \"{titulo}\".";
-            await hubContext.Clients.Group("Role_Técnico").SendAsync("ReceiveNotification", "NuevoTicket", ticketId, message);
-            await hubContext.Clients.Group("Role_Administrador").SendAsync("ReceiveNotification", "NuevoTicket", ticketId, message);
+            var notification = CrearNotificacion(
+                ticketId,
+                ConstantesTiposNotificacion.NuevoTicket,
+                NotificacionFactory.CrearMensajeNuevoTicket(ticketId, ticketFolio, titulo));
+            await hubContext.Clients.Groups(
+                new[] { GruposNotificaciones.Tecnicos, GruposNotificaciones.Administradores })
+                .ReceiveNotification(notification);
         }
 
         public async Task NotifyTicketStatusChangedAsync(int clientUserId, int ticketId, string ticketFolio, string newStatus)
         {
-            var message = $"El ticket {ObtenerFolioNumerico(ticketFolio)} ha cambiado al estatus: {newStatus}.";
-            await hubContext.Clients.Group($"User_{clientUserId}").SendAsync("ReceiveNotification", "EstadoTicket", ticketId, message);
+            var notification = CrearNotificacion(
+                ticketId,
+                ConstantesTiposNotificacion.EstadoTicket,
+                NotificacionFactory.CrearMensajeCambioEstado(ticketId, ticketFolio, newStatus));
+            await hubContext.Clients.Group(GruposNotificaciones.Usuario(clientUserId))
+                .ReceiveNotification(notification);
         }
 
         public async Task NotifyTicketRatedAsync(int technicianUserId, int ticketId, string ticketFolio, int rating, string comment)
         {
-            var stars = new string('⭐', rating);
-            var message = $"El cliente calificó el ticket {ObtenerFolioNumerico(ticketFolio)} con {stars} ({rating}/5). Comentario: \"{comment}\"";
+            var notification = CrearNotificacion(
+                ticketId,
+                ConstantesTiposNotificacion.Calificacion,
+                NotificacionFactory.CrearMensajeCalificacion(ticketId, ticketFolio, rating, comment));
 
             if (technicianUserId > 0)
             {
-                await hubContext.Clients.Group($"User_{technicianUserId}").SendAsync("ReceiveNotification", "Calificacion", ticketId, message);
+                await hubContext.Clients.Group(GruposNotificaciones.Usuario(technicianUserId))
+                    .ReceiveNotification(notification);
             }
 
-            await hubContext.Clients.Group("Role_Administrador").SendAsync("ReceiveNotification", "Calificacion", ticketId, message);
+            await hubContext.Clients.Group(GruposNotificaciones.Administradores)
+                .ReceiveNotification(notification);
         }
+
+        public Task NotifyTicketChangeAsync(
+            IReadOnlyList<int> recipientUserIds,
+            int ticketId,
+            string notificationType,
+            string message)
+        {
+            ArgumentNullException.ThrowIfNull(recipientUserIds);
+            ArgumentException.ThrowIfNullOrWhiteSpace(notificationType);
+            ArgumentException.ThrowIfNullOrWhiteSpace(message);
+
+            var grupos = recipientUserIds
+                .Where(userId => userId > 0)
+                .Distinct()
+                .Select(GruposNotificaciones.Usuario)
+                .ToArray();
+
+            if (grupos.Length == 0)
+            {
+                return Task.CompletedTask;
+            }
+
+            return hubContext.Clients.Groups(grupos).ReceiveNotification(
+                CrearNotificacion(ticketId, notificationType, message));
+        }
+
+        public Task NotifyMaterialChangeAsync(
+            IReadOnlyList<int> recipientUserIds,
+            int? ticketId,
+            int? materialId,
+            string notificationType,
+            string message)
+        {
+            ArgumentNullException.ThrowIfNull(recipientUserIds);
+            ArgumentException.ThrowIfNullOrWhiteSpace(notificationType);
+            ArgumentException.ThrowIfNullOrWhiteSpace(message);
+
+            var grupos = recipientUserIds
+                .Where(userId => userId > 0)
+                .Distinct()
+                .Select(GruposNotificaciones.Usuario)
+                .ToArray();
+
+            if (grupos.Length == 0)
+            {
+                return Task.CompletedTask;
+            }
+
+            return hubContext.Clients.Groups(grupos).ReceiveNotification(
+                CrearNotificacion(ticketId, materialId, notificationType, message));
+        }
+
+        private static NotificacionDto CrearNotificacion(int ticketId, string tipo, string mensaje)
+            => CrearNotificacion(ticketId, null, tipo, mensaje);
+
+        private static NotificacionDto CrearNotificacion(
+            int? ticketId,
+            int? materialId,
+            string tipo,
+            string mensaje)
+            => new(0, ticketId, tipo, mensaje, DateTimeOffset.Now, false, materialId);
     }
 }
 

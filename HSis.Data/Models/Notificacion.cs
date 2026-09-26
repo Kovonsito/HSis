@@ -6,6 +6,10 @@ namespace HSis.Data.Models
 
         public int UsuarioDestinoId { get; set; }
 
+        public int? TicketId { get; set; }
+
+        public int? MaterialId { get; set; }
+
         public string Mensaje { get; set; } = null!;
 
         public string Tipo { get; set; } = null!;
@@ -13,6 +17,10 @@ namespace HSis.Data.Models
         public bool Leido { get; set; }
 
         public DateTime FechaCreacion { get; set; }
+
+        public virtual Ticket? Ticket { get; set; }
+
+        public virtual Material? Material { get; set; }
 
         public virtual Usuario UsuarioDestino { get; set; } = null!;
     }

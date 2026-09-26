@@ -193,13 +193,14 @@ partial class NuevoTicketForm
         rtbDescripcion = new CajaTextoOrtograficaWpf();
         bool esPerfilElevado = _contextoSesion.EsAdmin || _contextoSesion.EsTecnico;
 
-        this.ClientSize = new Size(620, esPerfilElevado ? 560 : 460);
+        this.ClientSize = new Size(680, esPerfilElevado ? 570 : 470);
+        this.MinimumSize = new Size(620, esPerfilElevado ? 520 : 440);
 
         // 1. Header Card con branding
         var pnlHeader = new Panel
         {
             Dock = DockStyle.Top,
-            Height = 64,
+            Height = 72,
             BackColor = Color.White
         };
         pnlHeader.Paint += (s, e) =>
@@ -212,24 +213,24 @@ partial class NuevoTicketForm
             // Icono en círculo azul
             using (var brushCircle = new SolidBrush(TemaVisual.Primario))
             {
-                g.FillEllipse(brushCircle, 18, 14, 36, 36);
+                g.FillEllipse(brushCircle, 20, 18, 36, 36);
             }
 
             using (var bmpIcon = IconChar.Ticket.ToBitmap(Color.White, 18))
             {
-                g.DrawImage(bmpIcon, 27, 23);
+                g.DrawImage(bmpIcon, 29, 27);
             }
 
             using (var brushTitle = new SolidBrush(TemaVisual.TextoPrincipal))
             using (var fontTitle = new Font("Segoe UI", 12.5f, FontStyle.Bold))
             {
-                g.DrawString("Crear Nuevo Ticket de Servicio", fontTitle, brushTitle, new PointF(62, 12));
+                g.DrawString("Crear Nuevo Ticket de Servicio", fontTitle, brushTitle, new PointF(66, 16));
             }
 
             using (var brushSub = new SolidBrush(TemaVisual.TextoSecundario))
             using (var fontSub = new Font("Segoe UI", 8.5f, FontStyle.Regular))
             {
-                g.DrawString("Describe tu solicitud o incidente para que el equipo de soporte pueda atenderlo.", fontSub, brushSub, new PointF(62, 34));
+                g.DrawString("Describe tu solicitud o incidente para que el equipo de soporte pueda atenderlo.", fontSub, brushSub, new PointF(66, 40));
             }
 
             using var penDiv = new Pen(TemaVisual.BordeSutil, 1f);
@@ -240,7 +241,7 @@ partial class NuevoTicketForm
         var pnlFooter = new Panel
         {
             Dock = DockStyle.Bottom,
-            Height = 58,
+            Height = 64,
             BackColor = Color.White
         };
         pnlFooter.Paint += (s, e) =>
@@ -251,24 +252,35 @@ partial class NuevoTicketForm
         pnlHeader.Resize += (s, e) => pnlHeader.Invalidate();
         pnlFooter.Resize += (s, e) => pnlFooter.Invalidate();
 
-        var flpBotones = new FlowLayoutPanel
+        var tblBotones = new TableLayoutPanel
         {
-            Dock = DockStyle.Right,
-            FlowDirection = FlowDirection.RightToLeft,
             AutoSize = true,
-            Padding = new Padding(0, 10, 16, 10)
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            BackColor = Color.Transparent,
+            ColumnCount = 2,
+            Dock = DockStyle.Right,
+            Margin = new Padding(0),
+            Padding = new Padding(0, 12, 20, 12),
+            RowCount = 1
         };
-        btnCancelar.Margin = new Padding(10, 0, 0, 0);
-        btnGuardar.Margin = new Padding(0);
-        flpBotones.Controls.Add(btnCancelar);
-        flpBotones.Controls.Add(btnGuardar);
-        pnlFooter.Controls.Add(flpBotones);
+        tblBotones.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 150F));
+        tblBotones.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 120F));
+        tblBotones.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));
+
+        btnGuardar.Dock = DockStyle.Fill;
+        btnGuardar.Margin = new Padding(0, 0, 10, 0);
+        btnCancelar.Dock = DockStyle.Fill;
+        btnCancelar.Margin = new Padding(0);
+
+        tblBotones.Controls.Add(btnGuardar, 0, 0);
+        tblBotones.Controls.Add(btnCancelar, 1, 0);
+        pnlFooter.Controls.Add(tblBotones);
 
         // 3. Body Content Container
         var pnlBody = new Panel
         {
             Dock = DockStyle.Fill,
-            Padding = new Padding(18, 14, 18, 10),
+            Padding = new Padding(24, 18, 24, 16),
             BackColor = TemaVisual.FondoApp
         };
 
@@ -282,10 +294,10 @@ partial class NuevoTicketForm
 
         if (esPerfilElevado)
         {
-            tblPrincipal.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Solicitante
-            tblPrincipal.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Representación
-            tblPrincipal.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Prioridad / Técnico
-            tblPrincipal.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Label Descripción
+            tblPrincipal.RowStyles.Add(new RowStyle(SizeType.Absolute, 46F)); // Solicitante
+            tblPrincipal.RowStyles.Add(new RowStyle(SizeType.Absolute, 48F)); // Representación
+            tblPrincipal.RowStyles.Add(new RowStyle(SizeType.Absolute, 48F)); // Prioridad / Técnico
+            tblPrincipal.RowStyles.Add(new RowStyle(SizeType.Absolute, 30F)); // Label Descripción
             tblPrincipal.RowStyles.Add(new RowStyle(SizeType.Percent, 100F)); // Caja de texto
 
             // Solicitante
@@ -294,11 +306,11 @@ partial class NuevoTicketForm
                 Dock = DockStyle.Fill,
                 RowCount = 1,
                 ColumnCount = 2,
-                Margin = new Padding(0, 0, 0, 8)
+                Margin = new Padding(0, 0, 0, 6)
             };
             pnlSolicitante.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
             pnlSolicitante.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            lblSolicitante.Margin = new Padding(0, 4, 10, 0);
+            lblSolicitante.Margin = new Padding(0, 0, 14, 0);
             cmbSolicitante.Dock = DockStyle.Fill;
             pnlSolicitante.Controls.Add(lblSolicitante, 0, 0);
             pnlSolicitante.Controls.Add(cmbSolicitante, 1, 0);
@@ -309,11 +321,11 @@ partial class NuevoTicketForm
                 Dock = DockStyle.Fill,
                 RowCount = 1,
                 ColumnCount = 2,
-                Margin = new Padding(0, 0, 0, 8)
+                Margin = new Padding(0, 0, 0, 6)
             };
             pnlRepresentacion.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
             pnlRepresentacion.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            chkSolicitanteEnRepresentacion.Margin = new Padding(0, 4, 10, 0);
+            chkSolicitanteEnRepresentacion.Margin = new Padding(0, 0, 14, 0);
             txtNombreSolicitante.Dock = DockStyle.Fill;
             pnlRepresentacion.Controls.Add(chkSolicitanteEnRepresentacion, 0, 0);
             pnlRepresentacion.Controls.Add(txtNombreSolicitante, 1, 0);
@@ -324,16 +336,16 @@ partial class NuevoTicketForm
                 Dock = DockStyle.Fill,
                 RowCount = 1,
                 ColumnCount = 4,
-                Margin = new Padding(0, 0, 0, 10)
+                Margin = new Padding(0, 0, 0, 6)
             };
             pnlCamposElevados.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
             pnlCamposElevados.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 40F));
             pnlCamposElevados.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
             pnlCamposElevados.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 60F));
 
-            lblPrioridad.Margin = new Padding(0, 4, 8, 0);
+            lblPrioridad.Margin = new Padding(0, 0, 8, 0);
             cmbPrioridad.Dock = DockStyle.Fill;
-            lblTecnico.Margin = new Padding(14, 4, 8, 0);
+            lblTecnico.Margin = new Padding(18, 0, 8, 0);
             cmbTecnico.Dock = DockStyle.Fill;
 
             pnlCamposElevados.Controls.Add(lblPrioridad, 0, 0);
@@ -342,9 +354,9 @@ partial class NuevoTicketForm
             pnlCamposElevados.Controls.Add(cmbTecnico, 3, 0);
 
             lblDescripcion.Dock = DockStyle.Fill;
-            lblDescripcion.Margin = new Padding(0, 0, 0, 6);
+            lblDescripcion.Margin = new Padding(0, 0, 0, 4);
             rtbDescripcion.Dock = DockStyle.Fill;
-            rtbDescripcion.Margin = new Padding(0, 0, 0, 4);
+            rtbDescripcion.Margin = new Padding(0, 0, 0, 0);
 
             tblPrincipal.Controls.Add(pnlSolicitante, 0, 0);
             tblPrincipal.Controls.Add(pnlRepresentacion, 0, 1);
@@ -354,14 +366,14 @@ partial class NuevoTicketForm
         }
         else
         {
-            tblPrincipal.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Label Descripción
+            tblPrincipal.RowStyles.Add(new RowStyle(SizeType.Absolute, 30F)); // Label Descripción
             tblPrincipal.RowStyles.Add(new RowStyle(SizeType.Percent, 100F)); // Caja de texto
-            tblPrincipal.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Nota informativa
+            tblPrincipal.RowStyles.Add(new RowStyle(SizeType.Absolute, 30F)); // Nota informativa
 
             lblDescripcion.Dock = DockStyle.Fill;
-            lblDescripcion.Margin = new Padding(0, 0, 0, 6);
+            lblDescripcion.Margin = new Padding(0, 0, 0, 4);
             rtbDescripcion.Dock = DockStyle.Fill;
-            rtbDescripcion.Margin = new Padding(0, 0, 0, 8);
+            rtbDescripcion.Margin = new Padding(0, 0, 0, 0);
 
             var lblNota = new Label
             {
@@ -370,7 +382,7 @@ partial class NuevoTicketForm
                 ForeColor = Color.FromArgb(100, 116, 139),
                 Dock = DockStyle.Fill,
                 AutoSize = true,
-                Margin = new Padding(0, 2, 0, 0)
+                Margin = new Padding(0, 6, 0, 0)
             };
 
             tblPrincipal.Controls.Add(lblDescripcion, 0, 0);
