@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Text;
 using FluentValidation;
 using HSis.Data.Models;
@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using HSis.Contracts.Constants;
 
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 {
@@ -64,14 +65,16 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Registrar servicios de CORS y SignalR
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy("AllowedClients", policy =>
     {
-        policy.AllowAnyHeader()
-              .AllowAnyMethod()
-              .SetIsOriginAllowed(_ => true) // Requerido para SignalR en clientes de escritorio
-              .AllowCredentials();
+        policy.AllowAnyHeader().AllowAnyMethod();
+        if (allowedOrigins.Length > 0)
+        {
+            policy.WithOrigins(allowedOrigins).AllowCredentials();
+        }
     });
 });
 
@@ -93,11 +96,26 @@ builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSet
 builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
 builder.Services.AddHttpContextAccessor();
 
-var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>() ?? new JwtSettings();
-string secretKeyString = string.IsNullOrWhiteSpace(jwtSettings.SecretKey)
-    ? "REMOVED_HSIS_JWT_SECRET"
-    : jwtSettings.SecretKey;
-var secretKey = Encoding.UTF8.GetBytes(secretKeyString);
+var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()
+    ?? throw new InvalidOperationException("Falta la configuración JwtSettings.");
+if (string.IsNullOrWhiteSpace(jwtSettings.SecretKey) || Encoding.UTF8.GetByteCount(jwtSettings.SecretKey) < 32)
+{
+    throw new InvalidOperationException("JwtSettings:SecretKey debe contener al menos 32 bytes aleatorios.");
+}
+if (string.IsNullOrWhiteSpace(jwtSettings.Issuer) || string.IsNullOrWhiteSpace(jwtSettings.Audience))
+{
+    throw new InvalidOperationException("JwtSettings:Issuer y JwtSettings:Audience son obligatorios.");
+}
+if (jwtSettings.ExpirationMinutes <= 0)
+{
+    throw new InvalidOperationException("JwtSettings:ExpirationMinutes debe ser mayor que cero.");
+}
+var secretKey = Encoding.UTF8.GetBytes(jwtSettings.SecretKey);
+var connectionString = builder.Configuration.GetConnectionString("CadenaSQL");
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    throw new InvalidOperationException("Falta configurar ConnectionStrings:CadenaSQL.");
+}
 
 builder.Services.AddAuthentication(options =>
 {
@@ -106,8 +124,6 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    options.RequireHttpsMetadata = false;
-    options.SaveToken = true;
     options.Events = new JwtBearerEvents
     {
         OnMessageReceived = context =>
@@ -128,14 +144,20 @@ builder.Services.AddAuthentication(options =>
     {
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(secretKey),
-        ValidateIssuer = !string.IsNullOrEmpty(jwtSettings.Issuer),
+        ValidateIssuer = true,
         ValidIssuer = jwtSettings.Issuer,
-        ValidateAudience = !string.IsNullOrEmpty(jwtSettings.Audience),
+        ValidateAudience = true,
         ValidAudience = jwtSettings.Audience,
         ValidateLifetime = true,
         ClockSkew = TimeSpan.Zero
     };
 });
+
+// Registrar la política de autorización para administradores, usando el rol numérico emitido por el JWT actual.
+builder.Services.AddAuthorization(options =>
+    options.AddPolicy(PoliticasAutorizacion.AdministrarCatalogos, policy =>
+        policy.RequireAuthenticatedUser()
+            .RequireRole(((int)RolUsuarioEnum.Administrador).ToString())));
 
 // Registrar Sesión de Usuario Real mediante HttpContext (Token JWT)
 builder.Services.AddSingleton<ICurrentUserService, CurrentUserService>();
@@ -143,7 +165,7 @@ builder.Services.AddSingleton<TicketAuditInterceptor>();
 
 // Configurar DbContextFactory con Interceptor de Auditoría
 builder.Services.AddDbContextFactory<HSisDbContext>((sp, options) =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("CadenaSQL"))
+    options.UseSqlServer(connectionString)
            .AddInterceptors(sp.GetRequiredService<TicketAuditInterceptor>()));
 
 // Registrar Servicios de Lógica mediante Interfaces
@@ -154,7 +176,6 @@ builder.Services.AddTransient<ISucursalService, SucursalService>();
 builder.Services.AddTransient<IEmpresaService, EmpresaService>();
 builder.Services.AddTransient<IPuestoService, PuestoService>();
 builder.Services.AddTransient<IRolUsuarioService, RolUsuarioService>();
-builder.Services.AddTransient<ICatalogoService, CatalogoService>();
 builder.Services.AddTransient<ITicketDetalleService, TicketDetalleService>();
 builder.Services.AddTransient<IMaterialService, MaterialService>();
 builder.Services.AddTransient<IReportExportService, ReportExportService>();
@@ -180,7 +201,7 @@ if (app.Environment.IsDevelopment())
 app.UseStaticFiles();
 
 // Habilitar CORS
-app.UseCors("AllowAll");
+app.UseCors("AllowedClients");
 
 // Habilitar Autenticación y Autorización
 app.UseAuthentication();

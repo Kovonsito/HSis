@@ -1,14 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 
 namespace HSis.Data.Models
 {
     public partial class HSisDbContext : DbContext
     {
-        public HSisDbContext()
-        {
-        }
-
         public HSisDbContext(DbContextOptions<HSisDbContext> options)
             : base(options)
         {
@@ -39,19 +34,6 @@ namespace HSis.Data.Models
         public virtual DbSet<Notificacion> Notificaciones { get; set; } = null!;
 
         public virtual DbSet<VHistorialInventario> VHistorialInventarios { get; set; } = null!;
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            if (!optionsBuilder.IsConfigured)
-            {
-                var configuration = new ConfigurationBuilder()
-                    .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
-                    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                    .Build();
-
-                optionsBuilder.UseSqlServer(configuration.GetConnectionString("CadenaSQL"));
-            }
-        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

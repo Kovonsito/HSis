@@ -1,13 +1,14 @@
 using HSis.Contracts.DTOs;
 using HSis.Contracts.Errors;
 using HSis.Contracts.Services;
+using HSis.Server.Configurations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HSis.Server.Controllers;
 
 [ApiController]
-[Authorize]
+[Authorize(Policy = PoliticasAutorizacion.AdministrarCatalogos)]
 [Route("api/Catalogos")]
 public sealed class CatalogosAdministracionController(
     IMaterialService materialService,
