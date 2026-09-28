@@ -52,9 +52,21 @@ namespace HSis.UI
             // Configurar la fuente por defecto a un tamaño mayor (11 puntos) para mejor legibilidad en todo el sistema
             Application.SetDefaultFont(new Font("Segoe UI", 11F, FontStyle.Regular, GraphicsUnit.Point));
 
+            var entorno = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+            if (string.IsNullOrWhiteSpace(entorno))
+            {
+                entorno = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            }
+
+            if (string.IsNullOrWhiteSpace(entorno))
+            {
+                entorno = "Production";
+            }
+
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .AddJsonFile($"appsettings.{entorno}.json", optional: true, reloadOnChange: true)
                 .Build();
 
             // 1. Configurar Serilog

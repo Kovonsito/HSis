@@ -1,0 +1,19 @@
+[
+  {
+	"Name": "HSis - Servidor + UI + Agente",
+	"Projects": [
+	  {
+		"Path": "HSis.Server\\HSis.Server.csproj",
+		"Action": "Start"
+	  },
+	  {
+		"Path": "HSis.UI\\HSis.UI.csproj",
+		"Action": "Start"
+	  },
+	  {
+		"Path": "HSis.NotificationAgent\\HSis.NotificationAgent.csproj",
+		"Action": "Start"
+	  }
+	]
+  }
+]

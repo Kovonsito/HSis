@@ -24,9 +24,21 @@ internal static class Program
 
         ApplicationConfiguration.Initialize();
 
+        var entorno = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+        if (string.IsNullOrWhiteSpace(entorno))
+        {
+            entorno = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        }
+
+        if (string.IsNullOrWhiteSpace(entorno))
+        {
+            entorno = "Production";
+        }
+
         var configuration = new ConfigurationBuilder()
             .SetBasePath(AppContext.BaseDirectory)
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .AddJsonFile($"appsettings.{entorno}.json", optional: true, reloadOnChange: true)
             .Build();
 
         using var services = CrearProveedorServicios(configuration);
@@ -82,7 +94,6 @@ internal static class Program
         services.AddSingleton<PresenciaAplicacion>(serviceProvider =>
             new PresenciaAplicacion(configuration["NotificationAgent:PresenceFileName"]));
         services.AddSingleton<NativeNotificationService>();
-        services.AddTransient<NotificationAgentHost>();
 
         return services.BuildServiceProvider(new ServiceProviderOptions
         {

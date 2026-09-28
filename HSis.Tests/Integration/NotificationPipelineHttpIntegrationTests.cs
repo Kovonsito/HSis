@@ -103,4 +103,32 @@ public sealed class NotificationPipelineHttpIntegrationTests(NotificationServerF
         contenidoFinal!.Notificaciones.Should().ContainSingle(item => item.IdNotificacion == 2001);
         contenidoFinal.NoLeidas.Should().Be(1);
     }
+
+    [Fact]
+    public async Task CatalogosAdministrativosDebenExigirRolAdministrador()
+    {
+        await fixture.ReiniciarDatosAsync();
+
+        using var anonimo = fixture.CreateClient();
+        using var respuestaAnonima = await anonimo.GetAsync("api/Catalogos/departamentos");
+        respuestaAnonima.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+
+        using var cliente = fixture.CrearClienteAutenticado(100, RolUsuarioEnum.Cliente);
+        using var respuestaCliente = await cliente.GetAsync("api/Catalogos/departamentos");
+        respuestaCliente.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+
+        using var administrador = fixture.CrearClienteAutenticado(300, RolUsuarioEnum.Administrador);
+        using var respuestaAdministrador = await administrador.GetAsync("api/Catalogos/departamentos");
+        respuestaAdministrador.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task RutaCatalogosLegacyDebeResponder404()
+    {
+        using var client = fixture.CreateClient();
+
+        using var response = await client.GetAsync("api/CatalogosLegacy/Departamento");
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
 }

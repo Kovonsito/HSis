@@ -1,4 +1,5 @@
 using System.Net.Http.Headers;
+using System.Security.Cryptography;
 using HSis.Contracts.Constants;
 using HSis.Contracts.DTOs;
 using HSis.Contracts.Services;
@@ -20,6 +21,20 @@ public sealed class NotificationServerFixture : WebApplicationFactory<Program>
 {
     private readonly string databaseName = $"HSis.Integration.{Guid.NewGuid():N}";
     private readonly SemaphoreSlim seedLock = new(1, 1);
+    private readonly string? previousConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings__CadenaSQL");
+    private readonly string? previousJwtSecret = Environment.GetEnvironmentVariable("JwtSettings__SecretKey");
+    private readonly string? previousJwtIssuer = Environment.GetEnvironmentVariable("JwtSettings__Issuer");
+    private readonly string? previousJwtAudience = Environment.GetEnvironmentVariable("JwtSettings__Audience");
+
+    public NotificationServerFixture()
+    {
+        Environment.SetEnvironmentVariable("ConnectionStrings__CadenaSQL", "TestDatabase");
+        Environment.SetEnvironmentVariable("JwtSettings__Issuer", "HSisServer");
+        Environment.SetEnvironmentVariable("JwtSettings__Audience", "HSisClient");
+        Environment.SetEnvironmentVariable(
+            "JwtSettings__SecretKey",
+            Convert.ToBase64String(RandomNumberGenerator.GetBytes(64)));
+    }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -166,6 +181,10 @@ public sealed class NotificationServerFixture : WebApplicationFactory<Program>
         if (disposing)
         {
             seedLock.Dispose();
+            Environment.SetEnvironmentVariable("ConnectionStrings__CadenaSQL", previousConnectionString);
+            Environment.SetEnvironmentVariable("JwtSettings__SecretKey", previousJwtSecret);
+            Environment.SetEnvironmentVariable("JwtSettings__Issuer", previousJwtIssuer);
+            Environment.SetEnvironmentVariable("JwtSettings__Audience", previousJwtAudience);
         }
 
         base.Dispose(disposing);
