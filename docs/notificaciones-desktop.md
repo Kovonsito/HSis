@@ -53,6 +53,8 @@ En `UI/appsettings.json`, configurar la ruta relativa del agente:
 }
 ```
 
+El DNS y el certificado TLS deben corresponder al endpoint HTTPS publicado por Kestrel. Sobrescribe también `ApiSettings:BaseUrl` en la configuración instalada de la UI para que ambos ejecutables apunten al mismo servidor. No desactives la validación de certificados para aceptar certificados autofirmados o con nombre no coincidente.
+
 En `Agent/appsettings.json`, configurar la ruta relativa de la UI y el mismo servidor de API/SignalR:
 
 ```json

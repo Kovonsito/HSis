@@ -1,4 +1,7 @@
 using System.Reflection;
+using System.Net;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using FluentValidation;
 using HSis.Data.Models;
@@ -23,26 +26,56 @@ var builder = WebApplication.CreateBuilder(new WebApplicationOptions
     Args = args,
     ContentRootPath = AppContext.BaseDirectory
 });
+builder.Services.AddWindowsService(options => options.ServiceName = "HSis.Server");
 
-if (OperatingSystem.IsWindows())
+X509Certificate2? productionCertificate = null;
+if (builder.Environment.IsProduction())
 {
-    builder.Logging.AddEventLog(options =>
+    if (!OperatingSystem.IsWindows())
     {
-        options.SourceName = "HSisNotificationServer";
-    });
-}
+        throw new InvalidOperationException("La configuración de producción requiere Windows para proteger la clave JWT con DPAPI.");
+    }
 
-// Configurar para ejecutar como Servicio de Windows si la plataforma es Windows
-if (OperatingSystem.IsWindows())
-{
-    builder.Host.UseWindowsService(options =>
+    var protectedSecretPath = builder.Configuration["JwtSettings:ProtectedSecretPath"];
+    if (string.IsNullOrWhiteSpace(protectedSecretPath))
     {
-        options.ServiceName = "HSisNotificationServer";
-    });
-}
+        throw new InvalidOperationException("Falta configurar JwtSettings:ProtectedSecretPath para producción.");
+    }
 
-// Configurar la URL de escucha para red local (LAN)
-builder.WebHost.UseUrls(builder.Configuration["Urls"] ?? "http://0.0.0.0:5000");
+    var protectedSecret = File.ReadAllBytes(protectedSecretPath);
+    var decryptedJwtSecret = ProtectedData.Unprotect(protectedSecret, optionalEntropy: null, DataProtectionScope.CurrentUser);
+    builder.Configuration["JwtSettings:SecretKey"] = Encoding.UTF8.GetString(decryptedJwtSecret);
+    CryptographicOperations.ZeroMemory(decryptedJwtSecret);
+
+    var allowedHosts = builder.Configuration["AllowedHosts"];
+    if (string.IsNullOrWhiteSpace(allowedHosts) || allowedHosts.Split(';').Any(host => host.Trim() == "*"))
+    {
+        throw new InvalidOperationException("En producción, AllowedHosts debe especificar los nombres DNS permitidos.");
+    }
+
+    var port = builder.Configuration.GetValue<int?>("Kestrel:HttpsPort") ?? 443;
+    if (port is < 1 or > 65535)
+    {
+        throw new InvalidOperationException("Kestrel:HttpsPort debe estar entre 1 y 65535.");
+    }
+
+    var thumbprint = builder.Configuration["Kestrel:CertificateThumbprint"]?.Replace(" ", string.Empty, StringComparison.Ordinal);
+    if (string.IsNullOrWhiteSpace(thumbprint))
+    {
+        throw new InvalidOperationException("Falta configurar Kestrel:CertificateThumbprint para producción.");
+    }
+
+    using var certificateStore = new X509Store(StoreName.My, StoreLocation.LocalMachine);
+    certificateStore.Open(OpenFlags.ReadOnly);
+    productionCertificate = certificateStore.Certificates
+        .Find(X509FindType.FindByThumbprint, thumbprint, validOnly: true)
+        .OfType<X509Certificate2>()
+        .FirstOrDefault(certificate => certificate.HasPrivateKey)
+        ?? throw new InvalidOperationException("No se encontró un certificado TLS válido con clave privada en LocalMachine\\My.");
+
+    builder.WebHost.ConfigureKestrel(options =>
+        options.ListenAnyIP(port, listenOptions => listenOptions.UseHttps(productionCertificate)));
+}
 
 // Registrar controladores de Web API
 builder.Services.AddControllers();
@@ -116,6 +149,18 @@ if (string.IsNullOrWhiteSpace(connectionString))
 {
     throw new InvalidOperationException("Falta configurar ConnectionStrings:CadenaSQL.");
 }
+if (builder.Environment.IsProduction())
+{
+    var sqlConnection = new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(connectionString);
+    if (!sqlConnection.IntegratedSecurity)
+    {
+        throw new InvalidOperationException("En producción, SQL Server debe usar autenticación integrada de Windows.");
+    }
+
+    sqlConnection.Encrypt = true;
+    sqlConnection.TrustServerCertificate = false;
+    connectionString = sqlConnection.ConnectionString;
+}
 
 builder.Services.AddAuthentication(options =>
 {
@@ -185,6 +230,10 @@ builder.Services.AddTransient<NotificacionTicketCoordinator>();
 builder.Services.AddTransient<IServerNotificationDispatcher, ServerNotificationDispatcher>();
 
 var app = builder.Build();
+if (productionCertificate is not null)
+{
+    app.Lifetime.ApplicationStopped.Register(productionCertificate.Dispose);
+}
 
 // Activar el pipeline global de excepciones con IExceptionHandler y ProblemDetails
 app.UseExceptionHandler();
