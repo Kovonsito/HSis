@@ -57,3 +57,5 @@ graphify-out/
 # Archivos del sistema operativo Windows
 Thumbs.db
 [Dd]esktop.ini
+
+.fake
