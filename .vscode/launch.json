@@ -6,17 +6,18 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build-server",
-            "program": "${workspaceFolder}/HSis.Server/bin/Debug/net10.0-windows/win-x64/HSis.Server.dll",
+            "program": "${workspaceFolder}/HSis.Server/bin/Debug/net10.0/HSis.Server.dll",
             "args": [],
             "cwd": "${workspaceFolder}/HSis.Server",
             "console": "internalConsole",
             "stopAtEntry": false,
-            "hotReload": true,
+            "hotReload": false,
             "hotReloadSettings": {
-                "applyOnSave": true
+                "applyOnSave": false
             },
             "env": {
                 "ASPNETCORE_ENVIRONMENT": "Development",
+                "DOTNET_ENVIRONMENT": "Development",
                 "DOTNET_MODIFIABLE_ASSEMBLIES": "debug"
             }
         },
@@ -30,11 +31,12 @@
             "cwd": "${workspaceFolder}/HSis.UI",
             "console": "internalConsole",
             "stopAtEntry": false,
-            "hotReload": true,
+            "hotReload": false,
             "hotReloadSettings": {
-                "applyOnSave": true
+                "applyOnSave": false
             },
             "env": {
+                "DOTNET_ENVIRONMENT": "Development",
                 "DOTNET_MODIFIABLE_ASSEMBLIES": "debug"
             }
         },
@@ -44,15 +46,16 @@
             "request": "launch",
             "preLaunchTask": "build-ui",
             "program": "${workspaceFolder}/HSis.UI/bin/Debug/net10.0-windows/HSis.UI.exe",
-            "args": [],
+            "args": ["--multi-instancia"],
             "cwd": "${workspaceFolder}/HSis.UI",
             "console": "internalConsole",
             "stopAtEntry": false,
-            "hotReload": true,
+            "hotReload": false,
             "hotReloadSettings": {
-                "applyOnSave": true
+                "applyOnSave": false
             },
             "env": {
+                "DOTNET_ENVIRONMENT": "Development",
                 "DOTNET_MODIFIABLE_ASSEMBLIES": "debug"
             }
         },
