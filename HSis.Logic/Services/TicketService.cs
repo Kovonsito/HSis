@@ -602,8 +602,8 @@ namespace HSis.Logic.Services
                 .Select(t => new { t.Estatus, t.FechaAlta, t.Calificacion, t.IdTecnico })
                 .ToListAsync();
 
-            var nuevos = tickets.Count(t => t.Estatus == ConstantesEstatus.ABIERTO && t.FechaAlta >= fechaLimiteSla);
-            var urgentes = tickets.Count(t => t.Estatus == ConstantesEstatus.ABIERTO && t.FechaAlta < fechaLimiteSla);
+            var nuevos = tickets.Count(t => t.Estatus == ConstantesEstatus.ABIERTO && t.IdTecnico == null && t.FechaAlta.HasValue && t.FechaAlta.Value >= fechaLimiteSla);
+            var urgentes = tickets.Count(t => t.Estatus == ConstantesEstatus.ABIERTO && t.FechaAlta.HasValue && t.FechaAlta.Value < fechaLimiteSla);
             var enProceso = tickets.Count(t => t.Estatus == ConstantesEstatus.EN_PROCESO);
             var cerrados = tickets.Count(t => t.Estatus == ConstantesEstatus.CERRADO);
             var reabiertos = tickets.Count(t => t.Estatus == ConstantesEstatus.REABIERTO);
