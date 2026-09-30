@@ -35,7 +35,27 @@ namespace HSis.UI
         [STAThread]
         static void Main(string[] args)
         {
-            using var uiInstance = new InstanciaAplicacion(ConfiguracionEscritorio.MutexUi);
+            var entorno = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+            if (string.IsNullOrWhiteSpace(entorno))
+            {
+                entorno = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            }
+
+            if (string.IsNullOrWhiteSpace(entorno))
+            {
+                entorno = "Production";
+            }
+
+            bool esDesarrollo = string.Equals(entorno, "Development", StringComparison.OrdinalIgnoreCase);
+            bool permitirMultiples = esDesarrollo || args.Any(a =>
+                string.Equals(a, "--multi-instancia", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(a, "--multi-instance", StringComparison.OrdinalIgnoreCase));
+
+            var nombreMutex = permitirMultiples
+                ? $"{ConfiguracionEscritorio.MutexUi}.{Environment.ProcessId}"
+                : ConfiguracionEscritorio.MutexUi;
+
+            using var uiInstance = new InstanciaAplicacion(nombreMutex);
             if (!uiInstance.EsPrimeraInstancia)
             {
                 if (args.Length > 0)
@@ -51,17 +71,6 @@ namespace HSis.UI
 
             // Configurar la fuente por defecto a un tamaño mayor (11 puntos) para mejor legibilidad en todo el sistema
             Application.SetDefaultFont(new Font("Segoe UI", 11F, FontStyle.Regular, GraphicsUnit.Point));
-
-            var entorno = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
-            if (string.IsNullOrWhiteSpace(entorno))
-            {
-                entorno = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-            }
-
-            if (string.IsNullOrWhiteSpace(entorno))
-            {
-                entorno = "Production";
-            }
 
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
@@ -168,7 +177,11 @@ namespace HSis.UI
                 services.AddSingleton<IBusEventosNotificaciones, BusEventosNotificaciones>();
                 services.AddSingleton<IClienteSignalRNotificaciones, ClienteSignalRNotificaciones>();
                 services.AddSingleton<IAlmacenamientoCredencialesLocal, AlmacenamientoCredencialesLocal>();
-                services.AddSingleton<PresenciaAplicacion>();
+                services.AddSingleton(sp => permitirMultiples
+                    ? new PresenciaAplicacion(
+                        $"ui-presence.{Environment.ProcessId}.json",
+                        $"{ConfiguracionEscritorio.MutexPresenciaUi}.{Environment.ProcessId}")
+                    : new PresenciaAplicacion());
                 services.AddSingleton<AdministradorSesionUsuario>();
                 services.AddSingleton<IAdministradorSesionUsuario>(sp => sp.GetRequiredService<AdministradorSesionUsuario>());
                 services.AddSingleton<ICurrentUserService>(sp => sp.GetRequiredService<AdministradorSesionUsuario>());
@@ -196,21 +209,25 @@ namespace HSis.UI
 
                 ServiceProvider = services.BuildServiceProvider();
                 using var applicationPresence = ServiceProvider.GetRequiredService<PresenciaAplicacion>();
-                using var activationChannel = new CanalActivacionAplicacion();
+                using var activationChannel = new CanalActivacionAplicacion(
+                    permitirMultiples ? $"{ConfiguracionEscritorio.CanalActivacionUi}.{Environment.ProcessId}" : null);
 
                 var notificationClient = ServiceProvider.GetRequiredService<IClienteSignalRNotificaciones>();
                 Application.ApplicationExit += (_, _) =>
                     notificationClient.DetenerAsync().GetAwaiter().GetResult();
 
-                // Comprobar actualizaciones automáticas desde el servidor API
-                try
+                // Comprobar actualizaciones automáticas desde el servidor API (solo en producción)
+                if (!esDesarrollo)
                 {
-                    var updateUrl = $"{baseUrl.TrimEnd('/')}/updates/update.xml";
-                    AutoUpdater.Start(updateUrl);
-                }
-                catch (Exception ex)
-                {
-                    Log.Warning(ex, "No se pudo verificar la actualización automática.");
+                    try
+                    {
+                        var updateUrl = $"{baseUrl.TrimEnd('/')}/updates/update.xml";
+                        AutoUpdater.Start(updateUrl);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warning(ex, "No se pudo verificar la actualización automática.");
+                    }
                 }
 
                 Form? startForm = null;

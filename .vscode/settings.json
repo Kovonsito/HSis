@@ -11,7 +11,7 @@
     "roslynator.autoUpdateOmnisharpJson": false,
     "omnisharp.projectLoadTimeout": 180,
     "omnisharp.enableRoslynAnalyzers": false,
-    "csharp.hotReload": true,
-    "csharp.experimental.debug.hotReload": true,
-    "dotnet.hotReload.namedPipe": true
+    "csharp.hotReload": false,
+    "csharp.experimental.debug.hotReload": false,
+    "dotnet.hotReload.namedPipe": false
 }
