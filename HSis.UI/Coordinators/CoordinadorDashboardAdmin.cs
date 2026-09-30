@@ -236,7 +236,19 @@ public class CoordinadorDashboardAdmin(
         {
             var valores = VistaTickets.Filtro.ObtenerValoresFiltros();
             var filtros = ConfiguracionFiltrosTickets.MapearFiltrosAdmin(valores);
-            var tickets = await _ticketService.ObtenerTicketsFiltradosAsync(filtros);
+
+            // Si hay un KPI activo (operacional), no restringir por fecha en la consulta de tickets
+            // para que se muestren todos los tickets que componen dicho indicador.
+            if (_kpiActivo.HasValue)
+            {
+                filtros.FechaAltaInicio = null;
+                filtros.FechaAltaFin = null;
+            }
+
+            var ticketsTask = _ticketService.ObtenerTicketsFiltradosAsync(filtros);
+            var resumenTask = _ticketService.ObtenerResumenDashboardAsync(filtros.IdTecnico);
+
+            await Task.WhenAll(ticketsTask, resumenTask);
 
             // El usuario puede cambiar otro filtro mientras la petición estaba pendiente.
             // En ese caso, solo la petición más reciente puede actualizar la pantalla.
@@ -245,42 +257,21 @@ public class CoordinadorDashboardAdmin(
                 return;
             }
 
-            _tickets = tickets;
-            ActualizarKpis(_tickets);
+            _tickets = await ticketsTask;
+            ActualizarKpis(await resumenTask);
             VistaTickets.ControladorPaginacion.ReiniciarAPrimeraPagina();
             MostrarPaginaActual();
         }, "Error al cargar el dashboard de administración", "dashboard-admin", VistaTickets.Grid);
     }
 
-    private void ActualizarKpis(IEnumerable<TicketDto> tickets)
+    private void ActualizarKpis(DashboardResumenDto resumen)
     {
-        var lista = tickets.ToList();
-        var limiteSla = DateTime.Now.AddHours(-48);
-
-        VistaTickets.ActualizarValorKpi(
-            TipoKpiDashboard.Disponibles,
-            lista.Count(t => t.Estatus == ConstantesEstatus.ABIERTO &&
-                             t.FechaAlta.HasValue && t.FechaAlta.Value >= limiteSla));
-        VistaTickets.ActualizarValorKpi(
-            TipoKpiDashboard.Urgentes,
-            lista.Count(t => t.Estatus == ConstantesEstatus.ABIERTO &&
-                             t.FechaAlta.HasValue && t.FechaAlta.Value < limiteSla));
-        VistaTickets.ActualizarValorKpi(
-            TipoKpiDashboard.EnProceso,
-            lista.Count(t => t.Estatus == ConstantesEstatus.EN_PROCESO));
-        VistaTickets.ActualizarValorKpi(
-            TipoKpiDashboard.Cerrados,
-            lista.Count(t => t.Estatus == ConstantesEstatus.CERRADO));
-        VistaTickets.ActualizarValorKpi(
-            TipoKpiDashboard.Reabiertos,
-            lista.Count(t => t.Estatus == ConstantesEstatus.REABIERTO));
-
-        var calificaciones = lista
-            .Where(t => t.Calificacion.HasValue)
-            .Select(t => t.Calificacion!.Value)
-            .ToList();
-        var promedio = calificaciones.Count == 0 ? 0D : calificaciones.Average();
-        VistaTickets.ActualizarValorKpi(TipoKpiDashboard.Calificacion, promedio, true);
+        VistaTickets.ActualizarValorKpi(TipoKpiDashboard.Disponibles, resumen.TotalNuevos);
+        VistaTickets.ActualizarValorKpi(TipoKpiDashboard.Urgentes, resumen.TotalUrgentes);
+        VistaTickets.ActualizarValorKpi(TipoKpiDashboard.EnProceso, resumen.TotalEnProceso);
+        VistaTickets.ActualizarValorKpi(TipoKpiDashboard.Cerrados, resumen.TotalCerrados);
+        VistaTickets.ActualizarValorKpi(TipoKpiDashboard.Reabiertos, resumen.TotalReabiertos);
+        VistaTickets.ActualizarValorKpi(TipoKpiDashboard.Calificacion, resumen.PromedioCalificacion, true);
     }
 
     private void MostrarPaginaActual()
@@ -298,7 +289,7 @@ public class CoordinadorDashboardAdmin(
             var limiteSla = DateTime.Now.AddHours(-48);
             consulta = _kpiActivo.Value switch
             {
-                TipoKpiDashboard.Disponibles => consulta.Where(t => t.Estatus == ConstantesEstatus.ABIERTO && t.FechaAlta.HasValue && t.FechaAlta.Value >= limiteSla),
+                TipoKpiDashboard.Disponibles => consulta.Where(t => t.Estatus == ConstantesEstatus.ABIERTO && t.IdTecnico == null && t.FechaAlta.HasValue && t.FechaAlta.Value >= limiteSla),
                 TipoKpiDashboard.Urgentes => consulta.Where(t => t.Estatus == ConstantesEstatus.ABIERTO && t.FechaAlta.HasValue && t.FechaAlta.Value < limiteSla),
                 TipoKpiDashboard.EnProceso => consulta.Where(t => t.Estatus == ConstantesEstatus.EN_PROCESO),
                 TipoKpiDashboard.Cerrados => consulta.Where(t => t.Estatus == ConstantesEstatus.CERRADO),
@@ -317,14 +308,21 @@ public class CoordinadorDashboardAdmin(
             consulta = consulta.Where(t => (t.NombreUsuario ?? string.Empty).Contains(usuario, StringComparison.OrdinalIgnoreCase));
         }
 
-        if (fechaInicio.HasValue)
+        if (!_kpiActivo.HasValue)
         {
-            consulta = consulta.Where(t => t.FechaAlta.HasValue && t.FechaAlta.Value >= fechaInicio.Value);
-        }
+            var esTodos = valores.TryGetValue("Periodo", out var pVal) && string.Equals(pVal?.ToString(), "Todos", StringComparison.OrdinalIgnoreCase);
+            if (!esTodos)
+            {
+                if (fechaInicio.HasValue)
+                {
+                    consulta = consulta.Where(t => t.FechaAlta.HasValue && t.FechaAlta.Value >= fechaInicio.Value);
+                }
 
-        if (fechaFin.HasValue)
-        {
-            consulta = consulta.Where(t => t.FechaAlta.HasValue && t.FechaAlta.Value <= fechaFin.Value);
+                if (fechaFin.HasValue)
+                {
+                    consulta = consulta.Where(t => t.FechaAlta.HasValue && t.FechaAlta.Value <= fechaFin.Value);
+                }
+            }
         }
 
         var filtrados = consulta.ToList();
@@ -343,7 +341,7 @@ public class CoordinadorDashboardAdmin(
         VistaTickets.ControladorPaginacion.Actualizar(filtrados.Count);
     }
 
-    private void MostrarVistaKpi(TipoKpiDashboard tipo)
+    private async void MostrarVistaKpi(TipoKpiDashboard tipo)
     {
         _kpiActivo = _kpiActivo == tipo ? null : tipo;
 
@@ -358,8 +356,7 @@ public class CoordinadorDashboardAdmin(
             TopBar.Subtitulo = "Mesa de Servicio y Gestión Global";
         }
 
-        VistaTickets.ControladorPaginacion.ReiniciarAPrimeraPagina();
-        MostrarPaginaActual();
+        await RecargarDatosAsync();
     }
 
     private Task CargarMaterialesAsync()

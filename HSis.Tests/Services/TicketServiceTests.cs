@@ -247,6 +247,46 @@ namespace HSis.Tests.Services
             resumen.Cerrados.Should().Be(1); // 303
             resumen.Tickets.Should().HaveCount(3);
         }
+
+        [Fact]
+        public async Task ObtenerResumenDashboardAsyncDebeCalcularNuevosYUrgentesCorrectamente()
+        {
+            // Arrange
+            var options = new DbContextOptionsBuilder<HSisDbContext>()
+                .UseInMemoryDatabase(databaseName: "HSis_Test_ResumenDashboard")
+                .Options;
+
+            var service = new TicketService(CreateFactory(options), _mapper, _createValidator, _updateValidator);
+
+            using (var db = new HSisDbContext(options))
+            {
+                // 1. Abierto, sin técnico, dentro de 48h -> Nuevo/Disponible
+                db.Tickets.Add(new Ticket { IdTicket = 401, IdTecnico = null, Estatus = ConstantesEstatus.ABIERTO, FechaAlta = DateTime.Now.AddHours(-5) });
+                // 2. Abierto, CON técnico asignado, dentro de 48h -> NO es Nuevo/Disponible
+                db.Tickets.Add(new Ticket { IdTicket = 402, IdTecnico = 10, Estatus = ConstantesEstatus.ABIERTO, FechaAlta = DateTime.Now.AddHours(-5) });
+                // 3. Abierto, sin técnico, > 48h -> Urgente
+                db.Tickets.Add(new Ticket { IdTicket = 403, IdTecnico = null, Estatus = ConstantesEstatus.ABIERTO, FechaAlta = DateTime.Now.AddHours(-60) });
+                // 4. En proceso
+                db.Tickets.Add(new Ticket { IdTicket = 404, IdTecnico = 10, Estatus = ConstantesEstatus.EN_PROCESO, FechaAlta = DateTime.Now.AddHours(-10) });
+                // 5. Cerrado con calificación
+                db.Tickets.Add(new Ticket { IdTicket = 405, IdTecnico = 10, Estatus = ConstantesEstatus.CERRADO, Calificacion = 5, FechaAlta = DateTime.Now.AddHours(-20) });
+                // 6. Reabierto
+                db.Tickets.Add(new Ticket { IdTicket = 406, IdTecnico = null, Estatus = ConstantesEstatus.REABIERTO, FechaAlta = DateTime.Now.AddHours(-1) });
+
+                await db.SaveChangesAsync();
+            }
+
+            // Act
+            var resumen = await service.ObtenerResumenDashboardAsync();
+
+            // Assert
+            resumen.TotalNuevos.Should().Be(1); // 401
+            resumen.TotalUrgentes.Should().Be(1); // 403
+            resumen.TotalEnProceso.Should().Be(1); // 404
+            resumen.TotalCerrados.Should().Be(1); // 405
+            resumen.TotalReabiertos.Should().Be(1); // 406
+            resumen.PromedioCalificacion.Should().Be(5.0);
+        }
     }
 }
 

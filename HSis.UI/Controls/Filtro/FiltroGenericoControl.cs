@@ -107,7 +107,14 @@ namespace HSis.UI.Controls
                             cmb.Items.AddRange(campo.ValoresCombo);
                             if (cmb.Items.Count > 0) cmb.SelectedIndex = 0;
                         }
-                        cmb.SelectedIndexChanged += (s, e) => LanzarFiltroCambiado();
+                        cmb.SelectedIndexChanged += (s, e) =>
+                        {
+                            if (campo.NombrePropiedad == "Periodo" && cmb.SelectedItem?.ToString() is string periodo)
+                            {
+                                AplicarAtajoPeriodo(periodo);
+                            }
+                            LanzarFiltroCambiado();
+                        };
                         input = cmb;
                         break;
 
@@ -120,7 +127,39 @@ namespace HSis.UI.Controls
                         {
                             dtp.Value = dt;
                         }
-                        dtp.ValueChanged += (s, e) => LanzarFiltroCambiado();
+                        dtp.ValueChanged += (s, e) =>
+                        {
+                            if (!_suspenderEventos && (campo.NombrePropiedad == "FechaInicio" || campo.NombrePropiedad == "FechaFin"))
+                            {
+                                if (_controlesEntrada.TryGetValue("Periodo", out var ctrlPeriodo))
+                                {
+                                    string? actual = ctrlPeriodo switch
+                                    {
+                                        ComboModerno cmbMod => cmbMod.SelectedItem?.ToString(),
+                                        ComboBox cb => cb.SelectedItem?.ToString(),
+                                        _ => null
+                                    };
+
+                                    if (actual != "Personalizado")
+                                    {
+                                        bool prev = _suspenderEventos;
+                                        _suspenderEventos = true;
+                                        try
+                                        {
+                                            if (ctrlPeriodo is ComboModerno cmbMod)
+                                                cmbMod.SelectedItem = "Personalizado";
+                                            else if (ctrlPeriodo is ComboBox cb)
+                                                cb.SelectedItem = "Personalizado";
+                                        }
+                                        finally
+                                        {
+                                            _suspenderEventos = prev;
+                                        }
+                                    }
+                                }
+                            }
+                            LanzarFiltroCambiado();
+                        };
                         input = dtp;
                         break;
 
@@ -421,6 +460,121 @@ namespace HSis.UI.Controls
             if (!_suspenderEventos)
             {
                 FiltroCambiado?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        private void AplicarAtajoPeriodo(string periodo)
+        {
+            if (periodo == "Personalizado")
+            {
+                return;
+            }
+
+            var hoy = DateTime.Today;
+            DateTime? inicio = null;
+            DateTime? fin = null;
+
+            switch (periodo)
+            {
+                case "Últimos 30 días":
+                    inicio = hoy.AddDays(-30);
+                    fin = hoy.AddDays(1).AddTicks(-1);
+                    break;
+                case "Hoy":
+                    inicio = hoy;
+                    fin = hoy.AddDays(1).AddTicks(-1);
+                    break;
+                case "Ayer":
+                    inicio = hoy.AddDays(-1);
+                    fin = hoy.AddTicks(-1);
+                    break;
+                case "Esta semana":
+                    int diasAlLunes = (int)hoy.DayOfWeek - (int)DayOfWeek.Monday;
+                    if (diasAlLunes < 0) diasAlLunes += 7;
+                    inicio = hoy.AddDays(-diasAlLunes);
+                    fin = hoy.AddDays(1).AddTicks(-1);
+                    break;
+                case "Semana anterior":
+                    int offsetLunes = (int)hoy.DayOfWeek - (int)DayOfWeek.Monday;
+                    if (offsetLunes < 0) offsetLunes += 7;
+                    inicio = hoy.AddDays(-offsetLunes - 7);
+                    fin = hoy.AddDays(-offsetLunes).AddTicks(-1);
+                    break;
+                case "Este mes":
+                    inicio = new DateTime(hoy.Year, hoy.Month, 1);
+                    fin = hoy.AddDays(1).AddTicks(-1);
+                    break;
+                case "Mes anterior":
+                    var mesAnt = hoy.AddMonths(-1);
+                    inicio = new DateTime(mesAnt.Year, mesAnt.Month, 1);
+                    fin = new DateTime(hoy.Year, hoy.Month, 1).AddTicks(-1);
+                    break;
+                case "Este año":
+                    inicio = new DateTime(hoy.Year, 1, 1);
+                    fin = hoy.AddDays(1).AddTicks(-1);
+                    break;
+                case "Año anterior":
+                    inicio = new DateTime(hoy.Year - 1, 1, 1);
+                    fin = new DateTime(hoy.Year, 1, 1).AddTicks(-1);
+                    break;
+                case "Enero":
+                case "Febrero":
+                case "Marzo":
+                case "Abril":
+                case "Mayo":
+                case "Junio":
+                case "Julio":
+                case "Agosto":
+                case "Septiembre":
+                case "Octubre":
+                case "Noviembre":
+                case "Diciembre":
+                    int numMes = periodo switch
+                    {
+                        "Enero" => 1,
+                        "Febrero" => 2,
+                        "Marzo" => 3,
+                        "Abril" => 4,
+                        "Mayo" => 5,
+                        "Junio" => 6,
+                        "Julio" => 7,
+                        "Agosto" => 8,
+                        "Septiembre" => 9,
+                        "Octubre" => 10,
+                        "Noviembre" => 11,
+                        "Diciembre" => 12,
+                        _ => hoy.Month
+                    };
+                    inicio = new DateTime(hoy.Year, numMes, 1);
+                    fin = inicio.Value.AddMonths(1).AddTicks(-1);
+                    break;
+                case "Todos":
+                    inicio = new DateTime(2020, 1, 1);
+                    fin = hoy.AddYears(1);
+                    break;
+            }
+
+            if (inicio.HasValue && fin.HasValue)
+            {
+                bool prevSuspender = _suspenderEventos;
+                _suspenderEventos = true;
+                try
+                {
+                    if (_controlesEntrada.TryGetValue("FechaInicio", out var ctrlInicio))
+                    {
+                        if (ctrlInicio is SelectorFechaModerno sfm) sfm.Value = inicio.Value;
+                        else if (ctrlInicio is DateTimePicker dtp) dtp.Value = inicio.Value;
+                    }
+                    if (_controlesEntrada.TryGetValue("FechaFin", out var ctrlFin))
+                    {
+                        if (ctrlFin is SelectorFechaModerno sfm) sfm.Value = fin.Value;
+                        else if (ctrlFin is DateTimePicker dtp) dtp.Value = fin.Value;
+                    }
+                }
+                finally
+                {
+                    _suspenderEventos = prevSuspender;
+                }
             }
         }
     }
