@@ -25,6 +25,15 @@ $uiOut = Join-Path $PublishFolder 'UI'
 $agentOut = Join-Path $PublishFolder 'Agent'
 $clientPkgOut = Join-Path $PublishFolder 'ClientPackage'
 
+# Un proceso en ejecucion bloquea sus DLL y el publicado fallaria a medias; se avisa antes de empezar.
+$publishRoot = [IO.Path]::GetFullPath($PublishFolder).TrimEnd('\') + '\'
+$enUso = @(Get-Process -ErrorAction SilentlyContinue | Where-Object {
+        $_.Path -and $_.Path.StartsWith($publishRoot, [StringComparison]::OrdinalIgnoreCase)
+    })
+if ($enUso.Count -gt 0) {
+    $detalle = ($enUso | ForEach-Object { "  - $($_.ProcessName) (PID $($_.Id)): $($_.Path)" }) -join [Environment]::NewLine
+    throw "Cierre estos procesos antes de publicar (si es el servicio, use Stop-Service HSis.Server):$([Environment]::NewLine)$detalle"
+}
 Write-Host "============================================================" -ForegroundColor Cyan
 Write-Host " 1. PUBLICACION DEL SERVIDOR (HSis.Server)" -ForegroundColor Cyan
 Write-Host " Destino: $serverOut" -ForegroundColor Cyan
