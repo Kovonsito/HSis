@@ -1,12 +1,13 @@
 using HSis.Contracts.DTOs;
 using HSis.Contracts.Services;
+using HSis.Server.Configurations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HSis.Server.Controllers
 {
     [ApiController]
-    [Authorize]
+    [Authorize(Policy = PoliticasAutorizacion.PersonalAtencion)]
     [Route("api/[controller]")]
     public class MaterialesController(IMaterialService materialService) : ControllerBase
     {
@@ -22,6 +23,7 @@ namespace HSis.Server.Controllers
             return Ok(await materialService.ObtenerKardexPorMaterialAsync(idMaterial));
         }
 
+        [Authorize(Policy = PoliticasAutorizacion.Administrador)]
         [HttpPut("{idMaterial}/costo")]
         public async Task<IActionResult> ActualizarCosto(int idMaterial, [FromBody] decimal nuevoCosto)
         {

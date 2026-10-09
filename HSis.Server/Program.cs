@@ -13,6 +13,7 @@ using HSis.Logic.Services;
 using HSis.Server.Configurations;
 using HSis.Server.Hubs;
 using HSis.Server.Middleware;
+using HSis.Server.Security;
 using HSis.Server.Services;
 using Mapster;
 using MapsterMapper;
@@ -216,12 +217,21 @@ builder.Services.AddAuthentication(options =>
 
 // Registrar la política de autorización para administradores, usando el rol numérico emitido por el JWT actual.
 builder.Services.AddAuthorization(options =>
+{
+    var rolAdministrador = ((int)RolUsuarioEnum.Administrador).ToString();
+    var rolTecnico = ((int)RolUsuarioEnum.Tecnico).ToString();
+
     options.AddPolicy(PoliticasAutorizacion.AdministrarCatalogos, policy =>
-        policy.RequireAuthenticatedUser()
-            .RequireRole(((int)RolUsuarioEnum.Administrador).ToString())));
+        policy.RequireAuthenticatedUser().RequireRole(rolAdministrador));
+    options.AddPolicy(PoliticasAutorizacion.Administrador, policy =>
+        policy.RequireAuthenticatedUser().RequireRole(rolAdministrador));
+    options.AddPolicy(PoliticasAutorizacion.PersonalAtencion, policy =>
+        policy.RequireAuthenticatedUser().RequireRole(rolAdministrador, rolTecnico));
+});
 
 // Registrar Sesión de Usuario Real mediante HttpContext (Token JWT)
 builder.Services.AddSingleton<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<AccesoTicketService>();
 builder.Services.AddSingleton<TicketAuditInterceptor>();
 
 // Configurar DbContextFactory con Interceptor de Auditoría
