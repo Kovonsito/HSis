@@ -5,15 +5,10 @@ using HSis.Desktop.Infrastructure;
 
 namespace HSis.UI.Services
 {
-    public class AdministradorSesionUsuario : IAdministradorSesionUsuario, ICurrentUserService
+    public class AdministradorSesionUsuario(PresenciaAplicacion presenciaAplicacion) : IAdministradorSesionUsuario, ICurrentUserService
     {
-        private readonly PresenciaAplicacion _presenciaAplicacion;
+        private readonly PresenciaAplicacion _presenciaAplicacion = presenciaAplicacion;
         private UsuarioDto? _usuarioActual;
-
-        public AdministradorSesionUsuario(PresenciaAplicacion presenciaAplicacion)
-        {
-            _presenciaAplicacion = presenciaAplicacion;
-        }
 
         public UsuarioDto? UsuarioActual
         {

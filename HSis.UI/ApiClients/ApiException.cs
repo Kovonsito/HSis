@@ -3,41 +3,29 @@ using System.Net;
 
 namespace HSis.UI.ApiClients;
 
-public sealed class ApiException : HttpRequestException
+public sealed class ApiException(
+    HttpStatusCode statusCode,
+    string userMessage,
+    string? code,
+    string? traceId,
+    IReadOnlyDictionary<string, string[]>? validationErrors,
+    string rawResponse,
+    string? type,
+    string? title) : HttpRequestException(userMessage, null, statusCode)
 {
-    public ApiException(
-        HttpStatusCode statusCode,
-        string userMessage,
-        string? code,
-        string? traceId,
-        IReadOnlyDictionary<string, string[]>? validationErrors,
-        string rawResponse,
-        string? type,
-        string? title)
-        : base(userMessage, null, statusCode)
-    {
-        UserMessage = userMessage;
-        Code = code;
-        TraceId = traceId;
-        ValidationErrors = validationErrors;
-        RawResponse = rawResponse;
-        Type = type;
-        Title = title;
-    }
+    public string UserMessage { get; } = userMessage;
 
-    public string UserMessage { get; }
+    public string? Code { get; } = code;
 
-    public string? Code { get; }
+    public string? TraceId { get; } = traceId;
 
-    public string? TraceId { get; }
+    public IReadOnlyDictionary<string, string[]>? ValidationErrors { get; } = validationErrors;
 
-    public IReadOnlyDictionary<string, string[]>? ValidationErrors { get; }
+    public string RawResponse { get; } = rawResponse;
 
-    public string RawResponse { get; }
+    public string? Type { get; } = type;
 
-    public string? Type { get; }
-
-    public string? Title { get; }
+    public string? Title { get; } = title;
 
     public string? TechnicalReference
         => string.IsNullOrWhiteSpace(TraceId)

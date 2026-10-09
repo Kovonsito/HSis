@@ -1,22 +1,14 @@
 namespace HSis.Logic.Exceptions;
 
-public abstract class DomainException : Exception
+public abstract class DomainException(
+    string code,
+    string userMessage,
+    string? technicalDetails = null,
+    Exception? innerException = null) : Exception(technicalDetails ?? userMessage, innerException)
 {
-    protected DomainException(
-        string code,
-        string userMessage,
-        string? technicalDetails = null,
-        Exception? innerException = null)
-        : base(technicalDetails ?? userMessage, innerException)
-    {
-        Code = code;
-        UserMessage = userMessage;
-        TechnicalDetails = technicalDetails;
-    }
+    public string Code { get; } = code;
 
-    public string Code { get; }
+    public string UserMessage { get; } = userMessage;
 
-    public string UserMessage { get; }
-
-    public string? TechnicalDetails { get; }
+    public string? TechnicalDetails { get; } = technicalDetails;
 }

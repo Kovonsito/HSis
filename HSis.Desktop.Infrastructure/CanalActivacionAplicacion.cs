@@ -6,21 +6,16 @@ using System.Text.Json;
 namespace HSis.Desktop.Infrastructure;
 
 [SupportedOSPlatform("windows")]
-public sealed class CanalActivacionAplicacion : IDisposable, IAsyncDisposable
+public sealed class CanalActivacionAplicacion(string? nombreCanal = null) : IDisposable, IAsyncDisposable
 {
     private const int MaximoMensajeBytes = 4096;
-    private readonly string _nombreCanal;
+    private readonly string _nombreCanal = string.IsNullOrWhiteSpace(nombreCanal)
+            ? ConfiguracionEscritorio.CanalActivacionUi
+            : nombreCanal;
     private readonly CancellationTokenSource _detener = new();
     private Task? _servidor;
     private int _iniciado;
     private int _disposed;
-
-    public CanalActivacionAplicacion(string? nombreCanal = null)
-    {
-        _nombreCanal = string.IsNullOrWhiteSpace(nombreCanal)
-            ? ConfiguracionEscritorio.CanalActivacionUi
-            : nombreCanal;
-    }
 
     public void Iniciar(Action<IReadOnlyList<string>> alRecibir)
     {

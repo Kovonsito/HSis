@@ -3,6 +3,7 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Threading.RateLimiting;
 using FluentValidation;
 using HSis.Data.Models;
 using HSis.Contracts.Errors;
@@ -17,6 +18,7 @@ using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using HSis.Contracts.Constants;
@@ -109,6 +111,20 @@ builder.Services.AddCors(options =>
             policy.WithOrigins(allowedOrigins).AllowCredentials();
         }
     });
+});
+
+// Limita fuerza bruta sobre el login; los intentos se agrupan por IP remota.
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("login", httpContext => RateLimitPartition.GetFixedWindowLimiter(
+        httpContext.Connection.RemoteIpAddress?.ToString() ?? "desconocida",
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = builder.Configuration.GetValue("RateLimiting:LoginPermitLimit", 10),
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0
+        }));
 });
 
 builder.Services.AddSignalR();
@@ -239,6 +255,11 @@ if (productionCertificate is not null)
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+}
+
 // Habilitar Swagger
 if (app.Environment.IsDevelopment())
 {
@@ -251,6 +272,7 @@ app.UseStaticFiles();
 
 // Habilitar CORS
 app.UseCors("AllowedClients");
+app.UseRateLimiter();
 
 // Habilitar Autenticación y Autorización
 app.UseAuthentication();

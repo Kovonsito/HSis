@@ -6,17 +6,12 @@ using HSis.Contracts.Services;
 namespace HSis.Desktop.Infrastructure;
 
 [SupportedOSPlatform("windows")]
-public sealed class AlmacenamientoCredencialesLocal : IAlmacenamientoCredencialesLocal
+public sealed class AlmacenamientoCredencialesLocal(string? cacheFilePath = null) : IAlmacenamientoCredencialesLocal
 {
     private static readonly byte[] Entropy = [14, 55, 99, 102, 23, 76, 5, 88];
-    private readonly string _cacheFilePath;
-
-    public AlmacenamientoCredencialesLocal(string? cacheFilePath = null)
-    {
-        _cacheFilePath = string.IsNullOrWhiteSpace(cacheFilePath)
+    private readonly string _cacheFilePath = string.IsNullOrWhiteSpace(cacheFilePath)
             ? ConfiguracionEscritorio.ObtenerRutaDatos(ConfiguracionEscritorio.ArchivoCredenciales)
             : cacheFilePath;
-    }
 
     public void SaveCredentials(string username, string password)
     {

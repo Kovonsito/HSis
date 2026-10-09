@@ -2,13 +2,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HSis.Data.Models
 {
-    public partial class HSisDbContext : DbContext
+    public partial class HSisDbContext(DbContextOptions<HSisDbContext> options) : DbContext(options)
     {
-        public HSisDbContext(DbContextOptions<HSisDbContext> options)
-            : base(options)
-        {
-        }
-
         public virtual DbSet<Departamento> Departamentos { get; set; } = null!;
 
         public virtual DbSet<DetTicket> DetTickets { get; set; } = null!;

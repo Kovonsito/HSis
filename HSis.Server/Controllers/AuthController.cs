@@ -3,6 +3,7 @@ using HSis.Contracts.Errors;
 using HSis.Contracts.Services;
 using HSis.Server.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace HSis.Server.Controllers
 {
@@ -14,6 +15,7 @@ namespace HSis.Server.Controllers
         ILogger<AuthController> logger) : ControllerBase
     {
 
+        [EnableRateLimiting("login")]
         [HttpPost("login")]
         public async Task<ActionResult<LoginResponseDto>> IniciarSesion([FromBody] LoginRequestDto request)
         {
