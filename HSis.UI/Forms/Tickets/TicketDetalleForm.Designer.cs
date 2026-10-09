@@ -271,7 +271,7 @@ partial class TicketDetalleForm
         cmbPrioridad.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
         cmbPrioridad.DropDownStyle = ComboBoxStyle.DropDownList;
         cmbPrioridad.FormattingEnabled = true;
-        cmbPrioridad.Items.AddRange(new object[] { "Alta", "Media", "Baja" });
+        cmbPrioridad.Items.AddRange(new object[] { "Urgente", "Alta", "Media", "Baja" });
         cmbPrioridad.Location = new Point(134, 122);
         cmbPrioridad.Name = "cmbPrioridad";
         cmbPrioridad.Size = new Size(540, 23);
