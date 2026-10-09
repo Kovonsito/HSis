@@ -90,6 +90,7 @@ namespace HSis.UI.Forms.Tickets
             cmbPrioridad.Items.Add(new ElementoCombo<string?>(ConstantesPrioridad.BAJA, ConstantesPrioridad.BAJA));
             cmbPrioridad.Items.Add(new ElementoCombo<string?>(ConstantesPrioridad.MEDIA, ConstantesPrioridad.MEDIA));
             cmbPrioridad.Items.Add(new ElementoCombo<string?>(ConstantesPrioridad.ALTA, ConstantesPrioridad.ALTA));
+            cmbPrioridad.Items.Add(new ElementoCombo<string?>(ConstantesPrioridad.URGENTE, ConstantesPrioridad.URGENTE));
             cmbPrioridad.SelectedIndex = 0;
         }
 
