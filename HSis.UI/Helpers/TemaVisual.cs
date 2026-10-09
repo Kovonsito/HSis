@@ -117,7 +117,7 @@ namespace HSis.UI.Helpers
         {
             dgv.BackgroundColor = FondoTarjeta;
             dgv.BorderStyle = BorderStyle.None;
-            dgv.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
+            dgv.CellBorderStyle = DataGridViewCellBorderStyle.None;
             dgv.GridColor = BordeSutil;
             dgv.EnableHeadersVisualStyles = false;
             dgv.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
@@ -202,7 +202,7 @@ namespace HSis.UI.Helpers
             string colName = dgv.Columns[e.ColumnIndex].Name.ToLowerInvariant();
             if (colName.Contains("estatus") || colName.Contains("prioridad") || colName.Contains("status"))
             {
-                e.PaintBackground(e.CellBounds, true);
+                RellenarFondo(e);
 
                 string valor = e.Value?.ToString() ?? string.Empty;
                 if (!string.IsNullOrWhiteSpace(valor))
@@ -229,22 +229,64 @@ namespace HSis.UI.Helpers
                     using var brushTexto = new SolidBrush(colorTexto);
                     using var penBorde = new Pen(Color.FromArgb(40, colorTexto), 1f);
 
+                    var suavizadoPrevio = e.Graphics.SmoothingMode;
                     e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
                     e.Graphics.FillPath(brushFondo, path);
                     e.Graphics.DrawPath(penBorde, path);
                     e.Graphics.DrawString(valor, FuenteBadge, brushTexto, badgeRect, sf);
+                    e.Graphics.SmoothingMode = suavizadoPrevio;
                 }
 
+                DibujarSeparadorFila(e);
                 e.Handled = true;
                 return;
             }
 
-            // El recuadro de foco de la celda actual se ve como celda hundida; la fila ya se resalta por seleccion.
-            if ((e.PaintParts & DataGridViewPaintParts.Focus) != 0)
-            {
-                e.Paint(e.ClipBounds, e.PaintParts & ~DataGridViewPaintParts.Focus);
-                e.Handled = true;
-            }
+            // Sin bordes ni recuadro de foco por celda: solo un separador horizontal tenue, para un aspecto plano.
+            RellenarFondo(e);
+            DibujarTextoCelda(e);
+            DibujarSeparadorFila(e);
+            e.Handled = true;
+        }
+
+        // PaintBackground dejaba una linea oscura de 1 px bajo cada fila; se rellena el fondo directamente con el estilo resuelto de la celda.
+        private static void RellenarFondo(DataGridViewCellPaintingEventArgs e)
+        {
+            var seleccionada = (e.State & DataGridViewElementStates.Selected) != 0;
+            var color = seleccionada ? e.CellStyle!.SelectionBackColor : e.CellStyle!.BackColor;
+            using var pincel = new SolidBrush(color);
+            e.Graphics!.FillRectangle(pincel, e.CellBounds);
+        }
+
+        // Se dibuja el texto a mano porque PaintContent/Paint reintroducen el recuadro de foco y bordes oscuros.
+        private static void DibujarTextoCelda(DataGridViewCellPaintingEventArgs e)
+        {
+            var texto = e.FormattedValue?.ToString();
+            if (string.IsNullOrEmpty(texto))
+                return;
+
+            var estilo = e.CellStyle!;
+            var seleccionada = (e.State & DataGridViewElementStates.Selected) != 0;
+            var color = seleccionada ? estilo.SelectionForeColor : estilo.ForeColor;
+            var area = Rectangle.FromLTRB(
+                e.CellBounds.Left + estilo.Padding.Left,
+                e.CellBounds.Top + estilo.Padding.Top,
+                e.CellBounds.Right - estilo.Padding.Right,
+                e.CellBounds.Bottom - estilo.Padding.Bottom);
+
+            var flags = TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix;
+            var alineacion = estilo.Alignment.ToString();
+            if (alineacion.EndsWith("Right")) flags |= TextFormatFlags.Right;
+            else if (alineacion.EndsWith("Center")) flags |= TextFormatFlags.HorizontalCenter;
+            if (estilo.WrapMode == DataGridViewTriState.True) flags |= TextFormatFlags.WordBreak;
+
+            TextRenderer.DrawText(e.Graphics!, texto, estilo.Font ?? e.CellStyle!.Font, area, color, flags);
+        }
+
+        private static void DibujarSeparadorFila(DataGridViewCellPaintingEventArgs e)
+        {
+            using var pen = new Pen(BordeSutil, 1f);
+            e.Graphics!.DrawLine(pen, e.CellBounds.Left, e.CellBounds.Bottom - 1, e.CellBounds.Right, e.CellBounds.Bottom - 1);
         }
 
         public static GraphicsPath CrearRectanguloRedondeado(Rectangle bounds, int radius)
