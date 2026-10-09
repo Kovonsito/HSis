@@ -79,6 +79,20 @@ public sealed class ApiExceptionHandlerTests
         contexto.Response.Body.Length.Should().Be(0);
     }
 
+    [Fact]
+    public async Task TryHandleAsyncConInvalidOperationExceptionDebeTratarloComoErrorInterno()
+    {
+        var contexto = CrearContexto("trace-invalid-operation");
+
+        var handled = await CrearHandler().TryHandleAsync(
+            contexto,
+            new InvalidOperationException("Detalle interno"),
+            CancellationToken.None);
+
+        handled.Should().BeTrue();
+        contexto.Response.StatusCode.Should().Be(StatusCodes.Status500InternalServerError);
+    }
+
     private static ApiExceptionHandler CrearHandler()
         => new(NullLogger<ApiExceptionHandler>.Instance);
 

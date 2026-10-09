@@ -142,12 +142,6 @@ public sealed class ApiExceptionHandler(ILogger<ApiExceptionHandler> logger) : I
                 "Solicitud no válida",
                 "La información enviada no tiene un formato válido. Revise los datos e inténtelo de nuevo.",
                 LogLevel.Warning),
-            InvalidOperationException => new(
-                StatusCodes.Status409Conflict,
-                ApiErrorCodes.Conflict,
-                "Operación no permitida",
-                "La operación no puede realizarse en el estado actual de la información.",
-                LogLevel.Warning),
             _ => new(
                 StatusCodes.Status500InternalServerError,
                 ApiErrorCodes.InternalServerError,
