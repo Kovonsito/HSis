@@ -14,6 +14,18 @@ public sealed class ApiExceptionHandler(ILogger<ApiExceptionHandler> logger) : I
         Exception exception,
         CancellationToken cancellationToken)
     {
+        // Una cancelacion por desconexion del cliente no es un fallo del servidor.
+        if (exception is OperationCanceledException && httpContext.RequestAborted.IsCancellationRequested)
+        {
+            logger.LogDebug("Solicitud cancelada por el cliente: {Path}", httpContext.Request.Path.Value);
+            if (!httpContext.Response.HasStarted)
+            {
+                httpContext.Response.StatusCode = 499;
+            }
+
+            return true;
+        }
+
         var traceId = httpContext.TraceIdentifier;
         var error = MapException(exception);
 

@@ -64,6 +64,21 @@ public sealed class ApiExceptionHandlerTests
         problem.GetProperty("detail").GetString().Should().NotContain("Detalle interno");
     }
 
+    [Fact]
+    public async Task TryHandleAsyncConCancelacionDelClienteNoDebeDevolverError500()
+    {
+        using var cts = new CancellationTokenSource();
+        var contexto = CrearContexto("trace-cancel");
+        contexto.RequestAborted = cts.Token;
+        cts.Cancel();
+
+        var handled = await CrearHandler().TryHandleAsync(contexto, new OperationCanceledException(), CancellationToken.None);
+
+        handled.Should().BeTrue();
+        contexto.Response.StatusCode.Should().Be(499);
+        contexto.Response.Body.Length.Should().Be(0);
+    }
+
     private static ApiExceptionHandler CrearHandler()
         => new(NullLogger<ApiExceptionHandler>.Instance);
 
