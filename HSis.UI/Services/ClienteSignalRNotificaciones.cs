@@ -1,5 +1,6 @@
 using HSis.Contracts.Services;
 using HSis.Contracts.DTOs;
+using Microsoft.AspNetCore.Http.Connections.Client;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -102,7 +103,7 @@ namespace HSis.UI.Services
 
         private async Task ReintentarConexionAsync(string connectionUrl, string token, CancellationTokenSource reintento)
         {
-            var delay = TimeSpan.FromSeconds(5);
+            var delay = RetardoInicialReintento;
             var maximo = TimeSpan.FromSeconds(60);
 
             try
@@ -141,12 +142,20 @@ namespace HSis.UI.Services
             }
         }
 
+        // Puntos de extension para pruebas: transporte (HttpMessageHandler) y retardo inicial del reintento.
+        protected virtual void ConfigurarTransporte(HttpConnectionOptions options)
+        {
+        }
+
+        protected virtual TimeSpan RetardoInicialReintento => TimeSpan.FromSeconds(5);
+
         private HubConnection CrearConexion(string connectionUrl, string token)
         {
             var connection = new HubConnectionBuilder()
                 .WithUrl(connectionUrl, options =>
                 {
                     options.AccessTokenProvider = () => Task.FromResult<string?>(token);
+                    ConfigurarTransporte(options);
                 })
                 .WithAutomaticReconnect([
                     TimeSpan.FromSeconds(0),
