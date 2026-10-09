@@ -187,6 +187,8 @@ namespace HSis.UI.Controls
         private Rectangle ObtenerRectHamburguesa() => new Rectangle(12, 13, 38, 38);
         private Rectangle ObtenerRectBotonSalir() => new Rectangle(Width - 14 - 78, 15, 78, 34);
         private Rectangle ObtenerRectUsuario() => new Rectangle(ObtenerRectBotonSalir().Left - 10 - 150, 12, 150, 40);
+        public bool EsPuntoDeCampana(Point puntoPantalla) => ObtenerRectCampana().Contains(PointToClient(puntoPantalla));
+
         private Rectangle ObtenerRectCampana() => new Rectangle(ObtenerRectUsuario().Left - 14 - 38, 13, 38, 38);
         private Rectangle ObtenerRectPill()
         {

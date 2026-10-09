@@ -60,9 +60,10 @@ namespace HSis.UI.Helpers
             formulario.Controls.Add(notifControl);
             notifControl.BringToFront();
 
-            ConfigurarOcultarAlHacerClicFuera(formulario, notifControl, topBar);
+            var filtroClicFuera = ConfigurarOcultarAlHacerClicFuera(formulario, notifControl, topBar);
             formulario.FormClosed += (_, _) =>
             {
+                Application.RemoveMessageFilter(filtroClicFuera);
                 topBar.NotificacionesClic -= reposicionarHandler;
                 if (estadoConexionHandler != null && eventBus != null)
                 {
@@ -74,37 +75,44 @@ namespace HSis.UI.Helpers
             return notifControl;
         }
 
-        private static void ConfigurarOcultarAlHacerClicFuera(
+        private static IMessageFilter ConfigurarOcultarAlHacerClicFuera(
             Form formulario,
             NotificacionesControl notifControl,
             TopBarControl topBar)
         {
-            void SuscribirRecursivo(Control container)
-            {
-                if (container == notifControl || container == topBar)
-                {
-                    return;
-                }
-
-                container.Click += (s, e) =>
-                {
-                    if (notifControl.Visible)
-                    {
-                        Point mousePos = formulario.PointToClient(Cursor.Position);
-                        if (!notifControl.Bounds.Contains(mousePos))
-                        {
-                            notifControl.Visible = false;
-                        }
-                    }
-                };
-
-                foreach (Control ctrl in container.Controls)
-                {
-                    SuscribirRecursivo(ctrl);
-                }
-            }
-
-            SuscribirRecursivo(formulario);
+            var filtro = new FiltroClicFuera(formulario, notifControl, topBar);
+            Application.AddMessageFilter(filtro);
+            return filtro;
         }
-    }
+
+        // Escucha el clic a nivel de aplicacion: suscribir Click por control no cubre la barra superior ni los hijos que consumen el evento.
+        private sealed class FiltroClicFuera(Form formulario, NotificacionesControl notifControl, TopBarControl topBar) : IMessageFilter
+        {
+            private const int WM_LBUTTONDOWN = 0x0201;
+            private const int WM_RBUTTONDOWN = 0x0204;
+
+            public bool PreFilterMessage(ref Message m)
+            {
+                if ((m.Msg != WM_LBUTTONDOWN && m.Msg != WM_RBUTTONDOWN) || !notifControl.Visible)
+                {
+                    return false;
+                }
+
+                var origen = Control.FromHandle(m.HWnd);
+                if (origen is null || origen.FindForm() != formulario)
+                {
+                    return false;
+                }
+
+                var puntoPantalla = Cursor.Position;
+                var rectPanel = notifControl.RectangleToScreen(notifControl.ClientRectangle);
+                if (rectPanel.Contains(puntoPantalla) || topBar.EsPuntoDeCampana(puntoPantalla))
+                {
+                    return false;
+                }
+
+                notifControl.Visible = false;
+                return false;
+            }
+        }    }
 }

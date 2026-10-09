@@ -6,14 +6,22 @@ using Microsoft.EntityFrameworkCore;
 namespace HSis.Logic.Services;
 
 public sealed class NotificacionDestinatariosService(
-    IDbContextFactory<HSisDbContext> dbContextFactory) : INotificacionDestinatariosService
+    IDbContextFactory<HSisDbContext> dbContextFactory,
+    ICurrentUserService? currentUserService = null) : INotificacionDestinatariosService
 {
+    // Quien realiza la accion ya la conoce; notificarle sus propios cambios solo genera ruido.
+    private IReadOnlyList<int> SinActor(IReadOnlyList<int> destinatarios)
+    {
+        var idActor = currentUserService?.GetCurrentUserId() ?? 0;
+        return idActor > 0 ? [.. destinatarios.Where(id => id != idActor)] : destinatarios;
+    }
+
     public async Task<IReadOnlyList<int>> ObtenerDestinatariosNuevoTicketAsync(
         CancellationToken cancellationToken = default)
     {
         await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
-        return await db.Usuarios
+        return SinActor(await db.Usuarios
             .AsNoTracking()
             .Where(usuario =>
                 usuario.IdRol == (int)RolUsuarioEnum.Tecnico ||
@@ -21,7 +29,7 @@ public sealed class NotificacionDestinatariosService(
             .Select(usuario => usuario.IdUsuario)
             .Distinct()
             .OrderBy(idUsuario => idUsuario)
-            .ToListAsync(cancellationToken);
+            .ToListAsync(cancellationToken));
     }
 
     public async Task<IReadOnlyList<int>> ObtenerDestinatariosCalificacionAsync(
@@ -41,10 +49,10 @@ public sealed class NotificacionDestinatariosService(
             administradores.Add(tecnicoId.Value);
         }
 
-        return administradores
+        return SinActor(administradores
             .Distinct()
             .OrderBy(idUsuario => idUsuario)
-            .ToList();
+            .ToList());
     }
 
     public async Task<IReadOnlyList<int>> ObtenerDestinatariosCambioEstadoAsync(
@@ -72,7 +80,7 @@ public sealed class NotificacionDestinatariosService(
             .ToListAsync(cancellationToken);
 
         destinatarios.UnionWith(administradores);
-        return destinatarios.OrderBy(idUsuario => idUsuario).ToList();
+        return SinActor(destinatarios.OrderBy(idUsuario => idUsuario).ToList());
     }
 
     public async Task<IReadOnlyList<int>> ObtenerDestinatariosAsignacionAsync(
@@ -106,7 +114,7 @@ public sealed class NotificacionDestinatariosService(
             .ToListAsync(cancellationToken);
 
         destinatarios.UnionWith(administradores);
-        return destinatarios.OrderBy(idUsuario => idUsuario).ToList();
+        return SinActor(destinatarios.OrderBy(idUsuario => idUsuario).ToList());
     }
 
     public Task<IReadOnlyList<int>> ObtenerDestinatariosCambioPrioridadAsync(
@@ -141,7 +149,7 @@ public sealed class NotificacionDestinatariosService(
     {
         await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
-        return await db.Usuarios
+        return SinActor(await db.Usuarios
             .AsNoTracking()
             .Where(usuario =>
                 usuario.IdRol == (int)RolUsuarioEnum.Tecnico ||
@@ -149,7 +157,7 @@ public sealed class NotificacionDestinatariosService(
             .Select(usuario => usuario.IdUsuario)
             .Distinct()
             .OrderBy(idUsuario => idUsuario)
-            .ToListAsync(cancellationToken);
+            .ToListAsync(cancellationToken));
     }
 
     private async Task<IReadOnlyList<int>> ObtenerDestinatariosTicketConAdministradoresAsync(
@@ -176,6 +184,6 @@ public sealed class NotificacionDestinatariosService(
             .ToListAsync(cancellationToken);
 
         destinatarios.UnionWith(administradores);
-        return destinatarios.OrderBy(idUsuario => idUsuario).ToList();
+        return SinActor(destinatarios.OrderBy(idUsuario => idUsuario).ToList());
     }
 }

@@ -1,5 +1,6 @@
 using FluentAssertions;
 using HSis.Contracts.Constants;
+using HSis.Contracts.Services;
 using HSis.Data.Models;
 using HSis.Logic.Services;
 using Microsoft.EntityFrameworkCore;
@@ -48,6 +49,31 @@ public sealed class NotificacionDestinatariosAndFactoryTests
             .ObtenerDestinatariosCalificacionAsync(3);
 
         resultado.Should().Equal(1, 2, 3);
+    }
+
+    [Fact]
+    public async Task LosDestinatariosNoDebenIncluirAQuienRealizaLaAccion()
+    {
+        var options = CrearOpciones();
+        await using (var db = new HSisDbContext(options))
+        {
+            db.Usuarios.AddRange(
+                new Usuario { IdUsuario = 1, IdRol = (int)RolUsuarioEnum.Administrador },
+                new Usuario { IdUsuario = 2, IdRol = (int)RolUsuarioEnum.Tecnico },
+                new Usuario { IdUsuario = 4, IdRol = (int)RolUsuarioEnum.Tecnico });
+            await db.SaveChangesAsync();
+        }
+
+        var actual = new Mock<ICurrentUserService>();
+        actual.Setup(item => item.GetCurrentUserId()).Returns(2);
+        var servicio = new NotificacionDestinatariosService(CrearFactory(options).Object, actual.Object);
+
+        (await servicio.ObtenerDestinatariosNuevoTicketAsync()).Should().Equal(1, 4);
+        (await servicio.ObtenerDestinatariosCambioEstadoAsync(9, 2)).Should().Equal(1, 9);
+        (await servicio.ObtenerDestinatariosAsignacionAsync(9, null, 2)).Should().Equal(1, 9);
+        (await servicio.ObtenerDestinatariosActualizacionSolucionAsync(9, 2)).Should().Equal(1, 9);
+        (await servicio.ObtenerDestinatariosCalificacionAsync(2)).Should().Equal(1);
+        (await servicio.ObtenerDestinatariosMovimientoMaterialAsync()).Should().Equal(1, 4);
     }
 
     [Fact]
