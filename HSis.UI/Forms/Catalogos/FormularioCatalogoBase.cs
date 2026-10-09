@@ -134,6 +134,19 @@ public abstract class FormularioCatalogoBase : Form
         editor.Dock = DockStyle.Fill;
         editor.Margin = new Padding(0, 3, 0, 3);
         Campos.Controls.Add(editor, 1, fila);
+        AjustarAltoAlContenido();
+    }
+
+    // Titulo, botones, margenes y tarjeta suman ~222 px fijos; sin este ajuste el ultimo campo queda fuera del area visible.
+    private void AjustarAltoAlContenido()
+    {
+        const int alturaFija = 232;
+        var necesario = alturaFija + Campos.RowStyles.Cast<RowStyle>().Sum(estilo => (int)estilo.Height);
+        if (ClientSize.Height < necesario)
+        {
+            MinimumSize = new Size(MinimumSize.Width, necesario);
+            ClientSize = new Size(ClientSize.Width, necesario);
+        }
     }
 
     protected void ConfigurarModoEdicion(string entidad)
