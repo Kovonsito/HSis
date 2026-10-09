@@ -23,6 +23,7 @@ internal static class Program
         }
 
         ApplicationConfiguration.Initialize();
+        Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
 
         var entorno = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
         if (string.IsNullOrWhiteSpace(entorno))
@@ -42,6 +43,11 @@ internal static class Program
             .Build();
 
         using var services = CrearProveedorServicios(configuration);
+        var globalLogger = services.GetRequiredService<ILoggerFactory>().CreateLogger("HSis.NotificationAgent");
+        Application.ThreadException += (_, e) =>
+            globalLogger.LogError(e.Exception, "Excepción no controlada en el hilo de interfaz del agente.");
+        AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+            globalLogger.LogCritical(e.ExceptionObject as Exception, "Excepción no controlada en el agente.");
         RegistrarInicioAutomatico(configuration);
         var host = services.GetRequiredService<NotificationAgentHost>();
 

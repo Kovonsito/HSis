@@ -16,6 +16,7 @@ namespace HSis.UI.Services
         private readonly IBusEventosNotificaciones? _eventBus = eventBus;
         private readonly SemaphoreSlim _lifecycleLock = new(1, 1);
         private HubConnection? _connection;
+        private CancellationTokenSource? _reintentoCts;
         private int _detenerSolicitado;
 
         // Eventos expuestos para que la UI responda a los cambios
@@ -45,40 +46,98 @@ namespace HSis.UI.Services
                     _logger.LogInformation("Iniciando conexión de SignalR a {Url}", connectionUrl);
                 }
 
-                var connection = CrearConexion(connectionUrl, token);
-                _connection = connection;
-
-                try
+                if (!await IntentarConectarAsync(connectionUrl, token, notificarFallo: true))
                 {
-                    await connection.StartAsync();
-                    _logger.LogInformation("SignalR conectado correctamente.");
-                    OnConnected?.Invoke();
-                    _eventBus?.PublicarEstadoConexion(true);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error al iniciar conexión inicial de SignalR.");
-                    if (ReferenceEquals(_connection, connection))
-                    {
-                        _connection = null;
-                    }
-
-                    try
-                    {
-                        await connection.DisposeAsync();
-                    }
-                    catch (Exception disposeException)
-                    {
-                        _logger.LogWarning(disposeException, "No se pudo liberar la conexión inicial de SignalR.");
-                    }
-
-                    OnDisconnected?.Invoke();
-                    _eventBus?.PublicarEstadoConexion(false, "⚠️ No se pudo conectar con el servidor de notificaciones.");
+                    // WithAutomaticReconnect no cubre el fallo del primer StartAsync.
+                    var reintento = new CancellationTokenSource();
+                    _reintentoCts = reintento;
+                    _ = ReintentarConexionAsync(connectionUrl, token, reintento);
                 }
             }
             finally
             {
                 _lifecycleLock.Release();
+            }
+        }
+
+        private async Task<bool> IntentarConectarAsync(string connectionUrl, string token, bool notificarFallo)
+        {
+            var connection = CrearConexion(connectionUrl, token);
+            _connection = connection;
+
+            try
+            {
+                await connection.StartAsync();
+                _logger.LogInformation("SignalR conectado correctamente.");
+                OnConnected?.Invoke();
+                _eventBus?.PublicarEstadoConexion(true);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al iniciar conexión de SignalR.");
+                if (ReferenceEquals(_connection, connection))
+                {
+                    _connection = null;
+                }
+
+                try
+                {
+                    await connection.DisposeAsync();
+                }
+                catch (Exception disposeException)
+                {
+                    _logger.LogWarning(disposeException, "No se pudo liberar la conexión de SignalR.");
+                }
+
+                if (notificarFallo)
+                {
+                    OnDisconnected?.Invoke();
+                    _eventBus?.PublicarEstadoConexion(false, "⚠️ No se pudo conectar con el servidor de notificaciones.");
+                }
+
+                return false;
+            }
+        }
+
+        private async Task ReintentarConexionAsync(string connectionUrl, string token, CancellationTokenSource reintento)
+        {
+            var delay = TimeSpan.FromSeconds(5);
+            var maximo = TimeSpan.FromSeconds(60);
+
+            try
+            {
+                while (true)
+                {
+                    await Task.Delay(delay, reintento.Token);
+                    await _lifecycleLock.WaitAsync(reintento.Token);
+                    try
+                    {
+                        reintento.Token.ThrowIfCancellationRequested();
+                        if (await IntentarConectarAsync(connectionUrl, token, notificarFallo: false))
+                        {
+                            if (ReferenceEquals(_reintentoCts, reintento))
+                            {
+                                _reintentoCts = null;
+                            }
+
+                            return;
+                        }
+                    }
+                    finally
+                    {
+                        _lifecycleLock.Release();
+                    }
+
+                    delay = TimeSpan.FromSeconds(Math.Min(delay.TotalSeconds * 2, maximo.TotalSeconds));
+                }
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Falló el reintento de conexión de SignalR.");
             }
         }
 
@@ -158,6 +217,8 @@ namespace HSis.UI.Services
 
         private async Task DetenerInternoAsync(bool notificarDetencion)
         {
+            Interlocked.Exchange(ref _reintentoCts, null)?.Cancel();
+
             var connection = _connection;
             _connection = null;
 

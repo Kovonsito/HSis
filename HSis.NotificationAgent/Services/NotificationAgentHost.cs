@@ -106,6 +106,9 @@ internal sealed class NotificationAgentHost(
             return;
         }
 
+        // Tras agotar la reconexion automatica la conexion queda Disconnected y debe liberarse.
+        await DetenerSignalRAsync();
+
         var connectionUrl = _configuration["SignalR:ServerUrl"];
         if (string.IsNullOrWhiteSpace(connectionUrl))
         {
@@ -322,7 +325,14 @@ internal sealed class NotificationAgentHost(
             TimeSpan.FromSeconds(Math.Clamp(timeoutSeconds, 5, 120)));
         if (!uiActiva && _configuration.GetValue("NotificationAgent:EnableNativeNotifications", true))
         {
-            _nativeNotifications.Show(notification);
+            try
+            {
+                _nativeNotifications.Show(notification);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "No se pudo mostrar la notificación nativa {NotificationId}.", notification.IdNotificacion);
+            }
         }
 
         return Task.CompletedTask;
