@@ -5,11 +5,13 @@ Publica de forma unificada y clasifica los 3 proyectos en C:\HSis\publish\:
   - publish\UI\            -> Aplicación de Escritorio WinForms
   - publish\Agent\         -> Agente de Notificaciones de Windows
   - publish\ClientPackage\ -> Paquete de despliegue para clientes LAN (UI + Agent + Certificado + Setup)
+Con -CerrarProcesos detiene HSis.Server y cierra UI/Agente que se ejecuten desde la carpeta de publicacion (requiere consola elevada para el servicio). Al terminar, inicie el servicio manualmente.
 #>
 param(
     [string]$ServerAddress = '192.168.34.107',
     [string]$PublishFolder = 'C:\HSis\publish',
-    [string]$Configuration = 'Release'
+    [string]$Configuration = 'Release',
+    [switch]$CerrarProcesos
 )
 
 $ErrorActionPreference = 'Stop'
@@ -27,12 +29,29 @@ $clientPkgOut = Join-Path $PublishFolder 'ClientPackage'
 
 # Un proceso en ejecucion bloquea sus DLL y el publicado fallaria a medias; se avisa antes de empezar.
 $publishRoot = [IO.Path]::GetFullPath($PublishFolder).TrimEnd('\') + '\'
-$enUso = @(Get-Process -ErrorAction SilentlyContinue | Where-Object {
-        $_.Path -and $_.Path.StartsWith($publishRoot, [StringComparison]::OrdinalIgnoreCase)
-    })
+function Get-ProcesosEnUso {
+    @(Get-Process -ErrorAction SilentlyContinue | Where-Object {
+            $_.Path -and $_.Path.StartsWith($publishRoot, [StringComparison]::OrdinalIgnoreCase)
+        })
+}
+$enUso = Get-ProcesosEnUso
+if ($enUso.Count -gt 0 -and $CerrarProcesos) {
+    # El servicio se detiene por SCM (Stop-Process lo dejaria "caido"); el resto por PID. No se reinicia nada despues.
+    $servicio = Get-Service -Name 'HSis.Server' -ErrorAction SilentlyContinue
+    if ($servicio -and $servicio.Status -ne 'Stopped') {
+        Write-Host 'Deteniendo servicio HSis.Server...' -ForegroundColor Yellow
+        Stop-Service -Name 'HSis.Server' -Force
+    }
+    foreach ($p in (Get-ProcesosEnUso)) {
+        Write-Host "Cerrando $($p.ProcessName) (PID $($p.Id))..." -ForegroundColor Yellow
+        Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
+        [void]$p.WaitForExit(10000)
+    }
+    $enUso = Get-ProcesosEnUso
+}
 if ($enUso.Count -gt 0) {
     $detalle = ($enUso | ForEach-Object { "  - $($_.ProcessName) (PID $($_.Id)): $($_.Path)" }) -join [Environment]::NewLine
-    throw "Cierre estos procesos antes de publicar (si es el servicio, use Stop-Service HSis.Server):$([Environment]::NewLine)$detalle"
+    throw "Cierre estos procesos antes de publicar o use -CerrarProcesos (el servicio se detiene con Stop-Service HSis.Server):$([Environment]::NewLine)$detalle"
 }
 Write-Host "============================================================" -ForegroundColor Cyan
 Write-Host " 1. PUBLICACION DEL SERVIDOR (HSis.Server)" -ForegroundColor Cyan
