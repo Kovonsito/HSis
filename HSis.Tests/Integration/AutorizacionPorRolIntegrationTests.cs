@@ -132,6 +132,18 @@ public sealed class AutorizacionPorRolIntegrationTests(NotificationServerFixture
         porAdministrador.Should().ContainSingle().Which.RolNombre.Should().NotBeNull();
     }
 
+    [Theory]
+    [InlineData("api/Materiales")]
+    [InlineData("api/Materiales/1/kardex")]
+    public async Task TecnicoDebePoderConsultarMaterialesYKardex(string ruta)
+    {
+        await fixture.ReiniciarDatosAsync();
+        using var client = fixture.CrearClienteAutenticado(200, RolUsuarioEnum.Tecnico);
+
+        using var response = await client.GetAsync(ruta);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
     [Fact]
     public async Task SoloElSolicitanteDebePoderCalificarSuTicket()
     {

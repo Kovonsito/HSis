@@ -44,7 +44,7 @@ namespace HSis.UI.ApiClients
 
         public async Task<List<MaterialDto>> ObtenerMaterialesAsync()
         {
-            return await httpClient.GetFromJsonWithDetailsAsync<List<MaterialDto>>("api/Catalogos/materiales") ?? [];
+            return await httpClient.GetFromJsonWithDetailsAsync<List<MaterialDto>>("api/Materiales") ?? [];
         }
 
         public async Task<List<KardexMovimientoDto>> ObtenerKardexPorMaterialAsync(int idMaterial)
