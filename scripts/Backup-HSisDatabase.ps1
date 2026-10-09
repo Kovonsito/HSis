@@ -2,12 +2,17 @@
 <#
 Genera un respaldo completo verificado de la base de datos de HSis con autenticación integrada de Windows.
 Ejecutarlo antes de cambios de esquema, de RehashearContraseñasAsync o de cualquier operación irreversible.
+Usa COPY_ONLY para no alterar la cadena de respaldos programados del servidor.
+-Compress no es compatible con SQL Server Express.
+-TrustServerCertificate solo debe usarse en instancias con certificado autofirmado de una red de confianza.
 No borra respaldos anteriores. El directorio debe ser escribible por la cuenta del servicio de SQL Server.
 #>
 param(
 	[Parameter(Mandatory)][string]$ServerInstance,
 	[Parameter(Mandatory)][string]$Database,
-	[Parameter(Mandatory)][string]$BackupDirectory
+	[Parameter(Mandatory)][string]$BackupDirectory,
+	[switch]$TrustServerCertificate,
+	[switch]$Compress
 )
 
 $ErrorActionPreference = 'Stop'
@@ -18,9 +23,12 @@ if (-not (Test-Path $BackupDirectory -PathType Container)) { throw "No existe el
 
 $archivo = Join-Path $BackupDirectory ("{0}_{1:yyyyMMdd_HHmmss}.bak" -f $Database, (Get-Date))
 $escapado = $archivo.Replace("'", "''")
-$consulta = "BACKUP DATABASE [$Database] TO DISK = N'$escapado' WITH INIT, CHECKSUM, COMPRESSION; " +
+$opcionCompresion = if ($Compress) { ', COMPRESSION' } else { '' }
+$consulta = "BACKUP DATABASE [$Database] TO DISK = N'$escapado' WITH COPY_ONLY, INIT, CHECKSUM$opcionCompresion; " +
 	"RESTORE VERIFYONLY FROM DISK = N'$escapado' WITH CHECKSUM;"
 
-sqlcmd -S $ServerInstance -E -b -Q $consulta
+$argumentos = @('-S', $ServerInstance, '-E', '-b', '-Q', $consulta)
+if ($TrustServerCertificate) { $argumentos += '-C' }
+sqlcmd @argumentos
 if ($LASTEXITCODE -ne 0) { throw "Falló el respaldo de $Database (sqlcmd devolvió $LASTEXITCODE)." }
 Write-Host "Respaldo verificado: $archivo"

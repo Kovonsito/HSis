@@ -97,5 +97,5 @@ La limpieza del historial requiere una copia de seguridad verificada y coordinac
 
 ## Operación: respaldos e instalación repetible
 
-- `scripts\Backup-HSisDatabase.ps1 -ServerInstance <instancia> -Database <base> -BackupDirectory <ruta>` crea y verifica un respaldo completo con autenticación integrada. Ejecútalo antes de cambios de esquema o de `RehashearContraseñasAsync`; el repositorio no contiene migraciones automáticas.
+- `scripts\Backup-HSisDatabase.ps1 -ServerInstance <instancia> -Database <base> -BackupDirectory <ruta>` crea y verifica un respaldo completo (`COPY_ONLY`) con autenticación integrada. Con ODBC 18, un certificado de SQL Server no confiable requiere `-TrustServerCertificate` (solo en redes de confianza). `-Compress` no funciona en SQL Server Express. Ejecútalo antes de cambios de esquema o de `RehashearContraseñasAsync`; el repositorio no contiene migraciones automáticas.
 - `scripts\Install-HSisServer.ps1` puede ejecutarse de nuevo: si el servicio existe, actualiza ruta, inicio automático, cuenta y variables sin duplicarlo. Reinicia el servicio para aplicar los cambios.
