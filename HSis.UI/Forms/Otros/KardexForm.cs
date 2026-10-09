@@ -11,11 +11,13 @@ namespace HSis.UI.Forms.Otros
     public partial class KardexForm : Form
     {
         private readonly IMaterialService _materialService;
+        private readonly IAdministradorSesionUsuario _contextoSesion;
 
-        public KardexForm(IMaterialService materialService)
+        public KardexForm(IMaterialService materialService, IAdministradorSesionUsuario contextoSesion)
         {
             InitializeComponent();
             _materialService = materialService;
+            _contextoSesion = contextoSesion;
             dgvKardex.AplicarTemaModerno();
         }
 
@@ -46,6 +48,7 @@ namespace HSis.UI.Forms.Otros
 
             var col3 = dgvKardex.Columns["CostoUnitario"];
             col3?.DefaultCellStyle.Format = "C2";
+            col3?.Visible = _contextoSesion.EsAdmin;
         }
 
         #region Form Events

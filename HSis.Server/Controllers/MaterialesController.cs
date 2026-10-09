@@ -1,6 +1,7 @@
 using HSis.Contracts.DTOs;
 using HSis.Contracts.Services;
 using HSis.Server.Configurations;
+using HSis.Server.Security;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,13 +15,13 @@ namespace HSis.Server.Controllers
         [HttpGet]
         public async Task<ActionResult<List<MaterialDto>>> ObtenerTodos()
         {
-            return Ok(await materialService.ObtenerMaterialesAsync());
+            return Ok(RedaccionCostos.Para(User, await materialService.ObtenerMaterialesAsync()));
         }
 
         [HttpGet("{idMaterial}/kardex")]
         public async Task<ActionResult<List<KardexMovimientoDto>>> ObtenerKardex(int idMaterial)
         {
-            return Ok(await materialService.ObtenerKardexPorMaterialAsync(idMaterial));
+            return Ok(RedaccionCostos.Para(User, await materialService.ObtenerKardexPorMaterialAsync(idMaterial)));
         }
 
         [Authorize(Policy = PoliticasAutorizacion.Administrador)]
