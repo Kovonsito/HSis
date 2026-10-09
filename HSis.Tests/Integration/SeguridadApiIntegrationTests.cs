@@ -28,6 +28,18 @@ public sealed class SeguridadApiIntegrationTests(NotificationServerFixture fixtu
     }
 
     [Fact]
+    public async Task HealthDebeResponderSinTokenYSinExponerDetalles()
+    {
+        using var client = fixture.CreateClient();
+
+        using var response = await client.GetAsync("health");
+        var cuerpo = await response.Content.ReadAsStringAsync();
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        cuerpo.Should().Be("Healthy");
+    }
+
+    [Fact]
     public async Task LoginDebeLimitarIntentosRepetidosConError429()
     {
         using var client = fixture.CreateClient();

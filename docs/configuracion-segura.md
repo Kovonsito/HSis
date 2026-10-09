@@ -87,3 +87,10 @@ Kestrel sirve HTTPS directamente en producción y no se confía en encabezados r
 Considera comprometidos los secretos publicados en el repositorio. Rota la clave JWT y cualquier credencial SQL anterior; producción usa autenticación integrada en vez de login SQL con contraseña. La rotación debe completarse antes del despliegue.
 
 La limpieza del historial requiere una copia de seguridad verificada y coordinación con todos los colaboradores. Después de la rotación, el propietario del repositorio debe purgar los valores del historial Git, coordinar el `force push` y pedir a los colaboradores que reclonen o resincronicen. Eliminar el valor del último commit no lo elimina del historial remoto.
+
+## Autorización, límite de login, estado y registros
+
+- Administrador: catálogos, usuarios, materiales (costo), reportes e indicadores globales. Técnico: tickets asignados o sin asignar, y registrar materiales solo en tickets asignados a él. Cliente: únicamente sus propios tickets. Los técnicos obtienen de `api/Usuarios/rol/{idRol}` solo identificador, nombre y rol.
+- El login admite `RateLimiting:LoginPermitLimit` intentos por minuto y por IP (10 por defecto) y luego responde 429.
+- `GET /health` es anónimo y responde únicamente `Healthy`/`Unhealthy` según la conexión a la base de datos.
+- Registros con rotación diaria: servidor en `%ProgramData%\HSis\Logs\server-.log` (configurable con `Logging:FilePath`, 30 días), agente en `%LocalAppData%\HSis\Logs\agent-.log` (14 días) y UI en `Logs\hsis_log_.txt` (30 días). Revisa que la cuenta del servicio pueda escribir en esa ruta.

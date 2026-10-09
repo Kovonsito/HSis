@@ -5,6 +5,7 @@ using HSis.NotificationAgent.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace HSis.NotificationAgent;
 
@@ -81,6 +82,19 @@ internal static class Program
             builder.ClearProviders();
             builder.AddSimpleConsole(options => options.SingleLine = true);
             builder.SetMinimumLevel(LogLevel.Information);
+
+            // WinExe no tiene consola visible; el archivo con rotacion es el registro util.
+            builder.AddSerilog(
+                new LoggerConfiguration()
+                    .MinimumLevel.Information()
+                    .WriteTo.File(
+                        ConfiguracionEscritorio.ObtenerRutaDatos(Path.Combine("Logs", "agent-.log")),
+                        rollingInterval: RollingInterval.Day,
+                        retainedFileCountLimit: 14,
+                        fileSizeLimitBytes: 10 * 1024 * 1024,
+                        rollOnFileSizeLimit: true)
+                    .CreateLogger(),
+                dispose: true);
         });
 
         var baseUrl = configuration["ApiSettings:BaseUrl"] ?? "http://localhost:5000";

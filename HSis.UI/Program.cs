@@ -82,7 +82,7 @@ namespace HSis.UI
             Log.Logger = new LoggerConfiguration()
                 .ReadFrom.Configuration(configuration)
                 .Enrich.FromLogContext()
-                .WriteTo.File("Logs/hsis_log_.txt", rollingInterval: RollingInterval.Day)
+                .WriteTo.File("Logs/hsis_log_.txt", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 30)
                 .CreateLogger();
 
             try

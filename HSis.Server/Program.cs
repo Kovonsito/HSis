@@ -11,6 +11,7 @@ using HSis.Contracts.Services;
 using HSis.Logic.Interceptors;
 using HSis.Logic.Services;
 using HSis.Server.Configurations;
+using HSis.Server.Health;
 using HSis.Server.Hubs;
 using HSis.Server.Middleware;
 using HSis.Server.Security;
@@ -21,6 +22,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 using Microsoft.IdentityModel.Tokens;
 using HSis.Contracts.Constants;
 
@@ -129,6 +131,32 @@ builder.Services.AddRateLimiter(options =>
 });
 
 builder.Services.AddSignalR();
+
+builder.Services.AddHealthChecks().AddCheck<BaseDatosHealthCheck>("base-datos");
+
+// El servicio de Windows no tiene consola; el archivo con rotacion es el registro persistente.
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    var rutaRegistro = builder.Configuration["Logging:FilePath"]
+        ?? Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+            "HSis",
+            "Logs",
+            "server-.log");
+    builder.Logging.AddSerilog(
+        new LoggerConfiguration()
+            .MinimumLevel.Information()
+            .MinimumLevel.Override("Microsoft.AspNetCore", Serilog.Events.LogEventLevel.Warning)
+            .Enrich.FromLogContext()
+            .WriteTo.File(
+                rutaRegistro,
+                rollingInterval: RollingInterval.Day,
+                retainedFileCountLimit: 30,
+                fileSizeLimitBytes: 50 * 1024 * 1024,
+                rollOnFileSizeLimit: true)
+            .CreateLogger(),
+        dispose: true);
+}
 
 // === CONFIGURACIÓN DE DEPENDENCIAS (Extraída de HSis.UI) ===
 
@@ -294,6 +322,9 @@ app.MapControllers(); // Mapear controladores REST
 app.MapHub<NotificationHub>("/notificationHub").RequireAuthorization();
 
 // Endpoint básico de verificación de estado
+// Anonimo y sin detalles: solo indica Healthy/Unhealthy para monitoreo.
+app.MapHealthChecks("/health");
+
 app.MapGet("/", () => new { Status = "HSis Web API Server is running", DateTime.Now });
 
 app.Run();
