@@ -10,12 +10,15 @@ namespace HSis.UI.Helpers
         private ListSortDirection _sortDirection = ListSortDirection.Ascending;
         private PropertyDescriptor? _sortProperty;
 
+        // Lista de solo lectura para la rejilla: sin AllowNew el DataGridView muestra una fila vacia de alta que abria detalles con Id 0.
         public ListaVinculableOrdenable()
         {
+            AllowNew = false;
         }
 
         public ListaVinculableOrdenable(IList<T> list) : base(list)
         {
+            AllowNew = false;
         }
 
         protected override bool SupportsSortingCore => true;

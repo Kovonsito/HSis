@@ -89,7 +89,7 @@ namespace HSis.UI.Helpers
         public static async Task ManejarDetalleTicketAsync(this DataGridView dgv, int indiceFila, IFabricaFormularios fabricaFormularios, Func<Task> retornoRecargar, string nombreColumna = "IdTicket", bool esCliente = false, bool abrirEnRetroalimentacion = false)
         {
             var id = dgv.ObtenerIdSeleccionado(indiceFila, nombreColumna);
-            if (id.HasValue)
+            if (id is > 0)
             {
                 using var frm = esCliente
                     ? (Form)fabricaFormularios.CrearDetalleCliente(id.Value)

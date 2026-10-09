@@ -129,8 +129,10 @@ namespace HSis.UI.Coordinators
         {
             if (clave == "kardex")
             {
-                var frmK = FormFactory.Crear<KardexForm>();
-                frmK.Show(Formulario);
+                using (var frmK = FormFactory.Crear<KardexForm>())
+                {
+                    frmK.ShowDialog(Formulario);
+                }
                 string claveActual = _vistaActual switch
                 {
                     VistaTecnico.MisAsignados => "asignados",
