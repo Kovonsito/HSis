@@ -236,6 +236,14 @@ namespace HSis.UI.Helpers
                 }
 
                 e.Handled = true;
+                return;
+            }
+
+            // El recuadro de foco de la celda actual se ve como celda hundida; la fila ya se resalta por seleccion.
+            if ((e.PaintParts & DataGridViewPaintParts.Focus) != 0)
+            {
+                e.Paint(e.ClipBounds, e.PaintParts & ~DataGridViewPaintParts.Focus);
+                e.Handled = true;
             }
         }
 

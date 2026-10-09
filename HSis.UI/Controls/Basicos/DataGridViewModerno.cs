@@ -7,5 +7,13 @@ namespace HSis.UI.Controls
         {
             DoubleBuffered = true;
         }
+
+        // Al enlazar datos WinForms marca la primera fila y celda; se limpia para que la tabla no abra con una fila resaltada.
+        protected override void OnDataBindingComplete(DataGridViewBindingCompleteEventArgs e)
+        {
+            base.OnDataBindingComplete(e);
+            CurrentCell = null;
+            ClearSelection();
+        }
     }
 }
