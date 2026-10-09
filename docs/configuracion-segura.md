@@ -94,3 +94,8 @@ La limpieza del historial requiere una copia de seguridad verificada y coordinac
 - El login admite `RateLimiting:LoginPermitLimit` intentos por minuto y por IP (10 por defecto) y luego responde 429.
 - `GET /health` es anónimo y responde únicamente `Healthy`/`Unhealthy` según la conexión a la base de datos.
 - Registros con rotación diaria: servidor en `%ProgramData%\HSis\Logs\server-.log` (configurable con `Logging:FilePath`, 30 días), agente en `%LocalAppData%\HSis\Logs\agent-.log` (14 días) y UI en `Logs\hsis_log_.txt` (30 días). Revisa que la cuenta del servicio pueda escribir en esa ruta.
+
+## Operación: respaldos e instalación repetible
+
+- `scripts\Backup-HSisDatabase.ps1 -ServerInstance <instancia> -Database <base> -BackupDirectory <ruta>` crea y verifica un respaldo completo con autenticación integrada. Ejecútalo antes de cambios de esquema o de `RehashearContraseñasAsync`; el repositorio no contiene migraciones automáticas.
+- `scripts\Install-HSisServer.ps1` puede ejecutarse de nuevo: si el servicio existe, actualiza ruta, inicio automático, cuenta y variables sin duplicarlo. Reinicia el servicio para aplicar los cambios.
