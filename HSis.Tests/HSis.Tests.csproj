@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0-windows</TargetFramework>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
@@ -39,6 +39,7 @@
     <ProjectReference Include="..\HSis.Server\HSis.Server.csproj" />
     <ProjectReference Include="..\HSis.Desktop.Infrastructure\HSis.Desktop.Infrastructure.csproj" />
     <ProjectReference Include="..\HSis.UI\HSis.UI.csproj" />
+    <ProjectReference Include="..\HSis.NotificationAgent\HSis.NotificationAgent.csproj" />
   </ItemGroup>
 
 </Project>

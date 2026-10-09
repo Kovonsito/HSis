@@ -19,7 +19,9 @@ internal sealed class NotificationAgentHost(
     IAlmacenamientoCredencialesLocal credentials,
     PresenciaAplicacion applicationPresence,
     NativeNotificationService nativeNotifications,
-    ILogger<NotificationAgentHost> logger) : IAsyncDisposable
+    ILogger<NotificationAgentHost> logger,
+    Func<string, Func<string?>, HubConnection>? connectionFactory = null,
+    string? stateFilePath = null) : IAsyncDisposable
 {
     private static readonly TimeSpan RecentNotificationWindow = TimeSpan.FromMinutes(2);
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
@@ -35,7 +37,9 @@ internal sealed class NotificationAgentHost(
     private readonly HashSet<int> _seenNotificationIds = [];
     private readonly Dictionary<string, DateTimeOffset> _recentFingerprints = [];
     private readonly CancellationTokenSource _stopping = new();
-    private readonly string _stateFilePath = ConfiguracionEscritorio.ObtenerRutaDatos(
+    private readonly Func<string, Func<string?>, HubConnection> _connectionFactory =
+        connectionFactory ?? CrearConexionReal;
+    private readonly string _stateFilePath = stateFilePath ?? ConfiguracionEscritorio.ObtenerRutaDatos(
         "notification-agent-state.json");
 
     private HubConnection? _connection;
@@ -116,18 +120,7 @@ internal sealed class NotificationAgentHost(
             return;
         }
 
-        var connection = new HubConnectionBuilder()
-            .WithUrl(connectionUrl, options =>
-            {
-                options.AccessTokenProvider = () => Task.FromResult<string?>(_token);
-            })
-            .WithAutomaticReconnect([
-                TimeSpan.Zero,
-                TimeSpan.FromSeconds(2),
-                TimeSpan.FromSeconds(5),
-                TimeSpan.FromSeconds(10),
-                TimeSpan.FromSeconds(30)])
-            .Build();
+        var connection = _connectionFactory(connectionUrl, () => _token);
 
         connection.On<NotificacionDto>(
             "ReceiveNotification",
@@ -165,6 +158,20 @@ internal sealed class NotificationAgentHost(
             await connection.DisposeAsync();
         }
     }
+
+    private static HubConnection CrearConexionReal(string connectionUrl, Func<string?> tokenProvider)
+        => new HubConnectionBuilder()
+            .WithUrl(connectionUrl, options =>
+            {
+                options.AccessTokenProvider = () => Task.FromResult(tokenProvider());
+            })
+            .WithAutomaticReconnect([
+                TimeSpan.Zero,
+                TimeSpan.FromSeconds(2),
+                TimeSpan.FromSeconds(5),
+                TimeSpan.FromSeconds(10),
+                TimeSpan.FromSeconds(30)])
+            .Build();
 
     private async Task EjecutarSupervisionAsync(CancellationToken cancellationToken)
     {
