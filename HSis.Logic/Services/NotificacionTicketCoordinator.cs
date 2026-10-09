@@ -1,6 +1,7 @@
 using HSis.Contracts.Constants;
 using HSis.Contracts.Services;
 using HSis.Data.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace HSis.Logic.Services;
 
@@ -11,7 +12,8 @@ public sealed record NotificacionTicketPendiente(
     IReadOnlyList<int> Destinatarios);
 
 public sealed class NotificacionTicketCoordinator(
-    INotificacionDestinatariosService destinatariosService)
+    INotificacionDestinatariosService destinatariosService,
+    IDbContextFactory<HSisDbContext>? dbContextFactory = null)
 {
     public async Task<IReadOnlyList<NotificacionTicketPendiente>> DetectarCambiosAsync(
         Ticket ticketAnterior,
@@ -40,6 +42,8 @@ public sealed class NotificacionTicketCoordinator(
 
         if (tecnicoCambio)
         {
+            var nombreAnterior = await ObtenerNombreTecnicoAsync(ticketAnterior.IdTecnico, cancellationToken);
+            var nombreActual = await ObtenerNombreTecnicoAsync(ticketActual.IdTecnico, cancellationToken);
             var destinatarios = await destinatariosService.ObtenerDestinatariosAsignacionAsync(
                 ticketActual.IdUsuario,
                 ticketAnterior.IdTecnico,
@@ -52,12 +56,12 @@ public sealed class NotificacionTicketCoordinator(
                 ? NotificacionFactory.CrearMensajeReasignacion(
                     ticketActual.IdTicket,
                     ticketActual.IdTicket.ToString(),
-                    FormatearTecnico(ticketAnterior.IdTecnico),
-                    FormatearTecnico(ticketActual.IdTecnico))
+                    nombreAnterior,
+                    nombreActual)
                 : NotificacionFactory.CrearMensajeAsignacion(
                     ticketActual.IdTicket,
                     ticketActual.IdTicket.ToString(),
-                    FormatearTecnico(ticketActual.IdTecnico));
+                    nombreActual);
 
             eventos.Add(CrearEvento(ticketActual, tipo, mensaje, destinatarios));
         }
@@ -121,8 +125,30 @@ public sealed class NotificacionTicketCoordinator(
         IReadOnlyList<int> destinatarios)
         => new(ticket.IdTicket, tipo, mensaje, destinatarios);
 
-    private static string? FormatearTecnico(int? idTecnico)
-        => idTecnico is > 0 ? $"técnico #{idTecnico.Value}" : null;
+    // Se muestra el nombre del tecnico; el numero solo es respaldo si no se puede consultar.
+    private async Task<string?> ObtenerNombreTecnicoAsync(int? idTecnico, CancellationToken cancellationToken)
+    {
+        if (idTecnico is not > 0)
+        {
+            return null;
+        }
+
+        if (dbContextFactory is not null)
+        {
+            await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+            var nombre = await db.Usuarios
+                .AsNoTracking()
+                .Where(usuario => usuario.IdUsuario == idTecnico.Value)
+                .Select(usuario => usuario.Nombre)
+                .FirstOrDefaultAsync(cancellationToken);
+            if (!string.IsNullOrWhiteSpace(nombre))
+            {
+                return nombre.Trim();
+            }
+        }
+
+        return $"técnico #{idTecnico.Value}";
+    }
 
     private static bool StringEquals(string? left, string? right)
         => string.Equals(left?.Trim(), right?.Trim(), StringComparison.Ordinal);
