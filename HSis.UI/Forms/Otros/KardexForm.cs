@@ -19,6 +19,13 @@ namespace HSis.UI.Forms.Otros
             _materialService = materialService;
             _contextoSesion = contextoSesion;
             dgvKardex.AplicarTemaModerno();
+            panelTop.Resize += (_, _) => AjustarAnchoCombo();
+        }
+
+        // El anclaje a la derecha se desfasa con el escalado de DPI; se recalcula el ancho para que no sobresalga del formulario.
+        private void AjustarAnchoCombo()
+        {
+            cbMaterial.Width = Math.Max(120, panelTop.ClientSize.Width - cbMaterial.Left - dgvKardex.Left);
         }
 
         public void CargarMateriales(List<MaterialDto> materiales)
@@ -54,6 +61,7 @@ namespace HSis.UI.Forms.Otros
         #region Form Events
         private async void FrmKardex_Load(object? sender, EventArgs e)
         {
+            AjustarAnchoCombo();
             picIcon.Image = FontAwesome.Sharp.IconChar.BoxesStacked.ToBitmap(TemaVisual.Primario, 24);
             await this.EjecutarOperacionAsync(async () =>
             {
