@@ -11,10 +11,6 @@
             "cwd": "${workspaceFolder}/HSis.Server",
             "console": "internalConsole",
             "stopAtEntry": false,
-            "hotReload": false,
-            "hotReloadSettings": {
-                "applyOnSave": false
-            },
             "env": {
                 "ASPNETCORE_ENVIRONMENT": "Development",
                 "DOTNET_ENVIRONMENT": "Development",
@@ -31,10 +27,6 @@
             "cwd": "${workspaceFolder}/HSis.UI",
             "console": "internalConsole",
             "stopAtEntry": false,
-            "hotReload": false,
-            "hotReloadSettings": {
-                "applyOnSave": false
-            },
             "env": {
                 "DOTNET_ENVIRONMENT": "Development",
                 "DOTNET_MODIFIABLE_ASSEMBLIES": "debug"
@@ -46,14 +38,12 @@
             "request": "launch",
             "preLaunchTask": "build-ui",
             "program": "${workspaceFolder}/HSis.UI/bin/Debug/net10.0-windows/HSis.UI.exe",
-            "args": ["--multi-instancia"],
+            "args": [
+                "--multi-instancia"
+            ],
             "cwd": "${workspaceFolder}/HSis.UI",
             "console": "internalConsole",
             "stopAtEntry": false,
-            "hotReload": false,
-            "hotReloadSettings": {
-                "applyOnSave": false
-            },
             "env": {
                 "DOTNET_ENVIRONMENT": "Development",
                 "DOTNET_MODIFIABLE_ASSEMBLIES": "debug"
