@@ -34,15 +34,11 @@ namespace HSis.Server.Controllers
             var ticket = await ticketService.ObtenerTicketPorIdAsync(id);
             if (ticket == null)
             {
-                return Problem(
+                return this.ProblemConCodigo(
                     statusCode: StatusCodes.Status404NotFound,
                     title: "Ticket no encontrado",
                     detail: "No se encontró el ticket solicitado. Puede que haya sido eliminado o que ya no esté disponible.",
-                    extensions: new Dictionary<string, object?>
-                    {
-                        ["code"] = ApiErrorCodes.TicketNotFound,
-                        ["traceId"] = HttpContext.TraceIdentifier
-                    });
+                    code: ApiErrorCodes.TicketNotFound);
             }
             return Ok(ticket);
         }
@@ -66,15 +62,11 @@ namespace HSis.Server.Controllers
         {
             if (id != ticketDto.IdTicket)
             {
-                return Problem(
+                return this.ProblemConCodigo(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Identificador de ticket no válido",
                     detail: "El identificador de la ruta no coincide con el identificador incluido en los datos enviados.",
-                    extensions: new Dictionary<string, object?>
-                    {
-                        ["code"] = ApiErrorCodes.BadRequest,
-                        ["traceId"] = HttpContext.TraceIdentifier
-                    });
+                    code: ApiErrorCodes.BadRequest);
             }
             if (!await accesoTicket.PermiteAsync(User, id, AlcanceTicket.Gestion))
             {
@@ -147,15 +139,11 @@ namespace HSis.Server.Controllers
             var exito = await ticketService.RegistrarCalificacionAsync(id, request.Calificacion, request.Comentario);
             if (!exito)
             {
-                return Problem(
+                return this.ProblemConCodigo(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "No se pudo registrar la calificación",
                     detail: "No se pudo guardar la calificación del ticket. Compruebe que el ticket esté disponible e inténtelo de nuevo.",
-                    extensions: new Dictionary<string, object?>
-                    {
-                        ["code"] = ApiErrorCodes.BadRequest,
-                        ["traceId"] = HttpContext.TraceIdentifier
-                    });
+                    code: ApiErrorCodes.BadRequest);
             }
             return Ok();
         }

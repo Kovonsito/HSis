@@ -1,7 +1,10 @@
 using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
+using System.Text.Json;
+using HSis.Contracts.Constants;
 using HSis.Contracts.DTOs;
+using HSis.Contracts.Errors;
 using Xunit;
 
 namespace HSis.Tests.Integration;
@@ -46,13 +49,33 @@ public sealed class SeguridadApiIntegrationTests(NotificationServerFixture fixtu
         var credenciales = new LoginRequestDto { Username = "inexistente", Password = "incorrecta" };
         var estados = new List<HttpStatusCode>();
 
+        JsonElement? primerProblema = null;
+
         for (var intento = 0; intento < 12; intento++)
         {
             using var response = await client.PostAsJsonAsync("api/Auth/login", credenciales);
             estados.Add(response.StatusCode);
+            if (intento == 0)
+            {
+                primerProblema = await response.Content.ReadFromJsonAsync<JsonElement>();
+            }
         }
 
         estados.Should().Contain(HttpStatusCode.TooManyRequests);
-        estados.Take(10).Should().NotContain(HttpStatusCode.TooManyRequests);
+        estados.Take(10).Should().OnlyContain(estado => estado == HttpStatusCode.Unauthorized);
+        primerProblema!.Value.GetProperty("code").GetString().Should().Be(ApiErrorCodes.Unauthorized);
+    }
+
+    [Fact]
+    public async Task TicketInexistenteDebeResponder404ConCodigoEspecifico()
+    {
+        await fixture.ReiniciarDatosAsync();
+        using var client = fixture.CrearClienteAutenticado(300, RolUsuarioEnum.Administrador);
+
+        using var response = await client.GetAsync("api/Tickets/9999");
+        var problema = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        problema.GetProperty("code").GetString().Should().Be(ApiErrorCodes.TicketNotFound);
     }
 }

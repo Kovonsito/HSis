@@ -91,7 +91,7 @@ builder.Services.AddProblemDetails(options =>
         context.ProblemDetails.Instance ??= context.HttpContext.Request.Path;
         context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
 
-        var statusCode = context.HttpContext.Response.StatusCode;
+        var statusCode = context.ProblemDetails.Status ?? context.HttpContext.Response.StatusCode;
         context.ProblemDetails.Extensions.TryAdd("code", ApiExceptionHandler.ObtenerCodigoError(statusCode));
         context.ProblemDetails.Title ??= ApiExceptionHandler.ObtenerTituloError(statusCode);
         context.ProblemDetails.Detail ??= ApiExceptionHandler.ObtenerMensajeError(statusCode);

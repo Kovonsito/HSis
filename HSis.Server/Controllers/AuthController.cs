@@ -27,15 +27,11 @@ namespace HSis.Server.Controllers
                     request.Username,
                     HttpContext.TraceIdentifier);
 
-                return Problem(
+                return this.ProblemConCodigo(
                     statusCode: StatusCodes.Status401Unauthorized,
                     title: "No se pudo iniciar sesión",
                     detail: "El usuario o la contraseña no son válidos, o la cuenta está inactiva.",
-                    extensions: new Dictionary<string, object?>
-                    {
-                        ["code"] = ApiErrorCodes.Unauthorized,
-                        ["traceId"] = HttpContext.TraceIdentifier
-                    });
+                    code: ApiErrorCodes.Unauthorized);
             }
 
             var token = jwtTokenService.GenerarToken(usuario);

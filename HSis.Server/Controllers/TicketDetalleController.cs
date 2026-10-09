@@ -36,15 +36,11 @@ namespace HSis.Server.Controllers
             var detalle = await ticketDetalleService.ObtenerDetallePorIdAsync(idTicket, idMaterial);
             if (detalle == null)
             {
-                return Problem(
+                return this.ProblemConCodigo(
                     statusCode: StatusCodes.Status404NotFound,
                     title: "Material del ticket no encontrado",
                     detail: "No se encontró el material asociado al ticket solicitado.",
-                    extensions: new Dictionary<string, object?>
-                    {
-                        ["code"] = ApiErrorCodes.ResourceNotFound,
-                        ["traceId"] = HttpContext.TraceIdentifier
-                    });
+                    code: ApiErrorCodes.ResourceNotFound);
             }
             return Ok(detalle);
         }

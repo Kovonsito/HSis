@@ -182,14 +182,10 @@ public sealed class CatalogosAdministracionController(
             id,
             HttpContext.TraceIdentifier);
 
-        return Problem(
+        return this.ProblemConCodigo(
             statusCode: StatusCodes.Status404NotFound,
             title: "Registro no encontrado",
             detail: $"No se encontró el {recurso} con identificador {id}. Compruebe el dato e inténtelo de nuevo.",
-            extensions: new Dictionary<string, object?>
-            {
-                ["code"] = ApiErrorCodes.ResourceNotFound,
-                ["traceId"] = HttpContext.TraceIdentifier
-            });
+            code: ApiErrorCodes.ResourceNotFound);
     }
 }
