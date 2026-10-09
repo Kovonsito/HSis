@@ -32,7 +32,7 @@ public sealed class VistaCatalogoAdminControl : UserControl
             TextAlign = ContentAlignment.MiddleLeft
         };
 
-        _grid = new DataGridView
+        _grid = new HSis.UI.Controls.DataGridViewModerno
         {
             Dock = DockStyle.Fill,
             Name = $"dgv{titulo.Replace(" ", string.Empty)}",

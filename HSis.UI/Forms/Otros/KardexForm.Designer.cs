@@ -22,7 +22,7 @@ partial class KardexForm
         lblMaterial = new System.Windows.Forms.Label();
         cbMaterial = new HSis.UI.Controls.ComboModerno();
         pnlContenido = new System.Windows.Forms.Panel();
-        dgvKardex = new System.Windows.Forms.DataGridView();
+        dgvKardex = new HSis.UI.Controls.DataGridViewModerno();
         lblEstadoKardex = new System.Windows.Forms.Label();
         panelTop.SuspendLayout();
         pnlContenido.SuspendLayout();

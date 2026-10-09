@@ -52,7 +52,7 @@ partial class TicketDetalleForm
         cmbAtendido = new HSis.UI.Controls.ComboModerno();
         btnGuardar = new HSis.UI.Controls.BotonModerno();
         btnCancelar = new HSis.UI.Controls.BotonModerno();
-        dgvHistorial = new DataGridView();
+        dgvHistorial = new HSis.UI.Controls.DataGridViewModerno();
         lblPrioridad = new Label();
         cmbPrioridad = new HSis.UI.Controls.ComboModerno();
         lblDepartamento = new Label();
@@ -553,7 +553,7 @@ partial class TicketDetalleForm
             BackColor = Color.White
         };
 
-        dgvMateriales = new DataGridView
+        dgvMateriales = new HSis.UI.Controls.DataGridViewModerno
         {
             AllowUserToAddRows = false,
             AllowUserToDeleteRows = false,

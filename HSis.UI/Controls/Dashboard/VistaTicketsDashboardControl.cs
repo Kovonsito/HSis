@@ -40,7 +40,7 @@ namespace HSis.UI.Controls
             Dock = DockStyle.Fill;
 
             // 1. Grid estilizado
-            _dgvTickets = new DataGridView
+            _dgvTickets = new HSis.UI.Controls.DataGridViewModerno
             {
                 Dock = DockStyle.Fill,
                 Margin = new Padding(0, 4, 0, 6)
