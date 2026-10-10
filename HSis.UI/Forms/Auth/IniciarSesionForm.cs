@@ -40,12 +40,38 @@ namespace HSis.UI.Forms.Auth
             _aperturaTicketService = aperturaTicketService;
 
             InicializarLayoutLogin();
+            ConfigurarEventosValidacion();
+        }
+
+        private void ConfigurarEventosValidacion()
+        {
+            txtUsuario.TextChanged += (_, _) => LimpiarErrorCredenciales();
+            txtContraseña.TextChanged += (_, _) => LimpiarErrorCredenciales();
+        }
+
+        private void MostrarErrorCredenciales(string mensaje)
+        {
+            txtUsuario.TieneError = true;
+            txtContraseña.TieneError = true;
+            lblErrorCredenciales.Text = mensaje;
+            lblErrorCredenciales.Visible = true;
+        }
+
+        private void LimpiarErrorCredenciales()
+        {
+            if (lblErrorCredenciales.Visible || txtUsuario.TieneError || txtContraseña.TieneError)
+            {
+                txtUsuario.TieneError = false;
+                txtContraseña.TieneError = false;
+                lblErrorCredenciales.Visible = false;
+            }
         }
 
         public void LimpiarCredenciales()
         {
             txtUsuario.Clear();
             txtContraseña.Clear();
+            LimpiarErrorCredenciales();
         }
 
         public void CargarCredencialesGuardadas(string usuario, string contraseña)
@@ -74,12 +100,14 @@ namespace HSis.UI.Forms.Auth
         #region Form Events
         private async void BtnIniciarSesion_Click(object? sender, EventArgs e)
         {
-            string usuarioInput = txtUsuario.Text;
+            string usuarioInput = txtUsuario.Text.Trim();
             string passwordInput = txtContraseña.Text;
 
             if (string.IsNullOrWhiteSpace(usuarioInput) || string.IsNullOrWhiteSpace(passwordInput))
             {
-                DialogoUIHelper.MostrarAdvertencia("Por favor, ingrese usuario y contraseña.", "Campos requeridos");
+                MostrarErrorCredenciales("Por favor, ingrese usuario y contraseña.");
+                if (string.IsNullOrWhiteSpace(usuarioInput)) txtUsuario.Focus();
+                else txtContraseña.Focus();
                 return;
             }
 
@@ -88,6 +116,7 @@ namespace HSis.UI.Forms.Auth
                 var usuario = await _usuarioService.AutenticarAsync(usuarioInput, passwordInput);
                 if (usuario != null)
                 {
+                    LimpiarErrorCredenciales();
                     _contextoSesion.UsuarioActual = usuario;
                     _sessionCache.SaveCredentials(usuario.Nombre ?? string.Empty, passwordInput);
 
@@ -106,8 +135,9 @@ namespace HSis.UI.Forms.Auth
                 }
                 else
                 {
-                    DialogoUIHelper.MostrarAdvertencia("Usuario o contraseña incorrectos", "Credenciales Inválidas");
-                    LimpiarCredenciales();
+                    MostrarErrorCredenciales("El usuario o contraseña es incorrecta");
+                    txtContraseña.SelectAll();
+                    txtContraseña.Focus();
                 }
             }, "Error al iniciar sesión", "iniciar-sesion", btnIniciarSesion);
         }

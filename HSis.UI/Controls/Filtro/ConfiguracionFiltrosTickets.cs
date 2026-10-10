@@ -36,35 +36,35 @@ namespace HSis.UI.Helpers
         public static List<FiltroCampo> ObtenerCamposAdmin()
         {
             return [
-                new() { NombrePropiedad = "Estatus", Etiqueta = "Estatus:", Tipo = TipoFiltroControl.ComboSeleccion, ValoresCombo = ["Todos", "Nuevos", "Urgentes", "Abierto", "En Proceso", "Cerrado", "Reabierto"], Ancho = 115 },
-                new() { NombrePropiedad = "Prioridad", Etiqueta = "Prioridad:", Tipo = TipoFiltroControl.ComboSeleccion, ValoresCombo = ["Todos", ConstantesPrioridad.ALTA, ConstantesPrioridad.MEDIA, ConstantesPrioridad.BAJA, ConstantesPrioridad.URGENTE], Ancho = 110 },
-                new() { NombrePropiedad = "Tecnico", Etiqueta = "Técnico:", Tipo = TipoFiltroControl.ComboSeleccion, Ancho = 130 },
-                new() { NombrePropiedad = "Usuario", Etiqueta = "Solicitante:", Tipo = TipoFiltroControl.Texto, Ancho = 120 },
-                new() { NombrePropiedad = "Periodo", Etiqueta = "Período:", Tipo = TipoFiltroControl.ComboSeleccion, ValoresCombo = OpcionesPeriodo, Ancho = 130 },
-                new() { NombrePropiedad = "FechaInicio", Etiqueta = "Desde:", Tipo = TipoFiltroControl.Fecha, Ancho = 110, ValorDefecto = DateTime.Today.AddDays(-30) },
-                new() { NombrePropiedad = "FechaFin", Etiqueta = "Hasta:", Tipo = TipoFiltroControl.Fecha, Ancho = 110, ValorDefecto = DateTime.Today.AddDays(1).AddTicks(-1) }
+                new() { NombrePropiedad = "Estatus", Etiqueta = "Estatus:", Tipo = TipoFiltroControl.ComboSeleccion, ValoresCombo = ["Todos", "Nuevos", "Urgentes", "Abierto", "En Proceso", "Cerrado", "Reabierto"], Ancho = 140 },
+                new() { NombrePropiedad = "Prioridad", Etiqueta = "Prioridad:", Tipo = TipoFiltroControl.ComboSeleccion, ValoresCombo = ["Todos", ConstantesPrioridad.ALTA, ConstantesPrioridad.MEDIA, ConstantesPrioridad.BAJA, ConstantesPrioridad.URGENTE], Ancho = 130 },
+                new() { NombrePropiedad = "Tecnico", Etiqueta = "Técnico:", Tipo = TipoFiltroControl.ComboSeleccion, Ancho = 175 },
+                new() { NombrePropiedad = "Usuario", Etiqueta = "Solicitante:", Tipo = TipoFiltroControl.Texto, Ancho = 160 },
+                new() { NombrePropiedad = "Periodo", Etiqueta = "Período:", Tipo = TipoFiltroControl.ComboSeleccion, ValoresCombo = OpcionesPeriodo, Ancho = 175 },
+                new() { NombrePropiedad = "FechaInicio", Etiqueta = "Desde:", Tipo = TipoFiltroControl.Fecha, Ancho = 145, ValorDefecto = DateTime.Today.AddDays(-30) },
+                new() { NombrePropiedad = "FechaFin", Etiqueta = "Hasta:", Tipo = TipoFiltroControl.Fecha, Ancho = 145, ValorDefecto = DateTime.Today.AddDays(1).AddTicks(-1) }
             ];
         }
 
         public static List<FiltroCampo> ObtenerCamposTecnico()
         {
             return [
-                new() { NombrePropiedad = "Texto", Etiqueta = "Buscar (Folio/Asunto):", Tipo = TipoFiltroControl.Texto, Ancho = 160 },
-                new() { NombrePropiedad = "Prioridad", Etiqueta = "Prioridad:", Tipo = TipoFiltroControl.ComboSeleccion, ValoresCombo = ["Todos", ConstantesPrioridad.ALTA, ConstantesPrioridad.MEDIA, ConstantesPrioridad.BAJA, ConstantesPrioridad.URGENTE], Ancho = 110 },
-                new() { NombrePropiedad = "Usuario", Etiqueta = "Solicitante:", Tipo = TipoFiltroControl.Texto, Ancho = 130 },
-                new() { NombrePropiedad = "Periodo", Etiqueta = "Período:", Tipo = TipoFiltroControl.ComboSeleccion, ValoresCombo = OpcionesPeriodo, Ancho = 130 },
-                new() { NombrePropiedad = "FechaInicio", Etiqueta = "Desde:", Tipo = TipoFiltroControl.Fecha, Ancho = 110, ValorDefecto = DateTime.Today.AddDays(-30) },
-                new() { NombrePropiedad = "FechaFin", Etiqueta = "Hasta:", Tipo = TipoFiltroControl.Fecha, Ancho = 110, ValorDefecto = DateTime.Today.AddDays(1).AddTicks(-1) }
+                new() { NombrePropiedad = "Texto", Etiqueta = "Buscar (Folio/Asunto):", Tipo = TipoFiltroControl.Texto, Ancho = 200 },
+                new() { NombrePropiedad = "Prioridad", Etiqueta = "Prioridad:", Tipo = TipoFiltroControl.ComboSeleccion, ValoresCombo = ["Todos", ConstantesPrioridad.ALTA, ConstantesPrioridad.MEDIA, ConstantesPrioridad.BAJA, ConstantesPrioridad.URGENTE], Ancho = 130 },
+                new() { NombrePropiedad = "Usuario", Etiqueta = "Solicitante:", Tipo = TipoFiltroControl.Texto, Ancho = 160 },
+                new() { NombrePropiedad = "Periodo", Etiqueta = "Período:", Tipo = TipoFiltroControl.ComboSeleccion, ValoresCombo = OpcionesPeriodo, Ancho = 175 },
+                new() { NombrePropiedad = "FechaInicio", Etiqueta = "Desde:", Tipo = TipoFiltroControl.Fecha, Ancho = 145, ValorDefecto = DateTime.Today.AddDays(-30) },
+                new() { NombrePropiedad = "FechaFin", Etiqueta = "Hasta:", Tipo = TipoFiltroControl.Fecha, Ancho = 145, ValorDefecto = DateTime.Today.AddDays(1).AddTicks(-1) }
             ];
         }
 
         public static List<FiltroCampo> ObtenerCamposCliente()
         {
             return [
-                new() { NombrePropiedad = "Texto", Etiqueta = "Buscar (Folio/Problema):", Tipo = TipoFiltroControl.Texto, Ancho = 230 },
-                new() { NombrePropiedad = "Periodo", Etiqueta = "Período:", Tipo = TipoFiltroControl.ComboSeleccion, ValoresCombo = OpcionesPeriodo, Ancho = 130 },
-                new() { NombrePropiedad = "FechaInicio", Etiqueta = "Desde:", Tipo = TipoFiltroControl.Fecha, Ancho = 135, ValorDefecto = DateTime.Today.AddDays(-60) },
-                new() { NombrePropiedad = "FechaFin", Etiqueta = "Hasta:", Tipo = TipoFiltroControl.Fecha, Ancho = 135, ValorDefecto = DateTime.Today.AddDays(1).AddTicks(-1) }
+                new() { NombrePropiedad = "Texto", Etiqueta = "Buscar (Folio/Problema):", Tipo = TipoFiltroControl.Texto, Ancho = 250 },
+                new() { NombrePropiedad = "Periodo", Etiqueta = "Período:", Tipo = TipoFiltroControl.ComboSeleccion, ValoresCombo = OpcionesPeriodo, Ancho = 175 },
+                new() { NombrePropiedad = "FechaInicio", Etiqueta = "Desde:", Tipo = TipoFiltroControl.Fecha, Ancho = 145, ValorDefecto = DateTime.Today.AddDays(-60) },
+                new() { NombrePropiedad = "FechaFin", Etiqueta = "Hasta:", Tipo = TipoFiltroControl.Fecha, Ancho = 145, ValorDefecto = DateTime.Today.AddDays(1).AddTicks(-1) }
             ];
         }
 
@@ -113,15 +113,15 @@ namespace HSis.UI.Helpers
                 if (!string.IsNullOrWhiteSpace(emisor)) filtros.UsuarioEmisor = emisor;
             }
 
-            if (vals.TryGetValue("Temporal", out var tempVal) && tempVal != null)
+            if ((vals.TryGetValue("Periodo", out var perVal) || vals.TryGetValue("Temporal", out perVal)) && perVal != null)
             {
-                string tempSel = tempVal.ToString()!;
-                filtros.RangoTemporal = tempSel switch
+                string perStr = perVal.ToString()!;
+                filtros.RangoTemporal = perStr switch
                 {
-                    "Día" => VistaTemporal.Dia,
-                    "Semana" => VistaTemporal.Semana,
-                    "Mes" => VistaTemporal.Mes,
-                    "Año" => VistaTemporal.Ano,
+                    "Hoy" or "Día" => VistaTemporal.Dia,
+                    "Esta semana" or "Semana" => VistaTemporal.Semana,
+                    "Este mes" or "Mes" => VistaTemporal.Mes,
+                    "Este año" or "Año" => VistaTemporal.Ano,
                     _ => VistaTemporal.Todos
                 };
             }
@@ -130,7 +130,7 @@ namespace HSis.UI.Helpers
                 filtros.RangoTemporal = VistaTemporal.Todos;
             }
 
-            if (vals.TryGetValue("Periodo", out var perVal) && string.Equals(perVal?.ToString(), "Todos", StringComparison.OrdinalIgnoreCase))
+            if (vals.TryGetValue("Periodo", out var pVal) && string.Equals(pVal?.ToString(), "Todos", StringComparison.OrdinalIgnoreCase))
             {
                 filtros.FechaAltaInicio = null;
                 filtros.FechaAltaFin = null;
@@ -138,8 +138,8 @@ namespace HSis.UI.Helpers
             else
             {
                 var (_, fechaInicio, fechaFin, _, _) = vals.ExtraerFiltrosComunes(DateTime.Today.AddDays(-30), DateTime.Today.AddDays(1).AddTicks(-1));
-                filtros.FechaAltaInicio = fechaInicio ?? DateTime.Today.AddDays(-30);
-                filtros.FechaAltaFin = fechaFin ?? DateTime.Today.AddDays(1).AddTicks(-1);
+                filtros.FechaAltaInicio = fechaInicio;
+                filtros.FechaAltaFin = fechaFin;
             }
 
             return filtros;
@@ -187,6 +187,12 @@ namespace HSis.UI.Helpers
             {
                 var usrStr = usrVal.ToString()?.Trim();
                 if (!string.IsNullOrWhiteSpace(usrStr)) usuario = usrStr.ToLowerInvariant();
+            }
+
+            // Si el período seleccionado es "Todos", no se aplica restricción de fechas
+            if (vals.TryGetValue("Periodo", out var perVal) && string.Equals(perVal?.ToString(), "Todos", StringComparison.OrdinalIgnoreCase))
+            {
+                return (texto, null, null, prioridad, usuario);
             }
 
             DateTime? fi = fechaInicioDefecto?.Date;

@@ -47,7 +47,7 @@ namespace HSis.UI
             }
 
             bool esDesarrollo = string.Equals(entorno, "Development", StringComparison.OrdinalIgnoreCase);
-            bool permitirMultiples = esDesarrollo || args.Any(a =>
+            bool permitirMultiples = esDesarrollo || System.Diagnostics.Debugger.IsAttached || args.Any(a =>
                 string.Equals(a, "--multi-instancia", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(a, "--multi-instance", StringComparison.OrdinalIgnoreCase));
 
@@ -73,7 +73,7 @@ namespace HSis.UI
             Application.SetDefaultFont(new Font("Segoe UI", 11F, FontStyle.Regular, GraphicsUnit.Point));
 
             var configuration = new ConfigurationBuilder()
-                .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+                .SetBasePath(AppContext.BaseDirectory)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .AddJsonFile($"appsettings.{entorno}.json", optional: true, reloadOnChange: true)
                 .Build();

@@ -587,7 +587,7 @@ namespace HSis.Logic.Services
         }
 
         // Obtener resumen consolidado de métricas para el Dashboard
-        public async Task<DashboardResumenDto> ObtenerResumenDashboardAsync(int? idTecnico = null)
+        public async Task<DashboardResumenDto> ObtenerResumenDashboardAsync(int? idTecnico = null, DateTime? fechaInicio = null, DateTime? fechaFin = null)
         {
             using var db = dbContextFactory.CreateDbContext();
             var query = db.Tickets.AsNoTracking();
@@ -598,18 +598,33 @@ namespace HSis.Logic.Services
 
             var fechaLimiteSla = ObtenerLimiteSLA();
 
-            var tickets = await query
-                .Select(t => new { t.Estatus, t.FechaAlta, t.Calificacion, t.IdTecnico })
-                .ToListAsync();
+            // 1. KPIs Operativos en tiempo real (activos/vivos)
+            var nuevos = await query.CountAsync(t => t.Estatus == ConstantesEstatus.ABIERTO && t.IdTecnico == null && t.FechaAlta.HasValue && t.FechaAlta.Value >= fechaLimiteSla);
+            var urgentes = await query.CountAsync(t => t.Estatus == ConstantesEstatus.ABIERTO && t.FechaAlta.HasValue && t.FechaAlta.Value < fechaLimiteSla);
+            var enProceso = await query.CountAsync(t => t.Estatus == ConstantesEstatus.EN_PROCESO);
+            var reabiertos = await query.CountAsync(t => t.Estatus == ConstantesEstatus.REABIERTO);
 
-            var nuevos = tickets.Count(t => t.Estatus == ConstantesEstatus.ABIERTO && t.IdTecnico == null && t.FechaAlta.HasValue && t.FechaAlta.Value >= fechaLimiteSla);
-            var urgentes = tickets.Count(t => t.Estatus == ConstantesEstatus.ABIERTO && t.FechaAlta.HasValue && t.FechaAlta.Value < fechaLimiteSla);
-            var enProceso = tickets.Count(t => t.Estatus == ConstantesEstatus.EN_PROCESO);
-            var cerrados = tickets.Count(t => t.Estatus == ConstantesEstatus.CERRADO);
-            var reabiertos = tickets.Count(t => t.Estatus == ConstantesEstatus.REABIERTO);
+            // 2. KPIs Acumulativos que respetan el período seleccionado si se especifica
+            var queryCerrados = query.Where(t => t.Estatus == ConstantesEstatus.CERRADO);
+            var queryCalificaciones = query.Where(t => t.Calificacion.HasValue);
 
-            var calificaciones = tickets.Where(t => t.Calificacion.HasValue).Select(t => t.Calificacion!.Value).ToList();
+            if (fechaInicio.HasValue)
+            {
+                queryCerrados = queryCerrados.Where(t => t.FechaAlta >= fechaInicio.Value);
+                queryCalificaciones = queryCalificaciones.Where(t => t.FechaAlta >= fechaInicio.Value);
+            }
+            if (fechaFin.HasValue)
+            {
+                queryCerrados = queryCerrados.Where(t => t.FechaAlta <= fechaFin.Value);
+                queryCalificaciones = queryCalificaciones.Where(t => t.FechaAlta <= fechaFin.Value);
+            }
+
+            var cerrados = await queryCerrados.CountAsync();
+            var calificaciones = await queryCalificaciones.Select(t => t.Calificacion!.Value).ToListAsync();
             double promedioCalificacion = calificaciones.Count > 0 ? Math.Round(calificaciones.Average(), 1) : 0.0;
+            var pendientes = nuevos + urgentes + enProceso + reabiertos;
+
+            var fechaPrimerTicket = await query.Where(t => t.FechaAlta.HasValue).MinAsync(t => (DateTime?)t.FechaAlta);
 
             return new DashboardResumenDto
             {
@@ -618,7 +633,9 @@ namespace HSis.Logic.Services
                 TotalEnProceso = enProceso,
                 TotalCerrados = cerrados,
                 TotalReabiertos = reabiertos,
-                PromedioCalificacion = promedioCalificacion
+                TotalPendientes = pendientes,
+                PromedioCalificacion = promedioCalificacion,
+                FechaPrimerTicket = fechaPrimerTicket
             };
         }
 
@@ -635,7 +652,11 @@ namespace HSis.Logic.Services
                 .ToListAsync();
             double promedio = calificaciones.Count > 0 ? Math.Round(calificaciones.Average(), 1) : 0.0;
 
-            return new IndicadoresTecnicoDto(asignados, disponibles, cerrados, promedio);
+            var fechaPrimerTicket = await db.Tickets
+                .Where(t => (t.IdTecnico == idTecnico || t.Estatus == ConstantesEstatus.ABIERTO) && t.FechaAlta.HasValue)
+                .MinAsync(t => (DateTime?)t.FechaAlta);
+
+            return new IndicadoresTecnicoDto(asignados, disponibles, cerrados, promedio, fechaPrimerTicket);
         }
 
         public async Task<ResumenClienteDto> ObtenerResumenClienteAsync(int idUsuario)
@@ -650,8 +671,9 @@ namespace HSis.Logic.Services
             var ticketsDto = mapper.Map<List<TicketDto>>(tickets);
             int activos = ticketsDto.Count(t => t.Estatus != ConstantesEstatus.CERRADO);
             int cerrados = ticketsDto.Count(t => t.Estatus == ConstantesEstatus.CERRADO);
+            DateTime? fechaPrimerTicket = tickets.Where(t => t.FechaAlta.HasValue).Min(t => (DateTime?)t.FechaAlta);
 
-            return new ResumenClienteDto(activos, cerrados, ticketsDto);
+            return new ResumenClienteDto(activos, cerrados, ticketsDto, fechaPrimerTicket);
         }
     }
 }

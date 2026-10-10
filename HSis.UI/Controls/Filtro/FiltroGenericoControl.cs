@@ -59,13 +59,15 @@ namespace HSis.UI.Controls
 
             foreach (var campo in campos)
             {
+                int anchoControl = campo.Ancho > 0 ? campo.Ancho : 150;
                 var container = new TableLayoutPanel
                 {
                     ColumnCount = 1,
                     RowCount = 2,
-                    Width = campo.Ancho,
-                    Height = 52,
-                    Margin = new Padding(4, 1, 4, 1),
+                    Width = anchoControl,
+                    Height = 48,
+                    MinimumSize = new Size(anchoControl, 48),
+                    Margin = new Padding(4, 0, 4, 0),
                     Padding = new Padding(0),
                     BackColor = Color.White
                 };
@@ -121,43 +123,25 @@ namespace HSis.UI.Controls
                     case TipoFiltroControl.Fecha:
                         var dtp = new SelectorFechaModerno
                         {
-                            Format = DateTimePickerFormat.Short
+                            Format = DateTimePickerFormat.Short,
+                            MaxDate = DateTime.Today.AddDays(1).AddTicks(-1)
                         };
                         if (campo.ValorDefecto is DateTime dt)
                         {
-                            dtp.Value = dt;
+                            dtp.Value = dt > dtp.MaxDate ? dtp.MaxDate : dt;
                         }
-                        dtp.ValueChanged += (s, e) =>
+
+                        // Solo cuando el usuario cambia manualmente la fecha en el selector, cambiamos el combo a "Personalizado"
+                        dtp.ValorCambiadoPorUsuario += (s, e) =>
                         {
                             if (!_suspenderEventos && (campo.NombrePropiedad == "FechaInicio" || campo.NombrePropiedad == "FechaFin"))
                             {
-                                if (_controlesEntrada.TryGetValue("Periodo", out var ctrlPeriodo))
-                                {
-                                    string? actual = ctrlPeriodo switch
-                                    {
-                                        ComboModerno cmbMod => cmbMod.SelectedItem?.ToString(),
-                                        ComboBox cb => cb.SelectedItem?.ToString(),
-                                        _ => null
-                                    };
-
-                                    if (actual != "Personalizado")
-                                    {
-                                        bool prev = _suspenderEventos;
-                                        _suspenderEventos = true;
-                                        try
-                                        {
-                                            if (ctrlPeriodo is ComboModerno cmbMod)
-                                                cmbMod.SelectedItem = "Personalizado";
-                                            else if (ctrlPeriodo is ComboBox cb)
-                                                cb.SelectedItem = "Personalizado";
-                                        }
-                                        finally
-                                        {
-                                            _suspenderEventos = prev;
-                                        }
-                                    }
-                                }
+                                MarcarPeriodoComoPersonalizado();
                             }
+                        };
+
+                        dtp.ValueChanged += (s, e) =>
+                        {
                             LanzarFiltroCambiado();
                         };
                         input = dtp;
@@ -169,6 +153,7 @@ namespace HSis.UI.Controls
 
                 input.Dock = DockStyle.Fill;
                 input.Margin = new Padding(0);
+                input.MinimumSize = new Size(anchoControl, 30);
 
                 _controlesEntrada[campo.NombrePropiedad] = input;
                 _tipos[campo.NombrePropiedad] = campo.Tipo;
@@ -303,6 +288,44 @@ namespace HSis.UI.Controls
             return true;
         }
 
+        /// <summary>
+        /// Configura los límites mínimos y máximos permitidos para los controles de fecha especificados.
+        /// Deshabilita la selección de fechas menores a fechaMinima o mayores a fechaMaxima.
+        /// </summary>
+        public void ConfigurarLimitesFecha(DateTime? fechaMinima, DateTime? fechaMaxima = null)
+        {
+            DateTime max = (fechaMaxima ?? DateTime.Today).Date.AddDays(1).AddTicks(-1);
+
+            foreach (var nombre in new[] { "FechaInicio", "FechaFin" })
+            {
+                if (_controlesEntrada.TryGetValue(nombre, out var ctrl))
+                {
+                    if (ctrl is SelectorFechaModerno sfm)
+                    {
+                        if (fechaMinima.HasValue)
+                        {
+                            var min = fechaMinima.Value.Date;
+                            if (sfm.Value < min) sfm.Value = min;
+                            sfm.MinDate = min;
+                        }
+                        if (sfm.Value > max) sfm.Value = max;
+                        sfm.MaxDate = max;
+                    }
+                    else if (ctrl is DateTimePicker dtp)
+                    {
+                        if (fechaMinima.HasValue)
+                        {
+                            var min = fechaMinima.Value.Date;
+                            if (dtp.Value < min) dtp.Value = min;
+                            dtp.MinDate = min;
+                        }
+                        if (dtp.Value > max) dtp.Value = max;
+                        dtp.MaxDate = max;
+                    }
+                }
+            }
+        }
+
         public Dictionary<string, object?> ObtenerValoresFiltros()
         {
             var valores = new Dictionary<string, object?>();
@@ -418,7 +441,7 @@ namespace HSis.UI.Controls
             LanzarFiltroCambiado();
         }
 
-        public void EstablecerValorFiltro(string nombrePropiedad, object? valor)
+        public void EstablecerValorFiltro(string nombrePropiedad, object? valor, bool dispararEvento = true)
         {
             if (_controlesEntrada.TryGetValue(nombrePropiedad, out var control))
             {
@@ -431,27 +454,31 @@ namespace HSis.UI.Controls
                         break;
 
                     case TipoFiltroControl.ComboSeleccion:
-                        var cmb = (ComboBox)control;
-                        if (cmb.DataSource != null)
+                        if (control is ComboModerno cmbMod)
                         {
-                            cmb.SelectedValue = valor!;
+                            if (cmbMod.DataSource != null) cmbMod.SelectedValue = valor!;
+                            else cmbMod.SelectedItem = valor;
                         }
-                        else
+                        else if (control is ComboBox cmb)
                         {
-                            cmb.SelectedItem = valor;
+                            if (cmb.DataSource != null) cmb.SelectedValue = valor!;
+                            else cmb.SelectedItem = valor;
                         }
                         break;
 
                     case TipoFiltroControl.Fecha:
-                        var dtp = (DateTimePicker)control;
                         if (valor is DateTime dt)
                         {
-                            dtp.Value = dt;
+                            if (control is SelectorFechaModerno sfm) sfm.Value = dt;
+                            else if (control is DateTimePicker dtp) dtp.Value = dt;
                         }
                         break;
                 }
                 _suspenderEventos = false;
-                LanzarFiltroCambiado();
+                if (dispararEvento)
+                {
+                    LanzarFiltroCambiado();
+                }
             }
         }
 
@@ -460,6 +487,36 @@ namespace HSis.UI.Controls
             if (!_suspenderEventos)
             {
                 FiltroCambiado?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        private void MarcarPeriodoComoPersonalizado()
+        {
+            if (_controlesEntrada.TryGetValue("Periodo", out var ctrlPeriodo))
+            {
+                string? actual = ctrlPeriodo switch
+                {
+                    ComboModerno cmbMod => cmbMod.SelectedItem?.ToString(),
+                    ComboBox cb => cb.SelectedItem?.ToString(),
+                    _ => null
+                };
+
+                if (actual != "Personalizado")
+                {
+                    bool prev = _suspenderEventos;
+                    _suspenderEventos = true;
+                    try
+                    {
+                        if (ctrlPeriodo is ComboModerno cmbMod)
+                            cmbMod.SelectedItem = "Personalizado";
+                        else if (ctrlPeriodo is ComboBox cb)
+                            cb.SelectedItem = "Personalizado";
+                    }
+                    finally
+                    {
+                        _suspenderEventos = prev;
+                    }
+                }
             }
         }
 
@@ -562,13 +619,37 @@ namespace HSis.UI.Controls
                 {
                     if (_controlesEntrada.TryGetValue("FechaInicio", out var ctrlInicio))
                     {
-                        if (ctrlInicio is SelectorFechaModerno sfm) sfm.Value = inicio.Value;
-                        else if (ctrlInicio is DateTimePicker dtp) dtp.Value = inicio.Value;
+                        if (ctrlInicio is SelectorFechaModerno sfm)
+                        {
+                            var v = inicio.Value;
+                            if (v < sfm.MinDate) v = sfm.MinDate;
+                            if (v > sfm.MaxDate) v = sfm.MaxDate;
+                            sfm.Value = v;
+                        }
+                        else if (ctrlInicio is DateTimePicker dtp)
+                        {
+                            var v = inicio.Value;
+                            if (v < dtp.MinDate) v = dtp.MinDate;
+                            if (v > dtp.MaxDate) v = dtp.MaxDate;
+                            dtp.Value = v;
+                        }
                     }
                     if (_controlesEntrada.TryGetValue("FechaFin", out var ctrlFin))
                     {
-                        if (ctrlFin is SelectorFechaModerno sfm) sfm.Value = fin.Value;
-                        else if (ctrlFin is DateTimePicker dtp) dtp.Value = fin.Value;
+                        if (ctrlFin is SelectorFechaModerno sfm)
+                        {
+                            var v = fin.Value;
+                            if (v < sfm.MinDate) v = sfm.MinDate;
+                            if (v > sfm.MaxDate) v = sfm.MaxDate;
+                            sfm.Value = v;
+                        }
+                        else if (ctrlFin is DateTimePicker dtp)
+                        {
+                            var v = fin.Value;
+                            if (v < dtp.MinDate) v = dtp.MinDate;
+                            if (v > dtp.MaxDate) v = dtp.MaxDate;
+                            dtp.Value = v;
+                        }
                     }
                 }
                 finally

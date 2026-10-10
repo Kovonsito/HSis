@@ -195,13 +195,13 @@ public class CoordinadorDashboardAdmin(
                 TipoKpiDashboard.Urgentes,
                 TipoKpiDashboard.EnProceso,
                 TipoKpiDashboard.Cerrados,
-                TipoKpiDashboard.Reabiertos,
+                TipoKpiDashboard.Pendientes,
                 TipoKpiDashboard.Calificacion
             ],
             [btnNuevoTicket, btnAbrirReportes]);
 
         VistaTickets.Filtro.InicializarFiltros(ConfiguracionFiltrosTickets.ObtenerCamposAdmin());
-        VistaTickets.ControladorPaginacion.Vincular((Action)MostrarPaginaActual);
+        VistaTickets.ControladorPaginacion.Vincular(async () => await CargarPaginaActualAsync(recargarKpis: false));
         VistaTickets.KpiClic += MostrarVistaKpi;
         VistaTickets.Grid.CellDoubleClick += VistaTickets_DoubleClick;
 
@@ -230,6 +230,12 @@ public class CoordinadorDashboardAdmin(
 
     public override async Task RecargarDatosAsync()
     {
+        VistaTickets.ControladorPaginacion.ReiniciarAPrimeraPagina();
+        await CargarPaginaActualAsync(recargarKpis: true);
+    }
+
+    private async Task CargarPaginaActualAsync(bool recargarKpis)
+    {
         var numeroRecarga = Interlocked.Increment(ref _numeroRecarga);
 
         await Formulario.EjecutarOperacionAsync(async () =>
@@ -237,30 +243,106 @@ public class CoordinadorDashboardAdmin(
             var valores = VistaTickets.Filtro.ObtenerValoresFiltros();
             var filtros = ConfiguracionFiltrosTickets.MapearFiltrosAdmin(valores);
 
-            // Si hay un KPI activo (operacional), no restringir por fecha en la consulta de tickets
-            // para que se muestren todos los tickets que componen dicho indicador.
-            if (_kpiActivo.HasValue)
+            // Si hay un KPI activo, aplicamos el filtro correspondiente a nivel de base de datos
+            if (_kpiActivo == TipoKpiDashboard.Calificacion)
             {
-                filtros.FechaAltaInicio = null;
-                filtros.FechaAltaFin = null;
+                filtros.SoloCalificados = true;
+            }
+            else if (_kpiActivo.HasValue)
+            {
+                switch (_kpiActivo.Value)
+                {
+                    case TipoKpiDashboard.Disponibles:
+                        filtros.Estatus = "Nuevos";
+                        filtros.SinTecnicoAsignado = true;
+                        filtros.FechaAltaInicio = null;
+                        filtros.FechaAltaFin = null;
+                        break;
+                    case TipoKpiDashboard.Urgentes:
+                        filtros.Estatus = "Urgentes";
+                        filtros.FechaAltaInicio = null;
+                        filtros.FechaAltaFin = null;
+                        break;
+                    case TipoKpiDashboard.EnProceso:
+                        filtros.Estatus = ConstantesEstatus.EN_PROCESO;
+                        filtros.FechaAltaInicio = null;
+                        filtros.FechaAltaFin = null;
+                        break;
+                    case TipoKpiDashboard.Cerrados:
+                        filtros.Estatus = ConstantesEstatus.CERRADO;
+                        // Cerrados respeta el filtro de fechas seleccionado en la barra de filtros
+                        break;
+                    case TipoKpiDashboard.Pendientes:
+                        filtros.SoloPendientes = true;
+                        filtros.Estatus = null;
+                        filtros.FechaAltaInicio = null;
+                        filtros.FechaAltaFin = null;
+                        break;
+                }
             }
 
-            var ticketsTask = _ticketService.ObtenerTicketsFiltradosAsync(filtros);
-            var resumenTask = _ticketService.ObtenerResumenDashboardAsync(filtros.IdTecnico);
+            // Sincronizar visualmente la tarjeta de KPI seleccionada
+            if (!_kpiActivo.HasValue && valores.TryGetValue("Estatus", out var estObj) && estObj?.ToString() is string estFiltro)
+            {
+                TipoKpiDashboard? kpiAsociado = estFiltro switch
+                {
+                    "En Proceso" => TipoKpiDashboard.EnProceso,
+                    "Cerrado" => TipoKpiDashboard.Cerrados,
+                    "Nuevos" => TipoKpiDashboard.Disponibles,
+                    "Urgentes" => TipoKpiDashboard.Urgentes,
+                    _ => null
+                };
+                VistaTickets.SeleccionarKpi(kpiAsociado);
+            }
+            else
+            {
+                VistaTickets.SeleccionarKpi(_kpiActivo);
+            }
 
-            await Task.WhenAll(ticketsTask, resumenTask);
+            int pagina = Math.Max(1, VistaTickets.ControladorPaginacion.PaginaActual);
+            int tamanoPagina = VistaTickets.ControladorPaginacion.TamanoPagina > 0
+                ? VistaTickets.ControladorPaginacion.TamanoPagina
+                : 25;
 
-            // El usuario puede cambiar otro filtro mientras la petición estaba pendiente.
-            // En ese caso, solo la petición más reciente puede actualizar la pantalla.
+            var ticketsTask = _ticketService.ObtenerTicketsFiltradosPaginadosAsync(filtros, pagina, tamanoPagina);
+            Task<DashboardResumenDto>? resumenTask = recargarKpis
+                ? _ticketService.ObtenerResumenDashboardAsync(filtros.IdTecnico, filtros.FechaAltaInicio, filtros.FechaAltaFin)
+                : null;
+
+            if (resumenTask != null)
+            {
+                await Task.WhenAll(ticketsTask, resumenTask);
+            }
+            else
+            {
+                await ticketsTask;
+            }
+
             if (numeroRecarga != Volatile.Read(ref _numeroRecarga))
             {
                 return;
             }
 
-            _tickets = await ticketsTask;
-            ActualizarKpis(await resumenTask);
-            VistaTickets.ControladorPaginacion.ReiniciarAPrimeraPagina();
-            MostrarPaginaActual();
+            var resultadoPaginado = await ticketsTask;
+            _tickets = resultadoPaginado.Items;
+
+            if (resumenTask != null)
+            {
+                ActualizarKpis(await resumenTask);
+            }
+
+            VistaTickets.Grid.DataSource = new ListaVinculableOrdenable<TicketDto>(_tickets);
+
+            if (_kpiActivo == TipoKpiDashboard.Calificacion)
+            {
+                ConfiguracionColumnasDashboard.AplicarPerfilCalificaciones(VistaTickets.Grid);
+            }
+            else
+            {
+                ConfiguracionColumnasDashboard.AplicarPerfilAdmin(VistaTickets.Grid);
+            }
+
+            VistaTickets.ControladorPaginacion.Actualizar(resultadoPaginado.TotalCount, pagina, tamanoPagina);
         }, "Error al cargar el dashboard de administración", "dashboard-admin", VistaTickets.Grid);
     }
 
@@ -270,85 +352,45 @@ public class CoordinadorDashboardAdmin(
         VistaTickets.ActualizarValorKpi(TipoKpiDashboard.Urgentes, resumen.TotalUrgentes);
         VistaTickets.ActualizarValorKpi(TipoKpiDashboard.EnProceso, resumen.TotalEnProceso);
         VistaTickets.ActualizarValorKpi(TipoKpiDashboard.Cerrados, resumen.TotalCerrados);
-        VistaTickets.ActualizarValorKpi(TipoKpiDashboard.Reabiertos, resumen.TotalReabiertos);
+        VistaTickets.ActualizarValorKpi(TipoKpiDashboard.Pendientes, resumen.TotalPendientes);
         VistaTickets.ActualizarValorKpi(TipoKpiDashboard.Calificacion, resumen.PromedioCalificacion, true);
-    }
 
-    private void MostrarPaginaActual()
-    {
-        IEnumerable<TicketDto> consulta = _tickets;
-        var valores = VistaTickets.Filtro.ObtenerValoresFiltros();
-        var (_, fechaInicio, fechaFin, prioridad, usuario) = valores.ExtraerFiltrosComunes();
-
-        if (_kpiActivo == TipoKpiDashboard.Calificacion)
+        if (resumen.FechaPrimerTicket.HasValue)
         {
-            consulta = consulta.Where(t => t.Calificacion.HasValue);
+            VistaTickets.Filtro.ConfigurarLimitesFecha(resumen.FechaPrimerTicket.Value, DateTime.Today);
         }
-        else if (_kpiActivo.HasValue)
-        {
-            var limiteSla = DateTime.Now.AddHours(-48);
-            consulta = _kpiActivo.Value switch
-            {
-                TipoKpiDashboard.Disponibles => consulta.Where(t => t.Estatus == ConstantesEstatus.ABIERTO && t.IdTecnico == null && t.FechaAlta.HasValue && t.FechaAlta.Value >= limiteSla),
-                TipoKpiDashboard.Urgentes => consulta.Where(t => t.Estatus == ConstantesEstatus.ABIERTO && t.FechaAlta.HasValue && t.FechaAlta.Value < limiteSla),
-                TipoKpiDashboard.EnProceso => consulta.Where(t => t.Estatus == ConstantesEstatus.EN_PROCESO),
-                TipoKpiDashboard.Cerrados => consulta.Where(t => t.Estatus == ConstantesEstatus.CERRADO),
-                TipoKpiDashboard.Reabiertos => consulta.Where(t => t.Estatus == ConstantesEstatus.REABIERTO),
-                _ => consulta
-            };
-        }
-
-        if (!string.IsNullOrWhiteSpace(prioridad))
-        {
-            consulta = consulta.Where(t => string.Equals(t.Prioridad, prioridad, StringComparison.OrdinalIgnoreCase));
-        }
-
-        if (!string.IsNullOrWhiteSpace(usuario))
-        {
-            consulta = consulta.Where(t => (t.NombreUsuario ?? string.Empty).Contains(usuario, StringComparison.OrdinalIgnoreCase));
-        }
-
-        if (!_kpiActivo.HasValue)
-        {
-            var esTodos = valores.TryGetValue("Periodo", out var pVal) && string.Equals(pVal?.ToString(), "Todos", StringComparison.OrdinalIgnoreCase);
-            if (!esTodos)
-            {
-                if (fechaInicio.HasValue)
-                {
-                    consulta = consulta.Where(t => t.FechaAlta.HasValue && t.FechaAlta.Value >= fechaInicio.Value);
-                }
-
-                if (fechaFin.HasValue)
-                {
-                    consulta = consulta.Where(t => t.FechaAlta.HasValue && t.FechaAlta.Value <= fechaFin.Value);
-                }
-            }
-        }
-
-        var filtrados = consulta.ToList();
-        var pagina = VistaTickets.ControladorPaginacion.ObtenerPagina(filtrados).ToList();
-        VistaTickets.Grid.DataSource = new ListaVinculableOrdenable<TicketDto>(pagina);
-
-        if (_kpiActivo == TipoKpiDashboard.Calificacion)
-        {
-            ConfiguracionColumnasDashboard.AplicarPerfilCalificaciones(VistaTickets.Grid);
-        }
-        else
-        {
-            ConfiguracionColumnasDashboard.AplicarPerfilAdmin(VistaTickets.Grid);
-        }
-
-        VistaTickets.ControladorPaginacion.Actualizar(filtrados.Count);
     }
 
     private async void MostrarVistaKpi(TipoKpiDashboard tipo)
     {
         _kpiActivo = _kpiActivo == tipo ? null : tipo;
+        VistaTickets.SeleccionarKpi(_kpiActivo);
+
+        // Sincronizar el combo de Estatus en el filtro sin generar bucles de eventos
+        string nuevoEstatus = _kpiActivo switch
+        {
+            TipoKpiDashboard.Disponibles => "Nuevos",
+            TipoKpiDashboard.Urgentes => "Urgentes",
+            TipoKpiDashboard.EnProceso => "En Proceso",
+            TipoKpiDashboard.Cerrados => "Cerrado",
+            _ => "Todos"
+        };
+        VistaTickets.Filtro.EstablecerValorFiltro("Estatus", nuevoEstatus, dispararEvento: false);
 
         if (_kpiActivo == TipoKpiDashboard.Calificacion)
         {
             TopBar.Titulo = "Calificaciones";
             TopBar.Subtitulo = "Retroalimentación registrada por los usuarios";
+        }
+        else if (_kpiActivo == TipoKpiDashboard.Urgentes)
+        {
+            TopBar.Titulo = "Tickets Fuera de SLA (>48h)";
+            TopBar.Subtitulo = "Tickets abiertos cuyo tiempo de primera respuesta excede el SLA establecido";
+        }
+        else if (_kpiActivo == TipoKpiDashboard.Pendientes)
+        {
+            TopBar.Titulo = "Total de Tickets Pendientes";
+            TopBar.Subtitulo = "Solicitudes abiertas y en proceso que requieren resolución";
         }
         else
         {
@@ -842,7 +884,7 @@ public class CoordinadorDashboardAdmin(
         _kpiActivo = null;
         TopBar.Titulo = "Panel de Control";
         TopBar.Subtitulo = "Mesa de Servicio y Gestión Global";
-        MostrarPaginaActual();
+        _ = RecargarDatosAsync();
     }
 
     private void ConfigurarEncabezadoCatalogo(string clave)

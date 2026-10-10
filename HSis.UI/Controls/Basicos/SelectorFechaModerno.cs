@@ -16,6 +16,8 @@ namespace HSis.UI.Controls
         private Color _colorBordeFoco = TemaVisual.Primario;
         private bool _tieneFoco = false;
 
+        private bool _cambioProgramatico = false;
+
         [Category("Apariencia Moderna")]
         [DefaultValue(6)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
@@ -32,8 +34,19 @@ namespace HSis.UI.Controls
             get => _dtp.Value;
             set
             {
-                _dtp.Value = value;
-                Invalidate();
+                if (_dtp.Value != value)
+                {
+                    _cambioProgramatico = true;
+                    try
+                    {
+                        _dtp.Value = value;
+                    }
+                    finally
+                    {
+                        _cambioProgramatico = false;
+                    }
+                    Invalidate();
+                }
             }
         }
 
@@ -55,7 +68,36 @@ namespace HSis.UI.Controls
             set => _dtp.CustomFormat = value;
         }
 
+        [Category("Comportamiento")]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
+        public DateTime MinDate
+        {
+            get => _dtp.MinDate;
+            set
+            {
+                if (value <= _dtp.MaxDate)
+                {
+                    _dtp.MinDate = value;
+                }
+            }
+        }
+
+        [Category("Comportamiento")]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
+        public DateTime MaxDate
+        {
+            get => _dtp.MaxDate;
+            set
+            {
+                if (value >= _dtp.MinDate)
+                {
+                    _dtp.MaxDate = value;
+                }
+            }
+        }
+
         public event EventHandler? ValueChanged;
+        public event EventHandler? ValorCambiadoPorUsuario;
 
         public SelectorFechaModerno()
         {
@@ -75,7 +117,14 @@ namespace HSis.UI.Controls
 
             _dtp.Enter += (s, e) => { _tieneFoco = true; Invalidate(); };
             _dtp.Leave += (s, e) => { _tieneFoco = false; Invalidate(); };
-            _dtp.ValueChanged += (s, e) => ValueChanged?.Invoke(this, e);
+            _dtp.ValueChanged += (s, e) =>
+            {
+                ValueChanged?.Invoke(this, e);
+                if (!_cambioProgramatico)
+                {
+                    ValorCambiadoPorUsuario?.Invoke(this, e);
+                }
+            };
 
             Controls.Add(_dtp);
             AlinearDateTimePicker();

@@ -122,6 +122,7 @@ namespace HSis.UI.Coordinators
 
         public override async Task RecargarDatosAsync()
         {
+            ActualizarKpiSeleccionado();
             await Task.WhenAll(CargarIndicadoresAsync(ContextoSesion.IdUsuario), CargarTicketsSegunVistaAsync());
         }
 
@@ -176,6 +177,7 @@ namespace HSis.UI.Coordinators
                 _ => string.Empty
             };
 
+            ActualizarKpiSeleccionado();
             await CargarTicketsSegunVistaAsync();
         }
 
@@ -186,7 +188,21 @@ namespace HSis.UI.Coordinators
             TopBar.ActualizarItemActivo(clave);
             TopBar.Titulo = titulo;
             TopBar.Subtitulo = subtitulo;
+            ActualizarKpiSeleccionado();
             await CargarTicketsSegunVistaAsync();
+        }
+
+        private void ActualizarKpiSeleccionado()
+        {
+            TipoKpiDashboard? kpi = _vistaActual switch
+            {
+                VistaTecnico.MisAsignados => TipoKpiDashboard.MisAsignados,
+                VistaTecnico.Disponibles => TipoKpiDashboard.Disponibles,
+                VistaTecnico.Cerrados => TipoKpiDashboard.MisCerrados,
+                VistaTecnico.Calificaciones => TipoKpiDashboard.Calificacion,
+                _ => null
+            };
+            VistaTickets.SeleccionarKpi(kpi);
         }
 
         private async Task CargarIndicadoresAsync(int idTecnico)
@@ -198,6 +214,11 @@ namespace HSis.UI.Coordinators
                 VistaTickets.ActualizarValorKpi(TipoKpiDashboard.Disponibles, ind.Disponibles);
                 VistaTickets.ActualizarValorKpi(TipoKpiDashboard.MisCerrados, ind.Cerrados);
                 VistaTickets.ActualizarValorKpi(TipoKpiDashboard.Calificacion, ind.PromedioCalificacion, esCalificacionEstrellas: true);
+
+                if (ind.FechaPrimerTicket.HasValue)
+                {
+                    VistaTickets.Filtro.ConfigurarLimitesFecha(ind.FechaPrimerTicket.Value, DateTime.Today);
+                }
             }, "Error al cargar indicadores técnicos", "indicadores-tecnico");
         }
 

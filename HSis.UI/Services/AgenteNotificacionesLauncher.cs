@@ -36,7 +36,14 @@ public sealed class AgenteNotificacionesLauncher(IConfiguration configuration)
                 Log.Warning("No se pudo registrar el inicio automático del agente de notificaciones.");
             }
 
-            LanzadorProceso.Iniciar(executablePath);
+            string? argumentos = null;
+            if (System.Diagnostics.Debugger.IsAttached || 
+                string.Equals(Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT"), "Development", StringComparison.OrdinalIgnoreCase))
+            {
+                argumentos = $"--parent-pid {Environment.ProcessId}";
+            }
+
+            LanzadorProceso.Iniciar(executablePath, argumentos);
         }
         catch (Exception ex)
         {

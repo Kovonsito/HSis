@@ -42,6 +42,7 @@ partial class IniciarSesionForm
         this.txtUsuario = new HSis.UI.Controls.CajaTextoModerna();
         this.lblContraseña = new Label();
         this.txtContraseña = new HSis.UI.Controls.CajaTextoModerna();
+        this.lblErrorCredenciales = new Label();
         this.btnIniciarSesion = new HSis.UI.Controls.BotonModerno();
         this.pnlFormulario.SuspendLayout();
         this.SuspendLayout();
@@ -67,6 +68,7 @@ partial class IniciarSesionForm
         this.pnlFormulario.Controls.Add(this.txtUsuario);
         this.pnlFormulario.Controls.Add(this.lblContraseña);
         this.pnlFormulario.Controls.Add(this.txtContraseña);
+        this.pnlFormulario.Controls.Add(this.lblErrorCredenciales);
         this.pnlFormulario.Controls.Add(this.btnIniciarSesion);
         this.pnlFormulario.Dock = DockStyle.Fill;
         this.pnlFormulario.Location = new Point(250, 0);
@@ -147,6 +149,19 @@ partial class IniciarSesionForm
         this.txtContraseña.TabIndex = 5;
 
         // 
+        // lblErrorCredenciales
+        // 
+        this.lblErrorCredenciales.AutoSize = true;
+        this.lblErrorCredenciales.Font = new Font("Segoe UI", 8.5F);
+        this.lblErrorCredenciales.ForeColor = Color.FromArgb(239, 68, 68);
+        this.lblErrorCredenciales.Location = new Point(37, 244);
+        this.lblErrorCredenciales.Name = "lblErrorCredenciales";
+        this.lblErrorCredenciales.Size = new Size(204, 15);
+        this.lblErrorCredenciales.TabIndex = 7;
+        this.lblErrorCredenciales.Text = "El usuario o contraseña es incorrecta";
+        this.lblErrorCredenciales.Visible = false;
+
+        // 
         // btnIniciarSesion
         // 
         this.btnIniciarSesion.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
@@ -191,6 +206,7 @@ partial class IniciarSesionForm
     private Label lblSubBienvenida = null!;
     private Label lblUsuario = null!;
     private Label lblContraseña = null!;
+    private Label lblErrorCredenciales = null!;
     private HSis.UI.Controls.CajaTextoModerna txtUsuario = null!;
     private HSis.UI.Controls.CajaTextoModerna txtContraseña = null!;
     private HSis.UI.Controls.BotonModerno btnIniciarSesion = null!;
@@ -262,8 +278,8 @@ partial class IniciarSesionForm
 
         int anchoContenido = Math.Min(360, anchoDisponible);
         int margenIzquierdo = pnlFormulario.Padding.Left + (anchoDisponible - anchoContenido) / 2;
-        int altoBloque = 330;
-        int margenSuperior = Math.Max(28, (pnlFormulario.ClientSize.Height - altoBloque) / 2);
+        int altoBloque = 340;
+        int margenSuperior = Math.Max(24, (pnlFormulario.ClientSize.Height - altoBloque) / 2);
 
         lblBienvenida.Location = new Point(margenIzquierdo, margenSuperior);
         lblSubBienvenida.Location = new Point(margenIzquierdo, margenSuperior + 34);
@@ -271,12 +287,15 @@ partial class IniciarSesionForm
         txtUsuario.Anchor = AnchorStyles.Top | AnchorStyles.Left;
         txtUsuario.Location = new Point(margenIzquierdo, margenSuperior + 98);
         txtUsuario.Width = anchoContenido;
-        lblContraseña.Location = new Point(margenIzquierdo, margenSuperior + 150);
+        lblContraseña.Location = new Point(margenIzquierdo, margenSuperior + 148);
         txtContraseña.Anchor = AnchorStyles.Top | AnchorStyles.Left;
-        txtContraseña.Location = new Point(margenIzquierdo, margenSuperior + 172);
+        txtContraseña.Location = new Point(margenIzquierdo, margenSuperior + 170);
         txtContraseña.Width = anchoContenido;
+
+        lblErrorCredenciales.Location = new Point(margenIzquierdo, margenSuperior + 209);
+
         btnIniciarSesion.Anchor = AnchorStyles.Top | AnchorStyles.Left;
-        btnIniciarSesion.Location = new Point(margenIzquierdo, margenSuperior + 231);
+        btnIniciarSesion.Location = new Point(margenIzquierdo, margenSuperior + 233);
         btnIniciarSesion.Width = anchoContenido;
     }
 }

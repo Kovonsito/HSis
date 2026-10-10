@@ -15,7 +15,7 @@ internal static class Program
     private const string AgentMutexName = ConfiguracionEscritorio.MutexAgenteNotificaciones;
 
     [STAThread]
-    private static void Main()
+    private static void Main(string[] args)
     {
         using var mutex = new Mutex(initiallyOwned: true, AgentMutexName, out var createdNew);
         if (!createdNew)
@@ -25,6 +25,8 @@ internal static class Program
 
         ApplicationConfiguration.Initialize();
         Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
+
+        ConfigurarMonitoreoProcesoPadre(args);
 
         var entorno = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
         if (string.IsNullOrWhiteSpace(entorno))
@@ -136,6 +138,37 @@ internal static class Program
                 Environment.ProcessPath!))
         {
             Console.Error.WriteLine("No se pudo registrar el inicio automático del agente.");
+        }
+    }
+
+    private static void ConfigurarMonitoreoProcesoPadre(string[] args)
+    {
+        for (int i = 0; i < args.Length - 1; i++)
+        {
+            if (string.Equals(args[i], "--parent-pid", StringComparison.OrdinalIgnoreCase) &&
+                int.TryParse(args[i + 1], out int parentPid))
+            {
+                try
+                {
+                    var parentProcess = System.Diagnostics.Process.GetProcessById(parentPid);
+                    parentProcess.EnableRaisingEvents = true;
+                    parentProcess.Exited += (_, _) =>
+                    {
+                        Environment.Exit(0);
+                    };
+
+                    if (parentProcess.HasExited)
+                    {
+                        Environment.Exit(0);
+                    }
+                }
+                catch
+                {
+                    // Si el proceso padre ya no existe al iniciar, salir inmediatamente en modo depuración
+                    Environment.Exit(0);
+                }
+                break;
+            }
         }
     }
 }

@@ -50,6 +50,21 @@
             }
         },
         {
+            "name": ".NET Agent (HSis.NotificationAgent)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-agent",
+            "program": "${workspaceFolder}/HSis.NotificationAgent/bin/Debug/net10.0-windows10.0.19041.0/HSis.NotificationAgent.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}/HSis.NotificationAgent",
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "env": {
+                "DOTNET_ENVIRONMENT": "Development",
+                "DOTNET_MODIFIABLE_ASSEMBLIES": "debug"
+            }
+        },
+        {
             // Use IntelliSense to find out which attributes exist for C# debugging
             // Use hover for the description of the existing attributes
             // For further information visit https://github.com/dotnet/vscode-csharp/blob/main/debugger-launchjson.md
@@ -80,11 +95,35 @@
             ]
         },
         {
+            "name": "Servidor + UI + Agente (Depuración)",
+            "configurations": [
+                ".NET Server (HSis.Server)",
+                ".NET UI (HSis.UI)",
+                ".NET Agent (HSis.NotificationAgent)"
+            ]
+        },
+        {
             "name": "Servidor + 2x UI (Depuración)",
             "configurations": [
                 ".NET Server (HSis.Server)",
                 ".NET UI (HSis.UI)",
                 ".NET UI - Instancia 2 (HSis.UI)"
+            ]
+        },
+        {
+            "name": "Servidor + 2x UI + Agente (Depuración)",
+            "configurations": [
+                ".NET Server (HSis.Server)",
+                ".NET UI (HSis.UI)",
+                ".NET UI - Instancia 2 (HSis.UI)",
+                ".NET Agent (HSis.NotificationAgent)"
+            ]
+        },
+        {
+            "name": "Servidor + Agente (Depuración)",
+            "configurations": [
+                ".NET Server (HSis.Server)",
+                ".NET Agent (HSis.NotificationAgent)"
             ]
         },
         {

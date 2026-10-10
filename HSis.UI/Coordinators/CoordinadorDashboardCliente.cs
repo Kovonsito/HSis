@@ -87,6 +87,20 @@ namespace HSis.UI.Coordinators
                 VistaTickets.ActualizarValorKpi(TipoKpiDashboard.MisActivos, resumen.Activos);
                 VistaTickets.ActualizarValorKpi(TipoKpiDashboard.MisCerrados, resumen.Cerrados);
                 TodosLosTickets = resumen.Tickets;
+
+                TipoKpiDashboard? kpiSeleccionado = VistaActual switch
+                {
+                    VistaCliente.Activos => TipoKpiDashboard.MisActivos,
+                    VistaCliente.Cerrados => TipoKpiDashboard.MisCerrados,
+                    _ => null
+                };
+                VistaTickets.SeleccionarKpi(kpiSeleccionado);
+
+                if (resumen.FechaPrimerTicket.HasValue)
+                {
+                    VistaTickets.Filtro.ConfigurarLimitesFecha(resumen.FechaPrimerTicket.Value, DateTime.Today);
+                }
+
                 VistaTickets.ControladorPaginacion.ReiniciarAPrimeraPagina();
                 MostrarPaginaActual();
             }, "Error al cargar tickets del cliente", "dashboard-cliente", VistaTickets.Grid);
@@ -94,17 +108,21 @@ namespace HSis.UI.Coordinators
 
         public void SeleccionarVista(string clave)
         {
+            TipoKpiDashboard? kpiSeleccionado = null;
+
             if (clave == "activos")
             {
                 VistaActual = VistaCliente.Activos;
                 TopBar.Titulo = "Mis Tickets Activos";
                 TopBar.Subtitulo = "Solicitudes en proceso y pendientes de atención";
+                kpiSeleccionado = TipoKpiDashboard.MisActivos;
             }
             else if (clave == "cerrados")
             {
                 VistaActual = VistaCliente.Cerrados;
                 TopBar.Titulo = "Historial de Tickets Cerrados";
                 TopBar.Subtitulo = "Solicitudes resueltas y cerradas";
+                kpiSeleccionado = TipoKpiDashboard.MisCerrados;
             }
             else
             {
@@ -113,6 +131,7 @@ namespace HSis.UI.Coordinators
                 TopBar.Subtitulo = "Historial completo de solicitudes";
             }
 
+            VistaTickets.SeleccionarKpi(kpiSeleccionado);
             VistaTickets.ControladorPaginacion.ReiniciarAPrimeraPagina();
             MostrarPaginaActual();
         }
@@ -125,6 +144,15 @@ namespace HSis.UI.Coordinators
             TopBar.ActualizarItemActivo(claveActiva);
             TopBar.Titulo = VistaActual == vista ? titulo : "Todos Mis Tickets";
             TopBar.Subtitulo = VistaActual == vista ? subtitulo : "Historial completo de solicitudes";
+
+            TipoKpiDashboard? kpiSeleccionado = VistaActual switch
+            {
+                VistaCliente.Activos => TipoKpiDashboard.MisActivos,
+                VistaCliente.Cerrados => TipoKpiDashboard.MisCerrados,
+                _ => null
+            };
+            VistaTickets.SeleccionarKpi(kpiSeleccionado);
+
             VistaTickets.ControladorPaginacion.ReiniciarAPrimeraPagina();
             MostrarPaginaActual();
         }

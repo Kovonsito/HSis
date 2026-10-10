@@ -285,7 +285,42 @@ namespace HSis.Tests.Services
             resumen.TotalEnProceso.Should().Be(1); // 404
             resumen.TotalCerrados.Should().Be(1); // 405
             resumen.TotalReabiertos.Should().Be(1); // 406
+            resumen.TotalPendientes.Should().Be(4); // 401 + 403 + 404 + 406
             resumen.PromedioCalificacion.Should().Be(5.0);
+        }
+
+        [Fact]
+        public async Task ObtenerResumenDashboardAsyncConRangoFechasDebeFiltrarCerradosYCalificacion()
+        {
+            // Arrange
+            var options = new DbContextOptionsBuilder<HSisDbContext>()
+                .UseInMemoryDatabase(databaseName: "HSis_Test_ResumenDashboard_Fechas")
+                .Options;
+
+            var service = new TicketService(CreateFactory(options), _mapper, _createValidator, _updateValidator);
+
+            using (var db = new HSisDbContext(options))
+            {
+                // Cerrado hace 5 días (dentro del rango)
+                db.Tickets.Add(new Ticket { IdTicket = 501, Estatus = ConstantesEstatus.CERRADO, Calificacion = 5, FechaAlta = DateTime.Now.AddDays(-5) });
+                // Cerrado hace 50 días (fuera del rango de 30 días)
+                db.Tickets.Add(new Ticket { IdTicket = 502, Estatus = ConstantesEstatus.CERRADO, Calificacion = 1, FechaAlta = DateTime.Now.AddDays(-50) });
+                // Operativo: Abierto dentro de 48h
+                db.Tickets.Add(new Ticket { IdTicket = 503, IdTecnico = null, Estatus = ConstantesEstatus.ABIERTO, FechaAlta = DateTime.Now.AddHours(-2) });
+
+                await db.SaveChangesAsync();
+            }
+
+            // Act - Filtrar últimos 30 días
+            var inicio = DateTime.Today.AddDays(-30);
+            var fin = DateTime.Today.AddDays(1);
+            var resumen = await service.ObtenerResumenDashboardAsync(fechaInicio: inicio, fechaFin: fin);
+
+            // Assert
+            resumen.TotalNuevos.Should().Be(1); // 503 (operacional)
+            resumen.TotalPendientes.Should().Be(1); // 503
+            resumen.TotalCerrados.Should().Be(1); // Solo 501 (502 queda fuera del rango)
+            resumen.PromedioCalificacion.Should().Be(5.0); // Solo la calificación de 501
         }
     }
 }

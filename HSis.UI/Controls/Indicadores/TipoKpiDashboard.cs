@@ -14,6 +14,7 @@ namespace HSis.UI.Controls
         EnProceso,
         Cerrados,
         Reabiertos,
+        Pendientes,
 
         // Técnico
         MisAsignados,
@@ -36,10 +37,11 @@ namespace HSis.UI.Controls
             return tipo switch
             {
                 TipoKpiDashboard.Disponibles => ("DISPONIBLES", TemaVisual.TicketDisponible, Properties.Resources.Disponible),
-                TipoKpiDashboard.Urgentes => ("URGENTES", TemaVisual.TicketUrgente, Properties.Resources.Urgente),
+                TipoKpiDashboard.Urgentes => ("SLA VENCIDO (>48H)", TemaVisual.TicketUrgente, Properties.Resources.Urgente),
                 TipoKpiDashboard.EnProceso => ("EN PROCESO", TemaVisual.TicketEnProceso, Properties.Resources.En_proceso),
                 TipoKpiDashboard.Cerrados => ("CERRADOS", TemaVisual.TicketCerrado, Properties.Resources.Cerrado),
                 TipoKpiDashboard.Reabiertos => ("REABIERTOS", TemaVisual.TicketReabierto, null),
+                TipoKpiDashboard.Pendientes => ("TOTAL PENDIENTES", TemaVisual.Primario, null),
 
                 TipoKpiDashboard.MisAsignados => ("MIS ASIGNADOS", TemaVisual.TicketDisponible, null),
                 TipoKpiDashboard.MisCerrados => ("MIS CERRADOS", TemaVisual.TicketCerrado, Properties.Resources.Cerrado),

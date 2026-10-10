@@ -111,9 +111,17 @@ namespace HSis.UI.ApiClients
             return await httpClient.GetFromJsonWithDetailsAsync<List<TicketDto>>($"api/Tickets/tecnico/{idTecnico}/feedback") ?? [];
         }
 
-        public async Task<DashboardResumenDto> ObtenerResumenDashboardAsync(int? idTecnico = null)
+        public async Task<DashboardResumenDto> ObtenerResumenDashboardAsync(int? idTecnico = null, DateTime? fechaInicio = null, DateTime? fechaFin = null)
         {
-            var url = idTecnico.HasValue ? $"api/Tickets/dashboard-resumen?idTecnico={idTecnico.Value}" : "api/Tickets/dashboard-resumen";
+            var query = new List<string>();
+            if (idTecnico.HasValue) query.Add($"idTecnico={idTecnico.Value}");
+            if (fechaInicio.HasValue) query.Add($"fechaInicio={Uri.EscapeDataString(fechaInicio.Value.ToString("o"))}");
+            if (fechaFin.HasValue) query.Add($"fechaFin={Uri.EscapeDataString(fechaFin.Value.ToString("o"))}");
+
+            var url = query.Count > 0
+                ? $"api/Tickets/dashboard-resumen?{string.Join("&", query)}"
+                : "api/Tickets/dashboard-resumen";
+
             return await httpClient.GetFromJsonWithDetailsAsync<DashboardResumenDto>(url) ?? new DashboardResumenDto();
         }
 

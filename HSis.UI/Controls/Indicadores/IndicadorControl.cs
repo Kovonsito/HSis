@@ -81,6 +81,22 @@ namespace HSis.UI.Controls
             }
         }
 
+        private bool _seleccionado = false;
+
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public bool Seleccionado
+        {
+            get => _seleccionado;
+            set
+            {
+                if (_seleccionado != value)
+                {
+                    _seleccionado = value;
+                    Invalidate();
+                }
+            }
+        }
+
         protected override void OnPaintBackground(PaintEventArgs e)
         {
             var g = e.Graphics;
@@ -99,14 +115,18 @@ namespace HSis.UI.Controls
             var rect = new Rectangle(0, 0, Width - 1, Height - 1);
             using var path = TemaVisual.CrearRectanguloRedondeado(rect, 8);
 
-            // Fondo blanco de tarjeta
-            using (var brushFondo = new SolidBrush(Color.White))
+            // Fondo de la tarjeta (blanco o sutilmente tintado si está seleccionada)
+            Color colorFondoTarjeta = _seleccionado
+                ? Color.FromArgb(245, 248, 255)
+                : Color.White;
+
+            using (var brushFondo = new SolidBrush(colorFondoTarjeta))
             {
                 g.FillPath(brushFondo, path);
             }
 
             // Barra lateral izquierda de acento
-            var barraRect = new Rectangle(0, 0, 5, Height);
+            var barraRect = new Rectangle(0, 0, _seleccionado ? 7 : 5, Height);
             g.SetClip(path);
             using (var brushAcento = new SolidBrush(_colorAcento))
             {
@@ -114,8 +134,13 @@ namespace HSis.UI.Controls
             }
             g.ResetClip();
 
-            // Borde suave o destacado al hover
-            using var penBorde = new Pen(_isHovered ? Color.FromArgb(59, 130, 246) : Color.FromArgb(226, 232, 240), _isHovered ? 1.5f : 1f);
+            // Borde: acento destacado si está seleccionada, azul al hover, o neutro por defecto
+            Color colorBorde = _seleccionado
+                ? _colorAcento
+                : (_isHovered ? Color.FromArgb(59, 130, 246) : Color.FromArgb(226, 232, 240));
+            float grosorBorde = _seleccionado ? 2f : (_isHovered ? 1.5f : 1f);
+
+            using var penBorde = new Pen(colorBorde, grosorBorde);
             g.DrawPath(penBorde, path);
         }
 

@@ -7,7 +7,9 @@ namespace HSis.Contracts.DTOs
         public int TotalEnProceso { get; set; }
         public int TotalCerrados { get; set; }
         public int TotalReabiertos { get; set; }
+        public int TotalPendientes { get; set; }
         public double PromedioCalificacion { get; set; }
+        public DateTime? FechaPrimerTicket { get; set; }
 
         // Compatibilidad con código de UI y Tests
         public int TicketsNuevos { get => TotalNuevos; set => TotalNuevos = value; }
@@ -15,11 +17,12 @@ namespace HSis.Contracts.DTOs
         public int TicketsEnProceso { get => TotalEnProceso; set => TotalEnProceso = value; }
         public int TicketsCerrados { get => TotalCerrados; set => TotalCerrados = value; }
         public int TicketsReabiertos { get => TotalReabiertos; set => TotalReabiertos = value; }
+        public int TicketsPendientes { get => TotalPendientes; set => TotalPendientes = value; }
     }
 
-    public record IndicadoresTecnicoDto(int Asignados, int Disponibles, int Cerrados, double PromedioCalificacion);
+    public record IndicadoresTecnicoDto(int Asignados, int Disponibles, int Cerrados, double PromedioCalificacion, DateTime? FechaPrimerTicket = null);
 
-    public record ResumenClienteDto(int Activos, int Cerrados, List<TicketDto> Tickets);
+    public record ResumenClienteDto(int Activos, int Cerrados, List<TicketDto> Tickets, DateTime? FechaPrimerTicket = null);
 
     public record ElementoOpcionCombo(int? Id, string Nombre);
 }

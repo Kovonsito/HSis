@@ -14,6 +14,8 @@ namespace HSis.UI.Controls
         private Color _colorBorde = TemaVisual.BordeSutil;
         private Color _colorBordeFoco = TemaVisual.Primario;
         private bool _tieneFoco = false;
+        private Color _colorBordeError = TemaVisual.Peligro;
+        private bool _tieneError = false;
         private string _placeholder = string.Empty;
 
         [Category("Apariencia Moderna")]
@@ -23,6 +25,37 @@ namespace HSis.UI.Controls
         {
             get => _radioBorde;
             set { _radioBorde = Math.Max(0, value); Invalidate(); }
+        }
+
+        [Category("Apariencia Moderna")]
+        [DefaultValue(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
+        public bool TieneError
+        {
+            get => _tieneError;
+            set
+            {
+                if (_tieneError != value)
+                {
+                    _tieneError = value;
+                    Invalidate();
+                }
+            }
+        }
+
+        [Category("Apariencia Moderna")]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
+        public Color ColorBordeError
+        {
+            get => _colorBordeError;
+            set
+            {
+                if (_colorBordeError != value)
+                {
+                    _colorBordeError = value;
+                    Invalidate();
+                }
+            }
         }
 
         [Category("Apariencia Moderna")]
@@ -136,6 +169,10 @@ namespace HSis.UI.Controls
             _textBox.Leave += (s, e) => { _tieneFoco = false; Invalidate(); };
             _textBox.TextChanged += (s, e) =>
             {
+                if (_tieneError)
+                {
+                    _tieneError = false;
+                }
                 OnTextChanged(e);
                 Invalidate();
             };
@@ -177,13 +214,13 @@ namespace HSis.UI.Controls
                 g.DrawString(_placeholder, _textBox.Font, brushPlaceholder, new PointF(Padding.Left, yPos));
             }
 
-            // Borde
-            Color bordeActual = _tieneFoco ? _colorBordeFoco : _colorBorde;
-            float grosor = _tieneFoco ? 1.6f : 1.2f;
-            using (var penBorde = new Pen(bordeActual, grosor))
-            {
-                g.DrawPath(penBorde, path);
-            }
+            // Borde: Si tiene error, se dibuja rojo; si tiene foco, color foco; de lo contrario color borde sutil
+            Color bordeActual = _tieneError
+                ? _colorBordeError
+                : (_tieneFoco ? _colorBordeFoco : _colorBorde);
+            float grosor = (_tieneError || _tieneFoco) ? 1.6f : 1.2f;
+            using var penBorde = new Pen(bordeActual, grosor);
+            g.DrawPath(penBorde, path);
         }
 
         protected override void OnClick(EventArgs e)

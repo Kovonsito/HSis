@@ -30,7 +30,7 @@ partial class FiltroGenericoControl
             ColumnCount = 2,
             BackColor = Color.White,
             Margin = new Padding(0),
-            Padding = new Padding(12, 6, 12, 6)
+            Padding = new Padding(12, 4, 12, 4)
         };
         tblLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
         tblLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
@@ -48,6 +48,26 @@ partial class FiltroGenericoControl
             TabIndex = 0,
             WrapContents = false
         };
+        flowLayoutPanelMain.MouseWheel += (s, e) =>
+        {
+            try
+            {
+                if (flowLayoutPanelMain.HorizontalScroll.Visible)
+                {
+                    int desplazamiento = e.Delta > 0 ? -40 : 40;
+                    int nuevoValor = Math.Clamp(
+                        flowLayoutPanelMain.HorizontalScroll.Value + desplazamiento,
+                        flowLayoutPanelMain.HorizontalScroll.Minimum,
+                        flowLayoutPanelMain.HorizontalScroll.Maximum);
+                    flowLayoutPanelMain.HorizontalScroll.Value = nuevoValor;
+                    flowLayoutPanelMain.PerformLayout();
+                }
+            }
+            catch
+            {
+            }
+        };
+
         var pnlBotones = new FlowLayoutPanel
         {
             BackColor = Color.White,
@@ -56,8 +76,8 @@ partial class FiltroGenericoControl
             WrapContents = false,
             AutoSize = true,
             Margin = new Padding(0),
-            Padding = new Padding(0, 10, 0, 10),
-            MinimumSize = new Size(210, 54)
+            Padding = new Padding(0, 7, 0, 7),
+            MinimumSize = new Size(210, 48)
         };
 
         btnLimpiar = new BotonModerno
@@ -100,7 +120,7 @@ partial class FiltroGenericoControl
         BackColor = Color.Transparent;
         Controls.Add(tblLayout);
         Name = "FiltroGenericoControl";
-        Size = new Size(820, 68);
+        Size = new Size(820, 74);
         ResumeLayout(false);
     }
 }

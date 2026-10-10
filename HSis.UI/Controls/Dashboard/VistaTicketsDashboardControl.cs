@@ -96,7 +96,11 @@ namespace HSis.UI.Controls
                     ImagenFondo = imagen
                 };
 
-                indicador.IndicadorClic += (s, e) => KpiClic?.Invoke(tipo);
+                indicador.IndicadorClic += (s, e) =>
+                {
+                    SeleccionarKpi(tipo);
+                    KpiClic?.Invoke(tipo);
+                };
                 _kpisActivos[tipo] = indicador;
                 controlesKpi.Add(indicador);
             }
@@ -185,6 +189,18 @@ namespace HSis.UI.Controls
         {
             _kpisActivos.TryGetValue(tipo, out var ctrl);
             return ctrl;
+        }
+
+        /// <summary>
+        /// Marca visualmente como seleccionado el indicador especificado y deselecciona los demás.
+        /// Si se pasa null, todos quedan deseleccionados.
+        /// </summary>
+        public void SeleccionarKpi(TipoKpiDashboard? tipoSeleccionado)
+        {
+            foreach (var kvp in _kpisActivos)
+            {
+                kvp.Value.Seleccionado = tipoSeleccionado.HasValue && kvp.Key == tipoSeleccionado.Value;
+            }
         }
     }
 }

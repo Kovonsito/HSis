@@ -11,6 +11,9 @@ namespace HSis.Contracts.DTOs
         public DateTime? FechaAltaInicio { get; set; }
         public DateTime? FechaAltaFin { get; set; }
         public VistaTemporal? RangoTemporal { get; set; }
+        public bool? SinTecnicoAsignado { get; set; }
+        public bool? SoloCalificados { get; set; }
+        public bool? SoloPendientes { get; set; }
     }
 }
 

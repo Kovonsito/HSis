@@ -1,6 +1,8 @@
 {
-    "dotnet.server.useOmnisharp": false,
-    "dotnet.defaultSolution": "HSis.slnx",
+    "dotnet.server.useOmnisharp": true,
+    "dotnet.defaultSolution": "HSis.sln",
+    "omnisharp.defaultLaunchSolution": "HSis.sln",
+    "omnisharp.projectFilesExcludePattern": "**/HSis.slnx",
     "csharp.inlayHints.enableInlayHintsForImplicitVariableTypes": true,
     "csharp.inlayHints.enableInlayHintsForLambdaParameterTypes": true,
     "csharp.inlayHints.enableInlayHintsForTypes": true,

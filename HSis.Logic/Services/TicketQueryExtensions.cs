@@ -36,6 +36,18 @@ namespace HSis.Logic.Services
             {
                 query = query.Where(t => t.IdTecnico == filtros.IdTecnico.Value);
             }
+            if (filtros.SinTecnicoAsignado == true)
+            {
+                query = query.Where(t => t.IdTecnico == null);
+            }
+            if (filtros.SoloCalificados == true)
+            {
+                query = query.Where(t => t.Calificacion.HasValue);
+            }
+            if (filtros.SoloPendientes == true)
+            {
+                query = query.Where(t => t.Estatus != ConstantesEstatus.CERRADO);
+            }
             if (!string.IsNullOrWhiteSpace(filtros.Prioridad))
             {
                 query = query.Where(t => t.Prioridad == filtros.Prioridad);

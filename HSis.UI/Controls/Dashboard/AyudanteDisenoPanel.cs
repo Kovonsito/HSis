@@ -23,7 +23,7 @@ namespace HSis.UI.Helpers
             tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 54F)); // Fila 1: Acciones
             if (incluirFiltros)
             {
-                tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 74F));  // Fila 2: Barra de Filtros
+                tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 82F));  // Fila 2: Barra de Filtros
                 tbl.RowStyles.Add(new RowStyle(SizeType.Percent, 100F)); // Fila 3: Grid
                 tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 48F));  // Fila 4: Paginación
             }

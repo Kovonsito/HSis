@@ -244,9 +244,12 @@ namespace HSis.Server.Controllers
 
         [HttpGet("dashboard-resumen")]
         [Authorize(Policy = PoliticasAutorizacion.Administrador)]
-        public async Task<ActionResult<DashboardResumenDto>> ObtenerResumenDashboard([FromQuery] int? idTecnico = null)
+        public async Task<ActionResult<DashboardResumenDto>> ObtenerResumenDashboard(
+            [FromQuery] int? idTecnico = null,
+            [FromQuery] DateTime? fechaInicio = null,
+            [FromQuery] DateTime? fechaFin = null)
         {
-            return Ok(await ticketService.ObtenerResumenDashboardAsync(idTecnico));
+            return Ok(await ticketService.ObtenerResumenDashboardAsync(idTecnico, fechaInicio, fechaFin));
         }
 
         [HttpGet("tecnico/{idTecnico}/indicadores")]
