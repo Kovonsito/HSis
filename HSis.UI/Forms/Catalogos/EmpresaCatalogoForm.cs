@@ -15,7 +15,7 @@ public sealed class EmpresaCatalogoForm : FormularioCatalogoBase
     private readonly CajaTextoModerna _txtCalle = new() { Placeholder = "Calle", MaxLength = 50 };
     private readonly CajaTextoModerna _txtNumero = new() { Placeholder = "Número", MaxLength = 10 };
     private readonly CajaTextoModerna _txtColonia = new() { Placeholder = "Colonia", MaxLength = 50 };
-    private readonly CajaTextoModerna _txtTelefono = new() { Placeholder = "(664) 123-4567", MaxLength = 15 };
+    private readonly CajaTextoModerna _txtTelefono = new() { Placeholder = "(664) 123-4567", EsFormatoTelefono = true };
     private int? _idEmpresa;
 
     public EmpresaCatalogoForm(IEmpresaService service) : base("Nueva empresa", 390)
@@ -45,6 +45,12 @@ public sealed class EmpresaCatalogoForm : FormularioCatalogoBase
         if (string.IsNullOrWhiteSpace(_txtNombre.Text))
         {
             MostrarRequerido("Nombre", _txtNombre);
+            return;
+        }
+
+        if (!_txtTelefono.EsTelefonoValido)
+        {
+            MostrarAdvertenciaValidacion("El teléfono debe contener 10 dígitos o dejarse en blanco.", _txtTelefono);
             return;
         }
 

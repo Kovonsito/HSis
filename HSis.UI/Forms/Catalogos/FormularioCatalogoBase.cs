@@ -156,7 +156,21 @@ public abstract class FormularioCatalogoBase : Form
 
     protected static void MostrarRequerido(string campo, Control control)
     {
+        if (control is CajaTextoModerna ctm)
+        {
+            ctm.TieneError = true;
+        }
         DialogoUIHelper.MostrarAdvertencia($"El campo {campo} es obligatorio.", "Validación requerida");
+        control.Focus();
+    }
+
+    protected static void MostrarAdvertenciaValidacion(string mensaje, Control control)
+    {
+        if (control is CajaTextoModerna ctm)
+        {
+            ctm.TieneError = true;
+        }
+        DialogoUIHelper.MostrarAdvertencia(mensaje, "Validación requerida");
         control.Focus();
     }
 }

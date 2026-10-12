@@ -17,6 +17,8 @@ namespace HSis.UI.Controls
         private Color _colorBordeError = TemaVisual.Peligro;
         private bool _tieneError = false;
         private string _placeholder = string.Empty;
+        private bool _esFormatoTelefono = false;
+        private bool _aplicandoFormato = false;
 
         [Category("Apariencia Moderna")]
         [DefaultValue(6)]
@@ -159,6 +161,41 @@ namespace HSis.UI.Controls
             }
         }
 
+        [Category("Comportamiento")]
+        [DefaultValue(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
+        public bool EsFormatoTelefono
+        {
+            get => _esFormatoTelefono;
+            set
+            {
+                _esFormatoTelefono = value;
+                if (value)
+                {
+                    MaxLength = 14;
+                    if (!string.IsNullOrEmpty(_textBox.Text))
+                    {
+                        FormatearTextoTelefono();
+                    }
+                }
+            }
+        }
+
+        [Browsable(false)]
+        public bool EsTelefonoValido
+        {
+            get
+            {
+                if (!_esFormatoTelefono)
+                {
+                    return true;
+                }
+
+                var digitos = _textBox.Text.Count(char.IsDigit);
+                return digitos == 0 || digitos == 10;
+            }
+        }
+
         public CajaTextoModerna()
         {
             _textBox = new TextBox
@@ -178,10 +215,21 @@ namespace HSis.UI.Controls
             _textBox.Leave += (s, e) => { _tieneFoco = false; Invalidate(); };
             _textBox.TextChanged += (s, e) =>
             {
+                if (_aplicandoFormato)
+                {
+                    return;
+                }
+
                 if (_tieneError)
                 {
                     _tieneError = false;
                 }
+
+                if (_esFormatoTelefono)
+                {
+                    FormatearTextoTelefono();
+                }
+
                 OnTextChanged(e);
                 Invalidate();
             };
@@ -189,6 +237,77 @@ namespace HSis.UI.Controls
             Controls.Add(_textBox);
             AlinearTextBoxVertical();
             Resize += (s, e) => AlinearTextBoxVertical();
+        }
+
+        private void FormatearTextoTelefono()
+        {
+            _aplicandoFormato = true;
+            try
+            {
+                string raw = _textBox.Text;
+                int rawSelStart = _textBox.SelectionStart;
+
+                // Contar cuántos dígitos hay antes de la posición actual del cursor
+                int digitsBeforeCursor = 0;
+                for (int i = 0; i < Math.Min(rawSelStart, raw.Length); i++)
+                {
+                    if (char.IsDigit(raw[i]))
+                    {
+                        digitsBeforeCursor++;
+                    }
+                }
+
+                // Extraer solo dígitos (máximo 10)
+                var digits = new string(raw.Where(char.IsDigit).Take(10).ToArray());
+
+                string formatted;
+                if (digits.Length == 0)
+                {
+                    formatted = string.Empty;
+                }
+                else if (digits.Length <= 3)
+                {
+                    formatted = $"({digits}";
+                }
+                else if (digits.Length <= 6)
+                {
+                    formatted = $"({digits[..3]}) {digits[3..]}";
+                }
+                else
+                {
+                    formatted = $"({digits[..3]}) {digits[3..6]}-{digits[6..]}";
+                }
+
+                _textBox.Text = formatted;
+
+                // Reposicionar el cursor después de los mismos dígitos
+                if (digitsBeforeCursor == 0)
+                {
+                    _textBox.SelectionStart = formatted.Length > 0 && formatted.StartsWith("(") ? 1 : 0;
+                }
+                else
+                {
+                    int currentDigits = 0;
+                    int newPos = formatted.Length;
+                    for (int i = 0; i < formatted.Length; i++)
+                    {
+                        if (char.IsDigit(formatted[i]))
+                        {
+                            currentDigits++;
+                            if (currentDigits == digitsBeforeCursor)
+                            {
+                                newPos = i + 1;
+                                break;
+                            }
+                        }
+                    }
+                    _textBox.SelectionStart = Math.Min(newPos, formatted.Length);
+                }
+            }
+            finally
+            {
+                _aplicandoFormato = false;
+            }
         }
 
         private void AlinearTextBoxVertical()

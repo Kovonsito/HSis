@@ -16,7 +16,7 @@ public sealed class SucursalCatalogoForm : FormularioCatalogoBase
     private readonly CajaTextoModerna _txtCalle = new() { Placeholder = "Calle", MaxLength = 30 };
     private readonly CajaTextoModerna _txtNumero = new() { Placeholder = "Número", MaxLength = 10 };
     private readonly CajaTextoModerna _txtColonia = new() { Placeholder = "Colonia", MaxLength = 50 };
-    private readonly CajaTextoModerna _txtTelefono = new() { Placeholder = "(664) 123-4567", MaxLength = 15 };
+    private readonly CajaTextoModerna _txtTelefono = new() { Placeholder = "(664) 123-4567", EsFormatoTelefono = true };
     private readonly ComboModerno _cmbEmpresa = new();
     private int? _idSucursal;
     private int? _empresaEnEdicion;
@@ -79,6 +79,12 @@ public sealed class SucursalCatalogoForm : FormularioCatalogoBase
         if (string.IsNullOrWhiteSpace(_txtNombre.Text))
         {
             MostrarRequerido("Nombre", _txtNombre);
+            return;
+        }
+
+        if (!_txtTelefono.EsTelefonoValido)
+        {
+            MostrarAdvertenciaValidacion("El teléfono debe contener 10 dígitos o dejarse en blanco.", _txtTelefono);
             return;
         }
 

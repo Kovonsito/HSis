@@ -128,7 +128,27 @@ public static class ManejadorErroresUI
                 Log.Information("Operación cancelada durante {Contexto}", contextoNormalizado);
                 return;
 
+            case System.Security.Authentication.AuthenticationException authException:
+                Log.Warning(
+                    authException,
+                    "Fallo de certificado de seguridad TLS durante {Contexto}",
+                    contextoNormalizado);
+
+                if (mostrarDialogo)
+                {
+                    DialogoUIHelper.MostrarAdvertencia(
+                        "No se pudo establecer una conexión segura (TLS) con el servidor. Verifique que el certificado de seguridad de HSis esté instalado y sea de confianza en este equipo.",
+                        "Error de certificado de seguridad",
+                        propietario);
+                }
+
+                return;
+
             case HttpRequestException httpException:
+                var esFalloCertificado = httpException.InnerException is System.Security.Authentication.AuthenticationException
+                    || httpException.Message.Contains("SSL", StringComparison.OrdinalIgnoreCase)
+                    || httpException.Message.Contains("certificate", StringComparison.OrdinalIgnoreCase);
+
                 Log.Warning(
                     httpException,
                     "Fallo de comunicación HTTP durante {Contexto}",
@@ -136,9 +156,13 @@ public static class ManejadorErroresUI
 
                 if (mostrarDialogo)
                 {
+                    var mensaje = esFalloCertificado
+                        ? "No se pudo establecer una conexión segura (TLS) con el servidor. Verifique que el certificado de seguridad de HSis esté instalado y sea de confianza en este equipo."
+                        : "No se pudo comunicar con el servidor para completar la operación. Verifique su conexión de red y vuelva a intentarlo.";
+
                     DialogoUIHelper.MostrarAdvertencia(
-                        "No se pudo comunicar con el servidor para completar la operación. Verifique su conexión de red y vuelva a intentarlo.",
-                        "Problema de comunicación",
+                        mensaje,
+                        esFalloCertificado ? "Error de certificado de seguridad" : "Problema de comunicación",
                         propietario);
                 }
 
