@@ -47,7 +47,7 @@ namespace HSis.UI.Helpers
             // 3. Sesión del topBar + menú hamburguesa sincronizado con el sidebar
             topBar.ConfigurarSesion(sessionCache, contextoSesion);
             topBar.ConfigurarMenuHamburguesa(items, claveInicial, alSeleccionar);
-            topBar.HamburguesaDobleClic += (_, _) => sidebar.Colapsado = false;
+            topBar.HamburguesaDobleClic += (_, _) => sidebar.Colapsado = !sidebar.Colapsado;
         }
     }
 }

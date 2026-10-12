@@ -10,9 +10,10 @@ namespace HSis.UI.Helpers
             dgv.ScrollBars = ScrollBars.Both;
             dgv.AllowUserToResizeColumns = true;
             dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-            dgv.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
-            dgv.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
-            dgv.ColumnHeadersDefaultCellStyle.WrapMode = DataGridViewTriState.True;
+            dgv.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None;
+            dgv.RowTemplate.Height = 42;
+            dgv.DefaultCellStyle.WrapMode = DataGridViewTriState.False;
+            dgv.ColumnHeadersDefaultCellStyle.WrapMode = DataGridViewTriState.False;
         }
 
         public static void AutoajustarAnchosMinimos(this DataGridView dgv)
@@ -76,13 +77,34 @@ namespace HSis.UI.Helpers
 
         public static int? ObtenerIdSeleccionado(this DataGridView dgv, int indiceFila, string nombreColumna = "IdTicket")
         {
-            if (indiceFila >= 0 && dgv.Rows[indiceFila].Cells[nombreColumna]?.Value is object val)
+            if (indiceFila < 0 || indiceFila >= dgv.Rows.Count)
+                return null;
+
+            var fila = dgv.Rows[indiceFila];
+
+            // 1. Intentar desde las celdas del Grid si la columna existe
+            if (dgv.Columns.Contains(nombreColumna) && fila.Cells[nombreColumna]?.Value is object val)
             {
-                if (int.TryParse(val.ToString(), out int id))
+                if (int.TryParse(val.ToString(), out int idCelda) && idCelda > 0)
                 {
-                    return id;
+                    return idCelda;
                 }
             }
+
+            // 2. Intentar desde el objeto de datos enlazado (DataBoundItem)
+            if (fila.DataBoundItem is object item)
+            {
+                var propiedad = item.GetType().GetProperty(nombreColumna);
+                if (propiedad != null)
+                {
+                    var valProp = propiedad.GetValue(item);
+                    if (valProp != null && int.TryParse(valProp.ToString(), out int idProp) && idProp > 0)
+                    {
+                        return idProp;
+                    }
+                }
+            }
+
             return null;
         }
 

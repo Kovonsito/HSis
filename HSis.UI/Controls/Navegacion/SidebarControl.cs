@@ -21,10 +21,42 @@ namespace HSis.UI.Controls
     {
         public event EventHandler<string>? ItemSeleccionado;
 
+        // Recursos GDI estáticos reutilizables para máximo rendimiento
+        private static readonly Font FontTitulo = new("Segoe UI", 12f, FontStyle.Bold);
+        private static readonly Font FontSub = new("Segoe UI", 8.5f, FontStyle.Regular);
+        private static readonly Font FontItemActivo = new("Segoe UI", 9.5f, FontStyle.Bold);
+        private static readonly Font FontItemNormal = new("Segoe UI", 9.5f, FontStyle.Regular);
+        private static readonly Font FontBadge = new("Segoe UI", 7.5f, FontStyle.Bold);
+
+        private static readonly Bitmap BmpLogo = IconChar.Headset.ToBitmap(Color.White, 20);
+        private static readonly SolidBrush BrushLogoBg = new(Color.FromArgb(37, 99, 235));
+        private static readonly SolidBrush BrushTextoBlanco = new(Color.White);
+        private static readonly SolidBrush BrushTextoSub = new(Color.FromArgb(148, 163, 184));
+        private static readonly SolidBrush BrushTextoItemInactivo = new(Color.FromArgb(203, 213, 225));
+        private static readonly SolidBrush BrushItemActivo = new(TemaVisual.SidebarItemActivo);
+        private static readonly SolidBrush BrushItemHover = new(TemaVisual.SidebarItemHover);
+        private static readonly Pen PenSeparador = new(Color.FromArgb(30, 41, 59), 1f);
+
+        private static readonly Dictionary<(IconChar Icono, Color Color), Bitmap> CacheIconosSidebar = [];
+        private static readonly object LockIconos = new();
+
+        private static Bitmap ObtenerIconoSidebar(IconChar icono, Color color)
+        {
+            lock (LockIconos)
+            {
+                var clave = (icono, color);
+                if (!CacheIconosSidebar.TryGetValue(clave, out var bmp))
+                {
+                    bmp = icono.ToBitmap(color, 20);
+                    CacheIconosSidebar[clave] = bmp;
+                }
+                return bmp;
+            }
+        }
+
         private readonly List<ItemSidebar> _items = [];
         private string _itemActivoClave = string.Empty;
         private int _hoveredIndex = -1;
-        private bool _hoverColapsar = false;
         private bool _colapsado = false;
         private IAlmacenamientoCredencialesLocal? _sessionCache;
 
@@ -53,7 +85,6 @@ namespace HSis.UI.Controls
             MouseLeave += (s, e) =>
             {
                 _hoveredIndex = -1;
-                _hoverColapsar = false;
                 Cursor = Cursors.Default;
                 Invalidate();
             };
@@ -108,11 +139,6 @@ namespace HSis.UI.Controls
             return new Rectangle(marginX, topOffset + (index * (itemHeight + 6)), Width - (marginX * 2), itemHeight);
         }
 
-        private Rectangle ObtenerRectBotonColapsar()
-        {
-            return new Rectangle(Width - 36, 20, 26, 26);
-        }
-
         private void SidebarControl_MouseMove(object? sender, MouseEventArgs e)
         {
             int nuevoHover = -1;
@@ -125,13 +151,10 @@ namespace HSis.UI.Controls
                 }
             }
 
-            bool nuevoHoverColapsar = ObtenerRectBotonColapsar().Contains(e.Location);
-
-            if (_hoveredIndex != nuevoHover || _hoverColapsar != nuevoHoverColapsar)
+            if (_hoveredIndex != nuevoHover)
             {
                 _hoveredIndex = nuevoHover;
-                _hoverColapsar = nuevoHoverColapsar;
-                Cursor = (nuevoHover >= 0 || nuevoHoverColapsar) ? Cursors.Hand : Cursors.Default;
+                Cursor = (nuevoHover >= 0) ? Cursors.Hand : Cursors.Default;
                 Invalidate();
             }
         }
@@ -139,12 +162,6 @@ namespace HSis.UI.Controls
         private void SidebarControl_MouseClick(object? sender, MouseEventArgs e)
         {
             if (e.Button != MouseButtons.Left) return;
-
-            if (ObtenerRectBotonColapsar().Contains(e.Location))
-            {
-                Colapsado = true;
-                return;
-            }
 
             for (int i = 0; i < _items.Count; i++)
             {
@@ -167,49 +184,13 @@ namespace HSis.UI.Controls
             g.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
             // 1. Logotipo y Título de cabecera
-            using (var brushLogo = new SolidBrush(Color.FromArgb(37, 99, 235)))
-            {
-                g.FillEllipse(brushLogo, 16, 18, 38, 38);
-            }
-
-            using (var bmpLogo = IconChar.Headset.ToBitmap(Color.White, 20))
-            {
-                g.DrawImage(bmpLogo, 25, 27);
-            }
-
-            using (var brushTitulo = new SolidBrush(Color.White))
-            using (var fontTitulo = new Font("Segoe UI", 12f, FontStyle.Bold))
-            {
-                g.DrawString("HSis Support", fontTitulo, brushTitulo, new PointF(60, 17));
-            }
-
-            using (var brushSub = new SolidBrush(Color.FromArgb(148, 163, 184)))
-            using (var fontSub = new Font("Segoe UI", 8.5f, FontStyle.Regular))
-            {
-                g.DrawString("Mesa de Servicio", fontSub, brushSub, new PointF(60, 37));
-            }
-
-            // Botón Colapsar Sidebar [ ◀ ]
-            var rectColapsar = ObtenerRectBotonColapsar();
-            if (_hoverColapsar)
-            {
-                using var pathC = TemaVisual.CrearRectanguloRedondeado(rectColapsar, 6);
-                using var brushC = new SolidBrush(Color.FromArgb(30, 41, 59));
-                g.FillPath(brushC, pathC);
-            }
-
-            using (var bmpColapsar = IconChar.ChevronLeft.ToBitmap(_hoverColapsar ? Color.White : Color.FromArgb(148, 163, 184), 14))
-            {
-                int colX = rectColapsar.X + (rectColapsar.Width - bmpColapsar.Width) / 2;
-                int colY = rectColapsar.Y + (rectColapsar.Height - bmpColapsar.Height) / 2;
-                g.DrawImage(bmpColapsar, colX, colY);
-            }
+            g.FillEllipse(BrushLogoBg, 16, 18, 38, 38);
+            g.DrawImage(BmpLogo, 25, 27);
+            g.DrawString("HSis Support", FontTitulo, BrushTextoBlanco, new PointF(60, 17));
+            g.DrawString("Mesa de Servicio", FontSub, BrushTextoSub, new PointF(60, 37));
 
             // Separador superior sutil
-            using (var penDiv = new Pen(Color.FromArgb(30, 41, 59), 1f))
-            {
-                g.DrawLine(penDiv, 14, 68, Width - 14, 68);
-            }
+            g.DrawLine(PenSeparador, 14, 68, Width - 14, 68);
 
             // 2. Lista de Ítems de navegación
             for (int i = 0; i < _items.Count; i++)
@@ -223,31 +204,27 @@ namespace HSis.UI.Controls
 
                 if (esActivo)
                 {
-                    using var brushActivo = new SolidBrush(TemaVisual.SidebarItemActivo);
-                    g.FillPath(brushActivo, path);
+                    g.FillPath(BrushItemActivo, path);
                 }
                 else if (esHover)
                 {
-                    using var brushHover = new SolidBrush(TemaVisual.SidebarItemHover);
-                    g.FillPath(brushHover, path);
+                    g.FillPath(BrushItemHover, path);
                 }
 
                 Color colorItem = esActivo ? Color.White : (esHover ? Color.White : Color.FromArgb(203, 213, 225));
+                var brushTexto = (esActivo || esHover) ? BrushTextoBlanco : BrushTextoItemInactivo;
 
-                // Ícono FontAwesome vectorial
+                // Ícono FontAwesome vectorial en caché
                 if (item.Icono != IconChar.None)
                 {
-                    using var bmpIcon = item.Icono.ToBitmap(colorItem, 20);
+                    var bmpIcon = ObtenerIconoSidebar(item.Icono, colorItem);
                     int iconY = rect.Y + (rect.Height - bmpIcon.Height) / 2;
                     g.DrawImage(bmpIcon, rect.X + 14, iconY);
                 }
 
                 // Título
-                using (var brushTexto = new SolidBrush(colorItem))
-                using (var fontTexto = new Font("Segoe UI", 9.5f, esActivo ? FontStyle.Bold : FontStyle.Regular))
-                {
-                    g.DrawString(item.Titulo, fontTexto, brushTexto, new PointF(rect.X + 44, rect.Y + 12));
-                }
+                var fontTexto = esActivo ? FontItemActivo : FontItemNormal;
+                g.DrawString(item.Titulo, fontTexto, brushTexto, new PointF(rect.X + 44, rect.Y + 12));
 
                 // Badge de conteo si aplica
                 if (item.BadgeCount > 0)
@@ -255,12 +232,10 @@ namespace HSis.UI.Controls
                     var badgeRect = new Rectangle(rect.Right - 36, rect.Y + 10, 26, 22);
                     using var pathBadge = TemaVisual.CrearRectanguloRedondeado(badgeRect, 6);
                     using var brushBadge = new SolidBrush(esActivo ? Color.FromArgb(29, 78, 216) : Color.FromArgb(239, 68, 68));
-                    using var brushBadgeTxt = new SolidBrush(Color.White);
-                    using var sfBadge = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
-                    using var fontBadge = new Font("Segoe UI", 8f, FontStyle.Bold);
 
+                    using var sfBadge = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
                     g.FillPath(brushBadge, pathBadge);
-                    g.DrawString(item.BadgeCount > 99 ? "99+" : item.BadgeCount.ToString(), fontBadge, brushBadgeTxt, badgeRect, sfBadge);
+                    g.DrawString(item.BadgeCount > 99 ? "99+" : item.BadgeCount.ToString(), FontBadge, BrushTextoBlanco, badgeRect, sfBadge);
                 }
             }
         }

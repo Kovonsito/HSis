@@ -32,6 +32,9 @@ namespace HSis.Data.Models.Configurations
             entity.HasOne(d => d.Sucursal).WithMany(p => p.Usuarios)
                 .HasForeignKey(d => d.IdSucursal)
                 .HasConstraintName("FK_Usuario_Sucursal");
+
+            entity.HasIndex(e => e.Nombre)
+                .HasDatabaseName("IX_Usuario_Nombre");
         }
     }
 }

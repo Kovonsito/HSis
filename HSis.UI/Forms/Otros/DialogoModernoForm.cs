@@ -28,13 +28,26 @@ public sealed class DialogoModernoForm : Form
         MaximizeBox = false;
         MinimizeBox = false;
         AutoScaleMode = AutoScaleMode.Font;
-        ClientSize = new Size(confirmacion ? 520 : 500, 250);
-        MinimumSize = new Size(420, 220);
         BackColor = TemaVisual.FondoApp;
         Font = TemaVisual.FuenteNormal;
         KeyPreview = true;
         AcceptButton = null;
         CancelButton = null;
+
+        int anchoDialogo = confirmacion ? 560 : 540;
+        int anchoTexto = anchoDialogo - 154;
+
+        var tamanoTexto = TextRenderer.MeasureText(
+            mensaje,
+            TemaVisual.FuenteNormal,
+            new Size(anchoTexto, int.MaxValue),
+            TextFormatFlags.WordBreak | TextFormatFlags.TextBoxControl);
+
+        int altoCalculado = 184 + tamanoTexto.Height;
+        int altoFinal = Math.Clamp(altoCalculado, 250, 520);
+
+        ClientSize = new Size(anchoDialogo, altoFinal);
+        MinimumSize = new Size(460, 240);
 
         var pnlPrincipal = new Panel
         {
@@ -58,7 +71,7 @@ public sealed class DialogoModernoForm : Form
             Margin = new Padding(0),
             RowCount = 2
         };
-        tblContenido.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 58F));
+        tblContenido.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 64F));
         tblContenido.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
         tblContenido.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
         tblContenido.RowStyles.Add(new RowStyle(SizeType.Absolute, 48F));
@@ -66,7 +79,7 @@ public sealed class DialogoModernoForm : Form
         _pnlIcono = new Panel
         {
             Dock = DockStyle.Fill,
-            Margin = new Padding(0, 4, 16, 0),
+            Margin = new Padding(0, 0, 12, 0),
             BackColor = Color.Transparent
         };
         _pnlIcono.Paint += PintarIcono;
@@ -83,23 +96,33 @@ public sealed class DialogoModernoForm : Form
             Dock = DockStyle.Top,
             Font = TemaVisual.FuenteSubtitulo,
             ForeColor = TemaVisual.TextoPrincipal,
-            Height = 30,
+            Height = 32,
             Text = titulo,
             TextAlign = ContentAlignment.MiddleLeft
         };
 
+        var pnlMensajeContenedor = new Panel
+        {
+            Dock = DockStyle.Fill,
+            AutoScroll = true,
+            BackColor = Color.Transparent,
+            Margin = new Padding(0)
+        };
+
         _lblMensaje = new Label
         {
-            AutoSize = false,
-            Dock = DockStyle.Fill,
+            AutoSize = true,
+            MaximumSize = new Size(anchoTexto, 0),
+            Dock = DockStyle.Top,
             Font = TemaVisual.FuenteNormal,
             ForeColor = TemaVisual.TextoMedio,
-            Padding = new Padding(0, 2, 0, 0),
+            Padding = new Padding(0, 2, 4, 4),
             Text = mensaje,
             TextAlign = ContentAlignment.TopLeft
         };
 
-        pnlTexto.Controls.Add(_lblMensaje);
+        pnlMensajeContenedor.Controls.Add(_lblMensaje);
+        pnlTexto.Controls.Add(pnlMensajeContenedor);
         pnlTexto.Controls.Add(_lblTitulo);
         tblContenido.Controls.Add(_pnlIcono, 0, 0);
         tblContenido.Controls.Add(pnlTexto, 1, 0);
@@ -151,13 +174,29 @@ public sealed class DialogoModernoForm : Form
         Shown += (_, _) => _btnAceptar.Focus();
         KeyDown += (_, e) =>
         {
-            if (e.KeyCode == Keys.Escape)
+            if (e.Control && e.KeyCode == Keys.C)
+            {
+                try
+                {
+                    Clipboard.SetText($"{titulo}\n\n{mensaje}");
+                }
+                catch { }
+                e.Handled = true;
+            }
+            else if (e.KeyCode == Keys.Escape)
             {
                 DialogResult = confirmacion ? DialogResult.No : DialogResult.OK;
                 Close();
             }
         };
-        Resize += (_, _) => _pnlIcono.Invalidate();
+        Resize += (_, _) =>
+        {
+            _pnlIcono.Invalidate();
+            if (pnlMensajeContenedor.ClientSize.Width > 0)
+            {
+                _lblMensaje.MaximumSize = new Size(pnlMensajeContenedor.ClientSize.Width - 4, 0);
+            }
+        };
     }
 
     public static DialogResult Mostrar(IWin32Window? propietario, string titulo, string mensaje, DialogoTipo tipo, bool confirmacion = false)
@@ -169,11 +208,22 @@ public sealed class DialogoModernoForm : Form
     private void PintarIcono(object? sender, PaintEventArgs e)
     {
         e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+        e.Graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+        e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+
+        const int diametro = 48;
+        int xCirculo = Math.Max(0, (_pnlIcono.Width - diametro) / 2);
+        int yCirculo = 4;
+
         var color = ObtenerColor();
-        using var brush = new SolidBrush(Color.FromArgb(25, color));
-        e.Graphics.FillEllipse(brush, 2, 2, 46, 46);
-        using var bmp = ObtenerIcono().ToBitmap(color, 22);
-        e.Graphics.DrawImageUnscaled(bmp, 14, 14);
+        using var brush = new SolidBrush(Color.FromArgb(24, color));
+        e.Graphics.FillEllipse(brush, xCirculo, yCirculo, diametro, diametro);
+
+        const int tamanoIcono = 24;
+        using var bmp = ObtenerIcono().ToBitmap(color, tamanoIcono);
+        int xIcono = xCirculo + (diametro - bmp.Width) / 2;
+        int yIcono = yCirculo + (diametro - bmp.Height) / 2;
+        e.Graphics.DrawImage(bmp, xIcono, yIcono, bmp.Width, bmp.Height);
     }
 
     private Color ObtenerColor() => _tipo switch

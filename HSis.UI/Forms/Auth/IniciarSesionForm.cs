@@ -80,7 +80,7 @@ namespace HSis.UI.Forms.Auth
             txtContraseña.Text = contraseña;
         }
 
-        public void NavegarADashboard(UsuarioDto usuario, string rolNombre)
+        public void NavegarADashboard(UsuarioDto usuario)
         {
             Form dashboardForm = (RolUsuarioEnum)(usuario.IdRol ?? (int)RolUsuarioEnum.Cliente) switch
             {
@@ -101,7 +101,7 @@ namespace HSis.UI.Forms.Auth
         private async void BtnIniciarSesion_Click(object? sender, EventArgs e)
         {
             string usuarioInput = txtUsuario.Text.Trim();
-            string passwordInput = txtContraseña.Text;
+            string passwordInput = txtContraseña.Text.Trim();
 
             if (string.IsNullOrWhiteSpace(usuarioInput) || string.IsNullOrWhiteSpace(passwordInput))
             {
@@ -120,18 +120,10 @@ namespace HSis.UI.Forms.Auth
                     _contextoSesion.UsuarioActual = usuario;
                     _sessionCache.SaveCredentials(usuario.Nombre ?? string.Empty, passwordInput);
 
-                    string roleName = (RolUsuarioEnum)_contextoSesion.IdRolUsuario switch
-                    {
-                        RolUsuarioEnum.Administrador => "Administrador",
-                        RolUsuarioEnum.Tecnico => "Técnico",
-                        RolUsuarioEnum.Cliente => "Cliente",
-                        _ => "Usuario"
-                    };
-
                     await _notificationClient.IniciarAsync(_contextoSesion.TokenJWT);
                     _notificationAgentLauncher.Iniciar();
 
-                    NavegarADashboard(usuario, roleName);
+                    NavegarADashboard(usuario);
                 }
                 else
                 {
@@ -151,5 +143,15 @@ namespace HSis.UI.Forms.Auth
             }
         }
         #endregion
+
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                var cp = base.CreateParams;
+                cp.ExStyle |= 0x02000000; // WS_EX_COMPOSITED: composición nativa sin parpadeos
+                return cp;
+            }
+        }
     }
 }

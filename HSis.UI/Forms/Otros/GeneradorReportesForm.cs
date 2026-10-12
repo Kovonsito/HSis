@@ -24,7 +24,7 @@ namespace HSis.UI.Forms.Otros
         }
 
         #region Form Events
-        private void frmGeneradorReportes_Load(object sender, EventArgs e)
+        private void FrmGeneradorReportes_Load(object sender, EventArgs e)
         {
             dtpInicio.Value = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
             dtpFin.Value = DateTime.Today;
@@ -46,7 +46,7 @@ namespace HSis.UI.Forms.Otros
             e.Graphics.DrawPath(pen, path);
         }
 
-        private async void btnExcel_Click(object sender, EventArgs e)
+        private async void BtnExcel_Click(object sender, EventArgs e)
         {
             var inicio = dtpInicio.Value.Date;
             var fin = dtpFin.Value.Date;
@@ -76,7 +76,7 @@ namespace HSis.UI.Forms.Otros
             }
         }
 
-        private async void btnPdf_Click(object sender, EventArgs e)
+        private async void BtnPdf_Click(object sender, EventArgs e)
         {
             var inicio = dtpInicio.Value.Date;
             var fin = dtpFin.Value.Date;
@@ -106,5 +106,15 @@ namespace HSis.UI.Forms.Otros
             }
         }
         #endregion
+
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                var cp = base.CreateParams;
+                cp.ExStyle |= 0x02000000; // WS_EX_COMPOSITED: composición nativa sin parpadeos
+                return cp;
+            }
+        }
     }
 }

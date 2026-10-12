@@ -57,6 +57,15 @@ namespace HSis.UI.Coordinators
                 claveDefault: "asignados",
                 alSeleccionar: SeleccionarVista
             );
+
+            TopBar.ModoBotonIzquierdo = TopBarControl.ModoBotonIzquierdoTopBar.Kardex;
+            TopBar.BotonIzquierdoClic += (_, _) => AbrirKardex();
+        }
+
+        private void AbrirKardex()
+        {
+            using var frmK = FormFactory.Crear<KardexForm>();
+            frmK.ShowDialog(Formulario);
         }
 
         protected override void ConfigurarVistaTickets()
@@ -123,7 +132,8 @@ namespace HSis.UI.Coordinators
         public override async Task RecargarDatosAsync()
         {
             ActualizarKpiSeleccionado();
-            await Task.WhenAll(CargarIndicadoresAsync(ContextoSesion.IdUsuario), CargarTicketsSegunVistaAsync());
+            await CargarIndicadoresAsync(ContextoSesion.IdUsuario);
+            await CargarTicketsSegunVistaAsync();
         }
 
         public async void SeleccionarVista(string clave)
@@ -188,6 +198,14 @@ namespace HSis.UI.Coordinators
             TopBar.ActualizarItemActivo(clave);
             TopBar.Titulo = titulo;
             TopBar.Subtitulo = subtitulo;
+
+            // Sincronizar período temporal: para vistas operativas (cola viva de tickets asignados o disponibles),
+            // poner el período en "Todos" para no truncar la cola activa.
+            if (_vistaActual == VistaTecnico.MisAsignados || _vistaActual == VistaTecnico.Disponibles)
+            {
+                VistaTickets.Filtro.EstablecerValorFiltro("Periodo", "Todos", dispararEvento: false);
+            }
+
             ActualizarKpiSeleccionado();
             await CargarTicketsSegunVistaAsync();
         }

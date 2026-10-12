@@ -23,7 +23,8 @@ namespace HSis.UI.Helpers
             new() { Clave = "empresas",      Titulo = "Empresas",      Icono = IconChar.Landmark },
             new() { Clave = "puestos",       Titulo = "Puestos",       Icono = IconChar.Briefcase },
             new() { Clave = "roles",         Titulo = "Roles",         Icono = IconChar.Key },
-            new() { Clave = "reportes",      Titulo = "Reportes",      Icono = IconChar.ChartBar }
+            new() { Clave = "reportes",      Titulo = "Reportes",      Icono = IconChar.ChartBar },
+            new() { Clave = "logs",          Titulo = "Visor de Logs", Icono = IconChar.FileText }
         ];
 
         public static ItemSidebar[] ParaTecnico() =>

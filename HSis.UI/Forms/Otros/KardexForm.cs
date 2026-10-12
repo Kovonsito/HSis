@@ -48,14 +48,17 @@ namespace HSis.UI.Forms.Otros
             lblEstadoKardex.Visible = historial.Count == 0;
 
             var col1 = dgvKardex.Columns["IdMovimiento"];
-            col1?.Visible = false;
+            if (col1 != null) col1.Visible = false;
 
             var col2 = dgvKardex.Columns["IdMaterial"];
-            col2?.Visible = false;
+            if (col2 != null) col2.Visible = false;
 
             var col3 = dgvKardex.Columns["CostoUnitario"];
-            col3?.DefaultCellStyle.Format = "C2";
-            col3?.Visible = _contextoSesion.EsAdmin;
+            if (col3 != null)
+            {
+                col3.DefaultCellStyle.Format = "C2";
+                col3.Visible = _contextoSesion.EsAdmin;
+            }
         }
 
         #region Form Events
@@ -94,5 +97,15 @@ namespace HSis.UI.Forms.Otros
             }
         }
         #endregion
+
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                var cp = base.CreateParams;
+                cp.ExStyle |= 0x02000000; // WS_EX_COMPOSITED: composición nativa sin parpadeos
+                return cp;
+            }
+        }
     }
 }

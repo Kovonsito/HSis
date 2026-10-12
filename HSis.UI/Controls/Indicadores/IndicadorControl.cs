@@ -17,7 +17,7 @@ namespace HSis.UI.Controls
         {
             InitializeComponent();
             DoubleBuffered = true;
-            SetStyle(ControlStyles.SupportsTransparentBackColor | ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint | ControlStyles.ResizeRedraw, true);
+            SetStyle(ControlStyles.SupportsTransparentBackColor | ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.ResizeRedraw, true);
 
             MouseEnter += (s, e) => { _isHovered = true; Invalidate(); };
             MouseLeave += (s, e) => { _isHovered = false; Invalidate(); };

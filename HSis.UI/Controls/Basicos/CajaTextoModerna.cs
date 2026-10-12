@@ -121,6 +121,15 @@ namespace HSis.UI.Controls
             set => _textBox.PasswordChar = value;
         }
 
+        [Category("Comportamiento")]
+        [DefaultValue(32767)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
+        public int MaxLength
+        {
+            get => _textBox.MaxLength;
+            set => _textBox.MaxLength = value;
+        }
+
         public void Clear()
         {
             _textBox.Clear();

@@ -20,6 +20,23 @@ namespace HSis.UI.Controls
     [SupportedOSPlatform("windows")]
     public class BotonModerno : Button
     {
+        private static readonly Dictionary<(IconChar Icono, Color Color, int Tamano), Bitmap> CacheIconos = [];
+        private static readonly object LockIconos = new();
+
+        private static Bitmap ObtenerIconoBitmap(IconChar icono, Color color, int tamano)
+        {
+            lock (LockIconos)
+            {
+                var clave = (icono, color, tamano);
+                if (!CacheIconos.TryGetValue(clave, out var bmp))
+                {
+                    bmp = icono.ToBitmap(color, tamano);
+                    CacheIconos[clave] = bmp;
+                }
+                return bmp;
+            }
+        }
+
         private EstiloBotonModerno _estilo = EstiloBotonModerno.Primario;
         private int _radioBorde = 8;
         private IconChar _icono = IconChar.None;
@@ -226,7 +243,7 @@ namespace HSis.UI.Controls
             int textX = 0;
             if (_icono != IconChar.None)
             {
-                using var bmpIcono = _icono.ToBitmap(colorTexto, _iconoTamano);
+                var bmpIcono = ObtenerIconoBitmap(_icono, colorTexto, _iconoTamano);
                 if (string.IsNullOrWhiteSpace(Text))
                 {
                     int imgX = (Width - bmpIcono.Width) / 2;

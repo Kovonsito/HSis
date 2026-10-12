@@ -244,6 +244,7 @@ public class CoordinadorDashboardAdmin(
             var filtros = ConfiguracionFiltrosTickets.MapearFiltrosAdmin(valores);
 
             // Si hay un KPI activo, aplicamos el filtro correspondiente a nivel de base de datos
+            // La fecha definida en el filtro se respeta en todos los KPIs (si Periodo == "Todos", FechaAltaInicio/Fin ya son null)
             if (_kpiActivo == TipoKpiDashboard.Calificacion)
             {
                 filtros.SoloCalificados = true;
@@ -255,28 +256,19 @@ public class CoordinadorDashboardAdmin(
                     case TipoKpiDashboard.Disponibles:
                         filtros.Estatus = "Nuevos";
                         filtros.SinTecnicoAsignado = true;
-                        filtros.FechaAltaInicio = null;
-                        filtros.FechaAltaFin = null;
                         break;
                     case TipoKpiDashboard.Urgentes:
                         filtros.Estatus = "Urgentes";
-                        filtros.FechaAltaInicio = null;
-                        filtros.FechaAltaFin = null;
                         break;
                     case TipoKpiDashboard.EnProceso:
                         filtros.Estatus = ConstantesEstatus.EN_PROCESO;
-                        filtros.FechaAltaInicio = null;
-                        filtros.FechaAltaFin = null;
                         break;
                     case TipoKpiDashboard.Cerrados:
                         filtros.Estatus = ConstantesEstatus.CERRADO;
-                        // Cerrados respeta el filtro de fechas seleccionado en la barra de filtros
                         break;
                     case TipoKpiDashboard.Pendientes:
                         filtros.SoloPendientes = true;
                         filtros.Estatus = null;
-                        filtros.FechaAltaInicio = null;
-                        filtros.FechaAltaFin = null;
                         break;
                 }
             }
@@ -366,7 +358,7 @@ public class CoordinadorDashboardAdmin(
         _kpiActivo = _kpiActivo == tipo ? null : tipo;
         VistaTickets.SeleccionarKpi(_kpiActivo);
 
-        // Sincronizar el combo de Estatus en el filtro sin generar bucles de eventos
+        // 1. Sincronizar el combo de Estatus en el filtro sin generar bucles de eventos
         string nuevoEstatus = _kpiActivo switch
         {
             TipoKpiDashboard.Disponibles => "Nuevos",
@@ -376,6 +368,16 @@ public class CoordinadorDashboardAdmin(
             _ => "Todos"
         };
         VistaTickets.Filtro.EstablecerValorFiltro("Estatus", nuevoEstatus, dispararEvento: false);
+
+        // 2. Sincronizar período temporal: para KPIs operativos (en curso/vivos), sincronizar período a "Todos"
+        // para que la lista muestre exactamente la cola completa sin truncar por fecha.
+        if (_kpiActivo == TipoKpiDashboard.Disponibles ||
+            _kpiActivo == TipoKpiDashboard.Urgentes ||
+            _kpiActivo == TipoKpiDashboard.EnProceso ||
+            _kpiActivo == TipoKpiDashboard.Pendientes)
+        {
+            VistaTickets.Filtro.EstablecerValorFiltro("Periodo", "Todos", dispararEvento: false);
+        }
 
         if (_kpiActivo == TipoKpiDashboard.Calificacion)
         {
@@ -868,6 +870,12 @@ public class CoordinadorDashboardAdmin(
             return;
         }
 
+        if (string.Equals(clave, "logs", StringComparison.OrdinalIgnoreCase))
+        {
+            AbrirVisorLogs();
+            return;
+        }
+
         if (_paginasCatalogos.TryGetValue(clave, out var paginaCatalogo))
         {
             _tabMain.SelectedTab = paginaCatalogo;
@@ -932,5 +940,11 @@ public class CoordinadorDashboardAdmin(
     {
         using var formularioReportes = FormFactory.Crear<GeneradorReportesForm>();
         formularioReportes.ShowDialog(Formulario);
+    }
+
+    private void AbrirVisorLogs()
+    {
+        using var visorLogs = FormFactory.Crear<VisorLogsForm>();
+        visorLogs.ShowDialog(Formulario);
     }
 }

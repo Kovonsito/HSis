@@ -6,6 +6,7 @@ namespace HSis.UI.Controls
         public DataGridViewModerno()
         {
             DoubleBuffered = true;
+            SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint, true);
         }
 
         // Al enlazar datos WinForms marca la primera fila y celda; se limpia para que la tabla no abra con una fila resaltada.

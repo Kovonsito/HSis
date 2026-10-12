@@ -1,4 +1,5 @@
 #nullable enable
+using System.Net;
 using System.Net.Http;
 using System.Runtime.Versioning;
 using AutoUpdaterDotNET;
@@ -138,16 +139,27 @@ namespace HSis.UI
                 // Registrar FluentValidation
                 services.AddValidatorsFromAssemblyContaining<TicketCreateValidator>();
 
-                // Configurar ApiClients basados en HttpClient
+                // Configurar ApiClients basados en HttpClient con HTTP/2, pooling y compresión automática
                 var baseUrl = configuration.GetSection("ApiSettings")["BaseUrl"] ?? "http://localhost:5000";
 
                 // Registrar JwtAuthHeaderHandler para inyectar token JWT automáticamente
                 services.AddTransient<ApiClients.JwtAuthHeaderHandler>();
 
+                services.ConfigureHttpClientDefaults(b =>
+                {
+                    b.ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+                    {
+                        AutomaticDecompression = DecompressionMethods.All,
+                        PooledConnectionLifetime = TimeSpan.FromMinutes(15)
+                    });
+                });
+
                 void ConfigurarHttpClient(HttpClient c)
                 {
                     c.BaseAddress = new Uri(baseUrl);
                     c.Timeout = TimeSpan.FromSeconds(30);
+                    c.DefaultRequestVersion = HttpVersion.Version11;
+                    c.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrLower;
                 }
 
                 services.AddHttpClient<IUsuarioService, ApiClients.UsuarioApiClientService>(ConfigurarHttpClient)
@@ -206,6 +218,8 @@ namespace HSis.UI
                 services.AddTransient<EmpresaCatalogoForm>();
                 services.AddTransient<PuestoCatalogoForm>();
                 services.AddTransient<RolUsuarioCatalogoForm>();
+                services.AddSingleton<LectorLogsService>();
+                services.AddTransient<VisorLogsForm>();
 
                 ServiceProvider = services.BuildServiceProvider();
                 using var applicationPresence = ServiceProvider.GetRequiredService<PresenciaAplicacion>();

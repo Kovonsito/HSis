@@ -187,7 +187,7 @@ partial class GeneradorReportesForm
         btnExcel.Size = new System.Drawing.Size(216, 44);
         btnExcel.TabIndex = 0;
         btnExcel.Text = "Exportar a Excel";
-        btnExcel.Click += btnExcel_Click;
+        btnExcel.Click += BtnExcel_Click;
         // 
         // btnPdf
         // 
@@ -203,7 +203,7 @@ partial class GeneradorReportesForm
         btnPdf.Size = new System.Drawing.Size(216, 44);
         btnPdf.TabIndex = 1;
         btnPdf.Text = "Exportar a PDF";
-        btnPdf.Click += btnPdf_Click;
+        btnPdf.Click += BtnPdf_Click;
         // 
         // GeneradorReportesForm
         // 
@@ -221,7 +221,7 @@ partial class GeneradorReportesForm
         Name = "GeneradorReportesForm";
         StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
         Text = "Generar Reportes Especializados";
-        Load += frmGeneradorReportes_Load;
+        Load += FrmGeneradorReportes_Load;
         pnlHeader.ResumeLayout(false);
         pnlHeader.PerformLayout();
         ((System.ComponentModel.ISupportInitialize)picHeaderIcon).EndInit();

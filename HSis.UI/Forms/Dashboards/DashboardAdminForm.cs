@@ -57,5 +57,15 @@ namespace HSis.UI.Forms.Dashboards
         {
             await _coordinador.IniciarAsync();
         }
+
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                var cp = base.CreateParams;
+                cp.ExStyle |= 0x02000000; // WS_EX_COMPOSITED: composición nativa sin parpadeos
+                return cp;
+            }
+        }
     }
 }

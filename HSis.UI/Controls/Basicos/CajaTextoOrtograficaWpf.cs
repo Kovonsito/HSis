@@ -14,6 +14,17 @@ namespace HSis.UI.Controls
     [DesignerCategory("code")]
     public class CajaTextoOrtograficaWpf : ElementHost
     {
+        private static readonly System.Windows.Media.SolidColorBrush BrushBordeWpf = CrearBrushCongelado(226, 232, 240);
+        private static readonly System.Windows.Media.SolidColorBrush BrushFondoReadOnlyWpf = CrearBrushCongelado(248, 250, 252);
+        private static readonly System.Windows.Media.SolidColorBrush BrushFondoNormalWpf = CrearBrushCongelado(255, 255, 255);
+
+        private static System.Windows.Media.SolidColorBrush CrearBrushCongelado(byte r, byte g, byte b)
+        {
+            var brush = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(r, g, b));
+            brush.Freeze();
+            return brush;
+        }
+
         private readonly WPF.TextBox _cajaTextoWpf;
 
         public CajaTextoOrtograficaWpf()
@@ -25,9 +36,9 @@ namespace HSis.UI.Controls
                 VerticalScrollBarVisibility = WPF.ScrollBarVisibility.Auto,
                 FontFamily = new System.Windows.Media.FontFamily("Segoe UI"),
                 FontSize = 13.5,
-                Background = System.Windows.Media.Brushes.White,
+                Background = BrushFondoNormalWpf,
                 BorderThickness = new System.Windows.Thickness(1),
-                BorderBrush = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(226, 232, 240)),
+                BorderBrush = BrushBordeWpf,
                 Padding = new System.Windows.Thickness(10, 8, 10, 8),
                 AcceptsTab = true
             };
@@ -57,14 +68,7 @@ namespace HSis.UI.Controls
             set
             {
                 _cajaTextoWpf.IsReadOnly = value;
-                if (value)
-                {
-                    _cajaTextoWpf.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(248, 250, 252));
-                }
-                else
-                {
-                    _cajaTextoWpf.Background = System.Windows.Media.Brushes.White;
-                }
+                _cajaTextoWpf.Background = value ? BrushFondoReadOnlyWpf : BrushFondoNormalWpf;
             }
         }
 

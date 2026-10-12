@@ -143,6 +143,7 @@ namespace HSis.Logic.Services
         {
             using var db = dbContextFactory.CreateDbContext();
             var usuario = await db.Usuarios
+                .AsNoTracking()
                 .Include(u => u.Departamento)
                 .Include(u => u.Puesto)
                 .Include(u => u.Sucursal)
@@ -160,6 +161,7 @@ namespace HSis.Logic.Services
         {
             using var db = dbContextFactory.CreateDbContext();
             var usuarios = await db.Usuarios
+                .AsNoTracking()
                 .Where(u => u.IdRol == idRol)
                 .Include(u => u.Departamento)
                 .Include(u => u.Puesto)

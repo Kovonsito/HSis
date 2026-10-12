@@ -15,7 +15,29 @@ namespace HSis.UI.Controls
         public event EventHandler? NotificacionesClic;
         public event EventHandler? HamburguesaClic;
         public event EventHandler? HamburguesaDobleClic;
+        public event EventHandler? BotonIzquierdoClic;
         public event EventHandler? CerrarSesionClic;
+
+        // Fuentes y recursos GDI estáticos reutilizables para máximo rendimiento
+        private static readonly Font FontTitulo = new("Segoe UI", 13f, FontStyle.Bold);
+        private static readonly Font FontSub = new("Segoe UI", 8.5f, FontStyle.Regular);
+        private static readonly Font FontPill = new("Segoe UI Semibold", 8.5f, FontStyle.Bold);
+        private static readonly Font FontBadge = new("Segoe UI", 7.5f, FontStyle.Bold);
+        private static readonly Font FontAvatar = new("Segoe UI", 9f, FontStyle.Bold);
+        private static readonly Font FontNom = new("Segoe UI", 8.5f, FontStyle.Bold);
+        private static readonly Font FontRol = new("Segoe UI", 7.5f, FontStyle.Regular);
+        private static readonly Font FontSalir = new("Segoe UI", 8.5f, FontStyle.Bold);
+        private static readonly Font FontBotonKardex = new("Segoe UI Semibold", 8.5f, FontStyle.Bold);
+
+        private static readonly Bitmap BmpHamburguesa = IconChar.Bars.ToBitmap(Color.FromArgb(51, 65, 85), 18);
+        private static readonly Bitmap BmpKardexNormal = IconChar.BoxesStacked.ToBitmap(Color.FromArgb(37, 99, 235), 15);
+        private static readonly Bitmap BmpKardexHover = IconChar.BoxesStacked.ToBitmap(Color.FromArgb(29, 78, 216), 15);
+        private static readonly Bitmap BmpCampana = IconChar.Bell.ToBitmap(TemaVisual.TextoPrincipal, 18);
+        private static readonly Bitmap BmpSalirNormal = IconChar.SignOutAlt.ToBitmap(Color.FromArgb(71, 85, 105), 14);
+        private static readonly Bitmap BmpSalirHover = IconChar.SignOutAlt.ToBitmap(Color.FromArgb(220, 38, 38), 14);
+
+        private static readonly StringFormat SfCentro = new() { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
+        private static readonly StringFormat SfNearCenter = new() { Alignment = StringAlignment.Near, LineAlignment = StringAlignment.Center };
 
         private string _titulo = "Panel Principal";
         private string _subtitulo = "Mesa de Servicio";
@@ -59,6 +81,28 @@ namespace HSis.UI.Controls
             set { _notificacionesNoLeidas = Math.Max(0, value); Invalidate(); }
         }
 
+        public enum ModoBotonIzquierdoTopBar
+        {
+            Hamburguesa,
+            Kardex
+        }
+
+        private ModoBotonIzquierdoTopBar _modoBotonIzquierdo = ModoBotonIzquierdoTopBar.Hamburguesa;
+        private readonly ToolTip _toolTip = new() { InitialDelay = 300, AutoPopDelay = 4000 };
+
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public ModoBotonIzquierdoTopBar ModoBotonIzquierdo
+        {
+            get => _modoBotonIzquierdo;
+            set
+            {
+                if (_modoBotonIzquierdo == value) return;
+                _modoBotonIzquierdo = value;
+                Invalidate();
+            }
+        }
+
         [Browsable(false)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public bool MostrarHamburguesa
@@ -89,6 +133,7 @@ namespace HSis.UI.Controls
                 _hoverCampana = false;
                 _hoverUsuario = false;
                 _hoverSalir = false;
+                _toolTip.RemoveAll();
                 Cursor = Cursors.Default;
                 Invalidate();
             };
@@ -185,6 +230,34 @@ namespace HSis.UI.Controls
         }
 
         private Rectangle ObtenerRectHamburguesa() => new Rectangle(12, 13, 38, 38);
+
+        private Rectangle ObtenerRectBotonKardex()
+        {
+            float posX = 20;
+            if (_mostrarHamburguesa && _modoBotonIzquierdo == ModoBotonIzquierdoTopBar.Hamburguesa)
+            {
+                posX = 58;
+            }
+
+            using var g = CreateGraphics();
+            var sizeTitulo = g.MeasureString(_titulo, FontTitulo);
+            var sizeSub = g.MeasureString(_subtitulo, FontSub);
+            float maxTextoAncho = Math.Max(sizeTitulo.Width, sizeSub.Width);
+
+            int btnX = (int)(posX + maxTextoAncho + 20);
+            int btnW = 195;
+            int btnH = 34;
+            int btnY = 12;
+            return new Rectangle(btnX, btnY, btnW, btnH);
+        }
+
+        private Rectangle ObtenerRectBotonAccionIzquierda()
+        {
+            return _modoBotonIzquierdo == ModoBotonIzquierdoTopBar.Kardex
+                ? ObtenerRectBotonKardex()
+                : ObtenerRectHamburguesa();
+        }
+
         private Rectangle ObtenerRectBotonSalir() => new Rectangle(Width - 14 - 78, 15, 78, 34);
         private Rectangle ObtenerRectUsuario() => new Rectangle(ObtenerRectBotonSalir().Left - 10 - 150, 12, 150, 40);
         public bool EsPuntoDeCampana(Point puntoPantalla) => ObtenerRectCampana().Contains(PointToClient(puntoPantalla));
@@ -198,7 +271,7 @@ namespace HSis.UI.Controls
 
         private void TopBarControl_MouseMove(object? sender, MouseEventArgs e)
         {
-            bool hHamburguesa = _mostrarHamburguesa && ObtenerRectHamburguesa().Contains(e.Location);
+            bool hHamburguesa = _mostrarHamburguesa && ObtenerRectBotonAccionIzquierda().Contains(e.Location);
             bool hCampana = ObtenerRectCampana().Contains(e.Location);
             bool hUsuario = ObtenerRectUsuario().Contains(e.Location);
             bool hSalir = ObtenerRectBotonSalir().Contains(e.Location);
@@ -210,6 +283,15 @@ namespace HSis.UI.Controls
                 _hoverUsuario = hUsuario;
                 _hoverSalir = hSalir;
 
+                if (hHamburguesa && _modoBotonIzquierdo == ModoBotonIzquierdoTopBar.Hamburguesa)
+                {
+                    _toolTip.SetToolTip(this, "Menú de Navegación");
+                }
+                else
+                {
+                    _toolTip.RemoveAll();
+                }
+
                 Cursor = (hHamburguesa || hCampana || hUsuario || hSalir) ? Cursors.Hand : Cursors.Default;
                 Invalidate();
             }
@@ -219,8 +301,14 @@ namespace HSis.UI.Controls
         {
             if (e.Button != MouseButtons.Left) return;
 
-            if (_mostrarHamburguesa && ObtenerRectHamburguesa().Contains(e.Location))
+            if (_mostrarHamburguesa && ObtenerRectBotonAccionIzquierda().Contains(e.Location))
             {
+                if (_modoBotonIzquierdo == ModoBotonIzquierdoTopBar.Kardex)
+                {
+                    BotonIzquierdoClic?.Invoke(this, EventArgs.Empty);
+                    return;
+                }
+
                 if (e.Clicks != 1) return;
 
                 HamburguesaClic?.Invoke(this, EventArgs.Empty);
@@ -246,6 +334,9 @@ namespace HSis.UI.Controls
         private void TopBarControl_MouseDoubleClick(object? sender, MouseEventArgs e)
         {
             if (e.Button != MouseButtons.Left || !_mostrarHamburguesa || !ObtenerRectHamburguesa().Contains(e.Location))
+                return;
+
+            if (_modoBotonIzquierdo == ModoBotonIzquierdoTopBar.Kardex)
                 return;
 
             _menuHamburguesa?.Close();
@@ -288,34 +379,58 @@ namespace HSis.UI.Controls
             g.InterpolationMode = InterpolationMode.HighQualityBicubic;
             g.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
-            // 1. Botón Menú Hamburguesa
-            var rectHam = ObtenerRectHamburguesa();
+            // 1. Título y Subtítulo
+            float posTitulosX = (_mostrarHamburguesa && _modoBotonIzquierdo == ModoBotonIzquierdoTopBar.Hamburguesa) ? 58 : 20;
+            g.DrawString(_titulo, FontTitulo, TemaVisual.BrushTextoPrincipal, new PointF(posTitulosX, 11));
+            using (var brushSub = new SolidBrush(TemaVisual.TextoSecundario))
+            {
+                g.DrawString(_subtitulo, FontSub, brushSub, new PointF(posTitulosX, 36));
+            }
+
+            // 2. Botón Izquierdo (Menú Hamburguesa o Botón Kardex a la derecha de títulos)
             if (_mostrarHamburguesa)
             {
-                if (_hoverHamburguesa)
+                if (_modoBotonIzquierdo == ModoBotonIzquierdoTopBar.Hamburguesa)
                 {
-                    using var pathH = TemaVisual.CrearRectanguloRedondeado(rectHam, 8);
-                    using var brushH = new SolidBrush(Color.FromArgb(241, 245, 249));
-                    g.FillPath(brushH, pathH);
+                    var rectHam = ObtenerRectHamburguesa();
+                    if (_hoverHamburguesa)
+                    {
+                        using var pathH = TemaVisual.CrearRectanguloRedondeado(rectHam, 8);
+                        g.FillPath(TemaVisual.BrushFondoTenue, pathH);
+                    }
+
+                    int hamX = rectHam.X + (rectHam.Width - BmpHamburguesa.Width) / 2;
+                    int hamY = rectHam.Y + (rectHam.Height - BmpHamburguesa.Height) / 2;
+                    g.DrawImage(BmpHamburguesa, hamX, hamY);
                 }
+                else if (_modoBotonIzquierdo == ModoBotonIzquierdoTopBar.Kardex)
+                {
+                    var rectKardex = ObtenerRectBotonKardex();
+                    Color bgBtn = _hoverHamburguesa ? Color.FromArgb(239, 246, 255) : Color.FromArgb(248, 250, 252);
+                    Color borderBtn = _hoverHamburguesa ? Color.FromArgb(191, 219, 254) : Color.FromArgb(226, 232, 240);
+                    Color fgBtn = _hoverHamburguesa ? Color.FromArgb(29, 78, 216) : Color.FromArgb(37, 99, 235);
 
-                using var bmpHam = IconChar.Bars.ToBitmap(Color.FromArgb(51, 65, 85), 18);
-                int hamX = rectHam.X + (rectHam.Width - bmpHam.Width) / 2;
-                int hamY = rectHam.Y + (rectHam.Height - bmpHam.Height) / 2;
-                g.DrawImage(bmpHam, hamX, hamY);
-            }
+                    using (var pathK = TemaVisual.CrearRectanguloRedondeado(rectKardex, 8))
+                    {
+                        using (var brushBg = new SolidBrush(bgBtn))
+                        {
+                            g.FillPath(brushBg, pathK);
+                        }
+                        using (var penBorde = new Pen(borderBtn, 1f))
+                        {
+                            g.DrawPath(penBorde, pathK);
+                        }
+                    }
 
-            // 2. Título y Subtítulo
-            using (var brushTitulo = new SolidBrush(TemaVisual.TextoPrincipal))
-            using (var fontTitulo = new Font("Segoe UI", 13f, FontStyle.Bold))
-            {
-                g.DrawString(_titulo, fontTitulo, brushTitulo, new PointF(_mostrarHamburguesa ? 58 : 20, 11));
-            }
+                    var bmpIcon = _hoverHamburguesa ? BmpKardexHover : BmpKardexNormal;
+                    int iconX = rectKardex.X + 10;
+                    int iconY = rectKardex.Y + (rectKardex.Height - bmpIcon.Height) / 2;
+                    g.DrawImage(bmpIcon, iconX, iconY);
 
-            using (var brushSub = new SolidBrush(TemaVisual.TextoSecundario))
-            using (var fontSub = new Font("Segoe UI", 8.5f, FontStyle.Regular))
-            {
-                g.DrawString(_subtitulo, fontSub, brushSub, new PointF(_mostrarHamburguesa ? 58 : 20, 36));
+                    using var brushTxt = new SolidBrush(fgBtn);
+                    var rectTexto = new Rectangle(rectKardex.X + 28, rectKardex.Y, rectKardex.Width - 32, rectKardex.Height);
+                    g.DrawString("Ver Kardex de inventario", FontBotonKardex, brushTxt, rectTexto, SfNearCenter);
+                }
             }
 
             // 3. Indicador SignalR
@@ -335,11 +450,9 @@ namespace HSis.UI.Controls
             }
 
             using (var brushPillTxt = new SolidBrush(_conectado ? Color.FromArgb(6, 95, 70) : Color.FromArgb(146, 64, 14)))
-            using (var fontPill = new Font("Segoe UI Semibold", 8.5f, FontStyle.Bold))
             {
                 var rectTxt = new Rectangle(rectPill.X + 22, rectPill.Y, rectPill.Width - 24, rectPill.Height);
-                using var sfPill = new StringFormat { Alignment = StringAlignment.Near, LineAlignment = StringAlignment.Center };
-                g.DrawString(_textoConexion, fontPill, brushPillTxt, rectTxt, sfPill);
+                g.DrawString(_textoConexion, FontPill, brushPillTxt, rectTxt, SfNearCenter);
             }
 
             // 4. Botón Campana
@@ -347,16 +460,12 @@ namespace HSis.UI.Controls
             if (_hoverCampana)
             {
                 using var pathC = TemaVisual.CrearRectanguloRedondeado(rectCampana, 8);
-                using var brushC = new SolidBrush(Color.FromArgb(241, 245, 249));
-                g.FillPath(brushC, pathC);
+                g.FillPath(TemaVisual.BrushFondoTenue, pathC);
             }
 
-            using (var bmpCampana = IconChar.Bell.ToBitmap(TemaVisual.TextoPrincipal, 18))
-            {
-                int campX = rectCampana.X + (rectCampana.Width - bmpCampana.Width) / 2;
-                int campY = rectCampana.Y + (rectCampana.Height - bmpCampana.Height) / 2;
-                g.DrawImage(bmpCampana, campX, campY);
-            }
+            int campX = rectCampana.X + (rectCampana.Width - BmpCampana.Width) / 2;
+            int campY = rectCampana.Y + (rectCampana.Height - BmpCampana.Height) / 2;
+            g.DrawImage(BmpCampana, campX, campY);
 
             if (_notificacionesNoLeidas > 0)
             {
@@ -364,26 +473,19 @@ namespace HSis.UI.Controls
                 using var brushBadge = new SolidBrush(Color.FromArgb(239, 68, 68));
                 g.FillEllipse(brushBadge, rectBadge);
 
-                using var sfB = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
-                using var fontB = new Font("Segoe UI", 7.5f, FontStyle.Bold);
-                using var brushBTxt = new SolidBrush(Color.White);
-                g.DrawString(_notificacionesNoLeidas > 9 ? "9+" : _notificacionesNoLeidas.ToString(), fontB, brushBTxt, rectBadge, sfB);
+                g.DrawString(_notificacionesNoLeidas > 9 ? "9+" : _notificacionesNoLeidas.ToString(), FontBadge, Brushes.White, rectBadge, SfCentro);
             }
 
             // 5. Divisor sutil
             var rectUser = ObtenerRectUsuario();
             int divX = rectUser.Left - 8;
-            using (var penDiv = new Pen(Color.FromArgb(226, 232, 240), 1f))
-            {
-                g.DrawLine(penDiv, divX, 18, divX, 46);
-            }
+            g.DrawLine(TemaVisual.PenBordeSutil, divX, 18, divX, 46);
 
             // 6. Chip de Usuario (Avatar + Nombre + Rol)
             if (_hoverUsuario)
             {
                 using var pathU = TemaVisual.CrearRectanguloRedondeado(rectUser, 8);
-                using var brushU = new SolidBrush(Color.FromArgb(248, 250, 252));
-                g.FillPath(brushU, pathU);
+                g.FillPath(TemaVisual.BrushFondoApp, pathU);
             }
 
             // Círculo de Avatar con iniciales
@@ -396,26 +498,16 @@ namespace HSis.UI.Controls
                 g.FillEllipse(brushAvatar, rectAvatar);
             }
 
-            using (var sfAv = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
-            using (var brushAvTxt = new SolidBrush(Color.White))
-            using (var fontAv = new Font("Segoe UI", 9f, FontStyle.Bold))
-            {
-                g.DrawString(iniciales, fontAv, brushAvTxt, rectAvatar, sfAv);
-            }
+            g.DrawString(iniciales, FontAvatar, Brushes.White, rectAvatar, SfCentro);
 
             // Nombre y Rol del usuario
-            using (var brushNom = new SolidBrush(TemaVisual.TextoPrincipal))
-            using (var fontNom = new Font("Segoe UI", 8.5f, FontStyle.Bold))
-            {
-                string nombreCorto = nombre.Length > 12 ? string.Concat(nombre.AsSpan(0, 12), "...") : nombre;
-                g.DrawString(nombreCorto, fontNom, brushNom, new PointF(rectUser.X + 40, rectUser.Y + 4));
-            }
+            string nombreCorto = nombre.Length > 12 ? string.Concat(nombre.AsSpan(0, 12), "...") : nombre;
+            g.DrawString(nombreCorto, FontNom, TemaVisual.BrushTextoPrincipal, new PointF(rectUser.X + 40, rectUser.Y + 4));
 
             string rolTexto = (_sesionUsuario?.EsAdmin ?? false) ? "Administrador" : ((_sesionUsuario?.EsTecnico ?? false) ? "Técnico" : "Cliente");
             using (var brushRol = new SolidBrush(TemaVisual.TextoSecundario))
-            using (var fontRol = new Font("Segoe UI", 7.5f, FontStyle.Regular))
             {
-                g.DrawString(rolTexto, fontRol, brushRol, new PointF(rectUser.X + 40, rectUser.Y + 21));
+                g.DrawString(rolTexto, FontRol, brushRol, new PointF(rectUser.X + 40, rectUser.Y + 21));
             }
 
             // 7. Botón Salir / Cerrar Sesión
@@ -436,21 +528,17 @@ namespace HSis.UI.Controls
                     g.DrawPath(penSalir, pathSalir);
                 }
 
-                using (var bmpSalir = IconChar.SignOutAlt.ToBitmap(fgSalir, 14))
-                {
-                    g.DrawImage(bmpSalir, rectSalir.X + 11, rectSalir.Y + 10);
-                }
+                var bmpSalir = _hoverSalir ? BmpSalirHover : BmpSalirNormal;
+                g.DrawImage(bmpSalir, rectSalir.X + 11, rectSalir.Y + 10);
 
                 using (var brushSalirTxt = new SolidBrush(fgSalir))
-                using (var fontSalir = new Font("Segoe UI", 8.5f, FontStyle.Bold))
                 {
-                    g.DrawString("Salir", fontSalir, brushSalirTxt, new PointF(rectSalir.X + 31, rectSalir.Y + 9));
+                    g.DrawString("Salir", FontSalir, brushSalirTxt, new PointF(rectSalir.X + 31, rectSalir.Y + 9));
                 }
             }
 
             // Línea divisoria inferior
-            using var penBorde = new Pen(TemaVisual.BordeSutil, 1f);
-            g.DrawLine(penBorde, 0, Height - 1, Width, Height - 1);
+            g.DrawLine(TemaVisual.PenBordeSutil, 0, Height - 1, Width, Height - 1);
         }
 
         private class MenuHamburguesaRenderer : ToolStripProfessionalRenderer

@@ -22,6 +22,9 @@ namespace HSis.Data.Models.Configurations
                 .HasForeignKey(d => d.IdTicket)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Det_Ticket_Ticket");
+
+            entity.HasIndex(e => e.IdMaterial)
+                .HasDatabaseName("IX_DetTicket_IdMaterial");
         }
     }
 }

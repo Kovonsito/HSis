@@ -4,6 +4,7 @@ using HSis.Contracts.Errors;
 using HSis.Logic.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace HSis.Server.Middleware;
 
@@ -142,6 +143,7 @@ public sealed class ApiExceptionHandler(ILogger<ApiExceptionHandler> logger) : I
                 "Solicitud no válida",
                 "La información enviada no tiene un formato válido. Revise los datos e inténtelo de nuevo.",
                 LogLevel.Warning),
+            DbUpdateException dbUpdateException => MapDbUpdateException(dbUpdateException),
             _ => new(
                 StatusCodes.Status500InternalServerError,
                 ApiErrorCodes.InternalServerError,
@@ -149,6 +151,42 @@ public sealed class ApiExceptionHandler(ILogger<ApiExceptionHandler> logger) : I
                 "Ocurrió un problema inesperado. Inténtelo de nuevo y proporcione el código de seguimiento al equipo de soporte si el problema continúa.",
                 LogLevel.Error)
         };
+
+    private static MappedError MapDbUpdateException(DbUpdateException dbUpdateException)
+    {
+        var sqlException = dbUpdateException.GetBaseException() as Microsoft.Data.SqlClient.SqlException;
+        if (sqlException != null)
+        {
+            // 547: Conflicto de restricción CHECK o FOREIGN KEY
+            if (sqlException.Number == 547)
+            {
+                return new(
+                    StatusCodes.Status400BadRequest,
+                    ApiErrorCodes.Validation,
+                    "Datos no válidos",
+                    "Uno o más campos no cumplen con las restricciones de formato o integridad permitidas por el sistema.",
+                    LogLevel.Warning);
+            }
+
+            // 2601, 2627: Violación de índice único / clave duplicada
+            if (sqlException.Number is 2601 or 2627)
+            {
+                return new(
+                    StatusCodes.Status409Conflict,
+                    ApiErrorCodes.Conflict,
+                    "Registro duplicado",
+                    "Ya existe un registro con la misma información única (código, clave o nombre).",
+                    LogLevel.Warning);
+            }
+        }
+
+        return new(
+            StatusCodes.Status400BadRequest,
+            ApiErrorCodes.BadRequest,
+            "Error de base de datos",
+            "No se pudo guardar la información debido a una restricción en la base de datos.",
+            LogLevel.Warning);
+    }
 
     private static int GetDomainStatusCode(DomainException exception)
         => exception.Code switch

@@ -25,6 +25,7 @@ namespace HSis.Logic.Services
         {
             using var db = dbContextFactory.CreateDbContext();
             var detalles = await db.DetTickets
+                .AsNoTracking()
                 .Include(dt => dt.Material)
                 .Where(dt => dt.IdTicket == idTicket)
                 .ToListAsync();
@@ -36,6 +37,7 @@ namespace HSis.Logic.Services
         {
             using var db = dbContextFactory.CreateDbContext();
             var detalle = await db.DetTickets
+                .AsNoTracking()
                 .Include(dt => dt.Material)
                 .FirstOrDefaultAsync(dt => dt.IdTicket == idTicket && dt.IdMaterial == idMaterial);
 
@@ -207,6 +209,7 @@ namespace HSis.Logic.Services
         {
             using var db = dbContextFactory.CreateDbContext();
             return await db.DetTickets
+                .AsNoTracking()
                 .Where(dt => dt.IdTicket == idTicket)
                 .SumAsync(dt => dt.CostoUnitarioAplicado * dt.Cantidad);
         }

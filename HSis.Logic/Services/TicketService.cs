@@ -41,6 +41,7 @@ namespace HSis.Logic.Services
         {
             using var db = dbContextFactory.CreateDbContext();
             return mapper.Map<List<TicketDto>>(await db.Tickets
+                .AsNoTracking()
                 .Include(t => t.Usuario)
                 .Include(t => t.Tecnico)
                 .ToListAsync());
@@ -51,6 +52,7 @@ namespace HSis.Logic.Services
         {
             using var db = dbContextFactory.CreateDbContext();
             var ticket = await db.Tickets
+                .AsNoTracking()
                 .Include(t => t.Usuario)
                 .ThenInclude(u => u.Departamento)
                 .Include(t => t.Tecnico)
@@ -64,7 +66,7 @@ namespace HSis.Logic.Services
             using var db = dbContextFactory.CreateDbContext();
             DateTime fechaLimite = ObtenerLimiteSLA();
 
-            var query = db.Tickets.ApplySlaFilter(esUrgente, fechaLimite);
+            var query = db.Tickets.AsNoTracking().ApplySlaFilter(esUrgente, fechaLimite);
 
             return mapper.Map<List<TicketDto>>(await query
                 .Include(t => t.Usuario)
@@ -77,6 +79,7 @@ namespace HSis.Logic.Services
         {
             using var db = dbContextFactory.CreateDbContext();
             return mapper.Map<List<TicketDto>>(await db.Tickets
+                .AsNoTracking()
                 .Where(t => t.Estatus == estatus)
                 .Include(t => t.Usuario)
                 .Include(t => t.Tecnico)
@@ -89,14 +92,14 @@ namespace HSis.Logic.Services
             using var db = dbContextFactory.CreateDbContext();
             DateTime fechaLimite = ObtenerLimiteSLA();
 
-            return await db.Tickets.ApplySlaFilter(esUrgente, fechaLimite).CountAsync();
+            return await db.Tickets.AsNoTracking().ApplySlaFilter(esUrgente, fechaLimite).CountAsync();
         }
 
         // Contar tickets por estatus - Async
         public async Task<int> ObtenerCountTicketsPorEstatusAsync(string estatus)
         {
             using var db = dbContextFactory.CreateDbContext();
-            return await db.Tickets.CountAsync(t => t.Estatus == estatus);
+            return await db.Tickets.AsNoTracking().CountAsync(t => t.Estatus == estatus);
         }
 
         // Obtener historial de cambios de un ticket - Async
@@ -104,6 +107,7 @@ namespace HSis.Logic.Services
         {
             using var db = dbContextFactory.CreateDbContext();
             return await db.HistorialCambiosTickets
+                .AsNoTracking()
                 .Include(h => h.UsuarioCambio)
                 .Where(h => h.IdTicket == idTicket)
                 .OrderByDescending(h => h.FechaMovimiento)
@@ -191,6 +195,7 @@ namespace HSis.Logic.Services
         {
             using var db = dbContextFactory.CreateDbContext();
             return mapper.Map<List<TicketDto>>(await db.Tickets
+                .AsNoTracking()
                 .Where(t => t.IdUsuario == idUsuario)
                 .Include(t => t.Tecnico)
                 .OrderByDescending(t => t.FechaAlta)
@@ -213,6 +218,7 @@ namespace HSis.Logic.Services
         {
             using var db = dbContextFactory.CreateDbContext();
             return mapper.Map<List<TicketDto>>(await db.Tickets
+                .AsNoTracking()
                 .Where(t => t.IdTecnico == idTecnico && t.Estatus != ConstantesEstatus.CERRADO)
                 .Include(t => t.Usuario)
                 .OrderByDescending(t => t.FechaAlta)
@@ -224,6 +230,7 @@ namespace HSis.Logic.Services
         {
             using var db = dbContextFactory.CreateDbContext();
             return mapper.Map<List<TicketDto>>(await db.Tickets
+                .AsNoTracking()
                 .Where(t => t.IdTecnico == idTecnico && t.Estatus == ConstantesEstatus.CERRADO)
                 .Include(t => t.Usuario)
                 .OrderByDescending(t => t.FechaCierre)
@@ -235,6 +242,7 @@ namespace HSis.Logic.Services
         {
             using var db = dbContextFactory.CreateDbContext();
             return mapper.Map<List<TicketDto>>(await db.Tickets
+                .AsNoTracking()
                 .Where(t => t.Estatus == ConstantesEstatus.ABIERTO && t.IdTecnico == null)
                 .Include(t => t.Usuario)
                 .OrderByDescending(t => t.FechaAlta)
@@ -307,6 +315,7 @@ namespace HSis.Logic.Services
         {
             using var db = dbContextFactory.CreateDbContext();
             var query = db.Tickets
+                .AsNoTracking()
                 .Include(t => t.Usuario)
                 .Include(t => t.Tecnico)
                 .ApplyFilters(filtros);
@@ -318,16 +327,18 @@ namespace HSis.Logic.Services
         public async Task<PaginatedResultDto<TicketDto>> ObtenerTicketsFiltradosPaginadosAsync(TicketFilterDto filtros, int pageNumber, int pageSize)
         {
             using var db = dbContextFactory.CreateDbContext();
-            var query = db.Tickets
-                .Include(t => t.Usuario)
-                .Include(t => t.Tecnico)
+            var baseQuery = db.Tickets
+                .AsNoTracking()
                 .ApplyFilters(filtros);
 
-            var totalCount = await query.CountAsync();
-            var items = await query.OrderByDescending(t => t.FechaAlta)
-                                   .Skip((pageNumber - 1) * pageSize)
-                                   .Take(pageSize)
-                                   .ToListAsync();
+            var totalCount = await baseQuery.CountAsync();
+            var items = await baseQuery
+                .Include(t => t.Usuario)
+                .Include(t => t.Tecnico)
+                .OrderByDescending(t => t.FechaAlta)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
 
             return new PaginatedResultDto<TicketDto>
             {
@@ -346,6 +357,7 @@ namespace HSis.Logic.Services
             var inicioDelDia = inicio.Date;
 
             var tickets = await db.Tickets
+                .AsNoTracking()
                 .Include(t => t.Usuario)
                     .ThenInclude(u => u.Departamento)
                 .Include(t => t.Tecnico)
@@ -567,6 +579,7 @@ namespace HSis.Logic.Services
         {
             using var db = dbContextFactory.CreateDbContext();
             var calificaciones = await db.Tickets
+                .AsNoTracking()
                 .Where(t => t.IdTecnico == idTecnico && t.Calificacion.HasValue)
                 .Select(t => t.Calificacion!.Value)
                 .ToListAsync();
@@ -580,6 +593,7 @@ namespace HSis.Logic.Services
         {
             using var db = dbContextFactory.CreateDbContext();
             return mapper.Map<List<TicketDto>>(await db.Tickets
+                .AsNoTracking()
                 .Where(t => t.IdTecnico == idTecnico && t.Calificacion.HasValue)
                 .Include(t => t.Usuario)
                 .OrderByDescending(t => t.FechaEvaluacion)
@@ -596,35 +610,91 @@ namespace HSis.Logic.Services
                 query = query.Where(t => t.IdTecnico == idTecnico.Value);
             }
 
+            var datos = await query
+                .Select(t => new
+                {
+                    t.Estatus,
+                    t.IdTecnico,
+                    t.FechaAlta,
+                    t.Calificacion
+                })
+                .ToListAsync();
+
             var fechaLimiteSla = ObtenerLimiteSLA();
 
-            // 1. KPIs Operativos en tiempo real (activos/vivos)
-            var nuevos = await query.CountAsync(t => t.Estatus == ConstantesEstatus.ABIERTO && t.IdTecnico == null && t.FechaAlta.HasValue && t.FechaAlta.Value >= fechaLimiteSla);
-            var urgentes = await query.CountAsync(t => t.Estatus == ConstantesEstatus.ABIERTO && t.FechaAlta.HasValue && t.FechaAlta.Value < fechaLimiteSla);
-            var enProceso = await query.CountAsync(t => t.Estatus == ConstantesEstatus.EN_PROCESO);
-            var reabiertos = await query.CountAsync(t => t.Estatus == ConstantesEstatus.REABIERTO);
+            int nuevos = 0;
+            int urgentes = 0;
+            int enProceso = 0;
+            int reabiertos = 0;
+            int cerrados = 0;
+            int sumaCalificaciones = 0;
+            int countCalificaciones = 0;
+            DateTime? fechaPrimerTicket = null;
 
-            // 2. KPIs Acumulativos que respetan el período seleccionado si se especifica
-            var queryCerrados = query.Where(t => t.Estatus == ConstantesEstatus.CERRADO);
-            var queryCalificaciones = query.Where(t => t.Calificacion.HasValue);
-
-            if (fechaInicio.HasValue)
+            foreach (var t in datos)
             {
-                queryCerrados = queryCerrados.Where(t => t.FechaAlta >= fechaInicio.Value);
-                queryCalificaciones = queryCalificaciones.Where(t => t.FechaAlta >= fechaInicio.Value);
-            }
-            if (fechaFin.HasValue)
-            {
-                queryCerrados = queryCerrados.Where(t => t.FechaAlta <= fechaFin.Value);
-                queryCalificaciones = queryCalificaciones.Where(t => t.FechaAlta <= fechaFin.Value);
+                if (t.FechaAlta.HasValue)
+                {
+                    if (fechaPrimerTicket == null || t.FechaAlta.Value < fechaPrimerTicket.Value)
+                    {
+                        fechaPrimerTicket = t.FechaAlta.Value;
+                    }
+                }
+
+                // 1. KPIs Operativos en tiempo real (activos/vivos)
+                if (t.Estatus == ConstantesEstatus.ABIERTO)
+                {
+                    if (t.FechaAlta.HasValue)
+                    {
+                        if (t.FechaAlta.Value >= fechaLimiteSla)
+                        {
+                            if (t.IdTecnico == null) nuevos++;
+                        }
+                        else
+                        {
+                            urgentes++;
+                        }
+                    }
+                }
+                else if (t.Estatus == ConstantesEstatus.EN_PROCESO)
+                {
+                    enProceso++;
+                }
+                else if (t.Estatus == ConstantesEstatus.REABIERTO)
+                {
+                    reabiertos++;
+                }
+
+                // 2. KPIs Acumulativos que respetan el período seleccionado si se especifica
+                bool dentroDeRango = true;
+                if (fechaInicio.HasValue && (!t.FechaAlta.HasValue || t.FechaAlta.Value < fechaInicio.Value))
+                {
+                    dentroDeRango = false;
+                }
+                if (fechaFin.HasValue && (!t.FechaAlta.HasValue || t.FechaAlta.Value > fechaFin.Value))
+                {
+                    dentroDeRango = false;
+                }
+
+                if (dentroDeRango)
+                {
+                    if (t.Estatus == ConstantesEstatus.CERRADO)
+                    {
+                        cerrados++;
+                    }
+
+                    if (t.Calificacion.HasValue)
+                    {
+                        sumaCalificaciones += t.Calificacion.Value;
+                        countCalificaciones++;
+                    }
+                }
             }
 
-            var cerrados = await queryCerrados.CountAsync();
-            var calificaciones = await queryCalificaciones.Select(t => t.Calificacion!.Value).ToListAsync();
-            double promedioCalificacion = calificaciones.Count > 0 ? Math.Round(calificaciones.Average(), 1) : 0.0;
+            double promedioCalificacion = countCalificaciones > 0
+                ? Math.Round((double)sumaCalificaciones / countCalificaciones, 1)
+                : 0.0;
             var pendientes = nuevos + urgentes + enProceso + reabiertos;
-
-            var fechaPrimerTicket = await query.Where(t => t.FechaAlta.HasValue).MinAsync(t => (DateTime?)t.FechaAlta);
 
             return new DashboardResumenDto
             {
@@ -642,19 +712,61 @@ namespace HSis.Logic.Services
         public async Task<IndicadoresTecnicoDto> ObtenerIndicadoresTecnicoAsync(int idTecnico)
         {
             using var db = dbContextFactory.CreateDbContext();
-            var asignados = await db.Tickets.CountAsync(t => t.IdTecnico == idTecnico && t.Estatus != ConstantesEstatus.CERRADO);
-            var disponibles = await db.Tickets.CountAsync(t => t.Estatus == ConstantesEstatus.ABIERTO && t.IdTecnico == null);
-            var cerrados = await db.Tickets.CountAsync(t => t.IdTecnico == idTecnico && t.Estatus == ConstantesEstatus.CERRADO);
-
-            var calificaciones = await db.Tickets
-                .Where(t => t.IdTecnico == idTecnico && t.Calificacion.HasValue)
-                .Select(t => t.Calificacion!.Value)
+            var datos = await db.Tickets
+                .AsNoTracking()
+                .Where(t => t.IdTecnico == idTecnico || (t.Estatus == ConstantesEstatus.ABIERTO && t.IdTecnico == null))
+                .Select(t => new
+                {
+                    t.IdTecnico,
+                    t.Estatus,
+                    t.Calificacion,
+                    t.FechaAlta
+                })
                 .ToListAsync();
-            double promedio = calificaciones.Count > 0 ? Math.Round(calificaciones.Average(), 1) : 0.0;
 
-            var fechaPrimerTicket = await db.Tickets
-                .Where(t => (t.IdTecnico == idTecnico || t.Estatus == ConstantesEstatus.ABIERTO) && t.FechaAlta.HasValue)
-                .MinAsync(t => (DateTime?)t.FechaAlta);
+            int asignados = 0;
+            int disponibles = 0;
+            int cerrados = 0;
+            int sumaCalificaciones = 0;
+            int countCalificaciones = 0;
+            DateTime? fechaPrimerTicket = null;
+
+            foreach (var t in datos)
+            {
+                if (t.FechaAlta.HasValue)
+                {
+                    if (fechaPrimerTicket == null || t.FechaAlta.Value < fechaPrimerTicket.Value)
+                    {
+                        fechaPrimerTicket = t.FechaAlta.Value;
+                    }
+                }
+
+                if (t.IdTecnico == idTecnico)
+                {
+                    if (t.Estatus == ConstantesEstatus.CERRADO)
+                    {
+                        cerrados++;
+                    }
+                    else
+                    {
+                        asignados++;
+                    }
+
+                    if (t.Calificacion.HasValue)
+                    {
+                        sumaCalificaciones += t.Calificacion.Value;
+                        countCalificaciones++;
+                    }
+                }
+                else if (t.Estatus == ConstantesEstatus.ABIERTO && t.IdTecnico == null)
+                {
+                    disponibles++;
+                }
+            }
+
+            double promedio = countCalificaciones > 0
+                ? Math.Round((double)sumaCalificaciones / countCalificaciones, 1)
+                : 0.0;
 
             return new IndicadoresTecnicoDto(asignados, disponibles, cerrados, promedio, fechaPrimerTicket);
         }
@@ -663,6 +775,7 @@ namespace HSis.Logic.Services
         {
             using var db = dbContextFactory.CreateDbContext();
             var tickets = await db.Tickets
+                .AsNoTracking()
                 .Where(t => t.IdUsuario == idUsuario)
                 .Include(t => t.Usuario)
                 .OrderByDescending(t => t.FechaAlta)

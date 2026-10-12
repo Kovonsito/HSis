@@ -11,11 +11,11 @@ namespace HSis.UI.Forms.Catalogos;
 public sealed class EmpresaCatalogoForm : FormularioCatalogoBase
 {
     private readonly IEmpresaService _service;
-    private readonly CajaTextoModerna _txtNombre = new() { Placeholder = "Nombre de la empresa" };
-    private readonly CajaTextoModerna _txtCalle = new() { Placeholder = "Calle" };
-    private readonly CajaTextoModerna _txtNumero = new() { Placeholder = "Número" };
-    private readonly CajaTextoModerna _txtColonia = new() { Placeholder = "Colonia" };
-    private readonly CajaTextoModerna _txtTelefono = new() { Placeholder = "Teléfono" };
+    private readonly CajaTextoModerna _txtNombre = new() { Placeholder = "Nombre de la empresa", MaxLength = 50 };
+    private readonly CajaTextoModerna _txtCalle = new() { Placeholder = "Calle", MaxLength = 50 };
+    private readonly CajaTextoModerna _txtNumero = new() { Placeholder = "Número", MaxLength = 10 };
+    private readonly CajaTextoModerna _txtColonia = new() { Placeholder = "Colonia", MaxLength = 50 };
+    private readonly CajaTextoModerna _txtTelefono = new() { Placeholder = "(664) 123-4567", MaxLength = 15 };
     private int? _idEmpresa;
 
     public EmpresaCatalogoForm(IEmpresaService service) : base("Nueva empresa", 390)

@@ -50,11 +50,11 @@ internal sealed class NotificationAgentHost(
     private int _lastNotificationId;
     private int _started;
 
-    public async Task<bool> StartAsync(CancellationToken cancellationToken = default)
+    public Task<bool> StartAsync(CancellationToken cancellationToken = default)
     {
         if (Interlocked.Exchange(ref _started, 1) != 0)
         {
-            return true;
+            return Task.FromResult(true);
         }
 
         CargarEstado();
@@ -69,7 +69,7 @@ internal sealed class NotificationAgentHost(
         }
 
         _supervisionTask = EjecutarSupervisionAsync(_stopping.Token);
-        return true;
+        return Task.FromResult(true);
     }
 
     private async Task<bool> AutenticarAsync(CancellationToken cancellationToken)

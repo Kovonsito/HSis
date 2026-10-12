@@ -82,6 +82,59 @@ namespace HSis.UI.Helpers
         public static readonly Font FuentePequena = new("Segoe UI", 8.5f, FontStyle.Regular);
         public static readonly Font FuenteBadge = new("Segoe UI", 8.5f, FontStyle.Bold);
 
+        // Recursos GDI+ reutilizables de alto rendimiento (evitan GC thrashing en CellPainting)
+        public static readonly Pen PenBordeSutil = new(BordeSutil, 1f);
+        public static readonly SolidBrush BrushFondoTenue = new(FondoTenue);
+        public static readonly SolidBrush BrushFondoTarjeta = new(FondoTarjeta);
+        public static readonly SolidBrush BrushFondoApp = new(FondoApp);
+        public static readonly SolidBrush BrushPrimarioSuave = new(PrimarioSuave);
+        public static readonly SolidBrush BrushTextoPrincipal = new(TextoPrincipal);
+        public static readonly SolidBrush BrushTextoMedio = new(TextoMedio);
+
+        private static readonly StringFormat FormatoBadge = new()
+        {
+            Alignment = StringAlignment.Center,
+            LineAlignment = StringAlignment.Center
+        };
+
+        private static readonly Dictionary<string, (SolidBrush BrushTexto, SolidBrush BrushFondo, Pen PenBorde)> CacheRecursosBadge = [];
+        private static readonly object LockBadge = new();
+
+        private static readonly Dictionary<Color, SolidBrush> CacheBrushesColor = [];
+        private static readonly object LockBrushesColor = new();
+
+        private static (SolidBrush BrushTexto, SolidBrush BrushFondo, Pen PenBorde) ObtenerRecursosBadge(string valor)
+        {
+            lock (LockBadge)
+            {
+                if (CacheRecursosBadge.TryGetValue(valor, out var recursos))
+                {
+                    return recursos;
+                }
+
+                var (colorTexto, colorFondo) = ObtenerColoresBadge(valor);
+                var brushTexto = new SolidBrush(colorTexto);
+                var brushFondo = new SolidBrush(colorFondo);
+                var penBorde = new Pen(Color.FromArgb(40, colorTexto), 1f);
+                recursos = (brushTexto, brushFondo, penBorde);
+                CacheRecursosBadge[valor] = recursos;
+                return recursos;
+            }
+        }
+
+        private static SolidBrush ObtenerBrushColor(Color color)
+        {
+            lock (LockBrushesColor)
+            {
+                if (!CacheBrushesColor.TryGetValue(color, out var brush))
+                {
+                    brush = new SolidBrush(color);
+                    CacheBrushesColor[color] = brush;
+                }
+                return brush;
+            }
+        }
+
         /// <summary>
         /// Obtiene los colores de badge (Texto, Fondo) según el estatus o prioridad
         /// </summary>
@@ -129,6 +182,10 @@ namespace HSis.UI.Helpers
             dgv.ShowCellToolTips = true;
             dgv.ConfigurarDesplazamientoYTexto();
 
+            dgv.ReadOnly = true;
+            dgv.StandardTab = true;
+            dgv.EditMode = DataGridViewEditMode.EditProgrammatically;
+
             // Fila de encabezado
             dgv.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
             dgv.ColumnHeadersDefaultCellStyle.BackColor = FondoTenue;
@@ -140,18 +197,19 @@ namespace HSis.UI.Helpers
             dgv.ColumnHeadersHeight = 44;
             dgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
 
-            // Filas de datos
+            // Filas de datos (color de selección visible y profesional con buen contraste)
+            Color colorSeleccionFila = Color.FromArgb(224, 238, 255); // Azul suave bien perceptible (#E0EEFF)
             dgv.DefaultCellStyle.BackColor = FondoTarjeta;
             dgv.DefaultCellStyle.ForeColor = TextoPrincipal;
             dgv.DefaultCellStyle.Font = FuenteNormal;
             dgv.DefaultCellStyle.Padding = new Padding(12, 6, 12, 6);
-            dgv.DefaultCellStyle.SelectionBackColor = PrimarioSuave;
+            dgv.DefaultCellStyle.SelectionBackColor = colorSeleccionFila;
             dgv.DefaultCellStyle.SelectionForeColor = TextoPrincipal;
             dgv.RowTemplate.Height = 42;
 
             // Filas alternas sutiles
             dgv.AlternatingRowsDefaultCellStyle.BackColor = FondoApp;
-            dgv.AlternatingRowsDefaultCellStyle.SelectionBackColor = PrimarioSuave;
+            dgv.AlternatingRowsDefaultCellStyle.SelectionBackColor = colorSeleccionFila;
             dgv.AlternatingRowsDefaultCellStyle.SelectionForeColor = TextoPrincipal;
 
             // Pintado personalizado de Badges para columnas como Estatus o Prioridad
@@ -175,7 +233,6 @@ namespace HSis.UI.Helpers
             var anchoAjustado = columna.Width;
             columna.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
             columna.Width = Math.Max(columna.MinimumWidth, anchoAjustado);
-            dgv.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
         }
 
         private static void Dgv_CellPainting(object? sender, DataGridViewCellPaintingEventArgs e)
@@ -183,15 +240,11 @@ namespace HSis.UI.Helpers
             if (e.ColumnIndex < 0 || sender is not DataGridView dgv || e.Graphics == null)
                 return;
 
-            // 1. Evitar resaltado estridente en encabezados de columna
+            // 1. Evitar resaltado estridente en encabezados de columna con recursos estáticos
             if (e.RowIndex == -1)
             {
-                using var brushH = new SolidBrush(FondoTenue);
-                e.Graphics.FillRectangle(brushH, e.CellBounds);
-
-                using var penBorder = new Pen(BordeSutil, 1f);
-                e.Graphics.DrawLine(penBorder, e.CellBounds.Left, e.CellBounds.Bottom - 1, e.CellBounds.Right, e.CellBounds.Bottom - 1);
-
+                e.Graphics.FillRectangle(BrushFondoTenue, e.CellBounds);
+                e.Graphics.DrawLine(PenBordeSutil, e.CellBounds.Left, e.CellBounds.Bottom - 1, e.CellBounds.Right, e.CellBounds.Bottom - 1);
                 e.Paint(e.CellBounds, DataGridViewPaintParts.ContentForeground | DataGridViewPaintParts.ContentBackground);
                 e.Handled = true;
                 return;
@@ -207,13 +260,7 @@ namespace HSis.UI.Helpers
                 string valor = e.Value?.ToString() ?? string.Empty;
                 if (!string.IsNullOrWhiteSpace(valor))
                 {
-                    var (colorTexto, colorFondo) = ObtenerColoresBadge(valor);
-
-                    using var sf = new StringFormat
-                    {
-                        Alignment = StringAlignment.Center,
-                        LineAlignment = StringAlignment.Center
-                    };
+                    var (brushTexto, brushFondo, penBorde) = ObtenerRecursosBadge(valor);
 
                     var textoSize = e.Graphics.MeasureString(valor, FuenteBadge);
                     int badgeWidth = Math.Max((int)textoSize.Width + 16, 70);
@@ -225,15 +272,12 @@ namespace HSis.UI.Helpers
 
                     // Dibujar pastilla redondeada
                     using var path = CrearRectanguloRedondeado(badgeRect, 6);
-                    using var brushFondo = new SolidBrush(colorFondo);
-                    using var brushTexto = new SolidBrush(colorTexto);
-                    using var penBorde = new Pen(Color.FromArgb(40, colorTexto), 1f);
 
                     var suavizadoPrevio = e.Graphics.SmoothingMode;
                     e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
                     e.Graphics.FillPath(brushFondo, path);
                     e.Graphics.DrawPath(penBorde, path);
-                    e.Graphics.DrawString(valor, FuenteBadge, brushTexto, badgeRect, sf);
+                    e.Graphics.DrawString(valor, FuenteBadge, brushTexto, badgeRect, FormatoBadge);
                     e.Graphics.SmoothingMode = suavizadoPrevio;
                 }
 
@@ -254,7 +298,7 @@ namespace HSis.UI.Helpers
         {
             var seleccionada = (e.State & DataGridViewElementStates.Selected) != 0;
             var color = seleccionada ? e.CellStyle!.SelectionBackColor : e.CellStyle!.BackColor;
-            using var pincel = new SolidBrush(color);
+            var pincel = ObtenerBrushColor(color);
             e.Graphics!.FillRectangle(pincel, e.CellBounds);
         }
 
@@ -285,8 +329,7 @@ namespace HSis.UI.Helpers
 
         private static void DibujarSeparadorFila(DataGridViewCellPaintingEventArgs e)
         {
-            using var pen = new Pen(BordeSutil, 1f);
-            e.Graphics!.DrawLine(pen, e.CellBounds.Left, e.CellBounds.Bottom - 1, e.CellBounds.Right, e.CellBounds.Bottom - 1);
+            e.Graphics!.DrawLine(PenBordeSutil, e.CellBounds.Left, e.CellBounds.Bottom - 1, e.CellBounds.Right, e.CellBounds.Bottom - 1);
         }
 
         public static GraphicsPath CrearRectanguloRedondeado(Rectangle bounds, int radius)

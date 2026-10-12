@@ -168,6 +168,7 @@ builder.Services.AddScoped<IMapper, ServiceMapper>();
 
 // Registrar FluentValidation
 builder.Services.AddValidatorsFromAssemblyContaining<HSis.Contracts.Validators.TicketCreateValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<HSis.Logic.Validators.EmpresaValidator>();
 
 // Registrar servicios JWT y HttpContextAccessor
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
@@ -262,8 +263,14 @@ builder.Services.AddSingleton<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<AccesoTicketService>();
 builder.Services.AddSingleton<TicketAuditInterceptor>();
 
-// Configurar DbContextFactory con Interceptor de Auditoría
-builder.Services.AddDbContextFactory<HSisDbContext>((sp, options) =>
+// Configurar compresión de respuesta para optimizar transferencia de datos
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+});
+
+// Configurar DbContextFactory con pooling e Interceptor de Auditoría
+builder.Services.AddPooledDbContextFactory<HSisDbContext>((sp, options) =>
     options.UseSqlServer(connectionString)
            .AddInterceptors(sp.GetRequiredService<TicketAuditInterceptor>()));
 
@@ -297,6 +304,9 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseHsts();
 }
+
+// Activar compresión de respuestas para todas las cargas JSON
+app.UseResponseCompression();
 
 // Habilitar Swagger
 if (app.Environment.IsDevelopment())

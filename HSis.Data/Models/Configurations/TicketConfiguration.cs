@@ -31,6 +31,19 @@ namespace HSis.Data.Models.Configurations
                 .HasForeignKey(d => d.IdUsuario)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Ticket_Usuario");
+
+            // Índices de alto rendimiento para búsqueda y filtrado sub-milisegundo
+            entity.HasIndex(e => new { e.Estatus, e.FechaAlta })
+                .HasDatabaseName("IX_Ticket_Estatus_FechaAlta");
+
+            entity.HasIndex(e => new { e.IdTecnico, e.Estatus })
+                .HasDatabaseName("IX_Ticket_IdTecnico_Estatus");
+
+            entity.HasIndex(e => new { e.IdUsuario, e.FechaAlta })
+                .HasDatabaseName("IX_Ticket_IdUsuario_FechaAlta");
+
+            entity.HasIndex(e => e.FechaAlta)
+                .HasDatabaseName("IX_Ticket_FechaAlta");
         }
     }
 }

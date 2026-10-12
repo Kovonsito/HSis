@@ -57,9 +57,18 @@ public static class ManejadorErroresUI
 
             case ApiException apiException:
                 var mensajeApi = apiException.UserMessage;
-                if (!string.IsNullOrWhiteSpace(apiException.TechnicalReference))
+                var referenciaTecnica = apiException.TechnicalReference;
+
+                // Si la API devolvió un mensaje prometiendo código de seguimiento pero vino nulo, generamos un identificador local
+                if (string.IsNullOrWhiteSpace(referenciaTecnica) &&
+                    mensajeApi.Contains("código de seguimiento", StringComparison.OrdinalIgnoreCase))
                 {
-                    mensajeApi += $"\n\nCódigo de seguimiento: {apiException.TechnicalReference}";
+                    referenciaTecnica = $"LOC-{Guid.NewGuid().ToString("N")[..8].ToUpperInvariant()}";
+                }
+
+                if (!string.IsNullOrWhiteSpace(referenciaTecnica))
+                {
+                    mensajeApi += $"\n\nCódigo de seguimiento:\n{referenciaTecnica}";
                 }
 
                 var erroresApi = apiException.ValidationErrors is null
@@ -71,19 +80,30 @@ public static class ManejadorErroresUI
 
                 Log.Warning(
                     apiException,
-                    "La API rechazó {Contexto}. Estado: {StatusCode}. Código: {ErrorCode}. TraceId: {TraceId}. Validaciones: {ValidationErrors}",
+                    "La API rechazó {Contexto}. Estado: {StatusCode}. Código: {ErrorCode}. TraceId: {TraceId}. Referencia: {ReferenciaTecnica}. Validaciones: {ValidationErrors}",
                     contextoNormalizado,
                     apiException.StatusCode,
                     apiException.Code,
                     apiException.TraceId,
+                    referenciaTecnica,
                     erroresApi);
 
                 if (mostrarDialogo)
                 {
-                    DialogoUIHelper.MostrarAdvertencia(
-                        mensajeApi,
-                        apiException.Title ?? "No se pudo completar la operación",
-                        propietario);
+                    if (apiException.StatusCode >= System.Net.HttpStatusCode.InternalServerError)
+                    {
+                        DialogoUIHelper.MostrarError(
+                            mensajeApi,
+                            apiException.Title ?? "No se pudo completar la operación",
+                            propietario);
+                    }
+                    else
+                    {
+                        DialogoUIHelper.MostrarAdvertencia(
+                            mensajeApi,
+                            apiException.Title ?? "No se pudo completar la operación",
+                            propietario);
+                    }
                 }
 
                 return;

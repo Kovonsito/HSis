@@ -153,6 +153,11 @@ namespace HSis.UI.Coordinators
             };
             VistaTickets.SeleccionarKpi(kpiSeleccionado);
 
+            if (VistaActual == VistaCliente.Activos)
+            {
+                VistaTickets.Filtro.EstablecerValorFiltro("Periodo", "Todos", dispararEvento: false);
+            }
+
             VistaTickets.ControladorPaginacion.ReiniciarAPrimeraPagina();
             MostrarPaginaActual();
         }

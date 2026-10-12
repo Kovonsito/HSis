@@ -12,7 +12,7 @@ namespace HSis.UI.Helpers
     [SupportedOSPlatform("windows")]
     public static class AsyncOperationHelper
     {
-        private static readonly ConditionalWeakTable<Form, EstadoCargaAsync> EstadosPorFormulario = new();
+        private static readonly ConditionalWeakTable<Form, EstadoCargaAsync> EstadosPorFormulario = [];
 
         public static EstadoCargaAsync ObtenerEstadoCarga(this Form form)
             => EstadosPorFormulario.GetValue(form, _ => new EstadoCargaAsync());
@@ -84,6 +84,31 @@ namespace HSis.UI.Helpers
             {
                 estadoCarga.Finalizar(claveOperacion);
                 AlternarEstado(estadoCarga.EstaCargando);
+
+                // Rehabilitar de forma garantizada los controles específicos de esta operación
+                if (!estadoCarga.EstaCargando && controlesADeshabilitar != null)
+                {
+                    void Rehabilitar()
+                    {
+                        if (form.IsDisposed) return;
+                        foreach (var c in controlesADeshabilitar)
+                        {
+                            if (c != null && !c.IsDisposed)
+                            {
+                                c.Enabled = true;
+                            }
+                        }
+                    }
+
+                    if (form.InvokeRequired)
+                    {
+                        form.Invoke(new Action(Rehabilitar));
+                    }
+                    else
+                    {
+                        Rehabilitar();
+                    }
+                }
             }
 
             return true;

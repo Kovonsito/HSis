@@ -386,7 +386,10 @@ namespace HSis.UI.Controls
                 return;
             }
 
-            _topBar?.NotificacionesNoLeidas = noLeidas;
+            if (_topBar != null)
+            {
+                _topBar.NotificacionesNoLeidas = noLeidas;
+            }
 
             if (lblBadgeCount != null)
             {

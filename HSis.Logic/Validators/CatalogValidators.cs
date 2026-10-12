@@ -10,7 +10,7 @@ namespace HSis.Logic.Validators
         {
             RuleFor(x => x.Nombre)
                 .NotEmpty().WithMessage("El nombre es obligatorio.")
-                .MaximumLength(100).WithMessage("El nombre no puede exceder los 100 caracteres.");
+                .MaximumLength(50).WithMessage("El nombre no puede exceder los 50 caracteres.");
 
             RuleFor(x => x.Contraseña)
                 .NotEmpty().WithMessage("La contraseña es obligatoria.")
@@ -28,10 +28,11 @@ namespace HSis.Logic.Validators
         {
             RuleFor(x => x.Nombre)
                 .NotEmpty().WithMessage("El nombre del material es obligatorio.")
-                .MaximumLength(100).WithMessage("El nombre no puede exceder los 100 caracteres.");
+                .MaximumLength(50).WithMessage("El nombre no puede exceder los 50 caracteres.");
 
             RuleFor(x => x.UnidadMedida)
-                .NotEmpty().WithMessage("Debe seleccionar una unidad de medida.");
+                .NotEmpty().WithMessage("Debe seleccionar una unidad de medida.")
+                .MaximumLength(20).WithMessage("La unidad de medida no puede exceder los 20 caracteres.");
         }
     }
 
@@ -40,7 +41,10 @@ namespace HSis.Logic.Validators
         public DepartamentoValidator()
         {
             RuleFor(x => x.Nombre)
-                .NotEmpty().WithMessage("El nombre del departamento es obligatorio.");
+                .NotEmpty().WithMessage("El nombre del departamento es obligatorio.")
+                .MaximumLength(30).WithMessage("El nombre no puede exceder los 30 caracteres.");
+            RuleFor(x => x.Descripcion)
+                .MaximumLength(250).WithMessage("La descripción no puede exceder los 250 caracteres.");
         }
     }
 
@@ -51,8 +55,17 @@ namespace HSis.Logic.Validators
             RuleFor(x => x.Nombre)
                 .NotEmpty().WithMessage("El nombre de la empresa es obligatorio.")
                 .MaximumLength(50).WithMessage("El nombre no puede exceder los 50 caracteres.");
+            RuleFor(x => x.Calle)
+                .MaximumLength(50).WithMessage("La calle no puede exceder los 50 caracteres.");
+            RuleFor(x => x.Numero)
+                .MaximumLength(10).WithMessage("El número no puede exceder los 10 caracteres.");
+            RuleFor(x => x.Colonia)
+                .MaximumLength(50).WithMessage("La colonia no puede exceder los 50 caracteres.");
             RuleFor(x => x.Telefono)
-                .MaximumLength(20).WithMessage("El teléfono no puede exceder los 20 caracteres.");
+                .MaximumLength(15).WithMessage("El teléfono no puede exceder los 15 caracteres.")
+                .Matches(@"^\(\d{3}\) \d{3}-\d{4}$")
+                .When(x => !string.IsNullOrWhiteSpace(x.Telefono))
+                .WithMessage("El formato del teléfono debe ser (XXX) XXX-XXXX.");
         }
     }
 
@@ -63,6 +76,17 @@ namespace HSis.Logic.Validators
             RuleFor(x => x.Nombre)
                 .NotEmpty().WithMessage("El nombre de la sucursal es obligatorio.")
                 .MaximumLength(50).WithMessage("El nombre no puede exceder los 50 caracteres.");
+            RuleFor(x => x.Calle)
+                .MaximumLength(30).WithMessage("La calle no puede exceder los 30 caracteres.");
+            RuleFor(x => x.Numero)
+                .MaximumLength(10).WithMessage("El número no puede exceder los 10 caracteres.");
+            RuleFor(x => x.Colonia)
+                .MaximumLength(50).WithMessage("La colonia no puede exceder los 50 caracteres.");
+            RuleFor(x => x.Telefono)
+                .MaximumLength(15).WithMessage("El teléfono no puede exceder los 15 caracteres.")
+                .Matches(@"^\(\d{3}\) \d{3}-\d{4}$")
+                .When(x => !string.IsNullOrWhiteSpace(x.Telefono))
+                .WithMessage("El formato del teléfono debe ser (XXX) XXX-XXXX.");
             RuleFor(x => x.IdEmpresa)
                 .NotNull().WithMessage("Debe seleccionar la empresa de la sucursal.")
                 .GreaterThan(0).WithMessage("Debe seleccionar la empresa de la sucursal.");
@@ -75,7 +99,9 @@ namespace HSis.Logic.Validators
         {
             RuleFor(x => x.Nombre)
                 .NotEmpty().WithMessage("El nombre del puesto es obligatorio.")
-                .MaximumLength(50).WithMessage("El nombre del puesto no puede exceder los 50 caracteres.");
+                .MaximumLength(20).WithMessage("El nombre del puesto no puede exceder los 20 caracteres.");
+            RuleFor(x => x.Descripcion)
+                .MaximumLength(250).WithMessage("La descripción no puede exceder los 250 caracteres.");
         }
     }
 

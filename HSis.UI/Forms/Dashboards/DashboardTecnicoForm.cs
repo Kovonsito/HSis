@@ -1,4 +1,3 @@
-#nullable enable
 using System.Runtime.Versioning;
 using HSis.Contracts.Services;
 using HSis.UI.Coordinators;
@@ -21,6 +20,7 @@ namespace HSis.UI.Forms.Dashboards
             IBusEventosNotificaciones eventBus)
         {
             InitializeComponent();
+            sidebarTecnico.Colapsado = true;
             _coordinador = new CoordinadorDashboardTecnico(
                 this,
                 sidebarTecnico,
@@ -40,6 +40,16 @@ namespace HSis.UI.Forms.Dashboards
         private async void frmDashboardTecnico_Load(object? sender, EventArgs e)
         {
             await _coordinador.IniciarAsync();
+        }
+
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                var cp = base.CreateParams;
+                cp.ExStyle |= 0x02000000; // WS_EX_COMPOSITED: composición nativa sin parpadeos
+                return cp;
+            }
         }
     }
 }

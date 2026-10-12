@@ -464,6 +464,11 @@ namespace HSis.UI.Controls
                             if (cmb.DataSource != null) cmb.SelectedValue = valor!;
                             else cmb.SelectedItem = valor;
                         }
+
+                        if (nombrePropiedad == "Periodo" && valor != null)
+                        {
+                            AplicarAtajoPeriodo(valor.ToString()!);
+                        }
                         break;
 
                     case TipoFiltroControl.Fecha:

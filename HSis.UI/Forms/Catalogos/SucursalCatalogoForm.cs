@@ -12,11 +12,11 @@ public sealed class SucursalCatalogoForm : FormularioCatalogoBase
 {
     private readonly ISucursalService _service;
     private readonly IEmpresaService _empresaService;
-    private readonly CajaTextoModerna _txtNombre = new() { Placeholder = "Nombre de la sucursal" };
-    private readonly CajaTextoModerna _txtCalle = new() { Placeholder = "Calle" };
-    private readonly CajaTextoModerna _txtNumero = new() { Placeholder = "Número" };
-    private readonly CajaTextoModerna _txtColonia = new() { Placeholder = "Colonia" };
-    private readonly CajaTextoModerna _txtTelefono = new() { Placeholder = "Teléfono" };
+    private readonly CajaTextoModerna _txtNombre = new() { Placeholder = "Nombre de la sucursal", MaxLength = 50 };
+    private readonly CajaTextoModerna _txtCalle = new() { Placeholder = "Calle", MaxLength = 30 };
+    private readonly CajaTextoModerna _txtNumero = new() { Placeholder = "Número", MaxLength = 10 };
+    private readonly CajaTextoModerna _txtColonia = new() { Placeholder = "Colonia", MaxLength = 50 };
+    private readonly CajaTextoModerna _txtTelefono = new() { Placeholder = "(664) 123-4567", MaxLength = 15 };
     private readonly ComboModerno _cmbEmpresa = new();
     private int? _idSucursal;
     private int? _empresaEnEdicion;
