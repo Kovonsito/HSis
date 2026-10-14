@@ -36,6 +36,33 @@ public sealed class AgenteNotificacionesLauncher(IConfiguration configuration)
                 Log.Warning("No se pudo registrar el inicio automático del agente de notificaciones.");
             }
 
+            // Verificar si el agente ya se encuentra en ejecución para evitar instancias duplicadas
+            var yaEjecutandose = false;
+            try
+            {
+                if (System.Threading.Mutex.TryOpenExisting(ConfiguracionEscritorio.MutexAgenteNotificaciones, out var existingMutex))
+                {
+                    existingMutex.Dispose();
+                    yaEjecutandose = true;
+                }
+            }
+            catch
+            {
+                // Si no se puede abrir el mutex, verificamos por nombre de proceso
+            }
+
+            if (!yaEjecutandose)
+            {
+                yaEjecutandose = System.Diagnostics.Process.GetProcessesByName(
+                    Path.GetFileNameWithoutExtension(executablePath)).Length > 0;
+            }
+
+            if (yaEjecutandose)
+            {
+                Log.Information("El agente de notificaciones ya está activo. No se inicia una nueva instancia.");
+                return;
+            }
+
             string? argumentos = null;
             if (System.Diagnostics.Debugger.IsAttached || 
                 string.Equals(Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT"), "Development", StringComparison.OrdinalIgnoreCase))

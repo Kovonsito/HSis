@@ -30,6 +30,7 @@ param(
     [switch]$SoloClientes,
     [switch]$SoloServidor,
     [switch]$CompilarInstalador = $true,
+    [switch]$SelfContained = $true,
     [switch]$CerrarProcesos
 )
 
@@ -96,9 +97,9 @@ if (-not $SoloClientes) {
 if (-not $SoloServidor) {
     Write-Host "============================================================" -ForegroundColor Cyan
     Write-Host " 2. PUBLICACION DE LA INTERFAZ DE USUARIO (HSis.UI)" -ForegroundColor Cyan
-    Write-Host " Destino: $uiOut" -ForegroundColor Cyan
+    Write-Host " Destino: $uiOut (SelfContained: $SelfContained)" -ForegroundColor Cyan
     Write-Host "============================================================" -ForegroundColor Cyan
-    dotnet publish $uiProject -c $Configuration -r win-x64 --self-contained false -o $uiOut
+    dotnet publish $uiProject -c $Configuration -r win-x64 --self-contained $SelfContained -o $uiOut
     if ($LASTEXITCODE -ne 0) { throw "Error al publicar HSis.UI." }
 
     # Configurar appsettings.json de la UI
@@ -115,9 +116,9 @@ if (-not $SoloServidor) {
 
     Write-Host "============================================================" -ForegroundColor Cyan
     Write-Host " 3. PUBLICACION DEL AGENTE (HSis.NotificationAgent)" -ForegroundColor Cyan
-    Write-Host " Destino: $agentOut" -ForegroundColor Cyan
+    Write-Host " Destino: $agentOut (SelfContained: $SelfContained)" -ForegroundColor Cyan
     Write-Host "============================================================" -ForegroundColor Cyan
-    dotnet publish $agentProject -c $Configuration -r win-x64 --self-contained false -o $agentOut
+    dotnet publish $agentProject -c $Configuration -r win-x64 --self-contained $SelfContained -o $agentOut
     if ($LASTEXITCODE -ne 0) { throw "Error al publicar HSis.NotificationAgent." }
 
     # Configurar appsettings.json del Agente

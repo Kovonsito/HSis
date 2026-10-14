@@ -28,6 +28,17 @@ CloseApplications=yes
 CloseApplicationsFilter=*.exe
 RestartApplications=no
 
+[Code]
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+var
+  ResultCode: Integer;
+begin
+  Result := '';
+  // Forzar el cierre de procesos existentes para evitar archivos bloqueados (in use)
+  Exec('taskkill.exe', '/F /IM {#MyAgentExeName} /IM {#MyAppExeName}', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Sleep(500);
+end;
+
 [Languages]
 Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 
