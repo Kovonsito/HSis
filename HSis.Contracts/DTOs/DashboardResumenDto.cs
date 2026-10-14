@@ -20,7 +20,7 @@ namespace HSis.Contracts.DTOs
         public int TicketsPendientes { get => TotalPendientes; set => TotalPendientes = value; }
     }
 
-    public record IndicadoresTecnicoDto(int Asignados, int Disponibles, int Cerrados, double PromedioCalificacion, DateTime? FechaPrimerTicket = null);
+    public record IndicadoresTecnicoDto(int Asignados, int Disponibles, int Cerrados, double PromedioCalificacion, DateTime? FechaPrimerTicket = null, int Urgentes = 0);
 
     public record ResumenClienteDto(int Activos, int Cerrados, List<TicketDto> Tickets, DateTime? FechaPrimerTicket = null);
 

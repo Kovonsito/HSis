@@ -27,7 +27,7 @@ namespace HSis.Tests.Services
 
             using (var db = new HSisDbContext(options))
             {
-                db.Materials.Add(new Material { IdMaterial = 100, Nombre = "Cable UTP Cat6", Costo = 15.50m, UnidadMedida = "Metro" });
+                db.Materials.Add(new Material { IdMaterial = 100, Nombre = "Cable UTP Cat6", Costo = 15.50m, UnidadMedida = "Metro", Inventario = 50 });
                 db.Tickets.Add(new Ticket { IdTicket = 1, IdUsuario = 1 });
                 await db.SaveChangesAsync();
             }

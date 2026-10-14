@@ -53,14 +53,39 @@ namespace HSis.Logic.Services
             var material = await db.Materials.FindAsync(detalleDto.IdMaterial)
                 ?? throw new KeyNotFoundException($"No existe el material {detalleDto.IdMaterial}.");
 
-            // Consultar el costo actual del material para este egreso
-            var detTicket = new DetTicket
+            if (detalleDto.Cantidad <= 0)
             {
-                IdTicket = detalleDto.IdTicket,
-                IdMaterial = detalleDto.IdMaterial,
-                Cantidad = detalleDto.Cantidad,
-                CostoUnitarioAplicado = material.Costo
-            };
+                throw new InvalidOperationException("La cantidad debe ser mayor a 0.");
+            }
+
+            var detTicketExistente = await db.DetTickets
+                .SingleOrDefaultAsync(item => item.IdTicket == detalleDto.IdTicket && item.IdMaterial == detalleDto.IdMaterial);
+
+            int cantidadTotalRequerida = (detTicketExistente?.Cantidad ?? 0) + detalleDto.Cantidad;
+            int stockDisponibleAdicional = material.Inventario;
+
+            if (detalleDto.Cantidad > stockDisponibleAdicional)
+            {
+                throw new InvalidOperationException($"Stock insuficiente para '{material.Nombre}'. Disponible: {stockDisponibleAdicional}, Solicitado: {detalleDto.Cantidad}.");
+            }
+
+            DetTicket detTicket;
+            if (detTicketExistente != null)
+            {
+                detTicketExistente.Cantidad = cantidadTotalRequerida;
+                detTicketExistente.CostoUnitarioAplicado = material.Costo;
+                detTicket = detTicketExistente;
+            }
+            else
+            {
+                detTicket = new DetTicket
+                {
+                    IdTicket = detalleDto.IdTicket,
+                    IdMaterial = detalleDto.IdMaterial,
+                    Cantidad = detalleDto.Cantidad,
+                    CostoUnitarioAplicado = material.Costo
+                };
+            }
 
             var destinatarios = notificationRecipients is null
                 ? Array.Empty<int>()
@@ -76,7 +101,10 @@ namespace HSis.Logic.Services
 
             await EjecutarEnTransaccionAsync(db, async () =>
             {
-                db.DetTickets.Add(detTicket);
+                if (detTicketExistente == null)
+                {
+                    db.DetTickets.Add(detTicket);
+                }
                 await db.SaveChangesAsync();
                 await GuardarNotificacionesAsync(
                     db,
@@ -106,20 +134,31 @@ namespace HSis.Logic.Services
                 return;
             }
 
-            var cantidadAnterior = detTicket.Cantidad;
-            detTicket.Cantidad = detalleDto.Cantidad;
-            detTicket.CostoUnitarioAplicado = detalleDto.CostoUnitarioAplicado;
-
-            if (cantidadAnterior == detTicket.Cantidad)
+            if (detalleDto.Cantidad <= 0)
             {
-                await db.SaveChangesAsync();
-                return;
+                throw new InvalidOperationException("La cantidad debe ser mayor a 0.");
             }
 
             var ticket = await db.Tickets.FindAsync(detalleDto.IdTicket)
                 ?? throw new KeyNotFoundException($"No existe el ticket {detalleDto.IdTicket}.");
             var material = await db.Materials.FindAsync(detalleDto.IdMaterial)
                 ?? throw new KeyNotFoundException($"No existe el material {detalleDto.IdMaterial}.");
+
+            var cantidadAnterior = detTicket.Cantidad;
+            int diferencia = detalleDto.Cantidad - cantidadAnterior;
+            if (diferencia > 0 && diferencia > material.Inventario)
+            {
+                throw new InvalidOperationException($"Stock insuficiente para '{material.Nombre}'. Disponible adicional: {material.Inventario}, Solicitado adicional: {diferencia}.");
+            }
+
+            detTicket.Cantidad = detalleDto.Cantidad;
+            detTicket.CostoUnitarioAplicado = material.Costo;
+
+            if (cantidadAnterior == detTicket.Cantidad)
+            {
+                await db.SaveChangesAsync();
+                return;
+            }
             var destinatarios = notificationRecipients is null
                 ? Array.Empty<int>()
                 : await notificationRecipients.ObtenerDestinatariosCambioMaterialTicketAsync(

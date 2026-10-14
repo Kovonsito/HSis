@@ -531,6 +531,12 @@ partial class TicketDetalleForm
     private TabPage tbpMateriales = null!;
     private PanelCardModerno pnlFeedbackEstado = null!;
     private Label lblFeedbackEstado = null!;
+    private Panel pnlAccionesMateriales = null!;
+    private ComboModerno cmbMaterialSeleccion = null!;
+    private NumericUpDown numCantidadMaterial = null!;
+    private Label lblStockDisponible = null!;
+    private BotonModerno btnAgregarMaterial = null!;
+    private BotonModerno btnEliminarMaterial = null!;
     // rtbSolucion y rtbDescripcion serán creados dinámicamente en el código del formulario
 
     private void InicializarLayoutDetalle()
@@ -765,7 +771,91 @@ partial class TicketDetalleForm
             UseVisualStyleBackColor = false
         };
         var tarjetaMateriales = CrearTarjeta("Materiales utilizados", IconChar.BoxesStacked);
+
+        pnlAccionesMateriales = new Panel
+        {
+            Dock = DockStyle.Top,
+            Height = 44,
+            Margin = new Padding(0, 0, 0, 8),
+            BackColor = Color.Transparent
+        };
+
+        var lblMat = new Label
+        {
+            Text = "Material:",
+            AutoSize = true,
+            Location = new Point(4, 12),
+            Font = TemaVisual.FuentePequena,
+            ForeColor = TemaVisual.TextoSecundario
+        };
+
+        cmbMaterialSeleccion = new ComboModerno
+        {
+            Location = new Point(60, 6),
+            Size = new Size(260, 32),
+            DropDownStyle = ComboBoxStyle.DropDownList
+        };
+
+        var lblCant = new Label
+        {
+            Text = "Cant:",
+            AutoSize = true,
+            Location = new Point(330, 12),
+            Font = TemaVisual.FuentePequena,
+            ForeColor = TemaVisual.TextoSecundario
+        };
+
+        numCantidadMaterial = new NumericUpDown
+        {
+            Location = new Point(370, 7),
+            Size = new Size(60, 30),
+            Minimum = 1,
+            Maximum = 10000,
+            Value = 1,
+            Font = TemaVisual.FuenteNormal
+        };
+
+        lblStockDisponible = new Label
+        {
+            Text = "Stock: -",
+            AutoSize = true,
+            Location = new Point(440, 12),
+            Font = TemaVisual.FuentePequena,
+            ForeColor = TemaVisual.TextoSecundario
+        };
+
+        btnAgregarMaterial = new BotonModerno
+        {
+            Text = "Agregar",
+            Estilo = EstiloBotonModerno.Primario,
+            Icono = IconChar.Plus,
+            IconoTamano = 13,
+            Location = new Point(540, 5),
+            Size = new Size(100, 32),
+            Font = TemaVisual.FuentePequena
+        };
+
+        btnEliminarMaterial = new BotonModerno
+        {
+            Text = "Eliminar",
+            Estilo = EstiloBotonModerno.Peligro,
+            Icono = IconChar.Trash,
+            IconoTamano = 13,
+            Location = new Point(650, 5),
+            Size = new Size(100, 32),
+            Font = TemaVisual.FuentePequena
+        };
+
+        pnlAccionesMateriales.Controls.Add(lblMat);
+        pnlAccionesMateriales.Controls.Add(cmbMaterialSeleccion);
+        pnlAccionesMateriales.Controls.Add(lblCant);
+        pnlAccionesMateriales.Controls.Add(numCantidadMaterial);
+        pnlAccionesMateriales.Controls.Add(lblStockDisponible);
+        pnlAccionesMateriales.Controls.Add(btnAgregarMaterial);
+        pnlAccionesMateriales.Controls.Add(btnEliminarMaterial);
+
         tarjetaMateriales.Controls.Add(dgvMateriales);
+        tarjetaMateriales.Controls.Add(pnlAccionesMateriales);
         tbpMateriales.Controls.Add(tarjetaMateriales);
         tabControlTicket.TabPages.Add(tbpMateriales);
 

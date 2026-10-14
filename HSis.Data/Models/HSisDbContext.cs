@@ -30,6 +30,8 @@ namespace HSis.Data.Models
 
         public virtual DbSet<VHistorialInventario> VHistorialInventarios { get; set; } = null!;
 
+        public virtual DbSet<OperacionIdempotente> OperacionesIdempotentes { get; set; } = null!;
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(HSisDbContext).Assembly);

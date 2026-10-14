@@ -154,7 +154,7 @@ namespace HSis.Logic.Services
                 ticketDto.FechaCierre = null;
             }
 
-            IReadOnlyList<NotificacionTicketPendiente> notificacionesPendientes = Array.Empty<NotificacionTicketPendiente>();
+            IReadOnlyList<NotificacionTicketPendiente> notificacionesPendientes = [];
             await EjecutarEnTransaccionAsync(db, async () =>
             {
                 mapper.Map(ticketDto, ticketTracked);
@@ -259,17 +259,9 @@ namespace HSis.Logic.Services
 
             var nuevoTicket = mapper.Map<Ticket>(ticketDto);
             nuevoTicket.FechaAlta = DateTime.Now;
-            if (nuevoTicket.IdTecnico.HasValue && nuevoTicket.IdTecnico.Value > 0)
-            {
-                nuevoTicket.Estatus = ConstantesEstatus.EN_PROCESO;
-                nuevoTicket.FechaAtencion = DateTime.Now;
-            }
-            else
-            {
-                nuevoTicket.Estatus = ConstantesEstatus.ABIERTO;
-            }
+            nuevoTicket.Estatus = ConstantesEstatus.ABIERTO;
 
-            IReadOnlyList<int> destinatarios = Array.Empty<int>();
+            IReadOnlyList<int> destinatarios = [];
             var recipientsService = notificationRecipients;
             await EjecutarEnTransaccionAsync(db, async () =>
             {
@@ -277,7 +269,7 @@ namespace HSis.Logic.Services
                 await db.SaveChangesAsync();
 
                 destinatarios = recipientsService is null
-                    ? Array.Empty<int>()
+                    ? []
                     : await recipientsService.ObtenerDestinatariosNuevoTicketAsync();
 
                 if (destinatarios.Count > 0)
@@ -466,9 +458,8 @@ namespace HSis.Logic.Services
                 throw new TicketRatingInvalidException(calificacion);
 
             using var db = dbContextFactory.CreateDbContext();
-            var ticket = await db.Tickets.FindAsync(idTicket);
-            if (ticket == null)
-                throw new TicketNotFoundException(idTicket);
+            var ticket = await db.Tickets.FindAsync(idTicket)
+                ?? throw new TicketNotFoundException(idTicket);
 
             if (ticket.Estatus != ConstantesEstatus.CERRADO)
                 throw new TicketNotClosedException(idTicket);
@@ -478,7 +469,7 @@ namespace HSis.Logic.Services
             ticket.FechaEvaluacion = DateTime.Now;
 
             var destinatarios = notificationRecipients is null
-                ? Array.Empty<int>()
+                ? []
                 : await notificationRecipients.ObtenerDestinatariosCalificacionAsync(ticket.IdTecnico);
             var mensaje = NotificacionFactory.CrearMensajeCalificacion(
                 ticket.IdTicket,
@@ -727,9 +718,11 @@ namespace HSis.Logic.Services
             int asignados = 0;
             int disponibles = 0;
             int cerrados = 0;
+            int urgentes = 0;
             int sumaCalificaciones = 0;
             int countCalificaciones = 0;
             DateTime? fechaPrimerTicket = null;
+            DateTime fechaLimiteSla = ObtenerLimiteSLA();
 
             foreach (var t in datos)
             {
@@ -762,13 +755,19 @@ namespace HSis.Logic.Services
                 {
                     disponibles++;
                 }
+
+                // SLA Vencido (>48h sin atención inicial: estatus Abierto tanto en cola como asignado al técnico)
+                if (t.Estatus == ConstantesEstatus.ABIERTO && t.FechaAlta.HasValue && t.FechaAlta.Value < fechaLimiteSla)
+                {
+                    urgentes++;
+                }
             }
 
             double promedio = countCalificaciones > 0
                 ? Math.Round((double)sumaCalificaciones / countCalificaciones, 1)
                 : 0.0;
 
-            return new IndicadoresTecnicoDto(asignados, disponibles, cerrados, promedio, fechaPrimerTicket);
+            return new IndicadoresTecnicoDto(asignados, disponibles, cerrados, promedio, fechaPrimerTicket, urgentes);
         }
 
         public async Task<ResumenClienteDto> ObtenerResumenClienteAsync(int idUsuario)

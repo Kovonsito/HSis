@@ -53,11 +53,62 @@ namespace HSis.UI.Forms.Otros
             var col2 = dgvKardex.Columns["IdMaterial"];
             if (col2 != null) col2.Visible = false;
 
+            var colIdUsuario = dgvKardex.Columns["IdUsuario"];
+            if (colIdUsuario != null) colIdUsuario.Visible = false;
+
+            var colMat = dgvKardex.Columns["MaterialNombre"];
+            if (colMat != null)
+            {
+                colMat.HeaderText = "Material";
+                colMat.FillWeight = 25;
+            }
+
+            var colUsuario = dgvKardex.Columns["UsuarioNombre"];
+            if (colUsuario != null)
+            {
+                colUsuario.HeaderText = "Responsable";
+                colUsuario.FillWeight = 25;
+            }
+
+            var colFecha = dgvKardex.Columns["Fecha"];
+            if (colFecha != null)
+            {
+                colFecha.HeaderText = "Fecha";
+                colFecha.DefaultCellStyle.Format = "dd/MM/yyyy HH:mm";
+                colFecha.FillWeight = 20;
+            }
+
+            var colCant = dgvKardex.Columns["Cantidad"];
+            if (colCant != null)
+            {
+                colCant.HeaderText = "Cantidad";
+                colCant.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                colCant.FillWeight = 12;
+            }
+
+            var colTipo = dgvKardex.Columns["TipoMovimiento"];
+            if (colTipo != null)
+            {
+                colTipo.HeaderText = "Tipo";
+                colTipo.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                colTipo.FillWeight = 12;
+            }
+
+            var colMotivo = dgvKardex.Columns["Motivo"];
+            if (colMotivo != null)
+            {
+                colMotivo.HeaderText = "Motivo";
+                colMotivo.FillWeight = 30;
+            }
+
             var col3 = dgvKardex.Columns["CostoUnitario"];
             if (col3 != null)
             {
+                col3.HeaderText = "Costo Unit.";
                 col3.DefaultCellStyle.Format = "C2";
+                col3.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
                 col3.Visible = _contextoSesion.EsAdmin;
+                col3.FillWeight = 15;
             }
         }
 

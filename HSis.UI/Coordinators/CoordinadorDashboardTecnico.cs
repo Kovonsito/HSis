@@ -34,6 +34,7 @@ namespace HSis.UI.Coordinators
         {
             MisAsignados,
             Disponibles,
+            Urgentes,
             Cerrados,
             Calificaciones
         }
@@ -73,6 +74,7 @@ namespace HSis.UI.Coordinators
             VistaTickets.ConfigurarKpis([
                 TipoKpiDashboard.MisAsignados,
                 TipoKpiDashboard.Disponibles,
+                TipoKpiDashboard.Urgentes,
                 TipoKpiDashboard.MisCerrados,
                 TipoKpiDashboard.Calificacion
             ], [_btnNuevoTicket]);
@@ -102,6 +104,9 @@ namespace HSis.UI.Coordinators
                         break;
                     case TipoKpiDashboard.Disponibles:
                         CambiarVista(VistaTecnico.Disponibles, "disponibles", "Tickets Disponibles en Cola", "Tickets abiertos listos para ser tomados");
+                        break;
+                    case TipoKpiDashboard.Urgentes:
+                        CambiarVista(VistaTecnico.Urgentes, "urgentes", "Tickets con SLA Vencido (>48h)", "Solicitudes pendientes sin atención oportuna");
                         break;
                     case TipoKpiDashboard.MisCerrados:
                         CambiarVista(VistaTecnico.Cerrados, "cerrados", "Historial de Tickets Cerrados", "Tickets completados satisfactoriamente");
@@ -148,6 +153,7 @@ namespace HSis.UI.Coordinators
                 {
                     VistaTecnico.MisAsignados => "asignados",
                     VistaTecnico.Disponibles => "disponibles",
+                    VistaTecnico.Urgentes => "urgentes",
                     VistaTecnico.Cerrados => "cerrados",
                     VistaTecnico.Calificaciones => "calificaciones",
                     _ => "asignados"
@@ -161,6 +167,7 @@ namespace HSis.UI.Coordinators
             {
                 "asignados" => VistaTecnico.MisAsignados,
                 "disponibles" => VistaTecnico.Disponibles,
+                "urgentes" => VistaTecnico.Urgentes,
                 "cerrados" => VistaTecnico.Cerrados,
                 "calificaciones" => VistaTecnico.Calificaciones,
                 _ => VistaTecnico.MisAsignados
@@ -173,6 +180,7 @@ namespace HSis.UI.Coordinators
             {
                 VistaTecnico.MisAsignados => "Mis Tickets Asignados",
                 VistaTecnico.Disponibles => "Tickets Disponibles en Cola",
+                VistaTecnico.Urgentes => "Tickets con SLA Vencido (>48h)",
                 VistaTecnico.Cerrados => "Historial de Tickets Cerrados",
                 VistaTecnico.Calificaciones => "Mis Calificaciones",
                 _ => "Panel Técnico"
@@ -182,6 +190,7 @@ namespace HSis.UI.Coordinators
             {
                 VistaTecnico.MisAsignados => "Tickets activos bajo mi responsabilidad",
                 VistaTecnico.Disponibles => "Tickets abiertos listos para ser tomados",
+                VistaTecnico.Urgentes => "Solicitudes pendientes sin atención oportuna",
                 VistaTecnico.Cerrados => "Tickets completados satisfactoriamente",
                 VistaTecnico.Calificaciones => "Evaluaciones y comentarios de usuarios",
                 _ => string.Empty
@@ -199,9 +208,9 @@ namespace HSis.UI.Coordinators
             TopBar.Titulo = titulo;
             TopBar.Subtitulo = subtitulo;
 
-            // Sincronizar período temporal: para vistas operativas (cola viva de tickets asignados o disponibles),
+            // Sincronizar período temporal: para vistas operativas (cola viva de tickets asignados, disponibles o urgentes),
             // poner el período en "Todos" para no truncar la cola activa.
-            if (_vistaActual == VistaTecnico.MisAsignados || _vistaActual == VistaTecnico.Disponibles)
+            if (_vistaActual == VistaTecnico.MisAsignados || _vistaActual == VistaTecnico.Disponibles || _vistaActual == VistaTecnico.Urgentes)
             {
                 VistaTickets.Filtro.EstablecerValorFiltro("Periodo", "Todos", dispararEvento: false);
             }
@@ -216,6 +225,7 @@ namespace HSis.UI.Coordinators
             {
                 VistaTecnico.MisAsignados => TipoKpiDashboard.MisAsignados,
                 VistaTecnico.Disponibles => TipoKpiDashboard.Disponibles,
+                VistaTecnico.Urgentes => TipoKpiDashboard.Urgentes,
                 VistaTecnico.Cerrados => TipoKpiDashboard.MisCerrados,
                 VistaTecnico.Calificaciones => TipoKpiDashboard.Calificacion,
                 _ => null
@@ -230,6 +240,7 @@ namespace HSis.UI.Coordinators
                 var ind = await _ticketService.ObtenerIndicadoresTecnicoAsync(idTecnico);
                 VistaTickets.ActualizarValorKpi(TipoKpiDashboard.MisAsignados, ind.Asignados);
                 VistaTickets.ActualizarValorKpi(TipoKpiDashboard.Disponibles, ind.Disponibles);
+                VistaTickets.ActualizarValorKpi(TipoKpiDashboard.Urgentes, ind.Urgentes);
                 VistaTickets.ActualizarValorKpi(TipoKpiDashboard.MisCerrados, ind.Cerrados);
                 VistaTickets.ActualizarValorKpi(TipoKpiDashboard.Calificacion, ind.PromedioCalificacion, esCalificacionEstrellas: true);
 
@@ -255,6 +266,18 @@ namespace HSis.UI.Coordinators
                     _todosLosTickets = await _ticketService.ObtenerTicketsDisponiblesAsync();
                     AplicarFiltrosMemoria();
                 }
+                else if (_vistaActual == VistaTecnico.Urgentes)
+                {
+                    var asignados = await _ticketService.ObtenerTicketsAsignadosATecnicoAsync(idTecnico);
+                    var disponibles = await _ticketService.ObtenerTicketsDisponiblesAsync();
+                    var fechaLimiteSla = DateTime.Now.AddHours(-48);
+
+                    _todosLosTickets = [.. asignados.Concat(disponibles)
+                        .Where(t => t.Estatus == ConstantesEstatus.ABIERTO && t.FechaAlta < fechaLimiteSla)
+                        .DistinctBy(t => t.IdTicket)
+                        .OrderBy(t => t.FechaAlta)];
+                    AplicarFiltrosMemoria();
+                }
                 else if (_vistaActual == VistaTecnico.Cerrados)
                 {
                     _todosLosTickets = await _ticketService.ObtenerTicketsCerradosPorTecnicoAsync(idTecnico);
@@ -263,14 +286,14 @@ namespace HSis.UI.Coordinators
                 else if (_vistaActual == VistaTecnico.Calificaciones)
                 {
                     var feedbacks = await _ticketService.ObtenerFeedbackTecnicoAsync(idTecnico);
-                    _todosLosFeedbacks = feedbacks.Select(f => new FeedbackTecnicoDto
+                    _todosLosFeedbacks = [.. feedbacks.Select(f => new FeedbackTecnicoDto
                     {
                         IdTicket = f.IdTicket,
                         NombreUsuario = f.Usuario,
                         Calificacion = f.Calificacion.HasValue ? $"{f.Calificacion.Value} ⭐" : "N/A",
                         Comentario = f.ComentarioEvaluacion,
                         Fecha = f.FechaEvaluacion
-                    }).ToList();
+                    })];
                     AplicarFiltrosMemoria();
                 }
             }, "Error al cargar tickets", "tickets-tecnico", VistaTickets.Grid);
@@ -304,20 +327,20 @@ namespace HSis.UI.Coordinators
             DateTime fechaInicio = fi ?? DateTime.MinValue;
             DateTime fechaFin = ff ?? DateTime.MaxValue;
 
-            _ticketsFiltrados = _todosLosTickets.Where(t =>
+            _ticketsFiltrados = [.. _todosLosTickets.Where(t =>
             {
                 if (texto != null)
                 {
-                    bool matchTexto = t.Folio.ToString().Contains(texto) ||
-                                     (t.Descripcion?.ToLowerInvariant().Contains(texto) ?? false) ||
-                                     (t.Usuario?.ToLowerInvariant().Contains(texto) ?? false);
+                    bool matchTexto = t.Folio.ToString().Contains(texto, StringComparison.OrdinalIgnoreCase) ||
+                                     (t.Descripcion?.Contains(texto, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                                     (t.Usuario?.Contains(texto, StringComparison.OrdinalIgnoreCase) ?? false);
                     if (!matchTexto) return false;
                 }
                 if (prioridad != null && !string.Equals(t.Prioridad, prioridad, StringComparison.OrdinalIgnoreCase)) return false;
-                if (usuario != null && !(t.Usuario?.ToLowerInvariant().Contains(usuario) ?? false)) return false;
+                if (usuario != null && !(t.Usuario?.Contains(usuario, StringComparison.OrdinalIgnoreCase) ?? false)) return false;
                 if (t.FechaAlta < fechaInicio || t.FechaAlta > fechaFin) return false;
                 return true;
-            }).ToList();
+            })];
 
             VistaTickets.ControladorPaginacion.ReiniciarAPrimeraPagina();
             MostrarPaginaActual();

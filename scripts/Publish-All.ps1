@@ -61,7 +61,12 @@ if ($enUso.Count -gt 0 -and $CerrarProcesos) {
     $servicio = Get-Service -Name 'HSis.Server' -ErrorAction SilentlyContinue
     if ($servicio -and $servicio.Status -ne 'Stopped' -and -not $SoloClientes) {
         Write-Host 'Deteniendo servicio HSis.Server...' -ForegroundColor Yellow
-        Stop-Service -Name 'HSis.Server' -Force
+        try {
+            Stop-Service -Name 'HSis.Server' -Force -NoWait -ErrorAction SilentlyContinue
+            $servicio.WaitForStatus('Stopped', [TimeSpan]::FromSeconds(5))
+        } catch {
+            Get-Process -Name 'HSis.Server' -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+        }
     }
     foreach ($p in (Get-ProcesosEnUso)) {
         Write-Host "Cerrando $($p.ProcessName) (PID $($p.Id))..." -ForegroundColor Yellow

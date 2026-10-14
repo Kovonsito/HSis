@@ -56,7 +56,7 @@ public class CoordinadorDashboardAdmin(
     private readonly IPuestoService _puestoService = puestoService;
     private readonly IRolUsuarioService _rolUsuarioService = rolUsuarioService;
     private readonly TabControl _tabMain = tabMain;
-    private readonly VistaCatalogoAdminControl _vistaMateriales = new("Inventario");
+    private readonly VistaCatalogoAdminControl _vistaMateriales = new("Inventario", mostrarKardex: true);
     private readonly VistaCatalogoAdminControl _vistaUsuarios = new("Usuarios");
     private readonly VistaCatalogoAdminControl _vistaDepartamentos = new("Departamentos");
     private readonly VistaCatalogoAdminControl _vistaSucursales = new("Sucursales");
@@ -142,6 +142,7 @@ public class CoordinadorDashboardAdmin(
         _vistaMateriales.NuevoClic += async (_, _) => await NuevoMaterialAsync();
         _vistaMateriales.EditarClic += async (_, _) => await EditarMaterialAsync();
         _vistaMateriales.EliminarClic += async (_, _) => await EliminarMaterialAsync();
+        _vistaMateriales.KardexClic += (_, _) => AbrirKardex();
 
         _vistaUsuarios.ActualizarClic += async (_, _) => await CargarUsuariosAsync();
         _vistaUsuarios.NuevoClic += async (_, _) => await NuevoUsuarioAsync();
@@ -458,6 +459,12 @@ public class CoordinadorDashboardAdmin(
             "material",
             () => _materialService.EliminarMaterialAsync(material.IdMaterial),
             CargarMaterialesAsync);
+    }
+
+    private void AbrirKardex()
+    {
+        using var frmK = FormFactory.Crear<KardexForm>();
+        frmK.ShowDialog(Formulario);
     }
 
     private Task CargarUsuariosAsync()

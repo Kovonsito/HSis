@@ -8,6 +8,7 @@ using HSis.Contracts.Constants;
 using HSis.Contracts.Services;
 using HSis.Contracts.Validators;
 using HSis.Desktop.Infrastructure;
+using HSis.Desktop.Infrastructure.Offline;
 using HSis.UI.Factories;
 using HSis.UI.Services;
 using HSis.UI.Forms.Auth;
@@ -189,6 +190,8 @@ namespace HSis.UI
                 services.AddSingleton<IBusEventosNotificaciones, BusEventosNotificaciones>();
                 services.AddSingleton<IClienteSignalRNotificaciones, ClienteSignalRNotificaciones>();
                 services.AddSingleton<IAlmacenamientoCredencialesLocal, AlmacenamientoCredencialesLocal>();
+                services.AddSingleton<ILocalDataStore, LocalDataStore>();
+                services.AddSingleton<OutboxSyncWorker>();
                 services.AddSingleton(sp => permitirMultiples
                     ? new PresenciaAplicacion(
                         $"ui-presence.{Environment.ProcessId}.json",
@@ -222,13 +225,22 @@ namespace HSis.UI
                 services.AddTransient<VisorLogsForm>();
 
                 ServiceProvider = services.BuildServiceProvider();
+
+                // Inicializar almacenamiento local SQLite y trabajador de sincronización
+                var localDataStore = ServiceProvider.GetRequiredService<ILocalDataStore>();
+                localDataStore.InicializarAsync().GetAwaiter().GetResult();
+                var outboxSyncWorker = ServiceProvider.GetRequiredService<OutboxSyncWorker>();
+
                 using var applicationPresence = ServiceProvider.GetRequiredService<PresenciaAplicacion>();
                 using var activationChannel = new CanalActivacionAplicacion(
                     permitirMultiples ? $"{ConfiguracionEscritorio.CanalActivacionUi}.{Environment.ProcessId}" : null);
 
                 var notificationClient = ServiceProvider.GetRequiredService<IClienteSignalRNotificaciones>();
                 Application.ApplicationExit += (_, _) =>
+                {
+                    outboxSyncWorker.Dispose();
                     notificationClient.DetenerAsync().GetAwaiter().GetResult();
+                };
 
                 // Comprobar actualizaciones automáticas desde el servidor API (solo en producción)
                 if (!esDesarrollo)

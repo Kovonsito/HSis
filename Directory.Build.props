@@ -1,0 +1,13 @@
+<Project>
+  <PropertyGroup>
+    <!-- Silenciar NU1510 para referencias de pinning de seguridad centralizadas -->
+    <NoWarn>$(NoWarn);NU1510</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Forzar versiones seguras de dependencias transitivas (mitigando NU1902 y NU1903) -->
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Common" Version="10.0.13" />
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.5" />
+  </ItemGroup>
+</Project>

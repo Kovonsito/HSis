@@ -70,4 +70,4 @@ Filename: "{app}\UI\{#MyAppExeName}"; \
 
 [UninstallRun]
 ; Al desinstalar, detener procesos si están corriendo
-Filename: "taskkill.exe"; Parameters: "/F /IM {#MyAgentExeName} /IM {#MyAppExeName}"; Flags: runhidden
+Filename: "taskkill.exe"; Parameters: "/F /IM {#MyAgentExeName} /IM {#MyAppExeName}"; Flags: runhidden; RunOnceId: "TerminarProcesosHSis"

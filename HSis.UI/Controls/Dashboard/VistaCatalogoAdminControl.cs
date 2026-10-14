@@ -13,9 +13,10 @@ public sealed class VistaCatalogoAdminControl : UserControl
     private readonly BotonModerno _btnNuevo;
     private readonly BotonModerno _btnEditar;
     private readonly BotonModerno _btnEliminar;
+    private readonly BotonModerno _btnKardex;
     private readonly EstadoCargaAsync _estadoCarga = new();
 
-    public VistaCatalogoAdminControl(string titulo)
+    public VistaCatalogoAdminControl(string titulo, bool mostrarKardex = false)
     {
         Name = $"vista{titulo.Replace(" ", string.Empty)}";
         Dock = DockStyle.Fill;
@@ -61,10 +62,14 @@ public sealed class VistaCatalogoAdminControl : UserControl
         _btnNuevo = CrearBoton("Nuevo", IconChar.Plus, EstiloBotonModerno.Exito, 120);
         _btnEditar = CrearBoton("Editar", IconChar.Pen, EstiloBotonModerno.Primario, 120);
         _btnEliminar = CrearBoton("Eliminar", IconChar.Trash, EstiloBotonModerno.Peligro, 130);
+        _btnKardex = CrearBoton("Ver Kardex", IconChar.BoxesStacked, EstiloBotonModerno.Secundario, 140);
+        _btnKardex.Visible = mostrarKardex;
+
         _btnActualizar.Click += (_, _) => ActualizarClic?.Invoke(this, EventArgs.Empty);
         _btnNuevo.Click += (_, _) => NuevoClic?.Invoke(this, EventArgs.Empty);
         _btnEditar.Click += (_, _) => EditarClic?.Invoke(this, EventArgs.Empty);
         _btnEliminar.Click += (_, _) => EliminarClic?.Invoke(this, EventArgs.Empty);
+        _btnKardex.Click += (_, _) => KardexClic?.Invoke(this, EventArgs.Empty);
 
         var panelAcciones = new FlowLayoutPanel
         {
@@ -79,6 +84,10 @@ public sealed class VistaCatalogoAdminControl : UserControl
         panelAcciones.Controls.Add(_btnNuevo);
         panelAcciones.Controls.Add(_btnEditar);
         panelAcciones.Controls.Add(_btnEliminar);
+        if (mostrarKardex)
+        {
+            panelAcciones.Controls.Add(_btnKardex);
+        }
 
         Controls.Add(_grid);
         Controls.Add(panelAcciones);
@@ -130,6 +139,7 @@ public sealed class VistaCatalogoAdminControl : UserControl
     public event EventHandler? NuevoClic;
     public event EventHandler? EditarClic;
     public event EventHandler? EliminarClic;
+    public event EventHandler? KardexClic;
 
     public void ConfigurarColumnas(params (string Nombre, string Titulo, int Ancho)[] columnas)
     {
@@ -180,6 +190,7 @@ public sealed class VistaCatalogoAdminControl : UserControl
         var habilitado = !EstaCargando && _grid.SelectedRows.Count > 0;
         _btnEditar.Enabled = habilitado;
         _btnEliminar.Enabled = habilitado;
+        _btnKardex.Enabled = !EstaCargando;
     }
 
     private static BotonModerno CrearBoton(string texto, IconChar icono, EstiloBotonModerno estilo, int ancho)

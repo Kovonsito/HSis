@@ -14,10 +14,12 @@ namespace HSis.UI.Forms.Tickets
         private readonly int _idTicket;
         private readonly ITicketService _ticketService;
         private readonly ITicketDetalleService _ticketDetalleService;
+        private readonly IMaterialService _materialService;
         private readonly IUsuarioService _usuarioService;
         private readonly IAdministradorSesionUsuario _contextoSesion;
 
         private TicketDto? _ticketActual;
+        private List<MaterialDto> _materialesCatalogo = [];
         private CajaTextoOrtograficaWpf rtbDescripcion = null!;
         private CajaTextoOrtograficaWpf rtbSolucion = null!;
         private DataGridView dgvMateriales = null!;
@@ -26,6 +28,7 @@ namespace HSis.UI.Forms.Tickets
             int idTicket,
             ITicketService ticketService,
             ITicketDetalleService ticketDetalleService,
+            IMaterialService materialService,
             IUsuarioService usuarioService,
             IAdministradorSesionUsuario contextoSesion)
         {
@@ -33,10 +36,12 @@ namespace HSis.UI.Forms.Tickets
             _idTicket = idTicket;
             _ticketService = ticketService;
             _ticketDetalleService = ticketDetalleService;
+            _materialService = materialService;
             _usuarioService = usuarioService;
             _contextoSesion = contextoSesion;
 
             InicializarLayoutDetalle();
+            VincularEventosMateriales();
         }
 
         public void MostrarTicket(TicketDto ticket)
@@ -73,6 +78,10 @@ namespace HSis.UI.Forms.Tickets
                 btnGuardar.Enabled = false;
                 cmbPrioridad.Enabled = false;
             }
+
+            bool puedeModificarMateriales = !esSoloLectura &&
+                                            (esAdmin || (ticket.IdTecnico == _contextoSesion.IdUsuario && estatusActual != ConstantesEstatus.CERRADO));
+            pnlAccionesMateriales.Enabled = puedeModificarMateriales;
 
             MostrarSeccionFeedback(ticket);
         }
@@ -112,7 +121,7 @@ namespace HSis.UI.Forms.Tickets
         public void CargarDetallesMaterial(List<TicketDetalleDto> detalles)
         {
             dgvMateriales.DataSource = null;
-            dgvMateriales.DataSource = detalles;
+            dgvMateriales.DataSource = new ListaVinculableOrdenable<TicketDetalleDto>(detalles);
             ConfigurarEstilosGridMateriales();
         }
 
@@ -151,8 +160,122 @@ namespace HSis.UI.Forms.Tickets
                 var personalAtencion = tecnicos.Concat(admins).OrderBy(u => u.Nombre).ToList();
                 CargarTecnicos(personalAtencion, ticket.IdTecnico, _contextoSesion.EsAdmin);
 
+                await CargarCatalogoMaterialesAsync();
                 await RecargarHistorialYMaterialesAsync(idTicket);
             }, "Error al cargar ticket", "ticket-detalle");
+        }
+
+        private async Task CargarCatalogoMaterialesAsync()
+        {
+            try
+            {
+                _materialesCatalogo = await _materialService.ObtenerMaterialesAsync();
+                cmbMaterialSeleccion.SelectedIndexChanged -= CmbMaterialSeleccion_SelectedIndexChanged;
+                cmbMaterialSeleccion.DataSource = _materialesCatalogo;
+                cmbMaterialSeleccion.DisplayMember = nameof(MaterialDto.Nombre);
+                cmbMaterialSeleccion.ValueMember = nameof(MaterialDto.IdMaterial);
+                cmbMaterialSeleccion.SelectedIndex = -1;
+                cmbMaterialSeleccion.SelectedIndexChanged += CmbMaterialSeleccion_SelectedIndexChanged;
+                ActualizarEtiquetaStock();
+            }
+            catch (Exception ex)
+            {
+                DialogoUIHelper.MostrarAdvertencia($"No se pudieron cargar los materiales para selección: {ex.Message}");
+            }
+        }
+
+        private void CmbMaterialSeleccion_SelectedIndexChanged(object? sender, EventArgs e)
+        {
+            ActualizarEtiquetaStock();
+        }
+
+        private void ActualizarEtiquetaStock()
+        {
+            if (cmbMaterialSeleccion.SelectedItem is MaterialDto mat)
+            {
+                lblStockDisponible.Text = $"Stock: {mat.StockActual} {mat.UnidadMedida}";
+                lblStockDisponible.ForeColor = mat.StockActual > 0 ? TemaVisual.TextoSecundario : TemaVisual.Peligro;
+                numCantidadMaterial.Maximum = Math.Max(1, mat.StockActual);
+            }
+            else
+            {
+                lblStockDisponible.Text = "Stock: -";
+                lblStockDisponible.ForeColor = TemaVisual.TextoSecundario;
+            }
+        }
+
+        private void VincularEventosMateriales()
+        {
+            btnAgregarMaterial.Click += async (s, e) => await AgregarMaterialConsumidoAsync();
+            btnEliminarMaterial.Click += async (s, e) => await EliminarMaterialConsumidoAsync();
+        }
+
+        private async Task AgregarMaterialConsumidoAsync()
+        {
+            if (cmbMaterialSeleccion.SelectedItem is not MaterialDto mat)
+            {
+                DialogoUIHelper.MostrarAdvertencia("Por favor selecciona un material para agregar.", "Material requerido");
+                return;
+            }
+
+            int cantidad = (int)numCantidadMaterial.Value;
+            if (cantidad <= 0)
+            {
+                DialogoUIHelper.MostrarAdvertencia("La cantidad debe ser mayor a 0.", "Cantidad inválida");
+                return;
+            }
+
+            if (cantidad > mat.StockActual)
+            {
+                DialogoUIHelper.MostrarAdvertencia($"Stock insuficiente para '{mat.Nombre}'. Stock disponible: {mat.StockActual}.", "Stock insuficiente");
+                return;
+            }
+
+            await this.EjecutarOperacionAsync(async () =>
+            {
+                var dto = new TicketDetalleDto
+                {
+                    IdTicket = _idTicket,
+                    IdMaterial = mat.IdMaterial,
+                    Cantidad = cantidad
+                };
+
+                await _ticketDetalleService.AgregarMaterialATicketAsync(dto);
+                DialogoUIHelper.MostrarExito($"Se agregaron {cantidad} {mat.UnidadMedida} de {mat.Nombre} al ticket.");
+                numCantidadMaterial.Value = 1;
+                await CargarCatalogoMaterialesAsync();
+                await RecargarHistorialYMaterialesAsync(_idTicket);
+            },
+            mensajeErrorContexto: "Error al agregar material al ticket",
+            claveOperacion: "ticket-agregar-material",
+            controlesADeshabilitar: [btnAgregarMaterial, btnEliminarMaterial]);
+        }
+
+        private async Task EliminarMaterialConsumidoAsync()
+        {
+            if (dgvMateriales.CurrentRow?.DataBoundItem is not TicketDetalleDto detalle)
+            {
+                DialogoUIHelper.MostrarAdvertencia("Por favor selecciona una fila de material para retirar del ticket.", "Selección requerida");
+                return;
+            }
+
+            string nombreMat = detalle.NombreMaterial ?? $"Material #{detalle.IdMaterial}";
+            bool confirmar = DialogoUIHelper.Confirmar(
+                $"¿Deseas retirar '{nombreMat}' (Cantidad: {detalle.Cantidad}) de este ticket?\nEl inventario se reincorporará automáticamente.",
+                "Confirmar devolución de material");
+
+            if (!confirmar) return;
+
+            await this.EjecutarOperacionAsync(async () =>
+            {
+                await _ticketDetalleService.EliminarMaterialDeTicketAsync(_idTicket, detalle.IdMaterial);
+                DialogoUIHelper.MostrarExito($"Se retiró el material '{nombreMat}' del ticket.");
+                await CargarCatalogoMaterialesAsync();
+                await RecargarHistorialYMaterialesAsync(_idTicket);
+            },
+            mensajeErrorContexto: "Error al retirar material del ticket",
+            claveOperacion: "ticket-eliminar-material",
+            controlesADeshabilitar: [btnAgregarMaterial, btnEliminarMaterial]);
         }
 
         public async Task RecargarHistorialYMaterialesAsync(int idTicket)
@@ -358,6 +481,41 @@ namespace HSis.UI.Forms.Tickets
         {
             dgvMateriales.AutoGenerateColumns = true;
             dgvMateriales.AplicarTemaModerno();
+
+            if (dgvMateriales.Columns["IdTicket"] != null)
+                dgvMateriales.Columns["IdTicket"]!.Visible = false;
+
+            if (dgvMateriales.Columns["IdMaterial"] != null)
+                dgvMateriales.Columns["IdMaterial"]!.Visible = false;
+
+            if (dgvMateriales.Columns["NombreMaterial"] != null)
+            {
+                dgvMateriales.Columns["NombreMaterial"]!.HeaderText = "Material";
+                dgvMateriales.Columns["NombreMaterial"]!.FillWeight = 40;
+            }
+
+            if (dgvMateriales.Columns["Cantidad"] != null)
+            {
+                dgvMateriales.Columns["Cantidad"]!.HeaderText = "Cantidad";
+                dgvMateriales.Columns["Cantidad"]!.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                dgvMateriales.Columns["Cantidad"]!.FillWeight = 15;
+            }
+
+            if (dgvMateriales.Columns["UnidadMedidaMaterial"] != null)
+            {
+                dgvMateriales.Columns["UnidadMedidaMaterial"]!.HeaderText = "U.M.";
+                dgvMateriales.Columns["UnidadMedidaMaterial"]!.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                dgvMateriales.Columns["UnidadMedidaMaterial"]!.FillWeight = 15;
+            }
+
+            if (dgvMateriales.Columns["CostoUnitarioAplicado"] != null)
+            {
+                dgvMateriales.Columns["CostoUnitarioAplicado"]!.HeaderText = "Costo Unit.";
+                dgvMateriales.Columns["CostoUnitarioAplicado"]!.DefaultCellStyle.Format = "C2";
+                dgvMateriales.Columns["CostoUnitarioAplicado"]!.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
+                dgvMateriales.Columns["CostoUnitarioAplicado"]!.Visible = _contextoSesion.EsAdmin;
+                dgvMateriales.Columns["CostoUnitarioAplicado"]!.FillWeight = 20;
+            }
         }
         #endregion
     }

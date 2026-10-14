@@ -8,6 +8,7 @@ public static class ConfiguracionEscritorio
     public const string NombreAplicacion = "HSis";
     public const string ArchivoCredenciales = "session.bin";
     public const string ArchivoPresenciaUi = "ui-presence.json";
+    public const string ArchivoBaseDatosOffline = "hsis_offline.db";
     public const string MutexPresenciaUi = "Local\\HSis.UI.Presence";
     public const string MutexUi = "Local\\HSis.UI";
     public const string MutexAgenteNotificaciones = "Local\\HSis.NotificationAgent";

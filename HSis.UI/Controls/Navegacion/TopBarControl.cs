@@ -265,7 +265,9 @@ namespace HSis.UI.Controls
         private Rectangle ObtenerRectCampana() => new Rectangle(ObtenerRectUsuario().Left - 14 - 38, 13, 38, 38);
         private Rectangle ObtenerRectPill()
         {
-            int pillW = 108;
+            using var g = CreateGraphics();
+            var txtWidth = g.MeasureString(_textoConexion, FontPill).Width;
+            int pillW = Math.Max(108, (int)Math.Ceiling(txtWidth) + 34);
             return new Rectangle(ObtenerRectCampana().Left - 10 - pillW, 18, pillW, 28);
         }
 

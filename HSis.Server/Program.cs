@@ -329,6 +329,9 @@ app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Middleware de Idempotencia para peticiones con cabecera X-Idempotency-Key
+app.UseMiddleware<HSis.Server.Middleware.IdempotencyMiddleware>();
+
 app.MapControllers(); // Mapear controladores REST
 
 // Mapear el Hub de SignalR

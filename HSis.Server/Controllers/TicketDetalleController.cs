@@ -53,8 +53,19 @@ namespace HSis.Server.Controllers
                 return Forbid();
             }
 
-            await ticketDetalleService.AgregarMaterialATicketAsync(detTicketDto);
-            return Ok();
+            try
+            {
+                await ticketDetalleService.AgregarMaterialATicketAsync(detTicketDto);
+                return Ok();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return this.ProblemConCodigo(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Operación de inventario inválida",
+                    detail: ex.Message,
+                    code: ApiErrorCodes.BadRequest);
+            }
         }
 
         [HttpPut]
@@ -65,8 +76,19 @@ namespace HSis.Server.Controllers
                 return Forbid();
             }
 
-            await ticketDetalleService.ActualizarDetalleTicketAsync(detTicketDto);
-            return NoContent();
+            try
+            {
+                await ticketDetalleService.ActualizarDetalleTicketAsync(detTicketDto);
+                return NoContent();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return this.ProblemConCodigo(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Operación de inventario inválida",
+                    detail: ex.Message,
+                    code: ApiErrorCodes.BadRequest);
+            }
         }
 
         [HttpDelete("ticket/{idTicket}/material/{idMaterial}")]

@@ -64,6 +64,35 @@ namespace HSis.Tests.Services
             var ticketEnBd = await contextVerification.Tickets.FindAsync(resultado.IdTicket);
             ticketEnBd.Should().NotBeNull();
             ticketEnBd!.Descripcion.Should().Be(nuevoTicketDto.Descripcion);
+            ticketEnBd.Estatus.Should().Be(ConstantesEstatus.ABIERTO);
+            ticketEnBd.FechaAtencion.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task CrearTicketAsyncConTecnicoAsignadoDebePermanecerAbierto()
+        {
+            // Arrange
+            var options = new DbContextOptionsBuilder<HSisDbContext>()
+                .UseInMemoryDatabase(databaseName: "HSis_Test_CrearConTecnico")
+                .Options;
+
+            var service = new TicketService(CreateFactory(options), _mapper, _createValidator, _updateValidator);
+
+            var nuevoTicketDto = new TicketCreateDto
+            {
+                IdUsuario = 1,
+                IdTecnico = 8,
+                Descripcion = "Ticket creado con técnico preasignado pero aún sin iniciar."
+            };
+
+            // Act
+            var resultado = await service.CrearTicketAsync(nuevoTicketDto);
+
+            // Assert
+            resultado.Should().NotBeNull();
+            resultado.Estatus.Should().Be(ConstantesEstatus.ABIERTO);
+            resultado.FechaAtencion.Should().BeNull();
+            resultado.IdTecnico.Should().Be(8);
         }
 
         [Fact]
@@ -122,10 +151,6 @@ namespace HSis.Tests.Services
         [Fact]
         public void ObtenerEstatusPermitidosParaAdminDebeRetornarTodosLosEstatus()
         {
-            // Arrange
-            var mockFactory = new Mock<IDbContextFactory<HSisDbContext>>();
-            var service = new TicketService(mockFactory.Object, _mapper, _createValidator, _updateValidator);
-
             // Act
             var resultado = TicketService.ObtenerEstatusPermitidos(1, "Abierto"); // Rol 1 = Admin
 
@@ -197,12 +222,16 @@ namespace HSis.Tests.Services
             using (var db = new HSisDbContext(options))
             {
                 // Tecnico 5
-                db.Tickets.Add(new Ticket { IdTicket = 201, IdTecnico = 5, Estatus = ConstantesEstatus.EN_PROCESO, Calificacion = 5 });
-                db.Tickets.Add(new Ticket { IdTicket = 202, IdTecnico = 5, Estatus = ConstantesEstatus.CERRADO, Calificacion = 4 });
-                // Ticket disponible (sin tecnico, estatus Abierto)
-                db.Tickets.Add(new Ticket { IdTicket = 203, IdTecnico = null, Estatus = ConstantesEstatus.ABIERTO });
+                db.Tickets.Add(new Ticket { IdTicket = 201, IdTecnico = 5, Estatus = ConstantesEstatus.EN_PROCESO, Calificacion = 5, FechaAlta = DateTime.Now.AddHours(-10) });
+                db.Tickets.Add(new Ticket { IdTicket = 202, IdTecnico = 5, Estatus = ConstantesEstatus.CERRADO, Calificacion = 4, FechaAlta = DateTime.Now.AddHours(-20) });
+                // Ticket asignado a técnico 5 pero abierto con SLA vencido (>48h)
+                db.Tickets.Add(new Ticket { IdTicket = 205, IdTecnico = 5, Estatus = ConstantesEstatus.ABIERTO, FechaAlta = DateTime.Now.AddHours(-50) });
+                // Ticket disponible (sin tecnico, estatus Abierto) dentro de SLA (<48h)
+                db.Tickets.Add(new Ticket { IdTicket = 203, IdTecnico = null, Estatus = ConstantesEstatus.ABIERTO, FechaAlta = DateTime.Now.AddHours(-10) });
+                // Ticket disponible (sin tecnico, estatus Abierto) con SLA vencido (>48h)
+                db.Tickets.Add(new Ticket { IdTicket = 206, IdTecnico = null, Estatus = ConstantesEstatus.ABIERTO, FechaAlta = DateTime.Now.AddHours(-60) });
                 // Otro tecnico
-                db.Tickets.Add(new Ticket { IdTicket = 204, IdTecnico = 6, Estatus = ConstantesEstatus.EN_PROCESO });
+                db.Tickets.Add(new Ticket { IdTicket = 204, IdTecnico = 6, Estatus = ConstantesEstatus.EN_PROCESO, FechaAlta = DateTime.Now.AddHours(-5) });
 
                 await db.SaveChangesAsync();
             }
@@ -211,9 +240,10 @@ namespace HSis.Tests.Services
             var indicadores = await service.ObtenerIndicadoresTecnicoAsync(5);
 
             // Assert
-            indicadores.Asignados.Should().Be(1); // 201 is not closed
-            indicadores.Cerrados.Should().Be(1); // 202 is closed
-            indicadores.Disponibles.Should().Be(1); // 203
+            indicadores.Asignados.Should().Be(2); // 201 (En Proceso) + 205 (Abierto)
+            indicadores.Cerrados.Should().Be(1); // 202
+            indicadores.Disponibles.Should().Be(2); // 203, 206
+            indicadores.Urgentes.Should().Be(2); // 205 (asignado abierto >48h) + 206 (disponible abierto >48h)
             indicadores.PromedioCalificacion.Should().Be(4.5); // (5+4)/2
         }
 
