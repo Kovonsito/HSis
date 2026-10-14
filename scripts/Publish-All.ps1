@@ -174,10 +174,19 @@ if (-not $SoloServidor) {
         if (-not $isccPath) {
             Write-Warning "No se encontró ISCC.exe (Inno Setup). Omitiendo compilación del instalador."
         } else {
-            # Extraer versión del csproj de la UI
-            [xml]$uiCsproj = Get-Content $uiProject
-            $versionActual = $uiCsproj.Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1
-            if (-not $versionActual) { $versionActual = "1.0.5.0" }
+            # Extraer versión dinámicamente directo del archivo .csproj de la UI
+            $versionActual = $null
+            $csprojRaw = Get-Content $uiProject -Raw
+            if ($csprojRaw -match '<Version>(.*?)</Version>') {
+                $versionActual = $Matches[1].Trim()
+            }
+            if (-not $versionActual) {
+                $uiDll = Join-Path $uiOut 'HSis.UI.dll'
+                if (Test-Path $uiDll) {
+                    $versionActual = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($uiDll).FileVersion
+                }
+            }
+            if (-not $versionActual) { $versionActual = "1.0.0.0" }
 
             Write-Host "Ejecutando Inno Setup (Versión $versionActual)..." -ForegroundColor Yellow
             & $isccPath "/DMyAppVersion=$versionActual" $issPath

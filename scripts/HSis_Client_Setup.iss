@@ -3,11 +3,18 @@
 ; instalación silenciosa del certificado SSL LAN con certutil, y reinicio del agente.
 
 #define MyAppName "HSis"
-#define MyAppVersion "1.0.5.0"
 #define MyAppPublisher "HSis"
 #define MyAppExeName "HSis.UI.exe"
 #define MyAgentExeName "HSis.NotificationAgent.exe"
 #define SourceClientPkg "C:\HSis\publish\ClientPackage"
+
+#ifndef MyAppVersion
+  #if FileExists(SourceClientPkg + "\UI\" + MyAppExeName)
+    #define MyAppVersion GetVersionNumbersString(SourceClientPkg + "\UI\" + MyAppExeName)
+  #else
+    #define MyAppVersion "1.0.0.0"
+  #endif
+#endif
 
 [Setup]
 AppId={{B528A6B3-57A1-47BD-9F02-4A7B5F09B1A1}
