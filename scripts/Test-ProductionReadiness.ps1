@@ -10,8 +10,8 @@ Uso:
 param(
     [string]$ServerAddress = '192.168.34.107',
     [int]$HttpsPort = 443,
-    [string]$DatabaseServer = '.',
-    [string]$DatabaseName = 'HSis',
+    [string]$DatabaseServer = '.\SQLEXPRESS',
+    [string]$DatabaseName = 'HSIS',
     [string]$ProtectedSecretPath = 'C:\ProgramData\HSis\jwt-secret.dpapi',
     [string]$CertificateThumbprint = ''
 )
@@ -22,7 +22,7 @@ $resultados = [System.Collections.Generic.List[object]]::new()
 function Registrar-Chequeo([string]$Area, [string]$Descripcion, [bool]$Cumple, [string]$Detalle) {
     $estado = if ($Cumple) { 'OK' } else { 'FALLA' }
     $color = if ($Cumple) { 'Green' } else { 'Red' }
-    Write-Host "[$estado] $Area: $Descripcion" -ForegroundColor $color
+    Write-Host "[$estado] ${Area}: $Descripcion" -ForegroundColor $color
     if (-not $Cumple -and $Detalle) {
         Write-Host "       Detalle / Acción: $Detalle" -ForegroundColor Yellow
     }
@@ -86,8 +86,7 @@ Registrar-Chequeo "Seguridad/DPAPI" "Archivo de clave JWT cifrada con DPAPI exis
     "Genera el secreto bajo la identidad de la cuenta de servicio ejecutando .\scripts\New-JwtSecret.ps1."
 
 # 6. CARPETAS DE REGISTRO (LOGS)
-$dirLogs = Path-Combine $env:ProgramData "HSis\Logs"
-function Path-Combine($a, $b) { [System.IO.Path]::Combine($a, $b) }
+$dirLogs = [System.IO.Path]::Combine($env:ProgramData, "HSis\Logs")
 if (-not (Test-Path $dirLogs)) {
     try { New-Item -ItemType Directory -Force -Path $dirLogs | Out-Null } catch {}
 }
@@ -113,12 +112,14 @@ $vistasFaltantes = @()
 $hayRoles = $false
 
 try {
-    $cadenaSql = "Server=$DatabaseServer;Database=$DatabaseName;Integrated Security=True;Encrypt=True;TrustServerCertificate=True;Timeout=5"
-    $conexion = New-Object Microsoft.Data.SqlClient.SqlConnection($cadenaSql)
+    # Usar System.Data.SqlClient nativo del runtime
+    $cadenaSql = "Server=$DatabaseServer;Database=$DatabaseName;Integrated Security=True;Encrypt=False;Timeout=5"
+    $conexion = New-Object System.Data.SqlClient.SqlConnection($cadenaSql)
+
     $conexion.Open()
     $sqlConexionOk = $true
 
-    # Comprobar tablas requeridas
+    # Comprobar tablas requeridas (usando los nombres reales mapeados en la BD)
     $cmd = $conexion.CreateCommand()
     $cmd.CommandText = @"
         SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES 
@@ -129,12 +130,12 @@ try {
     while ($lector.Read()) { $tablas.Add($lector.GetString(0)) }
     $lector.Close()
 
-    $tablasEsperadas = @('Usuario', 'RolUsuario', 'Ticket', 'DetTicket', 'Material', 'Empresa', 'Sucursal', 'Notificacion', 'Departamento', 'Puesto')
+    $tablasEsperadas = @('Usuario', 'Rol_Usuario', 'Ticket', 'Det_Ticket', 'Material', 'Empresa', 'Sucursal', 'Notificacion', 'Departamento', 'Puesto')
     foreach ($te in $tablasEsperadas) {
         if (-not ($tablas -contains $te)) { $tablasFaltantes += $te }
     }
 
-    # Comprobar columnas de migración en Notificacion
+    # Comprobar columnas de migración en Notificacion (id_Ticket, id_Material)
     $cmd.CommandText = @"
         SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS 
         WHERE TABLE_NAME = 'Notificacion'
@@ -144,21 +145,23 @@ try {
     while ($lector.Read()) { $columnasNotif.Add($lector.GetString(0)) }
     $lector.Close()
 
-    if (-not ($columnasNotif -contains 'TicketId')) { $columnasFaltantes += 'Notificacion.TicketId' }
-    if (-not ($columnasNotif -contains 'MaterialId')) { $columnasFaltantes += 'Notificacion.MaterialId' }
+    $tieneTicketCol = $columnasNotif -contains 'id_Ticket' -or $columnasNotif -contains 'TicketId'
+    $tieneMatCol = $columnasNotif -contains 'id_Material' -or $columnasNotif -contains 'MaterialId'
+    if (-not $tieneTicketCol) { $columnasFaltantes += 'Notificacion.id_Ticket' }
+    if (-not $tieneMatCol) { $columnasFaltantes += 'Notificacion.id_Material' }
 
-    # Comprobar vista VHistorialInventario
+    # Comprobar vista v_Historial_Inventario
     $cmd.CommandText = @"
         SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS 
-        WHERE TABLE_NAME = 'VHistorialInventario'
+        WHERE TABLE_NAME IN ('v_Historial_Inventario', 'VHistorialInventario')
 "@
     $lector = $cmd.ExecuteReader()
     $tieneVista = $lector.Read()
     $lector.Close()
-    if (-not $tieneVista) { $vistasFaltantes += 'VHistorialInventario' }
+    if (-not $tieneVista) { $vistasFaltantes += 'v_Historial_Inventario' }
 
     # Comprobar roles sembrados
-    $cmd.CommandText = "SELECT COUNT(*) FROM RolUsuario"
+    $cmd.CommandText = "SELECT COUNT(*) FROM Rol_Usuario"
     $conteoRoles = [int]$cmd.ExecuteScalar()
     $hayRoles = $conteoRoles -ge 3
 

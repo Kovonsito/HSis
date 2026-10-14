@@ -204,7 +204,10 @@ if (builder.Environment.IsProduction())
     }
 
     sqlConnection.Encrypt = true;
-    sqlConnection.TrustServerCertificate = false;
+    if (!sqlConnection.ContainsKey("TrustServerCertificate") && !sqlConnection.ContainsKey("Trust Server Certificate"))
+    {
+        sqlConnection.TrustServerCertificate = false;
+    }
     connectionString = sqlConnection.ConnectionString;
 }
 
